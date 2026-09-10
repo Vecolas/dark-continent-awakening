@@ -1,0 +1,49 @@
+// Fixture de save: um PersistentNenData no schema v1.
+//
+// POR QUE ESTE ARQUIVO EXISTE, e por que ele esta em SNBT e nao em binario:
+//
+// Um teste que grava e le com o MESMO codec prova apenas que o codec e
+// consistente consigo mesmo. Ele nao pega o defeito que importa aqui --
+// renomear uma chave.
+//
+// Todo campo do codec usa optionalFieldOf com um padrao. Renomear
+// "aura_potential" para "auraPotential" faz o save antigo ler como 0.0, SEM
+// erro, SEM aviso e sem nada no log. O jogador perde o progresso e o build
+// continua verde.
+//
+// Este arquivo e o dado congelado contra o qual o codec e conferido. Ele nao
+// se regenera: se um teste falhar apontando para ele, ou o codec quebrou
+// compatibilidade (e precisa de um degrau em NenProfileMigrator), ou a
+// mudanca foi deliberada (e o degrau tambem).
+//
+// SNBT em vez de binario para que a revisao de um PR consiga LER o que mudou.
+{
+  schema_version: 1,
+
+  awakened: 1b,
+  category: "transmutation",
+  category_revealed: 1b,
+
+  aura_potential: 42.5d,
+  control: 0.75d,
+  output: 1.25d,
+
+  technique_proficiency: {
+    "nenfoundation:ten": 0.4d,
+    "nenfoundation:ren": 0.125d
+  },
+
+  unlocked_techniques: [
+    "nenfoundation:ten",
+    "nenfoundation:ren"
+  ],
+
+  unlocked_abilities: [
+    "nenfoundation:aura_cortante"
+  ],
+
+  progression_flags: [
+    "nenfoundation:despertou",
+    "nenfoundation:categoria_revelada"
+  ]
+}

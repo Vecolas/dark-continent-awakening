@@ -62,11 +62,12 @@ trabalhar agora:
 
 ## Ordem de leitura obrigatória
 
-1. **A skill `disciplina-de-engenharia`**
-   (`~/.claude/skills/disciplina-de-engenharia/SKILL.md`) — as regras gerais de
-   engenharia. Não estão duplicadas em nenhum lugar deste repositório.
-   Se você não tem acesso a ela, diga isso explicitamente no seu relato em vez
-   de improvisar as regras.
+1. **[`disciplina-de-engenharia/SKILL.md`](disciplina-de-engenharia/SKILL.md)**
+   — as regras gerais de engenharia, versionadas **dentro do repositório** para
+   que você não dependa de acesso a `~/.claude/skills/`. Quando as duas cópias
+   discordarem, **a do repositório ganha**; ver
+   [`LEIA-ME.md`](disciplina-de-engenharia/LEIA-ME.md).
+   Leia também os quatro arquivos em `disciplina-de-engenharia/references/`.
 2. [`CLAUDE.md`](CLAUDE.md) — princípios, arquitetura, contratos congelados,
    Definition of Done, e a lista de erros que este projeto já sabe que vai
    cometer.

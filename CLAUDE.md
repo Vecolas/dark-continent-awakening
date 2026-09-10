@@ -27,21 +27,28 @@ como erro, aparece como desbalanceamento que ninguem consegue explicar.
 
 ## Fonte de verdade
 
-Regras GERAIS de engenharia **nao moram neste arquivo**. Elas moram na skill
-`disciplina-de-engenharia`
-(`~/.claude/skills/disciplina-de-engenharia/`), que e a fonte de verdade
-sobre: portoes, falso verde, onde mora um numero, nomes e comentarios, ponto
-cego declarado, duas fontes para a mesma verdade, git, issue como unidade de
-trabalho e o que uma entrega precisa declarar.
+Regras GERAIS de engenharia **nao moram neste arquivo**. Elas moram em
+[`disciplina-de-engenharia/`](disciplina-de-engenharia/), copia versionada da
+skill de mesmo nome, e fonte de verdade sobre: portoes, falso verde, onde mora
+um numero, nomes e comentarios, ponto cego declarado, duas fontes para a mesma
+verdade, git, issue como unidade de trabalho e o que uma entrega precisa
+declarar.
 
-Duplicar aquilo aqui criaria duas fontes para a mesma verdade — que e
-exatamente o que a secao 7 da skill proibe.
+> **A copia do repositorio e a que vale**, inclusive contra a versao em
+> `~/.claude/skills/`. Ela existe porque um agente rodando aqui pode nao ter
+> acesso aquela pasta.
+>
+> Sim, isso e a duplicacao que a secao 7 da propria skill proibe. Foi feita de
+> olhos abertos, e a unica coisa que impede a duplicacao de virar divergencia e
+> uma das copias ganhar POR REGRA e nao por acaso. A regra e essa, e o custo
+> esta escrito em
+> [`disciplina-de-engenharia/LEIA-ME.md`](disciplina-de-engenharia/LEIA-ME.md).
 
 Leia, antes de implementar:
 
 | Ordem | Onde | O que |
 | --- | --- | --- |
-| 0 | skill `disciplina-de-engenharia` | as regras gerais |
+| 0 | [`disciplina-de-engenharia/`](disciplina-de-engenharia/) | as regras gerais |
 | 1 | `CONVENCOES.md` | o que e especifico deste repositorio |
 | 2 | `docs/adr/index.md` | as decisoes e o que elas custam |
 | 3 | `docs/processo/marcos.md` | onde o projeto esta e o que vem depois |

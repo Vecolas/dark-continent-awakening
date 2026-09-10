@@ -36,20 +36,28 @@ mod de terceiro parar de ser atualizado.
 
 O NeoForge 1.21.1 exige **Java 21**. Não 17, não 22.
 
-Baixe o [Temurin 21](https://adoptium.net/temurin/releases/?version=21)
-(Windows x64, `.msi`) e instale. Confira:
+Na máquina onde o projeto nasceu isso **já está instalado**: Temurin
+21.0.12, e `JAVA_HOME` aponta para ele. Confira antes de instalar nada:
 
 ```bash
-java -version
-# tem de dizer "21.x"
+./gradlew --version   # a linha "Launcher JVM" tem de dizer 21.x
 ```
 
-Se você tem outra versão de Java instalada e não quer trocar a padrão do
-sistema, aponte o Gradle para o JDK 21 sem mexer no resto:
+**Cuidado com uma pegadinha real desta máquina:** `java -version` responde
+`16.0.2`, porque um JDK 16 antigo continua primeiro no `PATH`. Isso **não
+quebra o build** — o `gradlew` usa `JAVA_HOME`, não o `PATH`. Não saia
+consertando o `PATH` achando que é problema.
+
+Se você está numa máquina nova, baixe o
+[Temurin 21](https://adoptium.net/temurin/releases/?version=21) (Windows x64,
+`.msi`) e instale — o instalador define `JAVA_HOME` sozinho.
+
+Se tiver outra versão instalada e não quiser trocar a padrão do sistema,
+aponte só o Gradle:
 
 ```bash
 # na raiz do repositorio, num arquivo LOCAL que o git ignora
-echo "org.gradle.java.home=C:/Program Files/Eclipse Adoptium/jdk-21" >> gradle.local.properties
+echo "org.gradle.java.home=C:/Program Files/Eclipse Adoptium/jdk-21.0.12.101-hotspot" >> gradle.local.properties
 ```
 
 ### 2. Build
@@ -169,5 +177,5 @@ autorais. Nenhum JAR de terceiro entra neste repositório. Ver
 [`ADR-007`](docs/adr/ADR-007-assets-autorais.md) e
 [`docs/legal/propriedade-intelectual.md`](docs/legal/propriedade-intelectual.md).
 
-A licença do código ainda é a padrão (*All Rights Reserved*) e é uma decisão em
-aberto.
+A licença do código é **All Rights Reserved**, por escolha e não por omissão
+([ADR-008](docs/adr/ADR-008-licenca-e-protecao-de-branch.md)).

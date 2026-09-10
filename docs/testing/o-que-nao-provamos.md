@@ -23,6 +23,7 @@ descoberto.
 | `PacotesDeclaradosTest` | todo pacote se declara; o nucleo nao importa cliente por `import` | violacao por reflexao, por nome de classe em string ou por classe interna |
 | `runClient` | o mod carrega num cliente, os listeners de cliente sobem e o registro de recebedor nao estoura | comportamento em servidor dedicado, que e outro classloader e outro conjunto de classes; e **nada sobre payload realmente trafegando** — sem servidor enviando, o cache fica vazio |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
+| `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |
 | `gameTestServer` | os gametests registrados passam | o que nao virou gametest |
 | CI do GitHub | o build e reprodutivel numa maquina limpa | qualquer coisa que exija Minecraft rodando |
 | `Task :test FROM-CACHE` no log do CI | os inputs batem com uma execucao anterior que passou | que os testes rodaram **nesta** execucao. O portao do `doLast` nao dispara em tarefa cacheada, e a linha "Testes executados" some do log. Quem confere o numero e o passo "Contagem de testes", que soma os XML |
@@ -117,3 +118,5 @@ servidor sobe" a partir do codigo de saida — a conclusao vem de procurar
 | O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |
 | O `PacotesDeclaradosTest` so ve `import` | violacao por reflexao ou por nome de classe em string passa | sem previsao |
 | O **overlay de debug** nunca foi visto com dado | ele foi exercitado so pelo teste de `linhas()`; ninguem apertou a tecla com um servidor enviando | M1, junto do envio |
+| Os comandos nunca **mutaram** um perfil real | `/nen technique unlock` e `/nen reset confirmar` foram executados por RCON, mas sem jogador online eles param na resolucao do alvo. A mutacao e o reset nunca rodaram | #9, com dois jogadores |
+| `technique unlock` nao confere se a tecnica EXISTE | so o namespace e conferido; nao ha registro de tecnicas ate o M4. O comando avisa em voz alta, e aviso nao e portao | M4 |

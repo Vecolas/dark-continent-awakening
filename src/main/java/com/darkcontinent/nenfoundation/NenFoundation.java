@@ -1,0 +1,79 @@
+package com.darkcontinent.nenfoundation;
+
+import com.darkcontinent.nenfoundation.config.NenConfig;
+import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
+import com.darkcontinent.nenfoundation.network.NenProtocol;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Ponto de entrada do Nen Foundation.
+ *
+ * <p>DECISOES QUE ESTE ARQUIVO CARREGA:
+ *
+ * <p>1. Ele so REGISTRA subsistemas. Nenhuma regra de Nen, nenhuma conta de
+ * aura e nenhum handler de rede mora aqui. O motivo e de colaboracao, nao de
+ * estetica: com duas pessoas trabalhando em paralelo, um arquivo central que
+ * cresce vira o unico ponto de conflito permanente do repositorio. Ver
+ * docs/processo/fronteira-de-arquivos.md.
+ *
+ * <p>2. INICIALIZACAO TEM ORDEM, e quem vem antes nao enxerga quem vem depois.
+ * O construtor do mod roda ANTES de a configuracao ser carregada; ler uma
+ * chave de config aqui lanca {@code IllegalStateException: Cannot get config
+ * value before config is loaded} e derruba o carregamento do mod inteiro.
+ *
+ * <p>Isso nao e hipotese: aconteceu neste arquivo no dia do bootstrap, e so
+ * apareceu no {@code runServer}. A compilacao passou, os testes passaram, e o
+ * proprio {@code gradlew runServer} saiu com codigo 0 — a tarefa do Gradle
+ * teve sucesso enquanto o jogo dentro dela travava. Quem vem depois PUXA o que
+ * precisa na propria inicializacao, e e o que {@link #aoPreparar} faz.
+ *
+ * <p>ARQUIVO HOSTIL A MERGE: uma pessoa por vez. Quem precisa registrar um
+ * subsistema novo adiciona UMA linha e diz no titulo do PR que tocou aqui.
+ */
+@Mod(NenFoundation.MOD_ID)
+public final class NenFoundation {
+
+    /**
+     * CONGELADO (ADR-004). Este identificador aparece em NBT de save, em ids de
+     * datapack, em nomes de asset e em quests do modpack. Muda-lo depois do
+     * primeiro mundo criado invalida saves silenciosamente — sem crash e sem
+     * mensagem de erro.
+     */
+    public static final String MOD_ID = "nenfoundation";
+
+    private static final Logger LOG = LoggerFactory.getLogger(NenFoundation.class);
+
+    public NenFoundation(IEventBus modEventBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
+
+        NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
+
+        modEventBus.addListener(NenFoundation::aoPreparar);
+
+        LOG.info("Nen Foundation registrado. Protocolo de rede v{}.", NenProtocol.VERSION);
+    }
+
+    /**
+     * Roda depois de registros e configuracao existirem.
+     *
+     * <p>E o primeiro momento em que ler {@link NenConfig} e legitimo.
+     */
+    private static void aoPreparar(FMLCommonSetupEvent evento) {
+        if (NenConfig.devModeAtivo()) {
+            LOG.info("Modo de desenvolvimento LIGADO. Transicoes de estado em log: {}.",
+                    NenConfig.logarTransicoes());
+        }
+    }
+
+    /** Constroi um {@link ResourceLocation} no namespace do mod. */
+    public static ResourceLocation id(String caminho) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, caminho);
+    }
+}

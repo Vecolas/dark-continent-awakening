@@ -1,0 +1,43 @@
+# Manifesto do Nen Foundation.
+#
+# DECISAO QUE ESTE ARQUIVO CARREGA: nenhuma dependencia opcional e declarada
+# aqui como obrigatoria. O JAR tem de iniciar em cliente e em servidor dedicado
+# com NeoForge e mais nada. Ver ADR-003.
+#
+# As versoes vem de gradle.properties via ProcessResources; nao escreva numero
+# de versao a mao neste arquivo -- ele viraria a segunda fonte da mesma verdade.
+
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+issueTrackerURL = "https://github.com/Vecolas/dark-continent-awakening/issues"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "Dark Continent Awakening"
+description = '''
+A fundacao de Nen do modpack Dark Continent Awakening.
+
+Aura, categorias, tecnicas fundamentais e um framework de habilidades para
+Minecraft 1.21.1 / NeoForge. O servidor e a autoridade sobre todo estado de
+Nen; o cliente desenha o que recebe.
+
+Projeto de fa, sem vinculo com a Shueisha, com o autor de Hunter x Hunter ou
+com qualquer detentor de direitos da obra.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neo_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

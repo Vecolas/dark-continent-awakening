@@ -1,0 +1,30 @@
+# Quebras de linha.
+#
+# DECISAO QUE ESTE ARQUIVO CARREGA: as duas pessoas trabalham no Windows, o CI
+# roda no Linux. Sem regra explicita, o git converte conforme a configuracao
+# LOCAL de cada maquina -- e o resultado e um diff cheio de linhas que ninguem
+# escreveu, ou, pior, um `gradlew` com CRLF que o CI recusa a executar com um
+# erro que nao menciona quebra de linha nenhuma.
+
+* text=auto eol=lf
+
+# Scripts que o Linux executa: LF sempre, sem excecao.
+gradlew         text eol=lf
+*.sh            text eol=lf
+
+# Scripts que o Windows executa: CRLF.
+gradlew.bat     text eol=crlf
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# Binarios: nunca converter.
+*.jar           binary
+*.png           binary
+*.ogg           binary
+*.docx          binary
+*.zip           binary
+
+# Recurso gerado sai sempre com LF. Sem isto, o git marca o arquivo como
+# modificado a cada datagen, por motivo nenhum.
+src/generated/**/.cache/*   text eol=lf
+src/generated/**/*.json     text eol=lf

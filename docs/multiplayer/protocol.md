@@ -35,7 +35,7 @@ primeiro a encontra-lo e quem estiver procurando.
 
 | id | Direcao | O que pode carregar |
 | --- | --- | --- |
-| `activate_technique_request` | C2S | id da tecnica e contexto minimo de input |
+| `activate_technique_request` | C2S | id da tecnica |
 | `deactivate_technique_request` | C2S | id da tecnica |
 | `activate_ability_request` | C2S | id da habilidade, slot, alvo/posicao **candidatos** |
 | `nen_profile_snapshot` | S2C | estado de leitura para a interface, so ao dono |

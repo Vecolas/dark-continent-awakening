@@ -88,7 +88,7 @@ public final class NenProtocol {
      */
     public static final List<Registro> TABELA = List.of(
             c2s("activate_technique_request",
-                    List.of("tecnicaId", "contextoDeInput"),
+                    List.of("tecnicaId"),
                     "o jogador apertou a tecla; o servidor decide se pode"),
             c2s("deactivate_technique_request",
                     List.of("tecnicaId"),

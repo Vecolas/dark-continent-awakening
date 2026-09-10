@@ -1,0 +1,203 @@
+Sim. Fiz a pesquisa considerando o ecossistema atual de mods, Forge/NeoForge, ferramentas de criação de modpacks, desenvolvimento próprio, multiplayer, compatibilidade, manutenção e também os riscos de propriedade intelectual de Hunter × Hunter.
+
+A conclusão é que o projeto é totalmente viável, mas existem quatro níveis muito diferentes de dificuldade:
+
+Abordagem	Dificuldade	Escopo realista para uma pessoa
+Juntar e configurar mods existentes	4/10	Relativamente tranquilo
+Modpack autoral híbrido	6,5–7,5/10	Minha recomendação
+Criar addons profundos sobre um mod de Nen	7,5–8,5/10	Projeto sério de modding
+Criar todo o HxH/Nen do zero	9–10/10	Praticamente desenvolver outro jogo dentro do Minecraft
+
+O motivo de eu recomendar o caminho híbrido é que em 2026 já existe bastante coisa pronta, inclusive sistemas de Nen muito mais avançados do que eu esperaria encontrar.
+
+O que já existe de Hunter × Hunter
+
+A descoberta mais relevante foi o Mine X Hunter, lançado/atualizado em agosto de 2026 para Minecraft 1.21.1 + NeoForge. Apesar de ainda estar na versão 0.1.0, ele já implementa as seis categorias de Nen, Ten/Ren/Zetsu/Gyo/En/Ken/Ko/Ryu, sistema de Hatsu configurável, votos e condições, Exame Hunter, Torre Celestial, Formigas Quimera, Meruem, dimensões e outros sistemas. É praticamente um candidato a servir como motor central do modpack.
+
+Existe também o Nen Unbound, para 1.20.1 Forge, atualizado em julho de 2026. Ele possui progressão de Nen, Hatsus, skill trees, mobilidade, votos, técnicas fundamentais, HUD, traits, bosses e sistemas de PvP. É menos voltado a recriar o "mundo inteiro de HxH", mas provavelmente é uma base bastante interessante caso a opção 1.21.1 apresente problemas.
+
+Também encontrei Hunter x Hunter D, Hunter X Craft, HunterXX e até um modpack Hunter X Craft recente. Isso prova que é perfeitamente possível montar uma experiência desse tipo por curadoria; porém os projetos são fragmentados e não existe uma "API padrão de Hunter × Hunter".
+
+E isso leva à decisão arquitetural mais importante do projeto:
+
+não use dois mods completos de Nen simultaneamente.
+
+Mine X Hunter + Nen Unbound + Hunter X Craft parece tentador, mas provavelmente será pior do que escolher apenas um. Todos querem controlar coisas como aura, stamina, atributos, HUD, animações, keybinds, dano e progressão.
+
+Seu pack deve ter uma única autoridade do Nen.
+
+Onde o projeto realmente fica difícil
+
+Os principais problemas que identifiquei são:
+
+Nen é um sistema aberto. É relativamente fácil implementar Jajanken, Bungee Gum ou Godspeed. É muito mais difícil criar um framework que permita algo parecido com o Nen do anime, onde restrições, votos, afinidades e condições interagem entre si. Um Hatsu Builder genérico transforma o problema de "criar skills" em "criar uma linguagem de poderes".
+Persistência é crítica. Tipo de Nen, aura, técnicas aprendidas, votos, Hatsu e progressão precisam sobreviver corretamente a morte, logout, dimensão, respawn, atualização do pack e migração de mundo.
+Multiplayer aumenta brutalmente a complexidade. Dano, cooldown, custo de Nen, posição do jogador, teleporte, manipulação e recompensas precisam ser validados pelo servidor. Caso contrário, cheats e dessincronização aparecem facilmente.
+Combate é uma fonte enorme de conflito. Epic Fight e Better Combat podem transformar completamente a sensação do jogo, mas alteram animações, hit detection e ataques — exatamente áreas em que mods de Nen também mexem.
+Keybinds rapidamente viram caos. Nen já consome várias teclas. Some mapa, mochila, dodge, quests, skills, menus e outros mods e você terá conflitos ou vinte atalhos para o jogador decorar.
+Bosses bons são caros. Colocar um modelo do Hisoka é fácil. Fazer Hisoka se comportar como Hisoka exige animações, fases, telegraphs, movimentação, IA, arena, sincronização, resistência a cheese e interação com centenas de efeitos possíveis.
+Recriar o mundo de HxH é outro projeto inteiro. Exame Hunter, Torre Celestial, Yorknew, Greed Island e Formigas Quimera praticamente representam jogos diferentes. Tentar implementar todos logo na primeira versão é uma das maneiras mais prováveis de abandonar o projeto.
+Progressão precisa substituir a natureza sandbox do Minecraft. Sem direção, o jogador simplesmente minera diamante enquanto tem alguns poderes de Nen. FTB Quests, Patchouli, KubeJS e sistemas de stages permitem construir capítulos, tutorial, Exame, Hunter License, mestres, contratos e arcos. Essas ferramentas têm versões atuais nos ecossistemas relevantes.
+Minecraft vanilla pode destruir seu balanceamento. Armadura de Netherite, encantamentos, poções, farms e comida podem tornar todo o sistema de Nen irrelevante se você não redesenhar a curva de poder.
+Performance precisa ser pensada para servidor. Aura permanente, partículas, dezenas de projéteis, pathfinding, bosses, estruturas e scripts que verificam jogadores a cada tick podem derrubar TPS mesmo se o FPS do cliente estiver bom.
+Atualizações são perigosas. Um update do mod central, loader, biblioteca de animação ou worldgen pode alterar registries e quebrar personagem/mundo. Um pack assim precisa trabalhar com versões congeladas, backups e atualização controlada.
+Existe risco jurídico/distributivo. Minecraft permite mods Java dentro de determinadas condições, mas isso não concede direitos sobre Hunter × Hunter. A Shueisha identifica HxH como propriedade protegida e sua orientação de copyright não equivale a uma licença para fan projects. Um disclaimer de "fan made" também não elimina esse risco.
+O problema jurídico merece atenção
+
+Aqui existem três licenças diferentes envolvidas:
+
+Minecraft → seu mod.
+Mojang permite criação e distribuição de mods como trabalhos originais, respeitando suas regras.
+
+Autor do mod → seu modpack.
+Por exemplo, Mine X Hunter está marcado como All Rights Reserved. Isso não significa necessariamente que você não possa incluí-lo em um pack do CurseForge através do sistema de manifest, mas significa que você não pode assumir que pode modificar ou redistribuir o JAR. CurseForge e Modrinth também têm políticas próprias sobre permissões.
+
+Hunter × Hunter → você.
+Essa é independente das duas anteriores.
+
+Se o objetivo for apenas um projeto gratuito entre amigos, o risco prático obviamente é muito diferente de transformar isso em um produto comercial. Mesmo assim, para um projeto público eu evitaria extrair músicas, vozes, frames e assets diretamente do anime. Criaria modelos, texturas, VFX e áudio próprios.
+
+Isso também deixa aberta uma estratégia interessante no futuro: transformar o pack de "Hunter × Hunter" em um universo original fortemente inspirado no conceito de Hunters/Nen, caso ele cresça muito.
+
+Curiosamente, desenvolver mods próprios ficou bem mais acessível
+
+Você não precisa necessariamente começar dominando Java.
+
+O MCreator 2026.2 suporta NeoForge 1.21.1 e consegue gerar uma quantidade grande de coisas: entidades, IA, GUIs, atributos, partículas, dimensões, estruturas, keybinds, procedimentos, itens e outros sistemas.
+
+Eu separaria assim:
+
+Sistema	Ferramenta que eu usaria
+Mob simples	MCreator
+Itens/blocos	MCreator
+Estruturas	MCreator/datapack
+NPCs básicos	MCreator
+GUI	MCreator ou Java
+Boss com algumas fases	MCreator possível
+Boss complexo	Java/NeoForge
+Sistema fundamental de Nen	Java/NeoForge
+Rede multiplayer	Java/NeoForge
+Persistência avançada	Java/NeoForge
+API de Hatsu/addons	Java/NeoForge
+Receitas/eventos	KubeJS
+Loot	LootJS
+Spawn	In Control
+Quests	FTB Quests
+Manual/lore	Patchouli
+
+A documentação atual do NeoForge 1.21.1 parte de Java 21, Gradle e desenvolvimento Java convencional, então para construir o motor central você eventualmente entraria nesse território.
+
+A arquitetura que eu recomendo
+
+Eu faria o pack como várias camadas desacopladas:
+
+Camada 1 — Núcleo de Nen
+Mine X Hunter, inicialmente.
+
+Camada 2 — Progressão autoral
+FTB Quests + scripts.
+
+Camada 3 — Balanceamento
+KubeJS + LootJS + In Control.
+
+Camada 4 — Mundo
+Mods de estruturas, cidades, exploração e eventualmente dimensões próprias.
+
+Camada 5 — Combate
+Testar Better Combat e Epic Fight separadamente. Escolher no máximo um se ele não interferir no núcleo.
+
+Camada 6 — Conteúdo próprio
+Pequeno addon feito por você somente quando alguma coisa importante não puder ser resolvida por scripts.
+
+Camada 7 — Identidade
+Resource pack próprio, sons, interface, modelos, partículas, menus e questbook.
+
+Essa estrutura tem uma vantagem enorme: se daqui a seis meses o Mine X Hunter parar de funcionar, você não perde necessariamente quests, estruturas, loot, textos e toda a identidade do pack.
+
+Você troca principalmente a camada de Nen.
+
+1.20.1 Forge ou 1.21.1 NeoForge?
+
+Há alguns anos eu provavelmente escolheria automaticamente 1.20.1 Forge pela quantidade de mods.
+
+Hoje eu não faria mais isso.
+
+KubeJS, LootJS, CraftTweaker, FTB Quests, In Control e Epic Fight já possuem linhas atuais compatíveis com 1.21.1/NeoForge, então o argumento de que "não existem ferramentas para 1.21.1" perdeu bastante força.
+
+Portanto:
+
+1.21.1 NeoForge
+→ Minha primeira tentativa, devido ao Mine X Hunter.
+
+1.20.1 Forge
+→ Plano B extremamente sólido, principalmente com Nen Unbound.
+
+Eu não escolheria a versão primeiro e procuraria um mod depois.
+
+Eu escolheria o núcleo de Nen primeiro e deixaria ele determinar a versão do Minecraft.
+
+O que eu faria na prática
+
+Antes de instalar 100 mods, eu construiria uma versão que tenha apenas cerca de 20–40 mods e prove o seguinte ciclo:
+
+jogador aparece → encontra o Exame Hunter → passa por três provas → recebe Hunter License → encontra um mestre → faz Water Divination → descobre sua categoria → aprende Ten/Ren/Zetsu → desbloqueia um Hatsu → recebe uma missão → enfrenta um boss → volta para uma cidade/hub → recebe recompensa → abre o próximo capítulo.
+
+Esse ciclo é pequeno o suficiente para ser feito, mas grande o suficiente para revelar quase todos os problemas sérios.
+
+Eu testaria isso em:
+
+singleplayer → servidor dedicado → 2 jogadores → 4 jogadores.
+
+Somente depois disso adicionaria Torre Celestial, Yorknew, Greed Island etc.
+
+Isso é muito melhor do que passar três meses criando 150 mods em uma instância e descobrir depois que o sistema central de Nen conflita com seu mod de combate.
+
+Minha recomendação final para o seu projeto
+
+Eu começaria com:
+
+Minecraft 1.21.1 + NeoForge + Mine X Hunter como candidato ao núcleo.
+
+E em volta dele:
+
+FTB Quests + KubeJS + LootJS + In Control + Patchouli + mods de estruturas/exploração + mods de performance + resource pack próprio.
+
+O Mine X Hunter só se torna definitivo depois de passar nos testes de estabilidade, porque a versão pública encontrada é 0.1.0 e é muito recente.
+
+Se falhar:
+
+Plano B: 1.20.1 Forge + Nen Unbound.
+
+Se Nen Unbound também limitar demais o projeto:
+
+Plano C: desenvolver um núcleo próprio, mas começando apenas por:
+
+Aura → categoria → Ten → Ren → Zetsu → afinidade → framework de Hatsu
+
+e não por "vamos programar Gon, Killua, Kurapika, Chrollo, Hisoka, Meruem...".
+
+A diferença é enorme. O primeiro é construir um sistema. O segundo rapidamente se transforma em centenas de habilidades especiais independentes.
+
+Para uma pessoa trabalhando de forma consistente, considero razoável pensar em semanas a poucos meses para um vertical slice autoral, meses para um modpack realmente polido e potencialmente muitos meses a mais de um ano para um núcleo de Nen próprio robusto, dependendo do conhecimento técnico e da ambição.
+
+Preparei também o relatório completo da pesquisa, com 12 páginas, matriz de riscos, análise de mods encontrados, comparação MCreator/Java, questões de licença, arquitetura, bloqueios, estimativas de esforço e todas as fontes:
+
+Baixar o relatório completo — Viabilidade do Modpack Hunter × Hunter (.docx)
+
+A partir daqui, o próximo passo mais útil seria transformar essa pesquisa em um plano de desenvolvimento real do modpack, já definindo exatamente o mod central, versão, lista inicial de mods, progressão do Exame Hunter até Nen, estrutura de quests e quais sistemas teremos que desenvolver nós mesmos.
+
+hxh_modpack_viabilidade_final.docx
+Documento
+
+Fechei e revisei os dois documentos, já pensando no Nen Foundation como um mod próprio, em NeoForge 1.21.1 + Java 21, desenvolvido simultaneamente por duas pessoas. Também fiz a revisão visual página por página dos arquivos finais.
+
+A arquitetura segue alguns princípios que considero importantes para o projeto: servidor como autoridade, separação entre dados persistentes e estado temporário de combate, sistemas de Nen modulares, conteúdo orientado a dados sempre que possível e um núcleo que não dependa estruturalmente de FTB Quests, KubeJS ou Epic Fight. Isso permite trocar a composição do modpack sem destruir o Nen Foundation. Essa abordagem é compatível com os mecanismos atuais de Data Attachments e networking/payloads do NeoForge 1.21.1.
+
+Os arquivos são:
+
+Plano Técnico Completo — Nen Foundation (.docx) — 14 páginas. Contém arquitetura completa, estrutura de pacotes, Aura Engine, categorias e afinidades, Ten/Ren/Zetsu/Gyo, framework para Hatsu, seis habilidades de prova, progressão, networking multiplayer, HUD, segurança, persistência, compatibilidade, performance, testes, Git/branches e principalmente a divisão de trabalho entre Dev A e Dev B.
+Roadmap até o MVP + Direcionamentos Futuros (.docx) — 8 páginas. Divide o desenvolvimento em M0 → M8, cada marco com tarefas paralelas para os dois desenvolvedores, trabalho conjunto, critérios objetivos de saída e ganchos futuros. Depois do MVP há backlog priorizado de Ken/Ko/Ryu, Shu/En/In, votos e limitações, percepção de Nen, Hatsu Builder, NPCs/mestres, bosses, Exame Hunter, Torre Celestial/Yorknew, Greed Island, Nen Beasts e uma API pública.
+
+Uma decisão importante do plano é não colocar o Epic Fight como fundação do sistema de combate. Ele entra somente em um estágio posterior como adapter experimental. Já FTB Quests, KubeJS, LootJS, In Control e Patchouli foram tratados como camada complementar do modpack, e todos têm suporte atual para o ecossistema 1.21.1/NeoForge.
+
+O MVP proposto não é apenas “Nen funcionando”. Ele termina com um vertical slice jogável: despertar → descoberta da categoria → aura → Ten/Ren/Zetsu/Gyo → progressão → habilidade/Hatsu de demonstração → combate → quests → save/logout/death/dimension → servidor dedicado com dois jogadores. A ideia é chegar nesse ponto antes de começar a reproduzir os grandes arcos de Hunter × Hunter.

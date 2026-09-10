@@ -24,6 +24,42 @@ Próximo: **M1**.
 
 ---
 
+## Por onde começar
+
+O trabalho está recortado em **issues do GitHub**, com milestones M1..M8.
+
+**O próximo marco é o M1**, e ele tem 8 issues finas, prontas para pegar:
+
+| # | Issue | Owner |
+| --- | --- | --- |
+| [#2](../../issues/2) | Ligar `PersistentNenData` ao ciclo de vida do jogador | Dev A |
+| [#3](../../issues/3) | `RuntimeNenState` e o scheduler central de tick | Dev A |
+| [#4](../../issues/4) | Payloads S2C e handshake de versão do protocolo | Dev A |
+| [#5](../../issues/5) | Payloads C2S com validação e rate limit — **P0** | Dev A |
+| [#6](../../issues/6) | Cache somente-leitura no cliente e overlay de debug | Dev B |
+| [#7](../../issues/7) | Comandos de debug permissionados | Dev B |
+| [#8](../../issues/8) | Fixtures de save e regressão de persistência | Dev B |
+| [#9](../../issues/9) | Matriz de QA em servidor dedicado, dois jogadores | conjunto |
+
+Ordem sugerida dentro do M1: **#2 → #4 → #5** na lane A (cada uma destrava a
+seguinte), e **#8 → #6 → #7** na lane B. A #9 fecha o marco e depende de todas.
+
+Os marcos **M2 a M8** existem como issues guarda-chuva ([#10](../../issues/10)
+a [#16](../../issues/16)), com lanes e gate escritos. Elas viram issues finas
+quando o marco anterior fechar — **e não antes**. Recortar agora significa
+decidir coisas que o marco anterior ainda vai revelar.
+
+As dívidas e bloqueios abertos do M0 são as issues
+[#17](../../issues/17) a [#24](../../issues/24). Duas afetam quem for
+trabalhar agora:
+
+- **[#17](../../issues/17) — nenhuma máquina tem JDK 21 instalado.** Sem isso o
+  build não roda. É a primeira coisa a resolver.
+- **[#19](../../issues/19) — o repositório está dentro do OneDrive.** Já causou
+  uma falha real de build.
+
+---
+
 ## Ordem de leitura obrigatória
 
 1. **A skill `disciplina-de-engenharia`**

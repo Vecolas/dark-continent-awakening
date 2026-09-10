@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,8 +19,9 @@ public final class NenPlayerLifecycle {
     @SubscribeEvent
     public static void aoEntrar(PlayerEvent.PlayerLoggedInEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
-            NenProfileService.ler(jogador);
+            PersistentNenData perfil = NenProfileService.ler(jogador);
             NenRuntimeService.iniciarSessao(jogador);
+            NenSyncService.enviarSnapshot(jogador, perfil);
         }
     }
 

@@ -56,14 +56,48 @@ jobs:
       - name: Build, testes e portoes
         run: ./gradlew build --stacktrace
 
-      # `build` sai verde se nenhum teste executar? Nao: o proprio build.gradle
-      # reprova nesse caso. Este passo existe so para deixar a contagem visivel
-      # no log do CI, onde qualquer pessoa a confere sem baixar artefato.
+      # POR QUE ESTE PASSO EXISTE, e nao e redundante com o portao do
+      # build.gradle:
+      #
+      # O portao do build.gradle roda no `doLast` da tarefa `test`. Quando o
+      # Gradle resolve a tarefa como FROM-CACHE ou UP-TO-DATE, o `doLast` NAO
+      # executa -- e a linha "Testes executados: N" simplesmente nao aparece no
+      # log. Isso ja aconteceu aqui: uma reescrita de historico mudou so os
+      # metadados dos commits, os inputs ficaram identicos, e o CI seguinte
+      # trouxe `Task :test FROM-CACHE`.
+      #
+      # Cache nao e falso verde: o Gradle so reaproveita quando os inputs
+      # batem, e a execucao anterior passou pelo portao. Mas quem le o log
+      # perde a contagem, e "nao consigo ver o numero" e como um verde comeca a
+      # ser confiado sem ser conferido.
+      #
+      # Este passo soma os relatorios XML, que existem tanto na execucao quanto
+      # no cache, e REPROVA se o total for zero.
       - name: Contagem de testes
         if: always()
+        shell: bash
         run: |
-          echo "Relatorios encontrados:"
-          find build/test-results/test -name '*.xml' -printf '%f\n' 2>/dev/null || true
+          set -euo pipefail
+          dir=build/test-results/test
+          if [ ! -d "$dir" ]; then
+            echo "::error::Nenhum diretorio de relatorio em $dir."
+            exit 1
+          fi
+          total=0
+          arquivos=0
+          for xml in "$dir"/TEST-*.xml; do
+            [ -e "$xml" ] || continue
+            arquivos=$((arquivos + 1))
+            n=$(sed -n 's/.*<testsuite[^>]*tests="\([0-9]*\)".*/\1/p' "$xml" | head -1)
+            echo "  $(basename "$xml"): ${n:-0}"
+            total=$((total + ${n:-0}))
+          done
+          echo "Relatorios: $arquivos | Testes executados: $total"
+          if [ "$total" -eq 0 ]; then
+            echo "::error::Zero testes. Suite vazia nao e aprovacao."
+            exit 1
+          fi
+          echo "Testes executados: $total" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Relatorio de testes
         if: always()

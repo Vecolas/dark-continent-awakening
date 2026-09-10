@@ -19,6 +19,7 @@ public final class NenPlayerLifecycle {
     public static void aoEntrar(PlayerEvent.PlayerLoggedInEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             NenProfileService.ler(jogador);
+            NenRuntimeService.iniciarSessao(jogador);
         }
     }
 
@@ -33,6 +34,26 @@ public final class NenPlayerLifecycle {
     public static void aoClonar(PlayerEvent.Clone evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             NenProfileService.ler(jogador);
+            NenRuntimeService.reiniciar(jogador);
+        }
+    }
+
+    /** Nenhum estado de combate sobrevive ao logout. */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void aoSair(PlayerEvent.PlayerLoggedOutEvent evento) {
+        if (evento.getEntity() instanceof ServerPlayer jogador) {
+            NenRuntimeService.encerrarSessao(jogador);
+        }
+    }
+
+    /**
+     * Politica M1: troca de dimensao encerra toda tecnica, recarga e
+     * canalizacao temporaria. Estado permitido sera revalidado em marco futuro.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void aoTrocarDimensao(PlayerEvent.PlayerChangedDimensionEvent evento) {
+        if (evento.getEntity() instanceof ServerPlayer jogador) {
+            NenRuntimeService.reiniciar(jogador);
         }
     }
 }

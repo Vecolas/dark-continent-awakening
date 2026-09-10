@@ -21,7 +21,7 @@ descoberto.
 | `ProtocoloCongeladoTest` | codigo e documento concordam sobre id, direcao e versao | que o handler valida o que devia |
 | `IndiceDeAdrTest` | nenhum ADR esta fora do indice | que as decisoes estao sendo seguidas |
 | `PacotesDeclaradosTest` | todo pacote se declara; o nucleo nao importa cliente por `import` | violacao por reflexao, por nome de classe em string ou por classe interna |
-| `runClient` | o mod carrega num cliente | comportamento em servidor dedicado, que e outro classloader e outro conjunto de classes |
+| `runClient` | o mod carrega num cliente, os listeners de cliente sobem e o registro de recebedor nao estoura | comportamento em servidor dedicado, que e outro classloader e outro conjunto de classes; e **nada sobre payload realmente trafegando** — sem servidor enviando, o cache fica vazio |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
 | `gameTestServer` | os gametests registrados passam | o que nao virou gametest |
 | CI do GitHub | o build e reprodutivel numa maquina limpa | qualquer coisa que exija Minecraft rodando |
@@ -103,17 +103,17 @@ servidor sobe" a partir do codigo de saida — a conclusao vem de procurar
 
 ---
 
-## Limites conhecidos AGORA (M0)
+## Limites conhecidos AGORA (M0 e inicio do M1)
 
 | Limite | Consequencia | Quando fecha |
 | --- | --- | --- |
 | **Nenhuma maquina do projeto tem JDK 21 instalado.** A verificacao usou um JDK portatil em diretorio temporario, que nao sobrevive. | ninguem consegue buildar hoje sem instalar o Temurin 21 | ao instalar; ver README |
-| `runClient` **nunca foi executado** | o mod carrega em servidor dedicado; ninguem viu ele carregar num cliente | proxima sessao |
+| Nenhum payload **trafegou** numa conexao real | ida e volta e contra buffer em memoria; registro existe, envio nao (depende de #2 e #5) | M1, quando o servidor passar a enviar |
 | Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
 | Nenhum **gametest** existe | comportamento em jogo nao tem cobertura automatizada nenhuma | M1 |
-| Os payloads sao uma **tabela, nao codigo** | a direcao esta congelada e conferida, mas nenhum byte trafega | M1 |
+| Os payloads **C2S nao estao registrados** | o cliente nao consegue pedir nada; registrar exige handler com validacao (#2 e #5) | M1 |
 | Nao ha portao de **carregamento de registro** | uma definicao orfa passaria despercebida | M5 |
 | Nao ha **medicao de performance** | "nao e gargalo" e opiniao | M2 (primeiro spark) |
-| **CI nunca executou** | o workflow nunca rodou; o YAML pode ter erro | primeiro push |
 | O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |
 | O `PacotesDeclaradosTest` so ve `import` | violacao por reflexao ou por nome de classe em string passa | sem previsao |
+| O **overlay de debug** nunca foi visto com dado | ele foi exercitado so pelo teste de `linhas()`; ninguem apertou a tecla com um servidor enviando | M1, junto do envio |

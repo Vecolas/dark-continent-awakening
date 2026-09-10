@@ -1,0 +1,178 @@
+// Build do Nen Foundation (NeoForge 1.21.1 / Java 21).
+//
+// DECISOES QUE ESTE ARQUIVO CARREGA:
+//  - Java 21 e imposto pelo toolchain, nao pelo JDK que a pessoa tem instalado.
+//    Assim a maquina de quem builda nao muda o resultado.
+//  - Testes unitarios JUnit 5 rodam em `gradlew build` SEM o Minecraft. Eles
+//    cobrem logica pura (codec, migracao, invariantes numericos, portoes de
+//    documentacao). Comportamento de jogo mora em gametest, nao aqui.
+//  - `gradlew check` reprova se a suite unitaria nao executar NENHUM teste.
+//    Suite vazia nao e aprovacao (disciplina-de-engenharia, secao 4, pergunta 3).
+//
+// ARQUIVO HOSTIL A MERGE: so uma pessoa por vez o altera. Ver
+// docs/processo/fronteira-de-arquivos.md.
+
+plugins {
+    id 'java-library'
+    id 'net.neoforged.gradle.userdev' version '7.1.38'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude('**/*.bbmodel')
+    exclude('src/generated/**/.cache')
+}
+
+// Mojang entrega Java 21 aos jogadores em 1.21.1; o mod tem de mirar 21. [NF-1]
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${neo_version}"
+
+    testImplementation platform("org.junit:junit-bom:${junit_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// --- Perfis de execucao -------------------------------------------------
+// `client` e `server` sao o perfil dev-minimal do plano tecnico, secao 23:
+// NeoForge + Nen Foundation e nada mais. Bug do nucleo se reproduz AQUI antes
+// de se olhar o modpack completo. O perfil dev-pack e uma instancia separada,
+// fora deste projeto Gradle; ver docs/modpack/perfis-de-execucao.md.
+runs {
+    configureEach {
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+        workingDirectory project.layout.projectDirectory.dir('run').dir(name)
+        modSource project.sourceSets.main
+    }
+
+    client {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    server {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        argument '--nogui'
+    }
+
+    // Roda todos os gametests registrados e sai. Este e o portao de
+    // comportamento em jogo; a suite JUnit nao o substitui.
+    gameTestServer {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    data {
+        arguments.addAll '--mod', project.mod_id,
+                '--all',
+                '--output', file('src/generated/resources/').getAbsolutePath(),
+                '--existing', file('src/main/resources/').getAbsolutePath()
+    }
+}
+
+// --- Testes -------------------------------------------------------------
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    testLogging {
+        events 'failed', 'skipped'
+        exceptionFormat 'full'
+    }
+    // Os portoes de documentacao leem arquivos do repositorio. Sem isto eles
+    // dependeriam do diretorio de trabalho que o Gradle escolher.
+    systemProperty 'nenfoundation.repoRoot', project.projectDir.absolutePath
+
+    // ESTAS DECLARACOES DE ENTRADA NAO SAO BUROCRACIA -- SEM ELAS OS PORTOES
+    // DE DOCUMENTACAO NAO REPROVAM NADA.
+    //
+    // Verificado na pratica no dia do bootstrap: com uma quebra DELIBERADA
+    // aplicada (direcao de payload trocada em protocol.md, um ADR apagado do
+    // indice), `gradlew test` saiu BUILD SUCCESSFUL. A tarefa ficou
+    // UP-TO-DATE porque o Gradle nao sabia que aqueles arquivos eram entrada
+    // dela -- os testes nem chegaram a rodar.
+    //
+    // Esse e o falso verde na camada da ferramenta: o portao esta certo, o
+    // teste esta certo, e mesmo assim o build aprova uma arvore quebrada.
+    inputs.files(fileTree(dir: 'docs', include: '**/*.md'))
+            .withPropertyName('documentacaoLidaPelosPortoes')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(fileTree(dir: 'src/main/java', include: '**/*.java'))
+            .withPropertyName('fontesLidasPelosPortoes')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(fileTree(dir: 'src/main/resources', include: '**/*.json'))
+            .withPropertyName('recursosLidosPelosPortoes')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    // Portao que morde: suite que nao executou nada NAO passa.
+    //
+    // A contagem sai dos relatorios XML, e nao de um listener `afterTest`, por
+    // dois motivos. Um: listener de execucao e incompativel com o cache de
+    // configuracao, e desligar o cache para ganhar um contador seria pagar caro
+    // por pouco. Dois: o XML e o que o CI publica, entao o portao conta
+    // exatamente o que qualquer pessoa consegue conferir depois.
+    def relatorios = reports.junitXml.outputLocation
+    doLast {
+        File dir = relatorios.get().asFile
+        int total = 0
+        int arquivos = 0
+        if (dir.isDirectory()) {
+            dir.listFiles({ File f -> f.name.endsWith('.xml') } as FileFilter)?.each { File f ->
+                arquivos++
+                def m = (f.getText('UTF-8') =~ /tests="(\d+)"/)
+                if (m.find()) {
+                    total += m.group(1) as int
+                }
+            }
+        }
+        if (total == 0) {
+            throw new GradleException(
+                    'Nenhum teste executou (' + arquivos + ' relatorios em ' + dir + ').\n' +
+                    'Suite vazia nao e aprovacao: um filtro errado, um sourceSet mal\n' +
+                    'configurado ou uma deteccao de JUnit que falhou fazem esta tarefa\n' +
+                    'sair com codigo 0 sem ter olhado nada.')
+        }
+        logger.lifecycle("Testes executados: ${total}")
+    }
+}
+
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // -Xlint:all deixa os avisos VISIVEIS. Ele nao os transforma em erro:
+    // as fontes decompiladas do Minecraft entram nesta compilacao e produzem
+    // ruido que nao e nosso. Se um dia der para separar as duas compilacoes,
+    // -Werror entra so na nossa. Ate la, aviso aqui e material de revisao de
+    // PR, e nao portao -- e esta distincao esta escrita porque aviso que
+    // ninguem le e defeito que vive para sempre.
+    options.compilerArgs << '-Xlint:all' << '-Xlint:-processing' << '-Xlint:-serial'
+}

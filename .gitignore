@@ -1,0 +1,51 @@
+### Gradle ###
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+### IDEs ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/**/out/
+.run/
+.apt_generated
+.classpath
+.eclipse/
+.factorypath
+.project
+.settings
+bin/
+!**/src/**/bin/
+.vscode/
+
+### SO ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Minecraft ###
+run/
+# O runServer deixa logs na raiz do projeto, alem de em run/.
+logs/
+!**/src/**/run/
+**/src/generated/**/.cache/
+repo/
+!**/src/**/repo/
+
+### Modpack ###
+# JARs de terceiros nunca entram no repositorio: as licencas nao permitem
+# redistribuicao e o repo nao e um mirror. O pack se descreve por manifesto.
+# Ver docs/modpack/version-lock.md e ADR-007.
+pack/mods/
+pack/*.zip
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+### Perfis locais ###
+*.local.properties
+.claude/settings.local.json
+.codex/

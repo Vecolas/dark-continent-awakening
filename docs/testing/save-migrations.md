@@ -95,3 +95,23 @@ Hoje o `NenProfileMigratorTest` cobre apenas a **recusa** de versao invalida e
 futura. Ele nao prova que uma migracao real preserva um mundo real, porque
 ainda nao ha migracao real. Ver
 [o-que-nao-provamos.md](o-que-nao-provamos.md).
+
+---
+
+## O que o gametest cobre, e o que ele nao cobre
+
+A partir do primeiro gametest, `NenPerfilGameTest` prova em jogo que:
+
+- um jogador recem-colocado no mundo responde ao perfil NEUTRO, vindo do
+  attachment de verdade — e nao de um objeto construido num teste;
+- uma mutacao pelo servico chega ao attachment e volta de la;
+- a categoria fica escondida ate a revelacao;
+- **dois jogadores nao compartilham perfil.**
+
+O ultimo e o que nenhum teste unitario alcanca. Verificado com uma quebra
+deliberada: um cache estatico dentro do servico fez o perfil de um jogador
+vazar para o outro, e **os 81 testes JUnit passaram**. So o gametest reprovou.
+
+Continua sem cobertura em jogo: morte com `copyOnDeath`, relog, troca de
+dimensao e restart do servidor. Cada um vira um gametest quando o
+comportamento correspondente for entregue.

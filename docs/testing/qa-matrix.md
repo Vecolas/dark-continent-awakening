@@ -14,12 +14,19 @@ Cinco minutos. Roda no perfil **dev-minimal** — NeoForge mais Nen Foundation e
 nada mais.
 
 ```bash
-./gradlew build           # compila + testes unitarios + portoes
-./gradlew runClient       # cliente abre, mundo novo carrega
-./gradlew runServer       # servidor dedicado sobe sem crash
+./gradlew build              # compila + testes unitarios + portoes
+./gradlew runGameTestServer  # comportamento em jogo; procure "required tests"
+./gradlew runClient          # cliente abre, mundo novo carrega
+./gradlew runServer          # servidor dedicado sobe sem crash
 ```
 
+> **Nunca conclua nada a partir do codigo de saida de uma tarefa `run*`.** Ja
+> houve duas vezes em que o Gradle imprimiu `BUILD SUCCESSFUL` com o jogo
+> morto dentro. Procure a linha: `Done (` para o servidor, `required tests`
+> para o gametest.
+
 - [ ] `build` verde, e a saida diz quantos testes rodaram (nao zero).
+- [ ] `runGameTestServer` diz **`All N required tests passed`**.
 - [ ] Cliente abre e um mundo novo carrega.
 - [ ] Servidor dedicado sobe. **Nenhum `NoClassDefFoundError`** no log.
 - [ ] Entrar no servidor pelo cliente funciona.

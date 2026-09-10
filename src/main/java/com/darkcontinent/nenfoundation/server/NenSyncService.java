@@ -25,10 +25,40 @@ public final class NenSyncService {
     private NenSyncService() {
     }
 
+    /**
+     * Se a conexao deste jogador consegue receber o payload.
+     *
+     * <p>POR QUE ESTA CONFERENCIA EXISTE. {@code PacketDistributor.sendToPlayer}
+     * LANCA {@code UnsupportedOperationException} quando a conexao nao negociou
+     * o canal do mod. Como o envio acontece no evento de login, a excecao sobe
+     * de dentro do tratamento de entrada do jogador.
+     *
+     * <p>Isso nao e hipotese: os quatro primeiros gametests do projeto
+     * reprovaram com
+     * {@code Payload nenfoundation:nen_profile_snapshot may not be sent to the client!}
+     * ao criar um jogador de teste. Qualquer jogador cuja conexao nao tenha
+     * negociado o canal -- teste, FakePlayer de outro mod, conexao ja em
+     * encerramento -- produz o mesmo.
+     *
+     * <p>Nao receber o snapshot NAO dessincroniza ninguem: um cliente que nao
+     * tem o canal tambem nao tem o mod, e nao ha HUD para ficar desatualizado.
+     * Entao pular e a resposta correta, e nao um contorno.
+     */
+    private static boolean consegueReceber(ServerPlayer dono, CustomPacketPayload payload) {
+        return dono.connection != null && dono.connection.hasChannel(payload.type());
+    }
+
     /** Envia ao jogador seu perfil visivel, imediatamente apos o login. */
     public static void enviarSnapshot(ServerPlayer dono) {
         PersistentNenData perfil = NenProfileService.ler(dono);
         enviarSnapshot(dono, perfil);
+    }
+
+    /** Entrega de verdade, pulando quem nao pode receber. */
+    private static void entregarSePuder(ServerPlayer dono, CustomPacketPayload payload) {
+        if (consegueReceber(dono, payload)) {
+            entregarAoDono(dono, payload, PacketDistributor::sendToPlayer);
+        }
     }
 
     /**
@@ -38,11 +68,11 @@ public final class NenSyncService {
      */
     public static void enviarDelta(ServerPlayer dono, double auraMaxima) {
         RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
-        entregarAoDono(dono, criarDelta(estado, auraMaxima), PacketDistributor::sendToPlayer);
+        entregarSePuder(dono, criarDelta(estado, auraMaxima));
     }
 
     static void enviarSnapshot(ServerPlayer dono, PersistentNenData perfil) {
-        entregarAoDono(dono, criarSnapshot(perfil), PacketDistributor::sendToPlayer);
+        entregarSePuder(dono, criarSnapshot(perfil));
     }
 
     static SnapshotDePerfilS2C criarSnapshot(PersistentNenData perfil) {

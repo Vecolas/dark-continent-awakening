@@ -24,7 +24,7 @@ descoberto.
 | `runClient` | o mod carrega num cliente, os listeners de cliente sobem e o registro de recebedor nao estoura | comportamento em servidor dedicado, que e outro classloader e outro conjunto de classes; e **nada sobre payload realmente trafegando** — sem servidor enviando, o cache fica vazio |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
 | `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |
-| `gameTestServer` | os gametests registrados passam | o que nao virou gametest |
+| `gameTestServer` | **nada, hoje** | com zero gametests registrados ele nem inicia: o servidor morre com `No test functions were given!` — **e o Gradle imprime `BUILD SUCCESSFUL`**. Ver a secao abaixo antes de confiar nesta tarefa |
 | CI do GitHub | o build e reprodutivel numa maquina limpa | qualquer coisa que exija Minecraft rodando |
 | `Task :test FROM-CACHE` no log do CI | os inputs batem com uma execucao anterior que passou | que os testes rodaram **nesta** execucao. O portao do `doLast` nao dispara em tarefa cacheada, e a linha "Testes executados" some do log. Quem confere o numero e o passo "Contagem de testes", que soma os XML |
 
@@ -54,7 +54,20 @@ Recarregar costuma dar falso positivo em qualquer coisa que ja tenha instancia
 viva. Quando descobrirmos o detector confiavel de cada caso, ele fica
 documentado ao lado, com o motivo de os outros nao servirem.
 
-**5. Aviso nao reprova nada.**
+**5. A tarefa do Gradle pode passar enquanto o jogo dentro dela morre.**
+Ja aconteceu duas vezes neste repositorio, e as duas vezes o codigo de saida
+mentiu:
+
+- `runServer` saiu 0 enquanto o mod derrubava o carregamento com
+  `Cannot get config value before config is loaded`;
+- `runGameTestServer` sai 0 enquanto o servidor morre com
+  `No test functions were given!`.
+
+Conclusao operacional: **nunca conclua nada a partir de `BUILD SUCCESSFUL` numa
+tarefa `run*`.** A conclusao vem de procurar a linha certa no log — `Done (` para
+o servidor, o resumo de gametests para o gametest.
+
+**6. Aviso nao reprova nada.**
 Um `warning` no lugar de um erro e um defeito que vive para sempre. Se a
 condicao e invalida, ela precisa de portao.
 
@@ -111,7 +124,7 @@ servidor sobe" a partir do codigo de saida — a conclusao vem de procurar
 | **Nenhuma maquina do projeto tem JDK 21 instalado.** A verificacao usou um JDK portatil em diretorio temporario, que nao sobrevive. | ninguem consegue buildar hoje sem instalar o Temurin 21 | ao instalar; ver README |
 | Nenhum payload **trafegou** numa conexao real | ida e volta e contra buffer em memoria; registro existe, envio nao (depende de #2 e #5) | M1, quando o servidor passar a enviar |
 | Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
-| Nenhum **gametest** existe | comportamento em jogo nao tem cobertura automatizada nenhuma | M1 |
+| Nenhum **gametest** existe | comportamento em jogo nao tem cobertura automatizada nenhuma, e `runGameTestServer` nem inicia. A pesquisa de como criar o primeiro esta na issue de divida | M1 |
 | Os payloads **C2S nao estao registrados** | o cliente nao consegue pedir nada; registrar exige handler com validacao (#2 e #5) | M1 |
 | Nao ha portao de **carregamento de registro** | uma definicao orfa passaria despercebida | M5 |
 | Nao ha **medicao de performance** | "nao e gargalo" e opiniao | M2 (primeiro spark) |

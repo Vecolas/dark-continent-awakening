@@ -1,38 +1,100 @@
 package com.darkcontinent.nenfoundation.client;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
+import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Ponto de entrada CLIENT-ONLY.
  *
- * <p>DECISAO QUE ESTE ARQUIVO CARREGA: a fronteira client/server e imposta
- * por {@code dist = Dist.CLIENT} desde o primeiro dia, quando ainda nao ha nada
- * de cliente para carregar. Ele existe vazio de proposito.
+ * <p>DECISOES QUE ESTE ARQUIVO CARREGA:
  *
- * <p>O motivo: uma classe client-only alcancada pelo servidor dedicado nao
- * falha na compilacao, nao falha em singleplayer e nao falha em
- * {@code runClient}. Ela falha no servidor de verdade, com
- * {@code NoClassDefFoundError}, na frente dos jogadores. Descobrir isso no M8
- * significa desmontar a integracao entre HUD e nucleo depois de pronta;
- * descobrir no M0 nao custa nada.
+ * <p>1. A fronteira client/server e imposta por {@code dist = Dist.CLIENT}. Uma
+ * classe client-only alcancada pelo servidor dedicado nao falha na compilacao,
+ * nao falha em singleplayer e nao falha em {@code runClient}. Ela falha no
+ * servidor de verdade, com {@code NoClassDefFoundError}, na frente dos
+ * jogadores.
  *
- * <p>REGRA DE DEPENDENCIA: {@code nen/*}, {@code api/*} e {@code network/*}
- * NUNCA importam nada de {@code client/*}. A seta aponta so para um lado. O
- * gate que verifica isso e o {@code runServer} do perfil dev-minimal, na lista
- * de smoke test em {@code docs/testing/qa-matrix.md}.
+ * <p>2. QUEM LIGA, DESLIGA. O cache e registrado como
+ * {@code RecebedorDeNen} aqui, e o par — {@link Recebedores#limpar()} — mora no
+ * ciclo de vida DESTE objeto, e nao espalhado pelos varios lugares de onde se
+ * pode sair de um servidor.
+ *
+ * <p>3. O cache e limpo no LOGOUT, nao no login. Limpar no login deixa o
+ * intervalo entre sair de um servidor e entrar em outro com o perfil do
+ * anterior visivel — dado de outro mundo na tela, sem nada acusar.
+ *
+ * <p>4. O tick do cliente e lido NA HORA, por um supplier, e nao guardado. E o
+ * mesmo motivo de sempre: valor derivado congelado diverge da fonte em
+ * silencio.
+ *
+ * <p>REGRA DE DEPENDENCIA: {@code nen/*}, {@code api/*}, {@code network/*} e
+ * {@code server/*} NUNCA importam nada de {@code client/*}. A seta aponta so
+ * para um lado, e o portao {@code PacotesDeclaradosTest} reprova quem inverter.
  */
 @Mod(value = NenFoundation.MOD_ID, dist = Dist.CLIENT)
 public final class NenFoundationClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NenFoundationClient.class);
 
+    private final NenClientCache cache;
+    private final OverlayDeDebug overlay;
+
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
+        // O contador de ticks do cliente, perguntado na hora do uso.
+        this.cache = new NenClientCache(NenFoundationClient::tickDoCliente);
+        this.overlay = new OverlayDeDebug(this.cache);
+
+        Recebedores.registrar(this.cache);
+
+        modEventBus.addListener(NenKeybinds::registrar);
+
+        NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
+        NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
+        NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
+
         LOG.debug("Camada de cliente do Nen Foundation carregada.");
+    }
+
+    /**
+     * Tick do cliente.
+     *
+     * <p>Devolve 0 quando nao ha nivel carregado — o cache so usa isto para
+     * calcular "ha quantos ticks", e um valor negativo ali viraria uma
+     * diferenca sem sentido no overlay.
+     */
+    private static long tickDoCliente() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.level == null ? 0L : mc.level.getGameTime();
+    }
+
+    /**
+     * Ao sair de um servidor, o cliente esquece o que sabia.
+     *
+     * <p>Sem isto, entrar em outro servidor mostra o perfil do anterior ate o
+     * primeiro snapshot chegar. E enquanto o servidor novo nao mandar nada —
+     * porque o jogador nao despertou, por exemplo — ele mostra para sempre.
+     */
+    private void aoSairDoServidor(ClientPlayerNetworkEvent.LoggingOut evento) {
+        this.cache.limpar();
+    }
+
+    private void aoTickDoCliente(ClientTickEvent.Post evento) {
+        while (NenKeybinds.OVERLAY_DE_DEBUG.consumeClick()) {
+            this.overlay.alternar();
+            LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
+        }
     }
 }

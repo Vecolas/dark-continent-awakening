@@ -5,5 +5,7 @@
   "nenfoundation.category.emission": "Emission",
   "nenfoundation.category.conjuration": "Conjuration",
   "nenfoundation.category.manipulation": "Manipulation",
-  "nenfoundation.category.specialization": "Specialization"
+  "nenfoundation.category.specialization": "Specialization",
+  "key.categories.nenfoundation": "Nen Foundation",
+  "key.nenfoundation.overlay_de_debug": "Technical overlay (debug)"
 }

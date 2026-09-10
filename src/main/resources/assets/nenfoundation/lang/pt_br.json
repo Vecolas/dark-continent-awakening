@@ -5,5 +5,7 @@
   "nenfoundation.category.emission": "Emissao",
   "nenfoundation.category.conjuration": "Materializacao",
   "nenfoundation.category.manipulation": "Manipulacao",
-  "nenfoundation.category.specialization": "Especializacao"
+  "nenfoundation.category.specialization": "Especializacao",
+  "key.categories.nenfoundation": "Nen Foundation",
+  "key.nenfoundation.overlay_de_debug": "Overlay tecnico (depuracao)"
 }

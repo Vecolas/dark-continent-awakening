@@ -57,3 +57,46 @@ Dois portoes cobram: `NenCategoryTest` (nomes e ordem) e
 - Categorias novas podem ser acrescentadas depois — no FIM da lista, com id
   novo. O congelamento proibe renomear e reordenar, nao crescer.
 - Ids internos que nunca chegam a save nem a datapack nao estao cobertos.
+
+---
+
+## Emenda 1 — o campo `contextoDeInput` saiu antes da primeira implementacao
+
+**Data:** 2026-09-10. **Marco:** M1.
+
+A tabela de payloads congelada por este ADR listava, em
+`activate_technique_request`, um campo `contextoDeInput` — herdado da frase
+"pequeno contexto de input" do plano tecnico. Ao implementar os records, nenhum
+consumidor foi encontrado:
+
+- Ten e Ren sao alternaveis e ja tem um payload proprio de desligamento;
+- tecla segurada e resolvida por **idempotencia no servidor**, e nao por um
+  sinalizador na rede — isso ja estava escrito no proprio `protocol.md`.
+
+Campo que ninguem le e um botao morto. Pior que inerte: ele convida a proxima
+pessoa a preenche-lo com algo errado, e um campo a mais num payload **C2S** e
+justamente onde estado do servidor entra sem ninguem notar.
+
+**O campo foi removido da tabela, do documento e do record.**
+
+### Custo assumido
+
+- **Uma emenda a um ADR com dois dias de vida.** Congelar cedo e util, e
+  congelar um placeholder nao e. A licao esta registrada: a tabela devia ter
+  nascido com os campos que a implementacao confirmasse, e nao com os que o
+  documento-fonte sugeria.
+- **Se o M4 revelar que segurar-versus-tocar importa**, o campo volta — mas ai
+  custa uma versao de protocolo e um handshake que recusa cliente antigo. Hoje
+  custou zero.
+
+### O que NAO muda
+
+- **O congelamento continua valendo**, e para tudo o mais: `mod_id`, package,
+  namespace, os sete ids de categoria, `PersistentNenData` v1, os ids e as
+  direcoes dos sete payloads, `NenTechnique` e `NenAbility`.
+- **`NenProtocol.VERSION` continua 1.** A versao existe para fazer cliente e
+  servidor divergentes falharem alto. Nada nunca esteve na rede: nao ha
+  nenhum par de versoes para divergir, e subir o numero agora seria ruido.
+- **A regra de desfazer continua a mesma:** dai em diante, mudar a tabela exige
+  bump de versao e handshake. Esta emenda so foi barata porque o protocolo
+  ainda nao existia em lugar nenhum.

@@ -81,12 +81,15 @@ desbloqueadas e proficiencia acumulada prova muito mais que um mundo novo.
 
 ## O que ainda nao existe
 
-| | Quando |
+| | Estado |
 | --- | --- |
-| Fixtures de save em `src/test/resources/saves/` | M1 |
-| Teste que le NBT real (nao so JSON) | M1 |
-| Mundo de regressao guardado | M1 |
-| Suite completa de migracao | M7 |
+| Fixtures de save em `src/test/resources/saves/` | **existe** — `v1/perfil-completo.snbt` |
+| Teste que le NBT real, nao so JSON | **existe** — `FixturesDeSaveTest` |
+| Portao que exige fixture por versao de schema | **existe** — reprova quando `SCHEMA_ATUAL` sobe sem fixture |
+| Ida e volta em NBT binario comprimido, no disco | **existe** |
+| Mundo de regressao guardado | falta — depende do ciclo de vida do jogador (issue #2) |
+| Teste do attachment gravando num save real | falta — precisa de gametest (M1) |
+| Suite completa de migracao | falta — M7 |
 
 Hoje o `NenProfileMigratorTest` cobre apenas a **recusa** de versao invalida e
 futura. Ele nao prova que uma migracao real preserva um mundo real, porque

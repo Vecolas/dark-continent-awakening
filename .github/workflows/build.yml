@@ -73,6 +73,11 @@ jobs:
       #
       # Este passo soma os relatorios XML, que existem tanto na execucao quanto
       # no cache, e REPROVA se o total for zero.
+      # CANARIO TEMPORARIO -- nao mergear.
+      # Apaga os relatorios para provar que o passo seguinte REPROVA.
+      - name: Canario, apagar os relatorios
+        run: rm -f build/test-results/test/TEST-*.xml
+
       - name: Contagem de testes
         if: always()
         shell: bash

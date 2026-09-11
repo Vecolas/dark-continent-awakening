@@ -103,14 +103,34 @@ jogadores diferentes de verdade, com perfis separados no save.
 > outra** (lock de execucao). Para dois clientes, use dois `git worktree` --
 > o segundo pode ser `--detach` no mesmo commit.
 
-> **ATENCAO -- LIMITE DE MAQUINA MEDIDO, NAO SUPOSTO.** Na maquina onde isto
-> foi tentado (16 GB, com ~1,9 GB livres), **dois clientes Minecraft
-> simultaneos nao sobem**: ambos congelam em "Loaded 0 entity animations",
-> queimando CPU sem avancar. Matar um fez o outro conectar em segundos, o que
-> descarta erro de configuracao e aponta contencao de recurso.
+> **ATENCAO -- LIMITE DE MAQUINA MEDIDO, NAO SUPOSTO.** Na tentativa inicial,
+> com ~1,9 GB livres, **dois clientes Minecraft simultaneos nao subiram**:
+> ambos congelaram em "Loaded 0 entity animations". Matar um fez o outro
+> conectar em segundos, o que descartou erro de configuracao e apontou
+> contencao de recurso. O teste foi repetido com processos orfaos encerrados e
+> memoria livre suficiente; o resultado aprovado esta registrado abaixo.
 >
 > Ou seja: **a QA de dois jogadores precisa de duas maquinas, ou de bem mais
 > memoria livre.** Nao adianta insistir nesta.
+
+### Execucao M1 concluida — 2026-09-11
+
+Com processos de execucoes anteriores encerrados, esta maquina ficou com 7,7 GB
+livres. A matriz foi executada com um servidor dedicado e dois clientes em
+worktrees/diretorios separados (`Gon` e `Kurapika`):
+
+- boot do servidor: `Done (2.538s)`; os dois jogadores conectaram ao mesmo mundo;
+- desbloqueios isolados por RCON: Gon recebeu `ten` e `gyo`, Kurapika recebeu
+  `ren`; os dumps confirmaram que nenhum perfil cruzou;
+- restart do servidor: `Done (2.360s)` e os dois perfis foram relidos com os
+  mesmos desbloqueios;
+- morte de Gon e troca para o Nether preservaram o perfil persistente;
+- encerramento abrupto do processo de Gon produziu `lost connection` e limpeza
+  no servidor;
+- `save-all flush` e `stop` concluídos sem processo Java remanescente.
+
+Os cenarios acima fecham o gate de dois jogadores do M1. Latencia de rede,
+conflitos com outros mods e performance continuam fora desta rodada.
 
 **4.** Para observar o que o cliente RECEBEU, ligue o diagnostico em
 `run/client/config/nenfoundation-common.toml`:

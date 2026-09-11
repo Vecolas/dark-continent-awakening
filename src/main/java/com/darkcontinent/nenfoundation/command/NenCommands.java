@@ -6,6 +6,16 @@ import com.darkcontinent.nenfoundation.server.NenProfileService;
 import com.darkcontinent.nenfoundation.server.NenAuraService;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.aura.MotorDeAura;
+import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
+import com.darkcontinent.nenfoundation.nen.category.NenCategory;
+import com.darkcontinent.nenfoundation.nen.category.SorteioDeCategoria;
+import com.darkcontinent.nenfoundation.server.NenAwakeningService;
+import com.darkcontinent.nenfoundation.server.NenCategoryService;
+import com.mojang.brigadier.arguments.LongArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
+import java.util.stream.Collectors;
+import net.minecraft.commands.SharedSuggestionProvider;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import java.util.Locale;
 import com.mojang.brigadier.CommandDispatcher;
@@ -71,6 +81,24 @@ public final class NenCommands {
                     "Id fora do namespace do mod: " + id
                             + ". Use nenfoundation:<nome>."));
 
+    private static final DynamicCommandExceptionType CATEGORIA_DESCONHECIDA =
+            new DynamicCommandExceptionType(nome -> Component.literal(
+                    "Categoria desconhecida: " + nome + ". As seis sao "
+                            + NenCategory.REAIS.stream()
+                                    .map(NenCategory::getSerializedName)
+                                    .collect(Collectors.joining(", ")) + "."));
+
+    private static final DynamicCommandExceptionType CATEGORIA_NEUTRA =
+            new DynamicCommandExceptionType(nome -> Component.literal(
+                    "'" + nome + "' e a AUSENCIA de categoria, e nao uma categoria"
+                            + " atribuivel. Para limpar um perfil use"
+                            + " /nen reset confirmar."));
+
+    /** As seis reais, derivadas do enum. Uma lista literal aqui divergiria dele. */
+    private static final SuggestionProvider<CommandSourceStack> CATEGORIAS_REAIS =
+            (ctx, builder) -> SharedSuggestionProvider.suggest(
+                    NenCategory.REAIS.stream().map(NenCategory::getSerializedName), builder);
+
     private NenCommands() {
     }
 
@@ -119,6 +147,35 @@ public final class NenCommands {
                                 .executes(ctx -> mudarTecnica(ctx, false, false))
                                 .then(Commands.argument("alvo", EntityArgument.player())
                                         .executes(ctx -> mudarTecnica(ctx, false, true))))));
+
+        raiz.then(Commands.literal("awaken")
+                .executes(ctx -> despertar(ctx, alvoOuProprio(ctx)))
+                .then(Commands.argument("alvo", EntityArgument.player())
+                        .executes(ctx -> despertar(ctx, alvoDoArgumento(ctx)))));
+
+        // OS TRES SUBCOMANDOS DE CATEGORIA SAO TRES, e nao um com uma flag.
+        //
+        // `set` e `reveal` sao as duas operacoes que o dominio separa, e o
+        // ponto do M3 inteiro e que elas sejam separadas. Um unico
+        // `/nen category <cat> --revelar` juntaria de volta, na interface, o
+        // que o modelo separou -- e o comando viraria o jeito mais facil de
+        // revelar sem querer durante um teste.
+        raiz.then(Commands.literal("category")
+                .then(Commands.literal("set")
+                        .then(Commands.argument("categoria", StringArgumentType.word())
+                                .suggests(CATEGORIAS_REAIS)
+                                .executes(ctx -> definirCategoria(ctx, false))
+                                .then(Commands.argument("alvo", EntityArgument.player())
+                                        .executes(ctx -> definirCategoria(ctx, true)))))
+                .then(Commands.literal("reveal")
+                        .executes(ctx -> revelarCategoria(ctx, alvoOuProprio(ctx)))
+                        .then(Commands.argument("alvo", EntityArgument.player())
+                                .executes(ctx -> revelarCategoria(ctx, alvoDoArgumento(ctx)))))
+                .then(Commands.literal("roll")
+                        .then(Commands.argument("semente", LongArgumentType.longArg())
+                                .executes(ctx -> sortearCategoria(ctx, false))
+                                .then(Commands.argument("alvo", EntityArgument.player())
+                                        .executes(ctx -> sortearCategoria(ctx, true))))));
 
         raiz.then(Commands.literal("reset")
                 .then(Commands.literal("confirmar")
@@ -228,6 +285,143 @@ public final class NenCommands {
         return 1;
     }
 
+    // ------------------------------------------------ despertar e categoria
+
+    /**
+     * Desperta pela API, exatamente como uma quest faria.
+     *
+     * <p>A origem e {@link OrigemDoDespertar#COMANDO}, e nao TREINO: o cânone
+     * separa os caminhos de despertar, e um comando de QA que se disfarca de
+     * treino faria um listener futuro medir o ambiente de teste em vez do jogo.
+     */
+    private static int despertar(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        NenAwakeningService.Resultado resultado =
+                NenAwakeningService.despertar(alvo, OrigemDoDespertar.COMANDO);
+        String nome = alvo.getGameProfile().getName();
+
+        switch (resultado) {
+            case DESPERTOU -> ctx.getSource().sendSuccess(
+                    () -> Component.literal(nome + " despertou para o Nen."), true);
+            case JA_ESTAVA -> ctx.getSource().sendSuccess(
+                    () -> Component.literal(nome + " ja estava desperto; nada mudou."), false);
+            case CANCELADO -> {
+                ctx.getSource().sendFailure(Component.literal(
+                        "O despertar de " + nome + " foi cancelado por um listener."
+                                + " Veja o log do servidor em modo dev."));
+                return 0;
+            }
+            default -> throw new IllegalStateException("resultado desconhecido: " + resultado);
+        }
+        return 1;
+    }
+
+    /**
+     * Atribui a categoria SEM revelar. Revelar e {@code /nen category reveal}.
+     *
+     * <p>E o comando que reproduz o estado do meio -- tem categoria, nao sabe
+     * qual e --, que e justamente o estado que nenhum ritual deixa voce montar
+     * a mao.
+     */
+    private static int definirCategoria(
+            CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+
+        // ORDEM QUE E CONTRATO, como em `mudarTecnica`: o argumento e validado
+        // ANTES de o alvo ser resolvido. Na ordem inversa, quem digita uma
+        // categoria inexistente no console recebe "e preciso um jogador".
+        NenCategory categoria = validarCategoria(
+                StringArgumentType.getString(ctx, "categoria"));
+        ServerPlayer alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+
+        return aplicarAtribuicao(ctx, alvo, categoria,
+                NenCategoryService.atribuir(alvo, categoria));
+    }
+
+    /** Reproduz o sorteio de uma semente conhecida. O caminho de QA. */
+    private static int sortearCategoria(
+            CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+
+        long semente = LongArgumentType.getLong(ctx, "semente");
+        ServerPlayer alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+
+        // O comando PREVE pelo mesmo caminho que a atribuicao usa. Calcular a
+        // categoria aqui e atribuir por outro lado seria a mesma verdade em
+        // duas fontes, e elas divergiriam no primeiro ajuste do sorteio.
+        NenCategory categoria = SorteioDeCategoria.sortear(semente);
+
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "Semente " + semente + " sorteia "
+                        + categoria.getSerializedName() + "."), false);
+
+        return aplicarAtribuicao(ctx, alvo, categoria,
+                NenCategoryService.atribuir(alvo, categoria));
+    }
+
+    /** O relato das tres respostas possiveis da atribuicao. */
+    private static int aplicarAtribuicao(CommandContext<CommandSourceStack> ctx,
+            ServerPlayer alvo, NenCategory categoria,
+            NenCategoryService.Atribuicao resultado) {
+
+        String nome = alvo.getGameProfile().getName();
+        switch (resultado) {
+            case ATRIBUIU -> {
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        nome + " recebeu a categoria " + categoria.getSerializedName()
+                                + ", ainda ESCONDIDA dele."), true);
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        "  (para contar a ele: /nen category reveal " + nome + ")"), false);
+            }
+            case JA_TINHA -> {
+                // Recusa com motivo E com o caminho de saida. Dizer so "nao
+                // deu" mandaria quem esta reproduzindo um bug adivinhar que a
+                // troca de categoria nao existe de proposito.
+                ctx.getSource().sendFailure(Component.translatable(
+                        "nenfoundation.error.ja_tem_categoria"));
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        "  (" + nome + " ja tem categoria. Trocar categoria nao faz"
+                                + " parte do M3; para comecar do zero use"
+                                + " /nen reset confirmar " + nome + ")"), false);
+                return 0;
+            }
+            case NAO_DESPERTO -> {
+                ctx.getSource().sendFailure(Component.translatable(
+                        "nenfoundation.error.nao_desperto"));
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        "  (desperte antes: /nen awaken " + nome + ")"), false);
+                return 0;
+            }
+            default -> throw new IllegalStateException("resultado desconhecido: " + resultado);
+        }
+        return 1;
+    }
+
+    private static int revelarCategoria(
+            CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+
+        NenCategoryService.Revelacao resultado = NenCategoryService.revelar(alvo);
+        String nome = alvo.getGameProfile().getName();
+
+        switch (resultado) {
+            case REVELOU -> ctx.getSource().sendSuccess(() -> Component.literal(
+                    nome + " agora sabe a propria categoria: "
+                            + NenProfileService.ler(alvo).category().getSerializedName()
+                            + "."), true);
+            case JA_SABIA -> ctx.getSource().sendSuccess(() -> Component.literal(
+                    nome + " ja sabia; nada mudou."), false);
+            case SEM_CATEGORIA -> {
+                ctx.getSource().sendFailure(Component.translatable(
+                        "nenfoundation.error.sem_categoria"));
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        "  (atribua antes: /nen category set <categoria> " + nome
+                                + ", ou /nen category roll <semente> " + nome + ")"), false);
+                return 0;
+            }
+            default -> throw new IllegalStateException("resultado desconhecido: " + resultado);
+        }
+        return 1;
+    }
+
     private static int resetar(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
         PersistentNenData antes = NenProfileService.ler(alvo);
 
@@ -277,6 +471,30 @@ public final class NenCommands {
             throw NAMESPACE_ERRADO.create(tecnica);
         }
         return tecnica;
+    }
+
+    /**
+     * Converte o texto numa das SEIS categorias reais.
+     *
+     * <p>{@code undetermined} e recusado com nome proprio, e nao tratado como
+     * "categoria desconhecida": ele EXISTE no enum, e alguem que o digite esta
+     * tentando apagar a categoria de um jogador -- operacao que nao existe. A
+     * mensagem generica mandaria essa pessoa procurar erro de digitacao onde
+     * nao ha nenhum.
+     *
+     * <p>Diferente de {@code technique unlock}, aqui da para conferir de
+     * verdade: o enum esta congelado desde o M0. Nao ha ponto cego.
+     */
+    static NenCategory validarCategoria(String nome) throws CommandSyntaxException {
+        if (NenCategory.UNDETERMINED.getSerializedName().equals(nome)) {
+            throw CATEGORIA_NEUTRA.create(nome);
+        }
+        for (NenCategory categoria : NenCategory.REAIS) {
+            if (categoria.getSerializedName().equals(nome)) {
+                return categoria;
+            }
+        }
+        throw CATEGORIA_DESCONHECIDA.create(nome);
     }
 
     private static ServerPlayer alvoOuProprio(CommandContext<CommandSourceStack> ctx)

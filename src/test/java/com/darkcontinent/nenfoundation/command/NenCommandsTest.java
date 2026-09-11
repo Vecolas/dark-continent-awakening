@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.CommandNode;
@@ -143,6 +144,47 @@ class NenCommandsTest {
         }
     }
 
+    @Test
+    @DisplayName("os comandos de seed do M3 existem, e cada um aceita alvo explicito")
+    void comandosDeSeedExistem() {
+        List<String> caminhos = new ArrayList<>();
+        coletarExecutaveis(arvore().getRoot().getChild("nen"), "nen", caminhos);
+
+        for (String base : List.of("nen awaken",
+                                   "nen category set <categoria>",
+                                   "nen category reveal",
+                                   "nen category roll <semente>")) {
+            assertTrue(caminhos.contains(base), base + " nao existe: " + caminhos);
+            assertTrue(caminhos.contains(base + " <alvo>"),
+                    "Falta a variante com alvo de '" + base + "'. Sem ela, montar"
+                            + " o cenario de outra pessoa exige entrar na conta dela."
+                            + " Caminhos: " + caminhos);
+        }
+    }
+
+    @Test
+    @DisplayName("nao existe um atalho que atribui e revela de uma vez")
+    void naoHaAtalhoQueJuntaAsDuas() {
+        List<String> caminhos = new ArrayList<>();
+        coletarExecutaevisSeguro(caminhos);
+
+        // O M3 inteiro existe para separar TER categoria de SABER qual e. Um
+        // comando que fizesse as duas juntaria de volta, na interface, o que o
+        // modelo separou -- e viraria o jeito mais facil de revelar sem querer
+        // durante um teste, apagando exatamente o estado do meio que estes
+        // comandos existem para poder montar.
+        for (String caminho : caminhos) {
+            boolean atribui = caminho.contains("category set")
+                    || caminho.contains("category roll");
+            assertFalse(atribui && caminho.contains("reveal"),
+                    "O comando '" + caminho + "' atribui e revela de uma vez.");
+        }
+    }
+
+    private static void coletarExecutaevisSeguro(List<String> destino) {
+        coletarExecutaveis(arvore().getRoot().getChild("nen"), "nen", destino);
+    }
+
     /** Varre a arvore e coleta o caminho de todo no que executa alguma coisa. */
     private static void coletarExecutaveis(
             CommandNode<CommandSourceStack> no, String caminho, List<String> destino) {
@@ -175,5 +217,47 @@ class NenCommandsTest {
     void namespaceCertoPassa() throws CommandSyntaxException {
         ResourceLocation ten = ResourceLocation.fromNamespaceAndPath("nenfoundation", "ten");
         assertSame(ten, NenCommands.validarTecnica(ten));
+    }
+
+    @Test
+    @DisplayName("as seis categorias sao aceitas por nome")
+    void asSeisCategoriasSaoAceitas() throws CommandSyntaxException {
+        for (NenCategory categoria : NenCategory.REAIS) {
+            assertSame(categoria,
+                    NenCommands.validarCategoria(categoria.getSerializedName()),
+                    "o comando nao aceita " + categoria.getSerializedName()
+                            + ", e uma categoria inalcancavel por comando nao da"
+                            + " erro: ela so nunca aparece no QA.");
+        }
+    }
+
+    @Test
+    @DisplayName("undetermined e recusado com motivo PROPRIO, e nao como desconhecida")
+    void neutroERecusadoComNomeProprio() {
+        CommandSyntaxException e = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandSyntaxException.class,
+                () -> NenCommands.validarCategoria("undetermined"));
+
+        assertTrue(e.getMessage().contains("AUSENCIA"),
+                "A mensagem trata o neutro como erro de digitacao. Ele EXISTE no"
+                        + " enum: quem o digita esta tentando apagar a categoria de"
+                        + " alguem, e a mensagem generica manda essa pessoa"
+                        + " procurar um erro que nao existe. Veio: " + e.getMessage());
+    }
+
+    @Test
+    @DisplayName("categoria inexistente e recusada, e a mensagem lista as seis")
+    void categoriaInexistenteERecusada() {
+        CommandSyntaxException e = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandSyntaxException.class,
+                () -> NenCommands.validarCategoria("enhancment"));
+
+        assertTrue(e.getMessage().contains("enhancment"),
+                "a mensagem precisa nomear o que foi digitado: " + e.getMessage());
+        for (NenCategory categoria : NenCategory.REAIS) {
+            assertTrue(e.getMessage().contains(categoria.getSerializedName()),
+                    "a mensagem nao lista " + categoria.getSerializedName()
+                            + "; o operador fica sem saber o que e valido.");
+        }
     }
 }

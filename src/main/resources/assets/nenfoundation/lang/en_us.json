@@ -37,6 +37,8 @@
   "nenfoundation.error.limite": "Too many Nen requests. Please wait a moment.",
   "nenfoundation.error.estado_invalido": "Your current state does not allow this request.",
   "nenfoundation.error.nao_desperto": "You have not awakened Nen yet.",
+  "nenfoundation.error.ja_tem_categoria": "This Nen category is already set and cannot be changed.",
+  "nenfoundation.error.sem_categoria": "No Nen category has been determined yet.",
   "nenfoundation.error.id_inexistente": "Unknown technique or ability.",
   "nenfoundation.error.nao_desbloqueado": "You have not unlocked this action yet.",
   "nenfoundation.error.alvo_invalido": "Invalid target or position.",

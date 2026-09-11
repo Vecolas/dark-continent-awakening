@@ -37,6 +37,8 @@
   "nenfoundation.error.limite": "Muitos pedidos de Nen. Aguarde um instante.",
   "nenfoundation.error.estado_invalido": "Seu estado atual nao permite esse pedido.",
   "nenfoundation.error.nao_desperto": "Voce ainda nao despertou o Nen.",
+  "nenfoundation.error.ja_tem_categoria": "Esta categoria de Nen ja esta definida e nao pode ser trocada.",
+  "nenfoundation.error.sem_categoria": "Nenhuma categoria de Nen foi determinada ainda.",
   "nenfoundation.error.id_inexistente": "Tecnica ou habilidade inexistente.",
   "nenfoundation.error.nao_desbloqueado": "Voce ainda nao desbloqueou essa acao.",
   "nenfoundation.error.alvo_invalido": "Alvo ou posicao invalida.",

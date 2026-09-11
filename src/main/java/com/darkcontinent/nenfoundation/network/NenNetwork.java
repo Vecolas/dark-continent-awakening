@@ -1,7 +1,11 @@
 package com.darkcontinent.nenfoundation.network;
 
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+import com.darkcontinent.nenfoundation.network.handler.NenC2SHandlers;
+import com.darkcontinent.nenfoundation.network.payload.AtivarHabilidadeC2S;
+import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
+import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
@@ -68,5 +72,23 @@ public final class NenNetwork {
                 FeedbackDeErroS2C.STREAM_CODEC,
                 (payload, contexto) -> contexto.enqueueWork(
                         () -> Recebedores.atual().aoReceberErro(payload)));
+
+        registrar.playToServer(
+                AtivarTecnicaC2S.TYPE,
+                AtivarTecnicaC2S.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> NenC2SHandlers.aoAtivarTecnica(payload, contexto)));
+
+        registrar.playToServer(
+                DesativarTecnicaC2S.TYPE,
+                DesativarTecnicaC2S.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> NenC2SHandlers.aoDesativarTecnica(payload, contexto)));
+
+        registrar.playToServer(
+                AtivarHabilidadeC2S.TYPE,
+                AtivarHabilidadeC2S.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> NenC2SHandlers.aoAtivarHabilidade(payload, contexto)));
     }
 }

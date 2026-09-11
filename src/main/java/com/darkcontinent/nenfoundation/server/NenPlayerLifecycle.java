@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.network.handler.NenC2SHandlers;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
@@ -45,6 +46,7 @@ public final class NenPlayerLifecycle {
     public static void aoSair(PlayerEvent.PlayerLoggedOutEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             NenRuntimeService.encerrarSessao(jogador);
+            NenC2SHandlers.limparJogador(jogador);
         }
     }
 

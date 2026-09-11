@@ -25,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class RuntimeNenState {
 
     private final AuraPool aura;
+    private boolean auraSuja = true;
     private final Set<ResourceLocation> tecnicasAtivas = new HashSet<>();
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
@@ -53,6 +54,36 @@ public final class RuntimeNenState {
 
     public AuraPool aura() {
         return this.aura;
+    }
+
+    /** Troca a capacidade e marca o runtime para o proximo delta. */
+    public void definirAuraMaxima(double auraMaxima) {
+        double antes = this.aura.maxima();
+        this.aura.definirMaxima(auraMaxima);
+        this.auraSuja |= antes != this.aura.maxima();
+    }
+
+    /** Debita por inteiro ou deixa o pool intacto, marcando somente mudanca real. */
+    public boolean gastarAura(double quantidade) {
+        boolean gastou = this.aura.gastar(quantidade);
+        this.auraSuja |= gastou;
+        return gastou;
+    }
+
+    /** Recupera e informa se o valor mudou. */
+    public double recuperarAura(double quantidade) {
+        double recuperada = this.aura.recuperar(quantidade);
+        this.auraSuja |= recuperada != 0.0D;
+        return recuperada;
+    }
+
+    public boolean auraSuja() {
+        return this.auraSuja;
+    }
+
+    /** Consome a marca apenas depois que o transporte aceitou o delta. */
+    public void marcarAuraSincronizada() {
+        this.auraSuja = false;
     }
 
     public Set<ResourceLocation> tecnicasAtivas() {

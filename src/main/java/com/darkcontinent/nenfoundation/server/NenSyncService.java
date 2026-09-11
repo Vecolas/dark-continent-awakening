@@ -45,7 +45,12 @@ public final class NenSyncService {
      * Entao pular e a resposta correta, e nao um contorno.
      */
     private static boolean consegueReceber(ServerPlayer dono, CustomPacketPayload payload) {
-        return dono.connection != null && dono.connection.hasChannel(payload.type());
+        return consegueReceber(dono, payload.type());
+    }
+
+    private static boolean consegueReceber(
+            ServerPlayer dono, CustomPacketPayload.Type<?> tipo) {
+        return dono.connection != null && dono.connection.hasChannel(tipo);
     }
 
     /** Envia ao dono seu perfil visivel; login e mutacao usam o mesmo transporte. */
@@ -69,6 +74,22 @@ public final class NenSyncService {
     public static void enviarDelta(ServerPlayer dono, double auraMaxima) {
         RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
         entregarSePuder(dono, criarDelta(estado, auraMaxima));
+    }
+
+    /**
+     * Envia somente quando o runtime observou uma mudanca de aura.
+     *
+     * @return {@code true} quando um delta foi construido e a marca foi
+     *     consumida; {@code false} em tick limpo ou conexao sem canal.
+     */
+    public static boolean enviarDeltaSeAuraSuja(ServerPlayer dono, double auraMaxima) {
+        RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
+        if (!estado.auraSuja() || !consegueReceber(dono, DeltaDeRuntimeS2C.TYPE)) {
+            return false;
+        }
+        entregarSePuder(dono, criarDelta(estado, auraMaxima));
+        estado.marcarAuraSincronizada();
+        return true;
     }
 
     static void enviarSnapshot(ServerPlayer dono, PersistentNenData perfil) {

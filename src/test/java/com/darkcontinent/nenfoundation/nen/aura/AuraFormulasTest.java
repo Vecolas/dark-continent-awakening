@@ -13,6 +13,7 @@ class AuraFormulasTest {
         public double maximaBase() { return 100; }
         public double regeneracaoPorSegundo() { return 1; }
         public double outputBase() { return 10; }
+        @Override public double multiplicadorMaximoDeRegeneracao() { return 3.0D; }
     };
 
     @Test

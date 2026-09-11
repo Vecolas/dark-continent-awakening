@@ -45,8 +45,13 @@ public final class MotorDeAura {
 
     public void tick(PersistentNenData perfil) {
         atualizar(perfil);
+        // O ESTADO DE NEN ATIVO ENTRA AQUI (ADR-010). O multiplicador e
+        // derivado das tecnicas ativas e limitado pelo teto de config dentro
+        // da formula -- este metodo nao decide nada sobre ele.
         double recuperada = perfil.awakened()
-                ? this.estado.recuperarAura(AuraFormulas.regeneracaoPorTick(this.parametros)) : 0;
+                ? this.estado.recuperarAura(AuraFormulas.regeneracaoPorTick(
+                        this.parametros, this.estado.multiplicadorDeRegeneracao()))
+                : 0;
         if (this.diagnostico.getAsBoolean()) {
             this.ticks++;
             this.auraRecuperada += recuperada;

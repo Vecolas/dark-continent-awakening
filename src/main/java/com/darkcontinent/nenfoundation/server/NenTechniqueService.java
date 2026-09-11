@@ -1,6 +1,8 @@
 package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
+import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
+import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
@@ -133,6 +135,7 @@ public final class NenTechniqueService {
         }
 
         estado.ativarTecnica(id);
+        recalcularRegeneracao(estado);
         rodarComProtecao(id, "onActivate", () -> tecnica.onActivate(jogador, ctx));
 
         return new Resultado(Ativacao.ATIVOU, Optional.empty(), conflitos);
@@ -152,6 +155,12 @@ public final class NenTechniqueService {
         if (!estado.desativarTecnica(id)) {
             return false;
         }
+
+        // O RECALCULO VEM ANTES do onDeactivate pelo mesmo motivo da gravacao:
+        // se a tecnica lancar ali dentro, o multiplicador ja voltou ao que as
+        // tecnicas restantes pedem. Recalcular depois deixaria a regeneracao
+        // acelerada de uma tecnica que ja parou -- e isso nao da erro nenhum.
+        recalcularRegeneracao(estado);
 
         // A GRAVACAO VEM ANTES do onDeactivate, e nao depois: se a tecnica
         // lancar ali dentro, o estado ja esta limpo e ela nao volta a ser
@@ -204,9 +213,83 @@ public final class NenTechniqueService {
             if (!estado.tecnicasAtivas().contains(id)) {
                 continue;
             }
-            atual.porId(id).ifPresent(tecnica ->
-                    rodarComProtecao(id, "serverTick", () -> tecnica.serverTick(jogador, ctx)));
+            NenTechnique tecnica = atual.porId(id).orElse(null);
+            if (tecnica == null) {
+                continue;
+            }
+            // A MANUTENCAO E COBRADA ANTES DO TICK, e num lugar so.
+            //
+            // Antes: a tecnica nao age neste tick se nao puder pagar -- e o
+            // que impede um tick de efeito de graca. Num lugar so: "aura zero
+            // encerra a tecnica" deixa de ser promessa repetida em cada
+            // implementacao, e a enesima nao tem como esquecer.
+            if (!pagarManutencao(jogador, ctx, id, tecnica)) {
+                continue;
+            }
+            rodarComProtecao(id, "serverTick", () -> tecnica.serverTick(jogador, ctx));
         }
+    }
+
+    /**
+     * Debita a manutencao da tecnica. Devolve se ela pode agir neste tick.
+     *
+     * <p>Tecnica que nao implementa {@link ConsomeAura} nao cobra nada e sempre
+     * pode agir. Custo zero ou negativo tambem nao cobra -- e nao derruba.
+     *
+     * <p>O debito e tudo ou nada: se faltar aura, a tecnica cai com
+     * {@link StopReason#OUT_OF_AURA} e NAO tica. Deixa-la tickar depois de nao
+     * pagar seria um tick de efeito de graca, todo tick, para quem esta sem
+     * aura -- exatamente quem nao deveria ter efeito nenhum.
+     */
+    private static boolean pagarManutencao(ServerPlayer jogador, NenContext ctx,
+            ResourceLocation id, NenTechnique tecnica) {
+
+        if (!(tecnica instanceof ConsomeAura cobrador)) {
+            return true;
+        }
+        double custo;
+        try {
+            custo = cobrador.custoPorTick();
+        } catch (RuntimeException erro) {
+            LOG.error("A tecnica {} lancou ao informar o custo. Desligando.", id, erro);
+            desligar(jogador, id, StopReason.INTERRUPTED);
+            return false;
+        }
+        if (!Double.isFinite(custo) || custo <= 0.0D) {
+            return true;
+        }
+        if (ctx.gastarAura(custo)) {
+            return true;
+        }
+        desligar(jogador, id, StopReason.OUT_OF_AURA);
+        return false;
+    }
+
+    /**
+     * O multiplicador de regeneracao, derivado das tecnicas ATIVAS (ADR-010).
+     *
+     * <p>Recalculado inteiro a cada mudanca, e nunca ajustado em incrementos.
+     * Incremento exige que toda entrada tenha a saida correspondente; uma
+     * perdida deixa o numero errado para sempre, e sem erro. Recalcular do
+     * conjunto nao tem como ficar dessincronizado do conjunto.
+     *
+     * <p>Ele NAO limita pelo teto aqui: o teto e do motor, e aplica-lo duas
+     * vezes esconderia um produto estourado atras de um numero plausivel.
+     */
+    static double multiplicadorDe(RegistroDeTecnicas registro, Set<ResourceLocation> ativas) {
+        double produto = 1.0D;
+        for (ResourceLocation id : ativas) {
+            NenTechnique tecnica = registro.porId(id).orElse(null);
+            if (tecnica instanceof ModificaRegeneracao modificador) {
+                produto *= modificador.multiplicadorDeRegeneracao();
+            }
+        }
+        return produto;
+    }
+
+    private static void recalcularRegeneracao(RuntimeNenState estado) {
+        estado.definirMultiplicadorDeRegeneracao(
+                multiplicadorDe(registro, estado.tecnicasAtivas()));
     }
 
     /**

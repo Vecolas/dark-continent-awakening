@@ -1,0 +1,126 @@
+package com.darkcontinent.nenfoundation.server;
+
+import com.darkcontinent.nenfoundation.api.event.NenDespertadoEvent;
+import com.darkcontinent.nenfoundation.api.event.NenDespertandoEvent;
+import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
+import com.darkcontinent.nenfoundation.config.NenConfig;
+import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import com.darkcontinent.nenfoundation.nen.progression.Marcos;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.NeoForge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * A porta unica do despertar de Nen.
+ *
+ * <p>DECISOES QUE ESTE ARQUIVO CARREGA:
+ *
+ * <p>1. IDEMPOTENTE. Despertar quem ja despertou nao e erro, nao regrava o
+ * perfil e nao dispara o evento informativo de novo. Quest que completa duas
+ * vezes, comando repetido e clique duplo existem; o desenho que trata isso
+ * como caso excepcional e o desenho que dispara o onboarding duas vezes.
+ *
+ * <p>2. NAO HA ESTADO PELA METADE. Se o evento cancelavel for cancelado, nada
+ * acontece: nem perfil, nem marco, nem evento informativo. Gravar primeiro e
+ * perguntar depois produziria um jogador desperto que "nao devia ter
+ * despertado", e desfazer isso e outra operacao que ninguem escreveu.
+ *
+ * <p>3. A ORDEM E CONTRATO: perguntar, gravar, anunciar. O
+ * {@link NenDespertadoEvent} so dispara com o perfil ja persistido -- quem o
+ * escuta pode ler o perfil e ver o estado novo, e nao o antigo.
+ *
+ * <p>4. O SYNC VEM DE GRACA. {@link NenProfileService#atualizar} publica o
+ * snapshot quando a mudanca e efetiva. Reenviar aqui tambem criaria um segundo
+ * caminho para a mesma verdade, e dois snapshots por despertar.
+ *
+ * <p>5. Cancelamento e registrado em modo dev. Cancelar em silencio produz um
+ * jogador que faz tudo certo e nao desperta, sem nenhuma linha no log -- e a
+ * investigacao comeca no lugar errado.
+ */
+public final class NenAwakeningService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(NenAwakeningService.class);
+
+    private NenAwakeningService() {
+    }
+
+    /** O que aconteceu na tentativa de despertar. */
+    public enum Resultado {
+        /** Despertou agora. Perfil gravado, marco posto, evento anunciado. */
+        DESPERTOU,
+
+        /** Ja estava desperto. Nada mudou, e isso nao e erro. */
+        JA_ESTAVA,
+
+        /** Um listener cancelou o {@link NenDespertandoEvent}. */
+        CANCELADO
+    }
+
+    /**
+     * Desperta o jogador, se ele ainda nao despertou e ninguem impedir.
+     *
+     * @param jogador quem desperta; sempre server-side
+     * @param origem  COMO o despertar foi provocado. Ver
+     *                {@link OrigemDoDespertar} -- o cânone separa treino de
+     *                despertar forcado, e a API nao deve perder essa distincao
+     */
+    public static Resultado despertar(ServerPlayer jogador, OrigemDoDespertar origem) {
+        Objects.requireNonNull(jogador, "jogador");
+        Objects.requireNonNull(origem, "origem");
+
+        if (NenProfileService.ler(jogador).awakened()) {
+            return Resultado.JA_ESTAVA;
+        }
+
+        NenDespertandoEvent pergunta = new NenDespertandoEvent(jogador, origem);
+        if (NeoForge.EVENT_BUS.post(pergunta).isCanceled()) {
+            if (NenConfig.devModeAtivo()) {
+                LOG.info("Despertar de {} cancelado por um listener (origem {}).",
+                        jogador.getGameProfile().getName(), origem);
+            }
+            return Resultado.CANCELADO;
+        }
+
+        // Grava so depois de ninguem ter impedido. O servico de perfil publica
+        // o snapshot sozinho quando a mudanca e efetiva.
+        NenProfileService.atualizar(jogador, NenAwakeningService::comDespertar);
+
+        NeoForge.EVENT_BUS.post(new NenDespertadoEvent(jogador, origem));
+        return Resultado.DESPERTOU;
+    }
+
+    /**
+     * Liga {@code awakened} e poe o marco, sem tocar em mais nada.
+     *
+     * <p>Separado e {@code static} para poder ser exercitado sem um servidor
+     * de pe: logica que so roda com o jogo aberto nao e exercitada.
+     *
+     * <p>Note o que ele NAO faz: nao atribui categoria. Despertar e saber a
+     * propria categoria sao dois fatos diferentes sobre o jogador, e o schema
+     * v1 ja os separa. A atribuicao tem issue e servico proprios.
+     */
+    static PersistentNenData comDespertar(PersistentNenData antes) {
+        if (antes.awakened() && antes.temMarco(Marcos.DESPERTOU)) {
+            return antes;
+        }
+        Set<ResourceLocation> marcos = new LinkedHashSet<>(antes.progressionFlags());
+        marcos.add(Marcos.DESPERTOU);
+        return new PersistentNenData(
+                antes.schemaVersion(),
+                true,
+                antes.category(),
+                antes.categoryRevealed(),
+                antes.auraPotential(),
+                antes.control(),
+                antes.output(),
+                antes.techniqueProficiency(),
+                antes.unlockedTechniques(),
+                antes.unlockedAbilities(),
+                marcos);
+    }
+}

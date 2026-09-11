@@ -5,6 +5,9 @@
  * nunca ids de quest do FTB. O nucleo nao pode passar a depender do pack para
  * saber onde o jogador esta -- trocar o questbook nao pode apagar progresso.
  *
- * <p>Nasce no M6. Owner: Dev A.
+ * <p>Os marcos base nascem no M3, junto do despertar ({@code Marcos}).
+ * Treino, proficiencia e curvas de progressao chegam no M6.
+ *
+ * <p>Owner: Dev A.
  */
 package com.darkcontinent.nenfoundation.nen.progression;

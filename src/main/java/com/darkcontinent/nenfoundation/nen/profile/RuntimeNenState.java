@@ -31,6 +31,19 @@ public final class RuntimeNenState {
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
 
+    /**
+     * O multiplicador de regeneracao das tecnicas ativas (ADR-010).
+     *
+     * <p>E DERIVADO do conjunto de tecnicas ativas, com recalculo explicito a
+     * cada ativacao e desativacao -- e nao escrito por cada tecnica. Duas
+     * tecnicas escrevendo no mesmo campo e a forma mais barata de uma esquecer
+     * de limpar a sua parte, e o sintoma seria regeneracao acelerada para
+     * sempre depois que a tecnica ja parou.
+     *
+     * <p>Ha portao exigindo que ele seja SEMPRE igual ao produto das ativas.
+     */
+    private double multiplicadorDeRegeneracao = 1.0D;
+
     public RuntimeNenState() {
         this.aura = new AuraPool();
     }
@@ -57,6 +70,26 @@ public final class RuntimeNenState {
     }
 
     /** O que o jogador escolheu liberar. */
+    /** O multiplicador de regeneracao em vigor. Ver ADR-010. */
+    public double multiplicadorDeRegeneracao() {
+        return this.multiplicadorDeRegeneracao;
+    }
+
+    /**
+     * Recalcula o multiplicador. <b>So o servico de tecnicas chama isto.</b>
+     *
+     * <p>Nao marca o runtime como alterado: o multiplicador nao viaja no delta.
+     * O que o cliente ve e a aura RESULTANTE, e ela ja e marcada quando muda.
+     * Marcar aqui produziria um pacote por ativacao sem nenhum campo novo.
+     */
+    public void definirMultiplicadorDeRegeneracao(double multiplicador) {
+        if (!Double.isFinite(multiplicador) || multiplicador < 0.0D) {
+            throw new IllegalArgumentException(
+                    "multiplicador de regeneracao invalido: " + multiplicador);
+        }
+        this.multiplicadorDeRegeneracao = multiplicador;
+    }
+
     public float outputSelecionado() {
         return this.aura.outputSelecionado();
     }

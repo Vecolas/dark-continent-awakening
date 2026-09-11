@@ -70,6 +70,24 @@ public final class NenConfig {
             .comment("Duracao visual do Output em ticks de cliente. Zero aplica imediatamente.")
             .defineInRange("client.outputInterpolationTicks", 3, 0, 20);
 
+    private static final ModConfigSpec.DoubleValue MULTIPLICADOR_MAXIMO_DE_REGENERACAO = BUILDER
+            .comment("Teto do multiplicador de regeneracao, depois de TODAS as tecnicas ativas.",
+                    "Sem teto, o que impediria numero absurdo seria a exclusao entre tecnicas --",
+                    "uma regra de outro lugar, que pode mudar sem ninguem lembrar desta. Ver ADR-010.")
+            .defineInRange("aura.multiplicadorMaximoDeRegeneracao", 3.0D, 0.0D, 100.0D);
+
+    private static final ModConfigSpec.DoubleValue TEN_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ten consome por segundo enquanto estiver ativo.",
+                    "Pelo item 6 do ADR-010 o saldo de Ten precisa ser NEGATIVO: este custo",
+                    "tem de superar o ganho do multiplicador, senao Ten vira estado permanente.")
+            .defineInRange("tecnica.ten.custoPorSegundo", 1.5D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue TEN_MULTIPLICADOR_DE_REGENERACAO = BUILDER
+            .comment("Quanto Ten multiplica a regeneracao de Aura enquanto ativo.",
+                    "E a retencao do canone: com Ten, a aura se conserva melhor.",
+                    "Ele REDUZ o custo de manter Ten; ele nao o paga.")
+            .defineInRange("tecnica.ten.multiplicadorDeRegeneracao", 2.0D, 0.0D, 10.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -77,6 +95,9 @@ public final class NenConfig {
         @Override public double maximaBase() { return AURA_MAXIMA_BASE.get(); }
         @Override public double regeneracaoPorSegundo() { return AURA_REGENERACAO_POR_SEGUNDO.get(); }
         @Override public double outputBase() { return AURA_OUTPUT_BASE.get(); }
+        @Override public double multiplicadorMaximoDeRegeneracao() {
+            return MULTIPLICADOR_MAXIMO_DE_REGENERACAO.get();
+        }
     };
 
     public static int intervaloDeSync() { return INTERVALO_DE_SYNC.get(); }
@@ -84,6 +105,14 @@ public final class NenConfig {
     public static int interpolacaoDeOutput() { return INTERPOLACAO_DE_OUTPUT.get(); }
 
     private NenConfig() {
+    }
+
+    /** Custo de Ten por segundo. Lido no instante do uso, para respeitar recarga. */
+    public static double tenCustoPorSegundo() { return TEN_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Multiplicador de regeneracao de Ten. Lido no instante do uso. */
+    public static double tenMultiplicadorDeRegeneracao() {
+        return TEN_MULTIPLICADOR_DE_REGENERACAO.get();
     }
 
     public static int pedidosPorSegundo() {

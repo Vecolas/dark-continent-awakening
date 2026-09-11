@@ -1,6 +1,8 @@
 package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
+import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
@@ -437,5 +439,135 @@ public final class NenTecnicaGameTest {
                         + " aqui gravaria em disco a cada ativacao.");
 
         helper.succeed();
+    }
+
+    // ------------------------------------------------------------ Ten (#86)
+
+    /** Ten de teste, com numeros proprios: os da config nao sao o assunto aqui. */
+    private static Ten tenDeTeste(double custoPorSegundo, double multiplicador) {
+        return new Ten(() -> custoPorSegundo, () -> multiplicador);
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void tenCobraManutencaoPorTick(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Ten ten = tenDeTeste(20.0D, 1.0D);   // 1.0 de aura por tick, sem ganho
+
+        comRegistro(List.of(ten), () -> {
+            NenRuntimeService.estadoDe(jogador).definirAuraMaxima(100.0D);
+            NenRuntimeService.estadoDe(jogador).definirAuraAtual(50.0D);
+            NenTechniqueService.ativar(jogador, ten.id());
+
+            double antes = NenRuntimeService.estadoDe(jogador).auraAtual();
+            NenTechniqueService.tick(jogador, NenRuntimeService.estadoDe(jogador));
+            double depois = NenRuntimeService.estadoDe(jogador).auraAtual();
+
+            exigir(depois < antes,
+                    "Ten nao cobrou nada no tick: " + antes + " -> " + depois
+                            + ". Usar Nen custa aura; uma tecnica sustentada de"
+                            + " graca vira o estado permanente obvio.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void tenCaiQuandoAAuraAcaba(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Ten ten = tenDeTeste(20.0D, 1.0D);
+
+        comRegistro(List.of(ten), () -> {
+            NenRuntimeService.estadoDe(jogador).definirAuraMaxima(100.0D);
+            NenRuntimeService.estadoDe(jogador).definirAuraAtual(0.0D);
+            NenTechniqueService.ativar(jogador, ten.id());
+
+            exigir(NenRuntimeService.estadoDe(jogador).tecnicasAtivas().contains(ten.id()),
+                    "Ten nao ligou: ele nao tem custo de ENTRADA, so de manutencao.");
+
+            NenTechniqueService.tick(jogador, NenRuntimeService.estadoDe(jogador));
+
+            exigir(!NenRuntimeService.estadoDe(jogador).tecnicasAtivas().contains(ten.id()),
+                    "Com aura zero, Ten continuou ativo -- de graca.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void tenMudaOMultiplicadorEODevolveAoSair(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Ten ten = tenDeTeste(0.0D, 2.0D);
+
+        comRegistro(List.of(ten), () -> {
+            exigir(NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao() == 1.0D,
+                    "sem tecnica ativa o multiplicador tem de ser neutro.");
+
+            NenTechniqueService.ativar(jogador, ten.id());
+            exigir(NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao() == 2.0D,
+                    "Ten nao alterou a regeneracao; veio "
+                            + NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao());
+
+            NenTechniqueService.desligar(jogador, ten.id(), StopReason.PLAYER_REQUEST);
+            exigir(NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao() == 1.0D,
+                    "O multiplicador NAO voltou ao desligar. Regeneracao acelerada"
+                            + " de uma tecnica que ja parou nao da erro nenhum --"
+                            + " ela so fica ligada para sempre.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void oMultiplicadorEOProdutoDasAtivas(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        // Duas tecnicas que modificam regeneracao: o efetivo e o PRODUTO.
+        Ten um = tenDeTeste(0.0D, 2.0D);
+        ModificadorDeTeste dobro = new ModificadorDeTeste("dobro", 3.0D);
+
+        comRegistro(List.of(um, dobro), () -> {
+            NenTechniqueService.ativar(jogador, um.id());
+            NenTechniqueService.ativar(jogador, dobro.id());
+
+            double efetivo = NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao();
+            exigir(efetivo == 6.0D,
+                    "O multiplicador de duas ativas devia ser o produto (2 x 3 = 6)"
+                            + " e veio " + efetivo + ". O TETO nao mora aqui: ele e"
+                            + " do motor, e aplica-lo duas vezes esconderia um"
+                            + " produto estourado atras de um numero plausivel.");
+
+            NenTechniqueService.desligar(jogador, dobro.id(), StopReason.PLAYER_REQUEST);
+            exigir(NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao() == 2.0D,
+                    "ao sair uma, o produto tem de voltar ao da outra sozinha.");
+        });
+
+        helper.succeed();
+    }
+
+    /** Tecnica minima que so existe para modificar regeneracao. */
+    private static final class ModificadorDeTeste implements NenTechnique, ModificaRegeneracao {
+        private final ResourceLocation id;
+        private final double multiplicador;
+
+        ModificadorDeTeste(String nome, double multiplicador) {
+            this.id = idDeTeste(nome);
+            this.multiplicador = multiplicador;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+        @Override public double multiplicadorDeRegeneracao() { return this.multiplicador; }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
     }
 }

@@ -2,6 +2,10 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
+import com.darkcontinent.nenfoundation.config.NenConfig;
+import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
+import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import java.util.List;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -18,6 +22,14 @@ public final class NenServerLifecycle {
 
     @SubscribeEvent
     public static void aoIniciarServidor(ServerAboutToStartEvent evento) {
+        // AS TECNICAS SAO SELADAS AQUI, uma vez por servidor. O selamento
+        // confere a simetria das exclusoes e RECUSA um registro torto -- e
+        // recusar na subida e o ponto: uma exclusao pela metade descoberta em
+        // jogo ja e uma combinacao ilegal que alguem usou.
+        NenTechniqueService.instalar(RegistroDeTecnicas.selar(List.of(
+                new Ten(NenConfig::tenCustoPorSegundo,
+                        NenConfig::tenMultiplicadorDeRegeneracao))));
+
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a
         // aura que o motor acabou de regenerar neste mesmo tick. Invertida, a

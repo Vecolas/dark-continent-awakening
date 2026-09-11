@@ -15,6 +15,7 @@ class MotorDeAuraTest {
         public double maximaBase() { return maxima; }
         public double regeneracaoPorSegundo() { return regen; }
         public double outputBase() { return output; }
+        @Override public double multiplicadorMaximoDeRegeneracao() { return 3.0D; }
     }
     private static PersistentNenData perfil(double potencial, double output) {
         return new PersistentNenData(1, true, NenCategory.UNDETERMINED, false,

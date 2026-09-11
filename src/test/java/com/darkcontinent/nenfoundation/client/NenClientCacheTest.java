@@ -42,8 +42,8 @@ class NenClientCacheTest {
         return new SnapshotDePerfilS2C(categoria, Set.of(id("ten")), Set.of(), Set.of());
     }
 
-    private static DeltaDeRuntimeS2C delta(float aura) {
-        return new DeltaDeRuntimeS2C(aura, 100.0F, Set.of(), Map.of());
+    private static DeltaDeRuntimeS2C deltaComAura(float aura) {
+        return new DeltaDeRuntimeS2C(aura, 100.0F, 1.0F, Set.of(), Map.of());
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ class NenClientCacheTest {
                         + " recebeuAlgumDelta antes: barra vazia por 'ainda nao sei'"
                         + " mente para o jogador no login.");
 
-        this.cache.aoReceberDelta(delta(0.0F));
+        this.cache.aoReceberDelta(deltaComAura(0.0F));
 
         assertTrue(this.cache.recebeuAlgumDelta());
         assertEquals(0.0F, this.cache.auraOuZero(),
@@ -95,7 +95,7 @@ class NenClientCacheTest {
     @DisplayName("o tick do ultimo delta e lido na hora em que o delta chega")
     void tickDoDeltaELidoNaHora() {
         this.tick.set(500L);
-        this.cache.aoReceberDelta(delta(10.0F));
+        this.cache.aoReceberDelta(deltaComAura(10.0F));
 
         this.tick.set(512L);
         assertEquals(12L, this.cache.ticksDesdeOUltimoDelta(),
@@ -116,7 +116,7 @@ class NenClientCacheTest {
     @DisplayName("FX conta, mas nao muda estado")
     void fxNaoMudaEstado() {
         this.cache.aoReceberSnapshot(snapshot(NenCategory.ENHANCEMENT));
-        this.cache.aoReceberDelta(delta(50.0F));
+        this.cache.aoReceberDelta(deltaComAura(50.0F));
 
         this.cache.aoReceberFx(new FxDeHabilidadeS2C(id("disparo_de_aura"), Vec3.ZERO, 0));
 
@@ -141,7 +141,7 @@ class NenClientCacheTest {
     @DisplayName("limpar esquece tudo, inclusive os contadores")
     void limparEsqueceTudo() {
         this.cache.aoReceberSnapshot(snapshot(NenCategory.MANIPULATION));
-        this.cache.aoReceberDelta(delta(30.0F));
+        this.cache.aoReceberDelta(deltaComAura(30.0F));
         this.cache.aoReceberFx(new FxDeHabilidadeS2C(id("x"), Vec3.ZERO, 0));
         this.cache.aoReceberErro(new FeedbackDeErroS2C("x"));
 
@@ -169,7 +169,7 @@ class NenClientCacheTest {
     void semRecebedorNaoEstoura() {
         assertFalse(Recebedores.temRecebedor());
         // E o que acontece no servidor dedicado: o handler roda e nao ha cache.
-        Recebedores.atual().aoReceberDelta(delta(1.0F));
+        Recebedores.atual().aoReceberDelta(deltaComAura(1.0F));
         Recebedores.atual().aoReceberSnapshot(snapshot(NenCategory.EMISSION));
         Recebedores.atual().aoReceberFx(new FxDeHabilidadeS2C(id("x"), Vec3.ZERO, 0));
         Recebedores.atual().aoReceberErro(new FeedbackDeErroS2C("x"));

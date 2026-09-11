@@ -7,11 +7,13 @@ package com.darkcontinent.nenfoundation.nen.aura;
  * repetir clamp ou validacao: maxima e atual sao sempre finitas, nao negativas
  * e atual nunca passa da maxima. Exaustao e derivada do valor atual, portanto
  * nao existe um segundo booleano capaz de ficar dessincronizado.
+ * O percentual de output (AOP) e garantido sempre entre 0 e 1.
  */
 public final class AuraPool {
 
     private double maxima;
     private double atual;
+    private float outputPercent = 1.0F; // 100% por padrao
 
     /** Cria uma reserva cheia explicitamente; a sessao normal nasce neutra. */
     public AuraPool(double maxima) {
@@ -34,6 +36,10 @@ public final class AuraPool {
 
     public double atual() {
         return this.atual;
+    }
+
+    public float outputPercent() {
+        return this.outputPercent;
     }
 
     /** Aura zerada: a tecnica nao deve iniciar nem continuar neste estado. */
@@ -61,6 +67,16 @@ public final class AuraPool {
             throw new IllegalArgumentException("atual deve estar entre zero e a maxima");
         }
         this.atual = atual;
+    }
+
+    /** Ajusta o output limitando entre 0.0 (0%) e 1.0 (100%). Retorna se houve mudanca. */
+    public boolean ajustarOutput(float novoPercent) {
+        float ajustado = Math.max(0.0F, Math.min(novoPercent, 1.0F));
+        if (ajustado != this.outputPercent) {
+            this.outputPercent = ajustado;
+            return true;
+        }
+        return false;
     }
 
     /**

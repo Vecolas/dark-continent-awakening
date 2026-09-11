@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
@@ -39,6 +40,7 @@ class NenSyncServiceTest {
     @Test
     @DisplayName("delta copia o runtime no instante do envio")
     void deltaNaoFicaVivoComEstadoMutavel() {
+        PersistentNenData pf = perfil(NenCategory.ENHANCEMENT, true);
         RuntimeNenState estado = new RuntimeNenState();
         estado.definirAuraMaxima(80.0D);
         estado.definirAuraAtual(12.5D);
@@ -50,8 +52,9 @@ class NenSyncServiceTest {
         estado.desativarTecnica(TEN);
         estado.removerCooldown(DISPARO);
 
-        assertEquals(12.5F, delta.aura());
-        assertEquals(80.0F, delta.auraMaxima());
+        assertEquals(12.5F, delta.aura(), 0.01F);
+        assertEquals(80.0F, delta.auraMaxima(), 0.01F);
+        assertEquals(1.0F, delta.outputPercent(), 0.01F);
         assertEquals(Set.of(TEN), delta.tecnicasAtivas());
         assertEquals(Map.of(DISPARO, 40), delta.cooldowns());
     }

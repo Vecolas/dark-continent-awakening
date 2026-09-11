@@ -7,6 +7,9 @@ import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
+import net.minecraft.client.gui.screens.Screen;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -50,6 +53,9 @@ public final class NenFoundationClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NenFoundationClient.class);
 
+    /** Instancia unica; o Minecraft so carrega um mod client por JVM. */
+    private static NenFoundationClient INSTANCIA;
+
     private final NenClientCache cache;
     private final OverlayDeDebug overlay;
     private final OverlayDeAura auraHud;
@@ -57,9 +63,11 @@ public final class NenFoundationClient {
     private long ticksDaSessao;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
+        INSTANCIA = this;
         // O contador de ticks do cliente, perguntado na hora do uso.
         this.cache = new NenClientCache(
-                () -> this.ticksDaSessao, NenConfig::devModeAtivo, NenConfig::interpolacaoDeAura);
+                () -> this.ticksDaSessao, NenConfig::devModeAtivo,
+                NenConfig::interpolacaoDeAura, NenConfig::interpolacaoDeOutput);
         this.overlay = new OverlayDeDebug(this.cache);
         this.auraHud = new OverlayDeAura(this.cache);
 
@@ -76,6 +84,7 @@ public final class NenFoundationClient {
     }
 
     /**
+
      * Ao sair de um servidor, o cliente esquece o que sabia.
      *
      * <p>Sem isto, entrar em outro servidor mostra o perfil do anterior ate o
@@ -108,6 +117,12 @@ public final class NenFoundationClient {
         while (NenKeybinds.OVERLAY_DE_DEBUG.consumeClick()) {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
+        }
+        while (NenKeybinds.AJUSTAR_OUTPUT.consumeClick()) {
+            if (mc.player != null && mc.level != null && mc.screen == null) {
+                float variacao = Screen.hasShiftDown() ? -0.10F : +0.10F;
+                PacketDistributor.sendToServer(new AjustarOutputC2S(variacao));
+            }
         }
     }
 }

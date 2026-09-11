@@ -22,6 +22,7 @@ descoberto.
 | `ProtocoloCongeladoTest` | codigo e documento concordam sobre id, direcao e versao | que o handler valida o que devia |
 | `IndiceDeAdrTest` | nenhum ADR esta fora do indice | que as decisoes estao sendo seguidas |
 | `PacotesDeclaradosTest` | todo pacote se declara; o nucleo nao importa cliente por `import` | violacao por reflexao, por nome de classe em string ou por classe interna |
+| `HudAssetsTest` | os cinco PNGs modulares da HUD existem sem sobra, preservam transparencia e mantem as dimensoes esperadas | qualidade visual em jogo, recorte da cabeca, legibilidade do badge ou alinhamento com cada GUI Scale |
 | `runClient` | o mod carrega num cliente, os listeners sobem, e — com `-PentrarEm=host:porta` — ele entra num servidor sozinho e recebe payload de verdade | comportamento com DOIS jogadores; latencia real; qualquer coisa desenhada na tela, que ninguem olhou |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
 | `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |

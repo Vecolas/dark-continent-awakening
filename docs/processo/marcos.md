@@ -108,10 +108,10 @@ autoritativo.
 
 ### Gate de saida
 
-- Categoria e unlocks persistem em teste artificial.
-- O perfil de um jogador nunca aparece no cache de outro.
-- Restart do servidor mantem os dados.
-- Morte respeita exatamente a politica definida.
+- [x] Categoria e unlocks persistem em teste artificial.
+- [x] O perfil de um jogador nunca aparece no cache de outro.
+- [x] Restart do servidor mantem os dados.
+- [x] Morte respeita exatamente a politica definida.
 
 ---
 

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.OptionalDouble;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -116,6 +117,31 @@ public final class CodecsDePayload {
             buf.writeBoolean(valor.isPresent());
             if (valor.isPresent()) {
                 ByteBufCodecs.VAR_INT.encode(buf, valor.getAsInt());
+            }
+        }
+    };
+
+    /**
+     * Double opcional, com booleano de presenca.
+     *
+     * <p>Usado pelo delta de runtime para transportar vigor e vigorMaximo
+     * somente quando a segunda barra esta habilitada no servidor. Um sentinela
+     * como -1f seria ambiguo se um dia o vigor admitir valores fracionarios
+     * ou negativos por efeito de status. O booleano elimina a ambiguidade.
+     */
+    public static final StreamCodec<ByteBuf, OptionalDouble> OPCIONAL_DOUBLE = new StreamCodec<>() {
+        @Override
+        public OptionalDouble decode(ByteBuf buf) {
+            return buf.readBoolean()
+                    ? OptionalDouble.of(buf.readDouble())
+                    : OptionalDouble.empty();
+        }
+
+        @Override
+        public void encode(ByteBuf buf, OptionalDouble valor) {
+            buf.writeBoolean(valor.isPresent());
+            if (valor.isPresent()) {
+                buf.writeDouble(valor.getAsDouble());
             }
         }
     };

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
 import com.darkcontinent.nenfoundation.network.payload.AtivarHabilidadeC2S;
 import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
@@ -160,6 +161,9 @@ class RecordsDePayloadTest {
         idaEVolta(AtivarTecnicaC2S.STREAM_CODEC,
                 new AtivarTecnicaC2S(id("ren")));
 
+        idaEVolta(AjustarOutputC2S.STREAM_CODEC,
+                new AjustarOutputC2S(+0.10F));
+
         idaEVolta(AtivarHabilidadeC2S.STREAM_CODEC,
                 new AtivarHabilidadeC2S(id("disparo_de_aura"), 3,
                         OptionalInt.of(0), Optional.of(new Vec3(1.5D, -64.0D, 2048.25D))));
@@ -178,7 +182,7 @@ class RecordsDePayloadTest {
                         Set.of(), Set.of(), Set.of()));
 
         idaEVolta(DeltaDeRuntimeS2C.STREAM_CODEC,
-                new DeltaDeRuntimeS2C(12.5F, 80.0F, Set.of(id("ren")),
+                new DeltaDeRuntimeS2C(12.5F, 80.0F, 1.0F, Set.of(id("ren")),
                         Map.of(id("disparo_de_aura"), 40)));
 
         idaEVolta(FeedbackDeErroS2C.STREAM_CODEC,

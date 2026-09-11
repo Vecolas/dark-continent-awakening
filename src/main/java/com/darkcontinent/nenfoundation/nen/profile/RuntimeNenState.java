@@ -56,6 +56,16 @@ public final class RuntimeNenState {
         return this.aura.maxima();
     }
 
+    public float outputPercent() {
+        return this.aura.outputPercent();
+    }
+
+    public void ajustarOutput(float novoPercent) {
+        if (this.aura.ajustarOutput(novoPercent)) {
+            marcarAlterado();
+        }
+    }
+
     public boolean exausto() {
         return this.aura.maxima() > 0.0D && this.aura.exausto();
     }

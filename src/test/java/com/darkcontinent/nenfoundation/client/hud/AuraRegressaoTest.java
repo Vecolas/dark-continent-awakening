@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 /** Regressoes de lag, clock, reconexao, maximo zero e delta malformado. */
 class AuraRegressaoTest {
     private static DeltaDeRuntimeS2C delta(float atual, float maxima) {
-        return new DeltaDeRuntimeS2C(atual, maxima, Set.of(), Map.of());
+        return new DeltaDeRuntimeS2C(atual, maxima, 1.0F, Set.of(), Map.of());
     }
 
     @Test void fracaoDeQuadroERecargaDeConfigNaoAlteramDeltaBruto() {
@@ -33,7 +33,9 @@ class AuraRegressaoTest {
         var cache = new NenClientCache(() -> 1, () -> false);
         cache.aoReceberDelta(delta(5, 10));
         for (var invalido : new DeltaDeRuntimeS2C[]{delta(Float.NaN, 10), delta(1, Float.POSITIVE_INFINITY),
-                delta(-1, 10), delta(11, 10), delta(0, -1)}) {
+                delta(-1, 10), delta(11, 10), delta(0, -1),
+                new DeltaDeRuntimeS2C(1, 10, Float.NaN, Set.of(), Map.of()),
+                new DeltaDeRuntimeS2C(1, 10, 1.1F, Set.of(), Map.of())}) {
             assertThrows(IllegalArgumentException.class, () -> cache.aoReceberDelta(invalido));
             assertEquals(5, cache.auraOuZero());
             assertEquals(1, cache.deltasRecebidos());

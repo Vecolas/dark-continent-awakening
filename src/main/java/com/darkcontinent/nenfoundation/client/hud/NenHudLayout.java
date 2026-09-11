@@ -26,12 +26,12 @@ public record NenHudLayout(
         float escala = largura / (float) LARGURA_DA_MOLDURA;
         return new NenHudLayout(
                 new Retangulo(MARGEM, MARGEM, largura, escalar(ALTURA_DA_MOLDURA, escala)),
-                area(22, 22, 31, 31, escala),
-                area(17, 49, 14, 14, escala),
-                area(59, 31, 142, 7, escala),
-                area(59, 51, 142, 7, escala),
-                area(204, 30, 38, 9, escala),
-                area(216, 50, 26, 9, escala));
+                area(17, 17, 28, 28, escala),
+                area(10, 44, 14, 14, escala),
+                area(51, 22, 144, 8, escala),
+                area(51, 41, 144, 8, escala),
+                area(197, 22, 38, 9, escala),
+                area(209, 41, 26, 9, escala));
     }
 
     private static Retangulo area(int x, int y, int largura, int altura, float escala) {

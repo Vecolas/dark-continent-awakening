@@ -67,13 +67,14 @@ test.
       `NoClassDefFoundError`.
 - [x] **Nenhuma classe client-only carregada no servidor** — portao estatico
       mais `runServer` real.
-- [ ] **`runClient` nunca foi executado.**
-- [ ] **CI verde num PR de cada pessoa** — falta o primeiro push e a segunda
-      pessoa abrir PR.
-- [ ] **Nenhuma maquina do projeto tem JDK 21 instalado** — a verificacao usou
-      um JDK portatil temporario.
+- [x] **`runClient` executado** — camada de cliente carrega, sem erro (#18).
+- [x] **JDK 21 instalado na maquina** — Temurin 21.0.12; `build` verde sem JDK
+      portatil (#17).
+- [ ] **CI verde num PR de cada PESSOA** — o CI roda verde em todo PR, mas
+      todos foram abertos pela mesma pessoa. Fecha quando a segunda abrir o
+      primeiro. E o unico item do M0 que depende de gente, e nao de codigo.
 
-Os limites completos, e os tres defeitos que a execucao encontrou, estao em
+Os limites completos, e os defeitos que a execucao encontrou, estao em
 [o-que-nao-provamos.md](../testing/o-que-nao-provamos.md).
 
 ---

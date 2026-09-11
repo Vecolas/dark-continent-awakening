@@ -210,4 +210,66 @@ class TenTest {
         assertTrue(m.find(), "chave nao encontrada no NenConfig: " + chave);
         return Double.parseDouble(m.group(1));
     }
+
+    // ------------------------------------------------------------ Ren (#87)
+
+    @Test
+    @DisplayName("Ren levanta o teto de Output acima do repouso")
+    void renLevantaOTeto() {
+        double repouso = valorDeConfig("aura.tetoDeOutputEmRepouso");
+        double tetoDeRen = valorDeConfig("tecnica.ren.tetoDeOutput");
+
+        assertTrue(tetoDeRen > repouso,
+                "Ren nao levanta nada: teto de repouso " + repouso + " contra teto"
+                        + " de Ren " + tetoDeRen + ". Com os dois iguais, Ren deixa"
+                        + " de ter efeito observavel e vira so um dreno de aura.");
+    }
+
+    @Test
+    @DisplayName("em repouso o jogador NAO alcanca o Output maximo")
+    void repousoNaoDeixaAlcancarOTopo() {
+        // E isto que da a Ren o que levantar. Com o repouso em 1.0, o teto nunca
+        // morde -- que era exatamente o ponto cego declarado no PR #80.
+        double repouso = valorDeConfig("aura.tetoDeOutputEmRepouso");
+        assertTrue(repouso < 1.0D,
+                "O teto de repouso e " + repouso + ": o jogador ja alcanca tudo sem"
+                        + " tecnica nenhuma, e Ren nao tem o que levantar.");
+        assertTrue(repouso > 0.0D,
+                "O teto de repouso e zero: sem tecnica o jogador nao libera nada.");
+    }
+
+    @Test
+    @DisplayName("Ren drena MUITO mais que Ten, e drena de fato")
+    void renDrenaMaisQueTen() {
+        double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
+        double custoRen = valorDeConfig("tecnica.ren.custoPorSegundo");
+        double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
+
+        assertTrue(custoRen - regenBase > 0.0D,
+                "Ren nao drena: custo " + custoRen + "/s contra regeneracao "
+                        + regenBase + "/s.");
+        assertTrue(custoRen > custoTen * 2.0D,
+                "Ren custa " + custoRen + "/s contra " + custoTen + "/s de Ten. A"
+                        + " PROPORCAO entre os dois e o que faz Ren ser estado de"
+                        + " combate e Ten estado de repouso -- nao o javadoc.");
+    }
+
+    @Test
+    @DisplayName("Ten e Ren juntos custam os dois")
+    void tenERenSomamCusto() {
+        // Eles convivem de proposito: no canone Ren se apoia em Ten. Quem liga
+        // os dois paga os dois, e e assim que "o limite simultaneo e a Aura"
+        // aparece em numero.
+        double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
+        double custoRen = valorDeConfig("tecnica.ren.custoPorSegundo");
+        double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
+        double multTen = valorDeConfig("tecnica.ten.multiplicadorDeRegeneracao");
+
+        double drenoJuntos = (custoTen + custoRen) - regenBase * multTen;
+        double drenoSoRen = custoRen - regenBase;
+
+        assertTrue(drenoJuntos > drenoSoRen,
+                "Ligar Ten junto de Ren nao custou mais caro: " + drenoJuntos
+                        + "/s contra " + drenoSoRen + "/s so com Ren.");
+    }
 }

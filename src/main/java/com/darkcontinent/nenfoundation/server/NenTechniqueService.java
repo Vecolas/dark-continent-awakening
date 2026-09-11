@@ -1,7 +1,10 @@
 package com.darkcontinent.nenfoundation.server;
 
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
+import java.util.function.DoubleSupplier;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
+import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -60,9 +63,32 @@ public final class NenTechniqueService {
     private NenTechniqueService() {
     }
 
+    /**
+     * De onde sai o teto de Output em repouso.
+     *
+     * <p>E UMA FONTE INJETADA, e nao uma leitura direta de {@code NenConfig}.
+     *
+     * <p>A primeira versao lia a config aqui dentro, e isso acoplou o inicio de
+     * sessao a config estar CARREGADA -- os testes unitarios quebraram com
+     * "Cannot get config value before config is loaded", e em producao seria
+     * uma bomba de relogio: qualquer sessao criada antes da carga estouraria,
+     * num caminho que ninguem exercita.
+     *
+     * <p>O padrao ja existia no projeto: Ten e Ren recebem {@code
+     * DoubleSupplier} pelo mesmo motivo. O default e o teto ABSOLUTO, para que
+     * um ambiente sem config se comporte como antes desta mudanca, e nao pior.
+     */
+    private static volatile DoubleSupplier tetoDeRepouso =
+            () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO;
+
     /** Troca o registro. So o ciclo de vida do mod chama isto. */
     public static void instalar(RegistroDeTecnicas novo) {
         registro = Objects.requireNonNull(novo, "registro");
+    }
+
+    /** Instala a fonte do teto de repouso. So o ciclo de vida do mod chama. */
+    public static void instalarTetoDeRepouso(DoubleSupplier fonte) {
+        tetoDeRepouso = Objects.requireNonNull(fonte, "fonte");
     }
 
     public static RegistroDeTecnicas registro() {
@@ -287,9 +313,45 @@ public final class NenTechniqueService {
         return produto;
     }
 
-    private static void recalcularRegeneracao(RuntimeNenState estado) {
+    /**
+     * O teto de Output das tecnicas ATIVAS: o MAIOR entre o repouso e o que
+     * cada uma permite.
+     *
+     * <p>Maior, e nao produto nem soma: duas tecnicas que levantam o teto nao
+     * se empilham. Somar produziria teto acima de 100% com duas tecnicas
+     * modestas.
+     */
+    static float tetoDe(RegistroDeTecnicas registro, Set<ResourceLocation> ativas,
+            float tetoEmRepouso) {
+        float teto = tetoEmRepouso;
+        for (ResourceLocation id : ativas) {
+            NenTechnique tecnica = registro.porId(id).orElse(null);
+            if (tecnica instanceof ModificaTetoDeOutput modificador) {
+                teto = Math.max(teto, modificador.tetoDeOutput());
+            }
+        }
+        return teto;
+    }
+
+    /**
+     * Poe runtime e tecnicas ativas de acordo.
+     *
+     * <p>PUBLICO porque o inicio de sessao tambem precisa chamar: um
+     * RuntimeNenState recem-criado nasce com o teto ABSOLUTO, e nao com o de
+     * repouso. Sem esta chamada, o jogador comecaria a sessao com o teto de
+     * quem esta em Ren -- e so voltaria ao normal depois de ligar e desligar
+     * alguma tecnica.
+     */
+    public static void recalcularDerivados(RuntimeNenState estado) {
+        RegistroDeTecnicas atual = registro;
         estado.definirMultiplicadorDeRegeneracao(
-                multiplicadorDe(registro, estado.tecnicasAtivas()));
+                multiplicadorDe(atual, estado.tecnicasAtivas()));
+        estado.definirOutputMaximo(
+                tetoDe(atual, estado.tecnicasAtivas(), (float) tetoDeRepouso.getAsDouble()));
+    }
+
+    private static void recalcularRegeneracao(RuntimeNenState estado) {
+        recalcularDerivados(estado);
     }
 
     /**

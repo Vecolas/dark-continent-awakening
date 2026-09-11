@@ -51,4 +51,13 @@ class AuraVfxSupportTest {
         assertThrows(IllegalArgumentException.class, () -> AuraFlowPattern.sample(1, 0, 0, 2));
         assertThrows(IllegalArgumentException.class, () -> AuraImpactState.iniciar(AuraBodyRegion.HEAD, -1));
     }
+
+    @Test
+    void qualidadeLocalNuncaAumentaDetalheAlemDoLod() {
+        assertEquals(AuraRenderLod.HIDDEN, AuraVisualQuality.OFF.limitar(AuraRenderLod.FULL));
+        assertEquals(AuraRenderLod.SHELL, AuraVisualQuality.LOW.limitar(AuraRenderLod.FULL));
+        assertEquals(AuraRenderLod.SIMPLIFIED, AuraVisualQuality.LOW.limitar(AuraRenderLod.SIMPLIFIED));
+        assertTrue(AuraVisualProfile.agressiva().flowSpeed()
+                > AuraVisualProfile.controlada().flowSpeed());
+    }
 }

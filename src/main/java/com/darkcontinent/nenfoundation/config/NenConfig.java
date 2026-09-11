@@ -89,6 +89,23 @@ public final class NenConfig {
                     "Ele REDUZ o custo de manter Ten; ele nao o paga.")
             .defineInRange("tecnica.ten.multiplicadorDeRegeneracao", 2.0D, 0.0D, 10.0D);
 
+    private static final ModConfigSpec.DoubleValue TETO_DE_OUTPUT_EM_REPOUSO = BUILDER
+            .comment("Fracao do Output que o jogador consegue liberar SEM tecnica nenhuma.",
+                    "Abaixo de 1.0 de proposito: e o que da a Ren o que levantar.",
+                    "Em 1.0, Ren deixa de ter efeito observavel.")
+            .defineInRange("aura.tetoDeOutputEmRepouso", 0.5D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue REN_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ren consome por segundo enquanto estiver ativo.",
+                    "MUITO maior que o de Ten, e a proporcao entre os dois e que faz Ren",
+                    "ser estado de combate e Ten estado de repouso.")
+            .defineInRange("tecnica.ren.custoPorSegundo", 10.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue REN_TETO_DE_OUTPUT = BUILDER
+            .comment("Teto de Output enquanto Ren estiver ativo.",
+                    "Precisa ser MAIOR que aura.tetoDeOutputEmRepouso, senao Ren nao levanta nada.")
+            .defineInRange("tecnica.ren.tetoDeOutput", 1.0D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -115,6 +132,17 @@ public final class NenConfig {
     public static double tenMultiplicadorDeRegeneracao() {
         return TEN_MULTIPLICADOR_DE_REGENERACAO.get();
     }
+
+    /** Teto de Output sem tecnica nenhuma. Lido no instante do uso. */
+    public static float tetoDeOutputEmRepouso() {
+        return TETO_DE_OUTPUT_EM_REPOUSO.get().floatValue();
+    }
+
+    /** Custo de Ren por segundo. */
+    public static double renCustoPorSegundo() { return REN_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Teto de Output com Ren ativo. */
+    public static double renTetoDeOutput() { return REN_TETO_DE_OUTPUT.get(); }
 
     public static int pedidosPorSegundo() {
         return PEDIDOS_POR_SEGUNDO.get();

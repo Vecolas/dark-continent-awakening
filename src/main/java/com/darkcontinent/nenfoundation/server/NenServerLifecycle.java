@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import java.util.List;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -26,9 +27,12 @@ public final class NenServerLifecycle {
         // confere a simetria das exclusoes e RECUSA um registro torto -- e
         // recusar na subida e o ponto: uma exclusao pela metade descoberta em
         // jogo ja e uma combinacao ilegal que alguem usou.
+        NenTechniqueService.instalarTetoDeRepouso(NenConfig::tetoDeOutputEmRepouso);
         NenTechniqueService.instalar(RegistroDeTecnicas.selar(List.of(
                 new Ten(NenConfig::tenCustoPorSegundo,
-                        NenConfig::tenMultiplicadorDeRegeneracao))));
+                        NenConfig::tenMultiplicadorDeRegeneracao),
+                new Ren(NenConfig::renCustoPorSegundo,
+                        NenConfig::renTetoDeOutput))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a

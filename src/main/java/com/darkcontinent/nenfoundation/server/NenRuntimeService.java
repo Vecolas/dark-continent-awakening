@@ -50,6 +50,12 @@ public final class NenRuntimeService {
         NenAuraService.encerrarSessao(jogadorId);
         RuntimeNenState novo = new RuntimeNenState();
         ESTADOS.put(jogadorId, novo);
+
+        // O TETO DE REPOUSO PRECISA VALER DESDE O PRIMEIRO TICK. Um runtime
+        // recem-criado nasce com o teto ABSOLUTO; sem esta chamada o jogador
+        // comecaria a sessao com o teto de quem esta em Ren, e so voltaria ao
+        // normal depois de ligar e desligar alguma tecnica -- sem erro nenhum.
+        NenTechniqueService.recalcularDerivados(novo);
         return novo;
     }
 

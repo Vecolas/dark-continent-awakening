@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.gametest;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
+import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -669,5 +670,110 @@ public final class NenTecnicaGameTest {
         @Override public void onActivate(ServerPlayer j, NenContext c) { }
         @Override public void serverTick(ServerPlayer j, NenContext c) { }
         @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    // ------------------------------------------------------------ Ren (#87)
+
+    /** Uma tecnica que so levanta o teto, para medir o teto sem medir custo. */
+    private static final class Levantadora
+            implements NenTechnique, ModificaTetoDeOutput {
+        private final ResourceLocation id;
+        private final float teto;
+
+        Levantadora(String nome, float teto) {
+            this.id = idDeTeste(nome);
+            this.teto = teto;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+        @Override public float tetoDeOutput() { return this.teto; }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void levantarOTetoMudaOOutputEfetivo(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Levantadora ren = new Levantadora("ren", 1.0F);
+
+        comRegistro(List.of(ren), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirOutputSelecionado(1.0F);
+            estado.definirOutputMaximo(0.5F);
+
+            exigir(estado.outputEfetivo() == 0.5F,
+                    "o teto de repouso nao estava limitando; veio " + estado.outputEfetivo());
+
+            NenTechniqueService.ativar(jogador, ren.id());
+            exigir(estado.outputEfetivo() == 1.0F,
+                    "Ren nao levantou o teto: efetivo " + estado.outputEfetivo()
+                            + ". E este o ponto cego que o PR #80 declarou -- nada"
+                            + " mexia no maximo, e o `min` nunca mordia.");
+
+            NenTechniqueService.desligar(jogador, ren.id(), StopReason.PLAYER_REQUEST);
+            exigir(estado.outputEfetivo() < 1.0F,
+                    "O teto NAO voltou ao desligar: efetivo " + estado.outputEfetivo()
+                            + ". Teto elevado de uma tecnica que ja parou nao da"
+                            + " erro nenhum -- ele so fica ligado para sempre.");
+            exigir(estado.outputSelecionado() == 1.0F,
+                    "a escolha do jogador foi rebaixada junto com o teto.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void oTetoEOMaiorDasAtivasENaoASoma(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Levantadora baixa = new Levantadora("baixa", 0.6F);
+        Levantadora alta = new Levantadora("alta", 0.9F);
+
+        comRegistro(List.of(baixa, alta), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirOutputSelecionado(1.0F);
+
+            NenTechniqueService.ativar(jogador, baixa.id());
+            NenTechniqueService.ativar(jogador, alta.id());
+
+            exigir(estado.outputMaximo() == 0.9F,
+                    "Com duas ativas o teto devia ser o MAIOR (0.9) e veio "
+                            + estado.outputMaximo() + ". Somar daria 1.5 -- duas"
+                            + " tecnicas modestas estourando o limite absoluto.");
+
+            NenTechniqueService.desligar(jogador, alta.id(), StopReason.PLAYER_REQUEST);
+            exigir(estado.outputMaximo() == 0.6F,
+                    "ao sair a maior, o teto devia cair para a que sobrou; veio "
+                            + estado.outputMaximo());
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void sessaoNovaNasceComOTetoDeRepouso(GameTestHelper helper) {
+        // Sem o recalculo no inicio de sessao, o runtime nasceria com o teto
+        // ABSOLUTO -- o jogador comecaria a partida com o teto de quem esta em
+        // Ren, e so voltaria ao normal depois de ligar e desligar algo.
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+        var estado = NenRuntimeService.estadoDe(jogador);
+
+        exigir(estado.outputMaximo() > 0.0F,
+                "sessao nova nasceu com teto zero: o jogador nao libera nada.");
+        exigir(estado.multiplicadorDeRegeneracao() == 1.0D,
+                "sessao nova nasceu com multiplicador de regeneracao diferente de"
+                        + " neutro: " + estado.multiplicadorDeRegeneracao());
+
+        helper.succeed();
     }
 }

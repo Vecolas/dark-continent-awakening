@@ -32,6 +32,24 @@ public final class Marcos {
      */
     public static final ResourceLocation DESPERTOU = NenFoundation.id("despertou");
 
+    /**
+     * O jogador SOUBE qual e a sua categoria.
+     *
+     * <p>Gravado pela revelacao, junto com {@code category_revealed = true}.
+     * E o marco do onboarding: e nele que uma quest "descubra o seu Nen"
+     * completa.
+     *
+     * <p>POR QUE NAO HA UM MARCO PARA A ATRIBUICAO: os marcos viajam INTEIROS
+     * no snapshot ate o cliente. Um marco posto no momento em que a categoria
+     * e sorteada contaria ao cliente um fato que o jogador ainda nao tem --
+     * exatamente o que {@code categoriaVisivel()} existe para impedir. A
+     * atribuicao ja e legivel no servidor por
+     * {@code category() != UNDETERMINED}, e uma segunda fonte para a mesma
+     * verdade divergiria.
+     */
+    public static final ResourceLocation CATEGORIA_REVELADA =
+            NenFoundation.id("categoria_revelada");
+
     private Marcos() {
     }
 }

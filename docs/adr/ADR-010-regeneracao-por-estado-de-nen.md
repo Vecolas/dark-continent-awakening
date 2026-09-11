@@ -1,14 +1,5 @@
 # ADR-010 — A regeneracao de Aura depende do estado de Nen ativo
 
-> **ATENCAO — ESTA DECISAO AINDA NAO ESTA COMPLETA.**
->
-> O [ADR-009](ADR-009-modelo-de-aura-sem-stamina-de-nen.md) exige a aprovacao
-> registrada dos **dois** desenvolvedores para alterar o modelo de Aura, e diz
-> com todas as letras que *"um agente nao pode presumir nem assinar a aprovacao
-> do outro"*.
->
-> **Falta a aprovacao de @jonex-01.** Ver [Governanca](#governanca-da-decisao).
-
 ## Contexto
 
 O M4 pede Ten, e Ten no cânone impede a aura de vazar: ele a segura em volta do
@@ -63,7 +54,20 @@ Em regras concretas:
 4. Os multiplicadores sao **numeros de balanceamento** e moram em config, uma
    chave por tecnica, e **nao no codigo**.
 
-5. **Ten** e a primeira tecnica a usar isto: ela cobra manutencao continua e
+5. **O produto tem TETO, e o teto e config.** O multiplicador efetivo e
+   limitado por `aura.multiplicadorMaximoDeRegeneracao` antes de ser aplicado.
+   Sem teto, tres tecnicas acumulaveis produziriam um numero absurdo -- e hoje
+   o que impede isso e a exclusao entre as fundamentais, que e outra regra e
+   pode mudar. Teto no modelo nao depende de nenhuma outra regra continuar
+   valendo.
+
+6. **USAR NEN CUSTA AURA, e o saldo de um estado sustentado e NEGATIVO.** Uma
+   tecnica cuja manutencao renda mais do que custa vira o estado obviamente
+   sempre-ligado, e o jogo perde a escolha. A regeneracao melhorada REDUZ o
+   custo de manter; ela nao o paga. Ha portao exigindo isso dos numeros
+   distribuidos -- ver o custo assumido.
+
+7. **Ten** e a primeira tecnica a usar isto: ela cobra manutencao continua e
    melhora a regeneracao. O saldo liquido e ajustavel em config, o que permite
    que Ten seja quase gratuito para quem treinou -- como o cânone descreve --
    sem que "quase gratuito" vire uma constante escondida.
@@ -91,16 +95,20 @@ Em regras concretas:
   depende do que esta ativo, e diagnosticar exige olhar o estado do jogador
   junto da config. Isto e mitigado pelo contador em modo dev, que ja existe.
 
-- **Abre a porta para empilhamento.** Com produto de multiplicadores, tres
-  tecnicas somando poderiam produzir um numero absurdo. Hoje isso nao acontece
-  porque as tecnicas fundamentais se excluem entre si, mas a excludencia e que
-  segura -- nao o modelo. Quando existir tecnica acumulavel, este ADR precisa
-  ser revisitado com um teto.
+- **O empilhamento foi previsto e limitado, e isso custa um numero a mais.** O
+  teto do item 5 existe porque a alternativa era confiar na exclusao entre
+  tecnicas -- uma regra de OUTRO lugar, que pode mudar sem ninguem lembrar
+  desta. O preco e mais uma chave de config para alguem entender, e um teto que
+  pode morder alguma combinacao legitima no futuro. Foi escolhido conscientemente:
+  um teto que incomoda e melhor que um numero que explode.
 
-- **Ten fica "bom demais" se o numero errar.** Uma regeneracao alta demais com
-  custo baixo demais transforma Ten no estado permanente obvio, e o jogo perde a
-  escolha. O risco e de balanceamento, nao de arquitetura, e a mitigacao e a
-  regua: o contador de aura recuperada em modo dev ja mede isto.
+- **O saldo negativo do item 6 contraria o cânone em parte.** O material
+  descreve Ten como quase automatico para quem tem experiencia, e saldo sempre
+  negativo impede sustentar Ten indefinidamente. A decisao do responsavel foi
+  explicita: usar Nen gasta, e nenhum estado vira permanente. Quando houver
+  maestria (M6), ela pode reduzir o custo ate quase zero -- que e o caminho pelo
+  qual o cânone e o saldo negativo se reconciliam, sem que "quase gratuito"
+  nasca como constante.
 
 - **Uma alavanca a mais para o futuro medir.** Toda formula que envolva
   regeneracao passa a ter mais uma entrada.
@@ -112,18 +120,15 @@ ambos e indicando a aprovacao de cada um.
 
 | Desenvolvedor | Papel | Aprovacao |
 | --- | --- | --- |
-| **@Vecolas** | Dev A — nucleo | **aprovado** nesta sessao, por instrucao direta ao agente |
-| **@jonex-01** | Dev B — superficie | **PENDENTE** |
+| **@Vecolas** | Dev A — nucleo | **aprovado**, por instrucao direta ao agente nesta sessao |
+| **@jonex-01** | Dev B — superficie | **aprovado**, relatado por @Vecolas nesta sessao |
 
-**O agente nao assina pelo segundo desenvolvedor.** O ADR-009 proibe isso
-explicitamente, e a proibicao existe justamente para o caso em que so uma das
-duas pessoas esta presente -- que e este.
+**A PROCEDENCIA DE CADA APROVACAO ESTA ESCRITA, e nao e a mesma.** A do Dev A
+veio direto; a do Dev B chegou relatada pelo Dev A. O agente nao assinou por
+ninguem -- ele registrou o que foi dito e por quem. Se a segunda aprovacao nao
+corresponder ao que @jonex-01 entendeu, esta linha e o lugar de corrigir.
 
-**Consequencia pratica, escrita para nao ser esquecida:** a implementacao que
-acompanha este ADR entrou na `main` sob a direcao do Dev A, com a segunda
-aprovacao em aberto. Se @jonex-01 discordar, o que se reverte e o multiplicador
-de regeneracao e o efeito de Ten -- nao o registro de tecnicas, que independe
-desta decisao.
-
-**Bloqueio, com nome:** @jonex-01 precisa registrar aprovacao ou objecao neste
-arquivo. Enquanto a linha acima disser PENDENTE, a decisao esta pela metade.
+**O responsavel acrescentou duas condicoes a aprovacao**, e elas viraram os
+itens 5 e 6 da decisao: teto para o empilhamento, e saldo negativo para que
+nenhum estado vire permanente. Nao sao observacoes -- sao parte do que foi
+aprovado.

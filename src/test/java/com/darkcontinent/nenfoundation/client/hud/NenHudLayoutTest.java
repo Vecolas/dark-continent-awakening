@@ -11,11 +11,15 @@ class NenHudLayoutTest {
         NenHudLayout pequeno = NenHudLayout.para(120);
         NenHudLayout grande = NenHudLayout.para(640);
 
-        assertEquals(NenHudLayout.MARGEM, pequeno.retrato().x());
-        assertEquals(NenHudLayout.MARGEM, grande.retrato().x());
-        assertEquals(pequeno.barraDeAura().x(), grande.barraDeAura().x());
+        assertTrue(pequeno.retrato().x() >= NenHudLayout.MARGEM);
+        assertEquals(NenHudLayout.MARGEM, pequeno.moldura().x());
+        assertEquals(NenHudLayout.MARGEM, grande.moldura().x());
         assertTrue(pequeno.barraDeAura().x() + pequeno.barraDeAura().largura() <= 120);
         assertTrue(grande.barraDeAura().x() + grande.barraDeAura().largura() <= 640);
+        assertTrue(grande.barraDeAura().x() + grande.barraDeAura().largura()
+                < grande.valorDeAura().x());
+        assertTrue(grande.barraDeOutput().x() + grande.barraDeOutput().largura()
+                < grande.valorDeOutput().x());
     }
 
     @Test

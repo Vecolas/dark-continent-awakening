@@ -8,30 +8,39 @@ package com.darkcontinent.nenfoundation.client.hud;
  * ao canto superior esquerdo sem espalhar numeros pelos renderers.
  */
 public record NenHudLayout(
-        Retangulo molduraDasBarras,
+        Retangulo moldura,
         Retangulo retrato,
         Retangulo badge,
         Retangulo barraDeAura,
-        Retangulo barraDeOutput) {
+        Retangulo barraDeOutput,
+        Retangulo valorDeAura,
+        Retangulo valorDeOutput) {
 
     public static final int MARGEM = 8;
-    public static final int RETRATO = 30;
-    public static final int BADGE = 14;
-    public static final int ESPACO = 6;
-    public static final int LARGURA_DAS_BARRAS = 136;
-    public static final int ALTURA_DA_BARRA = 7;
+    public static final int LARGURA_DA_MOLDURA = 250;
+    public static final int ALTURA_DA_MOLDURA = 63;
 
     public static NenHudLayout para(int larguraGui) {
-        int barrasX = MARGEM + RETRATO + ESPACO;
-        int larguraDisponivel = Math.max(1, larguraGui - barrasX - MARGEM);
-        int largura = Math.min(LARGURA_DAS_BARRAS, larguraDisponivel);
+        int largura = Math.min(LARGURA_DA_MOLDURA,
+                Math.max(1, larguraGui - 2 * MARGEM));
+        float escala = largura / (float) LARGURA_DA_MOLDURA;
         return new NenHudLayout(
-                new Retangulo(barrasX - 5, MARGEM + 7, largura + 10, 42),
-                new Retangulo(MARGEM, MARGEM, RETRATO, RETRATO),
-                new Retangulo(MARGEM + (RETRATO - BADGE) / 2,
-                        MARGEM + RETRATO + 2, BADGE, BADGE),
-                new Retangulo(barrasX, MARGEM + 18, largura, ALTURA_DA_BARRA),
-                new Retangulo(barrasX, MARGEM + 34, largura, ALTURA_DA_BARRA));
+                new Retangulo(MARGEM, MARGEM, largura, escalar(ALTURA_DA_MOLDURA, escala)),
+                area(22, 22, 31, 31, escala),
+                area(17, 49, 14, 14, escala),
+                area(59, 31, 142, 7, escala),
+                area(59, 51, 142, 7, escala),
+                area(204, 30, 38, 9, escala),
+                area(216, 50, 26, 9, escala));
+    }
+
+    private static Retangulo area(int x, int y, int largura, int altura, float escala) {
+        return new Retangulo(MARGEM + escalar(x, escala), MARGEM + escalar(y, escala),
+                escalar(largura, escala), escalar(altura, escala));
+    }
+
+    private static int escalar(int valor, float escala) {
+        return Math.max(1, Math.round(valor * escala));
     }
 
     /** Preenchimento continuo; as marcas de segmento nunca alteram esta conta. */

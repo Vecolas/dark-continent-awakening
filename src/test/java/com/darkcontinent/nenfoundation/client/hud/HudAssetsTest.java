@@ -17,9 +17,7 @@ class HudAssetsTest {
     private static final String DIRETORIO =
             "src/main/resources/assets/nenfoundation/textures/gui/nen_hud";
     private static final Map<String, Dimensao> ESPERADOS = Map.of(
-            "frame.png", new Dimensao(256, 80),
-            "portrait_frame.png", new Dimensao(64, 64),
-            "badge_frame.png", new Dimensao(32, 32),
+            "frame.png", new Dimensao(512, 128),
             "aura_pool_fill.png", new Dimensao(256, 16),
             "aura_output_fill.png", new Dimensao(256, 16));
 
@@ -38,6 +36,14 @@ class HudAssetsTest {
                 assertEquals(dimensao.largura(), imagem.getWidth(), nome);
                 assertEquals(dimensao.altura(), imagem.getHeight(), nome);
                 assertTrue(imagem.getColorModel().hasAlpha(), nome + " precisa preservar transparencia");
+                if (nome.equals("frame.png")) {
+                    assertEquals(0, imagem.getRGB(64, 64) >>> 24,
+                            "interior do retrato precisa ser transparente");
+                    assertTrue((imagem.getRGB(250, 42) >>> 24) > 0,
+                            "trilho superior da Aura precisa ser continuo");
+                    assertTrue((imagem.getRGB(250, 101) >>> 24) > 0,
+                            "trilho inferior do Output precisa ser continuo");
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

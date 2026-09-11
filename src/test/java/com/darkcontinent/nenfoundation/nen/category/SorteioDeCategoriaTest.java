@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -150,5 +151,71 @@ class SorteioDeCategoriaTest {
         long comoA = SorteioDeCategoria.sementeDe(11L, new UUID(22L, 33L));
         long comoB = SorteioDeCategoria.sementeDe(22L, new UUID(11L, 33L));
         assertNotEquals(comoA, comoB);
+    }
+
+    // ----------------------------------------------------------------------
+    // OS DOIS PORTOES ABAIXO VIERAM DE OUTRA IMPLEMENTACAO DESTA MESMA ISSUE.
+    //
+    // A #59 foi implementada em paralelo, sem que as duas pessoas soubessem --
+    // e o segundo trabalho ficou sem commit numa worktree. Comparando as duas,
+    // aquela versao tinha estes dois portoes, que esta nao tinha.
+    //
+    // Eles foram adotados PORQUE medem coisas que os meus nao mediam, e porque
+    // teste escrito por quem nao viu este codigo vale mais que auto-aprovacao:
+    // se a implementacao daqui passa neles, a evidencia e independente.
+    //
+    // Os meus que aquela versao nao tinha ficam onde estao: o de sementes
+    // consecutivas e o unico que prova que o finalizador de mistura carrega
+    // peso de verdade.
+    // ----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("nenhuma categoria fica abaixo de 5% em 60 000 sorteios")
+    void distribuicaoNaoEDegenerada() {
+        final int sorteios = 60_000;
+        Map<NenCategory, Integer> contagem = new EnumMap<>(NenCategory.class);
+        for (NenCategory c : NenCategory.REAIS) {
+            contagem.put(c, 0);
+        }
+
+        for (int i = 0; i < sorteios; i++) {
+            contagem.merge(SorteioDeCategoria.sortear(i, uuid(i % 997)), 1, Integer::sum);
+        }
+
+        // O piso e 5%, e nao os 16,7% esperados: isto e portao contra
+        // distribuicao DEGENERADA -- "a categoria existe mas ninguem a recebe"
+        // --, e nao teste estatistico de uniformidade, que piscaria.
+        int piso = sorteios / 20;
+        for (Map.Entry<NenCategory, Integer> e : contagem.entrySet()) {
+            assertTrue(e.getValue() >= piso,
+                    e.getKey() + " saiu " + e.getValue() + " vez(es) em " + sorteios
+                            + ", abaixo do piso de " + piso + ".");
+        }
+        assertEquals(sorteios,
+                contagem.values().stream().mapToInt(Integer::intValue).sum(),
+                "a soma das contagens nao fecha com o numero de sorteios.");
+    }
+
+    @Test
+    @DisplayName("trocar as metades do UUID muda o resultado na maioria dos pares")
+    void asMetadesDoUuidNaoSeAnulam() {
+        final int pares = 3_000;
+        int diferentes = 0;
+
+        for (int i = 0; i < pares; i++) {
+            long a = 0x0123456789ABCDEFL * (i + 1);
+            long b = 0x76543210FEDCBA98L * (i + 7);
+            if (SorteioDeCategoria.sortear(5L, new UUID(a, b))
+                    != SorteioDeCategoria.sortear(5L, new UUID(b, a))) {
+                diferentes++;
+            }
+        }
+
+        int piso = pares * 3 / 5;
+        assertTrue(diferentes >= piso,
+                "So " + diferentes + " de " + pares + " pares mudaram ao trocar as"
+                        + " metades do UUID (piso " + piso + "). As metades estao se"
+                        + " anulando na mistura, e UUIDs espelhados colidem em"
+                        + " silencio.");
     }
 }

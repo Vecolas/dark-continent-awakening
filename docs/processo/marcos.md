@@ -183,7 +183,35 @@ O output nao e uma segunda barra e nao deve ser confundido com a reserva.
 
 ---
 
-## M3 — Despertar, categoria e afinidade
+## M3 — Despertar, categoria e afinidade  (concluído em 2026-09-11)
+
+**Integrado na `main` pelos PRs #64, #68, #69, #76, #77 e #81, com CI verde.**
+214 testes JUnit, 37 GameTests, e o gate executado num servidor dedicado com
+**dois clientes reais**. Evidências e limites em
+[m3-categoria.md](../testing/m3-categoria.md).
+
+Gate conferido item a item:
+
+| Item do gate | Como ficou |
+| --- | --- |
+| Duas pessoas com categorias diferentes e persistentes | `Gon=emission` e `Kurapika=conjuration`, simultâneos; revelar um não revelou o outro |
+| Categoria pode existir escondida até a revelação | provado **no log do cliente**: servidor com `category=emission` e cliente recebendo `undetermined`, até o `reveal` |
+| Consulta de afinidade é determinística | matriz em datapack recarregável; 60 000 sorteios sem categoria degenerada |
+| Quest dispara o despertar por API ou comando, nunca escrevendo NBT | `/nen awaken` passa por `NenAwakeningService`; nenhum caminho escreve o attachment direto |
+| Núcleo sem FTB Quests | `mods/` com só o `nenfoundation`; zero erro e zero classe client-only no log do dedicado |
+| Recarga de datapack não corrompe perfil | `/reload` com os dois conectados; perfis idênticos campo a campo |
+
+**Duas dívidas saem do M3 declaradas, e nenhuma delas é silenciosa:**
+
+**1. O gatilho da Water Divination ainda não é Ren.** O cânone e a issue #61
+pedem Ren sobre o copo; Ren é deste marco seguinte. Hoje basta ter despertado,
+o que torna o teste **mais fácil do que deveria ser**. A condição está isolada
+em `NenAguaDivinatoria.podeFazerOTeste`, e há um teste que **reprova quando ela
+mudar** — quem implementar Ren é obrigado a passar por lá.
+
+**2. Nada abaixa o máximo de Output ainda.** O modelo selecionado/máximo/efetivo
+existe e é testado, mas o `min` nunca morde em produção porque nenhum código
+reduz o teto. Técnica e exaustão são consumidores deste marco seguinte.
 
 **Dev A:** API e evento de despertar, atribuicao e revelacao de categoria,
 matriz de afinidade orientada a dado, regra propria de Specialist, marcos base.

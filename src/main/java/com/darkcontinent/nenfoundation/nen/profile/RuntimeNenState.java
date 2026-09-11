@@ -56,12 +56,49 @@ public final class RuntimeNenState {
         return this.aura.maxima();
     }
 
-    public float outputPercent() {
-        return this.aura.outputPercent();
+    /** O que o jogador escolheu liberar. */
+    public float outputSelecionado() {
+        return this.aura.outputSelecionado();
     }
 
-    public void ajustarOutput(float novoPercent) {
-        if (this.aura.ajustarOutput(novoPercent)) {
+    /** O teto atual. Nada o abaixa ainda; ver AuraPool. */
+    public float outputMaximo() {
+        return this.aura.outputMaximo();
+    }
+
+    /**
+     * O valor que o jogo consome: {@code min(selecionado, maximo)}.
+     *
+     * <p>E ESTE que vai para o delta S2C e para qualquer formula. Mandar o
+     * selecionado faria a interface mostrar um numero que o servidor nao usa.
+     */
+    public float outputEfetivo() {
+        return this.aura.outputEfetivo();
+    }
+
+    public void definirOutputSelecionado(float novoPercent) {
+        if (this.aura.definirOutputSelecionado(novoPercent)) {
+            marcarAlterado();
+        }
+    }
+
+    /** Troca o teto. Ainda sem produtor; existe como costura. */
+    public void definirOutputMaximo(float novoMaximo) {
+        if (this.aura.definirOutputMaximo(novoMaximo)) {
+            marcarAlterado();
+        }
+    }
+
+    /** Um passo para cima, do tamanho definido pelo dominio. */
+    public void aumentarOutput() {
+        if (this.aura.aumentarOutput()) {
+            marcarAlterado();
+        }
+    }
+
+    /** Um passo para baixo, do tamanho definido pelo dominio. */
+    public void diminuirOutput() {
+        if (this.aura.diminuirOutput()) {
             marcarAlterado();
         }
     }

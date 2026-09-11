@@ -90,4 +90,32 @@ class NenSyncServiceTest {
     private static ResourceLocation id(String caminho) {
         return ResourceLocation.fromNamespaceAndPath("nenfoundation", caminho);
     }
+
+    @Test
+    @DisplayName("o delta leva o Output EFETIVO, e nao o que o jogador escolheu")
+    void deltaLevaOEfetivo() {
+        // POR QUE ESTE TESTE PRECISA DE UM MAXIMO ABAIXO DO SELECIONADO:
+        //
+        // Hoje nada abaixa o maximo, entao selecionado e efetivo sao sempre
+        // iguais e trocar um pelo outro no envio NAO quebra nada. Um teste com
+        // o estado padrao passaria com os dois -- foi exatamente o que
+        // aconteceu na primeira versao deste portao.
+        //
+        // O dia em que tecnica ou exaustao abaixarem o teto, mandar o
+        // selecionado faria o HUD mostrar um numero que o servidor nao usa: a
+        // barra diria 100% enquanto o jogo consome 40%. Este teste fixa isso
+        // agora, antes de existir quem abaixe.
+        RuntimeNenState estado = new RuntimeNenState();
+        estado.definirAuraMaxima(100.0D);
+        estado.definirOutputSelecionado(1.0F);
+        estado.definirOutputMaximo(0.4F);
+
+        var delta = NenSyncService.criarDelta(estado);
+
+        assertEquals(0.4F, delta.outputPercent(), 1.0E-6F,
+                "O delta levou o Output selecionado (" + estado.outputSelecionado()
+                        + ") em vez do efetivo (" + estado.outputEfetivo()
+                        + "). O cliente passaria a mostrar um valor que o"
+                        + " servidor nao consome.");
+    }
 }

@@ -18,7 +18,7 @@ public record NenHudLayout(
     public static final int RETRATO = 30;
     public static final int BADGE = 14;
     public static final int ESPACO = 6;
-    public static final int LARGURA_DAS_BARRAS = 150;
+    public static final int LARGURA_DAS_BARRAS = 136;
     public static final int ALTURA_DA_BARRA = 7;
 
     public static NenHudLayout para(int larguraGui) {
@@ -30,8 +30,8 @@ public record NenHudLayout(
                 new Retangulo(MARGEM, MARGEM, RETRATO, RETRATO),
                 new Retangulo(MARGEM + (RETRATO - BADGE) / 2,
                         MARGEM + RETRATO + 2, BADGE, BADGE),
-                new Retangulo(barrasX, MARGEM + 12, largura, ALTURA_DA_BARRA),
-                new Retangulo(barrasX, MARGEM + 37, largura, ALTURA_DA_BARRA));
+                new Retangulo(barrasX, MARGEM + 18, largura, ALTURA_DA_BARRA),
+                new Retangulo(barrasX, MARGEM + 34, largura, ALTURA_DA_BARRA));
     }
 
     /** Preenchimento continuo; as marcas de segmento nunca alteram esta conta. */

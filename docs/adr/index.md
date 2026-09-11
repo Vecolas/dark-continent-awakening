@@ -23,6 +23,8 @@ acusa o que nunca entrou nela.
 | [ADR-007](ADR-007-assets-autorais.md) | Todo asset e autoral; nada e extraido da obra | aceita |
 | [ADR-008](ADR-008-licenca-e-protecao-de-branch.md) | Licenca do codigo e ausencia de protecao de branch | aceita |
 | [ADR-009](ADR-009-modelo-de-aura-sem-stamina-de-nen.md) | Aura composta e uma unica barra visivel, sem stamina de Nen | aceita |
+| [ADR-010](ADR-010-regeneracao-por-estado-de-nen.md) | A regeneracao de Aura depende do estado de Nen ativo | aceita |
+| [ADR-011](ADR-011-descongelamento-do-protocolo.md) | O protocolo de rede descongela, com versao e regra | aceita |
 
 ## Como escrever um ADR
 

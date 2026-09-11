@@ -115,12 +115,26 @@ autoritativo.
 
 ---
 
-## M2 — Aura Engine + HUD
+## M2 — Aura Engine + HUD  (concluído em 2026-09-11)
 
-**Gate validado localmente em 2026-09-11; integração no GitHub pendente.**
-131 testes JUnit, 7 GameTests, servidor dedicado com dois clientes, medição
-de deltas e primeiro spark arquivado. Evidências e limites em
-[m2-aura-sync.md](../testing/m2-aura-sync.md). Não iniciar M3 antes de integrar.
+**Integrado na `main` pelo PR #54, com CI verde.** 131 testes JUnit, 7
+GameTests, servidor dedicado com dois clientes, medição de deltas e o primeiro
+perfil de spark arquivado. Evidências e limites em
+[m2-aura-sync.md](../testing/m2-aura-sync.md).
+
+Gate conferido item a item:
+
+| Item do gate | Como ficou |
+| --- | --- |
+| Aura nunca negativa, NaN ou acima do máximo | `AuraPool` recusa não-finito e faz clamp; coberto por `AuraPoolTest` e `MotorDeAuraTest` |
+| HUD reflete o estado depois de lag e reconexão | medido a 2 TPS e com reconexão em processo novo |
+| O servidor nega gasto inválido | negativo, zero, NaN, infinito, reserva insuficiente e output excedido |
+| Aura não gera pacote desnecessário | `ControleDeSync` com dirty check e cadência; 100 ticks limpos = zero pacotes |
+| Régua junto do número | contadores em modo dev e spark em `docs/testing/perfis/` |
+
+Uma divergência ficou registrada em vez de corrigida no marco:
+**[#56](../../issues/56)** — gasto de aura zero é recusado, o que contradiz o
+`AbilitySpec`. Não morde hoje porque não existe habilidade; morde no M5.
 
 A primeira mecanica jogavel.
 

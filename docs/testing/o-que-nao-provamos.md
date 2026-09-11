@@ -17,11 +17,12 @@ descoberto.
 | `NenCategoryTest` | os ids estao congelados e traduzidos nos dois idiomas | que a categoria e atribuida corretamente em jogo |
 | `PersistentNenDataTest` | o codec faz ida e volta em JSON | **que uma chave renomeada seria notada** — ele escreve e le com o nome NOVO nos dois lados, entao um rename passa verde. Quem pega isso e o `FixturesDeSaveTest` |
 | `FixturesDeSaveTest` | um dado v1 CONGELADO continua sendo lido, campo por campo; ida e volta em NBT binario comprimido passando pelo disco; ha fixture para cada versao de schema publicada | que o **attachment** grava e le no save de um mundo real — isso e o ciclo de vida do jogador, e precisa de gametest |
+| `PlayerdataRealTest` | que um `.dat` gravado por um SERVIDOR DE VERDADE, salvando um jogador de verdade, continua legivel pelo nosso codec — e que o attachment esta onde o NeoForge o poe | que o dado esteja correto em jogo; ele so prova que continua sendo LIDO |
 | `NenProfileMigratorTest` | o migrador recusa versao invalida e futura | que uma migracao real preserva um mundo real |
 | `ProtocoloCongeladoTest` | codigo e documento concordam sobre id, direcao e versao | que o handler valida o que devia |
 | `IndiceDeAdrTest` | nenhum ADR esta fora do indice | que as decisoes estao sendo seguidas |
 | `PacotesDeclaradosTest` | todo pacote se declara; o nucleo nao importa cliente por `import` | violacao por reflexao, por nome de classe em string ou por classe interna |
-| `runClient` | o mod carrega num cliente, os listeners de cliente sobem e o registro de recebedor nao estoura | comportamento em servidor dedicado, que e outro classloader e outro conjunto de classes; e **nada sobre payload realmente trafegando** — sem servidor enviando, o cache fica vazio |
+| `runClient` | o mod carrega num cliente, os listeners sobem, e — com `-PentrarEm=host:porta` — ele entra num servidor sozinho e recebe payload de verdade | comportamento com DOIS jogadores; latencia real; qualquer coisa desenhada na tela, que ninguem olhou |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
 | `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |
 | `gameTestServer` | comportamento com o jogo DE PE: attachment de verdade, `ServerPlayer` de verdade, nivel de verdade. Quando um gametest reprova, o Gradle reprova junto | o que nao virou gametest — hoje, quatro cenarios de perfil e mais nada. Nada de rede real, cliente, dois jogadores humanos ou performance |
@@ -123,18 +124,38 @@ servidor sobe" a partir do codigo de saida — a conclusao vem de procurar
 
 ---
 
+## O que foi verificado com um jogador de verdade (2026-09-10)
+
+Pela primeira vez, um cliente e um servidor dedicado conversaram de verdade —
+cliente entrando sozinho por `--quickPlayMultiplayer`, comandos por RCON.
+
+| O que | Evidencia |
+| --- | --- |
+| Um jogador real entra num servidor dedicado | `Dev[/[::1]:58160] logged in with entity id 25` |
+| **O payload S2C trafega, e o cliente o recebe** | `snapshot recebido #1: categoria=undetermined tecnicas=2 ...` no log do CLIENTE |
+| O guarda `hasChannel` deixa passar quem PODE receber | nenhum `may not be sent`, e o snapshot chegou |
+| Os comandos mutam um perfil real | `unlock` x4, `lock`, e o perfil mudou |
+| `reset confirmar` imprime o dump ANTES de destruir | o dump saiu no console, depois "Perfil de Dev zerado" |
+| O perfil sobrevive a desconexao e reconexao | as tecnicas desbloqueadas antes reapareceram no snapshot da reconexao |
+| O attachment e gravado no save do mundo | `nenfoundation:nen_persistente` dentro do playerdata, agora versionado como fixture |
+
+O procedimento inteiro esta em
+[qa-matrix.md](qa-matrix.md) e em
+`src/test/resources/saves/playerdata/LEIA-ME.md`.
+
+---
+
 ## Limites conhecidos AGORA (M0 e inicio do M1)
 
 | Limite | Consequencia | Quando fecha |
 | --- | --- | --- |
-| Nenhum payload **trafegou** numa conexao real | ida e volta e contra buffer em memoria; registro existe, envio nao (depende de #2 e #5) | M1, quando o servidor passar a enviar |
 | Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
 | Os payloads **C2S nao estao registrados** | o cliente nao consegue pedir nada; registrar exige handler com validacao (#2 e #5) | M1 |
 | Nao ha portao de **carregamento de registro** | uma definicao orfa passaria despercebida | M5 |
 | Nao ha **medicao de performance** | "nao e gargalo" e opiniao | M2 (primeiro spark) |
 | O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |
 | O `PacotesDeclaradosTest` so ve `import` | violacao por reflexao ou por nome de classe em string passa | sem previsao |
-| O **overlay de debug** nunca foi visto com dado | ele foi exercitado so pelo teste de `linhas()`; ninguem apertou a tecla com um servidor enviando | M1, junto do envio |
+| O **overlay de debug** nunca foi visto na tela | o cache foi observado recebendo (log de diagnostico), mas ninguem apertou a tecla e olhou o desenho | quando alguem jogar |
+| Nunca houve **DOIS** jogadores ao mesmo tempo | um jogador real conectou e o fluxo inteiro funcionou, mas vazamento de estado entre perfis so o gametest cobriu (com mock). Latencia e desync continuam sem verificacao | #9 |
 | A cobertura de gametest e RASA | quatro cenarios de perfil. Ciclo de vida completo (morte, relog, troca de dimensao), rede e cliente continuam sem cobertura em jogo | conforme cada um for entregue |
-| Os comandos nunca **mutaram** um perfil real | `/nen technique unlock` e `/nen reset confirmar` foram executados por RCON, mas sem jogador online eles param na resolucao do alvo. A mutacao e o reset nunca rodaram | #9, com dois jogadores |
 | `technique unlock` nao confere se a tecnica EXISTE | so o namespace e conferido; nao ha registro de tecnicas ate o M4. O comando avisa em voz alta, e aviso nao e portao | M4 |

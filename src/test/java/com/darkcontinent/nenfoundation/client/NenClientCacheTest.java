@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 class NenClientCacheTest {
 
     private final AtomicLong tick = new AtomicLong(100L);
-    private final NenClientCache cache = new NenClientCache(this.tick::get);
+    private final NenClientCache cache = new NenClientCache(this.tick::get, () -> false);
 
     private static ResourceLocation id(String caminho) {
         return ResourceLocation.fromNamespaceAndPath("nenfoundation", caminho);
@@ -182,7 +182,7 @@ class NenClientCacheTest {
         assertTrue(Recebedores.temRecebedor());
 
         IllegalStateException e = assertThrows(IllegalStateException.class,
-                () -> Recebedores.registrar(new NenClientCache(() -> 0L)));
+                () -> Recebedores.registrar(new NenClientCache(() -> 0L, () -> false)));
         assertTrue(e.getMessage().contains("Ja existe"),
                 "Dois recebedores fazem duas telas mostrarem valores diferentes do"
                         + " mesmo jogador, sem nada acusar.");

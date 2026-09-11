@@ -7,6 +7,8 @@ import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * O que o cliente sabe sobre o proprio Nen.
@@ -37,6 +39,30 @@ import java.util.Optional;
  */
 public final class NenClientCache implements RecebedorDeNen {
 
+    /**
+     * Diagnostico de recepcao, so em modo de desenvolvimento.
+     *
+     * <p>POR QUE ELE EXISTE: sem uma linha no log, "o payload chegou ao
+     * cliente" so pode ser observado olhando o overlay na tela — o que nao
+     * serve para verificacao automatizada nem para um relato de bug. A
+     * ausencia de erro no servidor prova que ele ENVIOU; ela nao prova que
+     * alguem recebeu.
+     *
+     * <p>Fica atras de um interruptor porque uma linha por delta seria uma
+     * linha por tick.
+     *
+     * <p>E o interruptor e INJETADO, nao lido de {@code NenConfig} aqui
+     * dentro. A primeira versao deste log chamava a config direto e quebrou
+     * cinco testes com {@code Cannot get config value before config is
+     * loaded} — o mesmo defeito de ordem de inicializacao que o M0 ja tinha
+     * corrigido no {@code NenFoundation}. Cometido de novo, e pego pelo
+     * portao.
+     *
+     * <p>Injetado, o cache continua testavel sem o jogo carregado, e quem
+     * compoe le a config NA HORA, que e onde essa leitura pertence.
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(NenClientCache.class);
+
     private Optional<SnapshotDePerfilS2C> snapshot = Optional.empty();
     private Optional<DeltaDeRuntimeS2C> delta = Optional.empty();
 
@@ -58,8 +84,13 @@ public final class NenClientCache implements RecebedorDeNen {
      */
     private final java.util.function.LongSupplier tickDoCliente;
 
-    public NenClientCache(java.util.function.LongSupplier tickDoCliente) {
+    /** Se o diagnostico de recepcao deve ser registrado. Perguntado na hora. */
+    private final java.util.function.BooleanSupplier diagnosticoLigado;
+
+    public NenClientCache(java.util.function.LongSupplier tickDoCliente,
+            java.util.function.BooleanSupplier diagnosticoLigado) {
         this.tickDoCliente = tickDoCliente;
+        this.diagnosticoLigado = diagnosticoLigado;
     }
 
     // ------------------------------------------------------------ recepcao
@@ -68,6 +99,14 @@ public final class NenClientCache implements RecebedorDeNen {
     public void aoReceberSnapshot(SnapshotDePerfilS2C payload) {
         this.snapshot = Optional.of(payload);
         this.snapshotsRecebidos++;
+        if (this.diagnosticoLigado.getAsBoolean()) {
+            LOG.info("snapshot recebido #{}: categoria={} tecnicas={} habilidades={} marcos={}",
+                    this.snapshotsRecebidos,
+                    payload.categoriaVisivel().getSerializedName(),
+                    payload.tecnicasDesbloqueadas().size(),
+                    payload.habilidadesDesbloqueadas().size(),
+                    payload.marcos().size());
+        }
     }
 
     @Override
@@ -75,6 +114,11 @@ public final class NenClientCache implements RecebedorDeNen {
         this.delta = Optional.of(payload);
         this.deltasRecebidos++;
         this.tickDoUltimoDelta = this.tickDoCliente.getAsLong();
+        if (this.diagnosticoLigado.getAsBoolean()) {
+            LOG.info("delta recebido #{}: aura={}/{} tecnicasAtivas={} cooldowns={}",
+                    this.deltasRecebidos, payload.aura(), payload.auraMaxima(),
+                    payload.tecnicasAtivas().size(), payload.cooldowns().size());
+        }
     }
 
     @Override

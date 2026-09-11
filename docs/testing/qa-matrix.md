@@ -58,6 +58,50 @@ interno no mesmo processo do cliente.
 
 ---
 
+## Um jogador de verdade, sem ninguem clicar
+
+O cliente entra num servidor local sozinho, e os comandos vao por RCON. Sem
+isto, "um jogador conectado" e etapa manual — e etapa manual nao acontece toda
+vez.
+
+**1.** `run/server/server.properties`:
+
+```properties
+online-mode=false
+enable-rcon=true
+rcon.password=dev
+rcon.port=25575
+level-name=mundo-de-regressao
+gamemode=creative
+```
+
+**2.** Tres terminais:
+
+```bash
+./gradlew runServer                          # 1
+./gradlew runClient -PentrarEm=localhost:25565   # 2
+```
+
+**3.** Comandos por RCON no terceiro (qualquer cliente RCON serve).
+
+**4.** Para observar o que o cliente RECEBEU, ligue o diagnostico em
+`run/client/config/nenfoundation-common.toml`:
+
+```toml
+[dev]
+	enabled = true
+```
+
+O log do cliente passa a trazer `snapshot recebido #N: ...` e
+`delta recebido #N: ...`. Sem isso, "o payload chegou" so da para ver olhando o
+overlay na tela — o que nao serve para relato de bug nem para verificacao.
+
+**5.** Ao terminar: `save-all flush` e `stop` por RCON. O playerdata fica em
+`run/server/<level-name>/playerdata/<uuid>.dat`, e e dele que sai a fixture de
+`src/test/resources/saves/playerdata/`.
+
+---
+
 ## Cenarios de abuso
 
 O criterio aqui e diferente: nenhum deles produz erro no log. Todos produzem

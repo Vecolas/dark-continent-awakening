@@ -119,6 +119,45 @@ atacante algo que ele nao deveria saber.
 
 ---
 
+## Implementação atual
+
+### Recepção C2S no M1 (#5)
+
+Os três payloads estão registrados com `HandlerThread.NETWORK`. A barreira
+`PedidosC2S` admite pedidos antes de `enqueueWork`; ler perfil, runtime e
+entidades só acontece na thread principal. A composição injeta
+`NenPedidoService`, preservando a dependência `server -> network`.
+
+A cota `network.requestsPerSecond` é compartilhada pelos três pedidos de cada
+conexão, em janela de um segundo monotônico. O padrão é 20; o intervalo de
+configuração é 1–200. Há ainda um teto fixo de oito tarefas pendentes por
+conexão, para limitar fila mesmo quando o servidor atrasa. Excesso recebe
+`nen_error_feedback` diretamente pela conexão, sem tarefa na thread do jogo.
+Cada recusa responde; o cliente apresenta o último motivo na action bar,
+inclusive com debug desligado. Isso não é proteção contra saturação da própria
+conexão/decodificação: essa camada permanece responsabilidade do transporte.
+
+Login cria a cota; logout e parada do servidor a removem. Respawn e dimensão
+invalidam tarefas pendentes sem renovar o orçamento. Contadores de admitidos
+e recusados aparecem no logout com `dev.enabled`, sem UUID.
+
+**Limite do marco:** ainda não há registros executáveis de técnicas ou
+habilidades. Um unlock de debug não cria uma definição. Jogador não desperto,
+estado inválido, id desconhecido e candidatos malformados são recusados;
+nenhuma solicitação ativa estado no M1. A validação comum contém unlock e
+cooldown, exercitados com catálogo simulado nos unitários. M4/M5 precisam ligar
+os registros e motores reais, validar slot equipado, custo, incompatibilidades,
+alcance e linha de visão conforme o spec. Não há alcance/slot fictício que
+autorize uma ação enquanto esses consumidores não existem.
+
+### Snapshot após mutação (#43)
+
+`NenProfileService.atualizar` grava a mudança e depois notifica pelo contrato
+do armazenamento. O attachment do jogador reenvia o snapshot ao próprio dono
+via `NenSyncService`, com a guarda `hasChannel` existente. Mudança idêntica não
+grava nem envia. O login continua enviando o snapshot inicial. Delta de aura e
+cooldowns segue fora desse mecanismo (M2).
+
 ## Quem escreve o que
 
 | Parte | Owner |
@@ -135,9 +174,8 @@ atacante algo que ele nao deveria saber.
 
 ## O que este documento NAO cobre
 
-- O formato binario de cada payload — ele nasce no M1, junto dos records.
-- Handshake de versao entre cliente e servidor — nasce no M1.
-- Casos de abuso e como o servidor responde — pendente de especificacao nos
-  marcos M1 (validacao dos handlers) e M7 (hardening e rate limit).
+- O formato binário detalhado: a fonte são os records e seus `StreamCodec`.
+- Aceitação de ativações pelos motores M4/M5, ainda inexistentes.
+- Hardening e saturação do transporte em condições reais (M7).
 
 [NF-4]: https://docs.neoforged.net/docs/1.21.1/networking/payload/

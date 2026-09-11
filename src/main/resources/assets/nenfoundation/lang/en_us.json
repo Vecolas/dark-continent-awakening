@@ -7,5 +7,15 @@
   "nenfoundation.category.manipulation": "Manipulation",
   "nenfoundation.category.specialization": "Specialization",
   "key.categories.nenfoundation": "Nen Foundation",
-  "key.nenfoundation.overlay_de_debug": "Technical overlay (debug)"
+  "key.nenfoundation.overlay_de_debug": "Technical overlay (debug)",
+  "nenfoundation.error.limite": "Too many Nen requests. Please wait a moment.",
+  "nenfoundation.error.estado_invalido": "Your current state does not allow this request.",
+  "nenfoundation.error.nao_desperto": "You have not awakened Nen yet.",
+  "nenfoundation.error.id_inexistente": "Unknown technique or ability.",
+  "nenfoundation.error.nao_desbloqueado": "You have not unlocked this action yet.",
+  "nenfoundation.error.alvo_invalido": "Invalid target or position.",
+  "nenfoundation.error.pedido_invalido": "Invalid Nen request.",
+  "nenfoundation.error.em_recarga": "Ability on cooldown.",
+  "nenfoundation.error.indisponivel": "This action is not available in this version yet.",
+  "nenfoundation.error.erro_interno": "Failed to process the Nen request. Contact the administrator."
 }

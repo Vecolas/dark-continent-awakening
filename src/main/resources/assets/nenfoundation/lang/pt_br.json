@@ -7,5 +7,15 @@
   "nenfoundation.category.manipulation": "Manipulacao",
   "nenfoundation.category.specialization": "Especializacao",
   "key.categories.nenfoundation": "Nen Foundation",
-  "key.nenfoundation.overlay_de_debug": "Overlay tecnico (depuracao)"
+  "key.nenfoundation.overlay_de_debug": "Overlay tecnico (depuracao)",
+  "nenfoundation.error.limite": "Muitos pedidos de Nen. Aguarde um instante.",
+  "nenfoundation.error.estado_invalido": "Seu estado atual nao permite esse pedido.",
+  "nenfoundation.error.nao_desperto": "Voce ainda nao despertou o Nen.",
+  "nenfoundation.error.id_inexistente": "Tecnica ou habilidade inexistente.",
+  "nenfoundation.error.nao_desbloqueado": "Voce ainda nao desbloqueou essa acao.",
+  "nenfoundation.error.alvo_invalido": "Alvo ou posicao invalida.",
+  "nenfoundation.error.pedido_invalido": "Pedido de Nen invalido.",
+  "nenfoundation.error.em_recarga": "Habilidade em recarga.",
+  "nenfoundation.error.indisponivel": "Esta acao ainda nao esta disponivel nesta versao.",
+  "nenfoundation.error.erro_interno": "Falha ao processar o pedido de Nen. Consulte o administrador."
 }

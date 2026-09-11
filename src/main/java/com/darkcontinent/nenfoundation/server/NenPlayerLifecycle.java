@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,6 +22,7 @@ public final class NenPlayerLifecycle {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             PersistentNenData perfil = NenProfileService.ler(jogador);
             NenRuntimeService.iniciarSessao(jogador);
+            PedidosC2S.iniciar(jogador.connection.getConnection());
             NenSyncService.enviarSnapshot(jogador, perfil);
         }
     }
@@ -40,11 +42,20 @@ public final class NenPlayerLifecycle {
         }
     }
 
+    /** Invalida na conclusao do respawn, com o listener associado a nova entidade. */
+    @SubscribeEvent
+    public static void aoRenascer(PlayerEvent.PlayerRespawnEvent evento) {
+        if (evento.getEntity() instanceof ServerPlayer jogador) {
+            PedidosC2S.invalidar(jogador.connection.getConnection());
+        }
+    }
+
     /** Nenhum estado de combate sobrevive ao logout. */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void aoSair(PlayerEvent.PlayerLoggedOutEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             NenRuntimeService.encerrarSessao(jogador);
+            PedidosC2S.encerrar(jogador.connection.getConnection());
         }
     }
 
@@ -56,6 +67,7 @@ public final class NenPlayerLifecycle {
     public static void aoTrocarDimensao(PlayerEvent.PlayerChangedDimensionEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             NenRuntimeService.reiniciar(jogador);
+            PedidosC2S.invalidar(jogador.connection.getConnection());
         }
     }
 }

@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 1
+- **Versao do protocolo:** 3
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -36,10 +36,11 @@ primeiro a encontra-lo e quem estiver procurando.
 | id | Direcao | O que pode carregar |
 | --- | --- | --- |
 | `activate_technique_request` | C2S | id da tecnica |
+| `adjust_output_request` | C2S | variacao (float, ex: +0.10) |
 | `deactivate_technique_request` | C2S | id da tecnica |
 | `activate_ability_request` | C2S | id da habilidade, slot, alvo/posicao **candidatos** |
 | `nen_profile_snapshot` | S2C | estado de leitura para a interface, so ao dono |
-| `nen_runtime_delta` | S2C | aura, cooldown e tecnica alterados |
+| `nen_runtime_delta` | S2C | aura, auraMaxima, outputPercent, cooldown e tecnica alterados |
 | `ability_fx_event` | S2C | som, particula, animacao |
 | `nen_error_feedback` | S2C | motivo legivel de uma recusa |
 
@@ -65,6 +66,11 @@ numa tecnica ja ativa nao reinicia duracao nem cobra custo de novo.
 Toggle de desligamento. O servidor decide se o desligamento e legitimo — nem
 toda tecnica pode ser desligada a vontade.
 
+### `adjust_output_request` (C2S)
+
+O jogador ajusta seu AOP via atalho (ex: aumentar em 10%). O servidor soma a
+variacao ao Output atual e limita o resultado entre 0.0 e 1.0.
+
 ### `activate_ability_request` (C2S)
 
 O alvo vem como **id de rede de entidade**, nunca como entidade. O servidor
@@ -84,6 +90,8 @@ modificado, e a revelacao vira teatro.
 Delta, nunca o perfil inteiro. Aura muda toda hora; mandar o perfil completo a
 cada mudanca de aura e a forma conhecida de transformar quatro jogadores em
 lag de rede.
+
+O campo `outputPercent` representa o AOP atual do jogador.
 
 O HUD **interpola** entre deltas. Ele nao pede um pacote por quadro.
 

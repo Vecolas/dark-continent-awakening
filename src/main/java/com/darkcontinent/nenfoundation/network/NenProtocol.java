@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 1;
+    public static final int VERSION = 3;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -90,6 +90,9 @@ public final class NenProtocol {
             c2s("activate_technique_request",
                     List.of("tecnicaId"),
                     "o jogador apertou a tecla; o servidor decide se pode"),
+            c2s("adjust_output_request",
+                    List.of("variacao"),
+                    "o jogador enviou a variacao (+/-); o servidor limita de 0 a 100%"),
             c2s("deactivate_technique_request",
                     List.of("tecnicaId"),
                     "o servidor decide se o desligamento e legitimo"),
@@ -101,8 +104,9 @@ public final class NenProtocol {
                             "habilidadesDesbloqueadas", "marcos"),
                     "estado de leitura para a interface; enviado so ao dono do perfil"),
             s2c("nen_runtime_delta",
-                    List.of("aura", "auraMaxima", "tecnicasAtivas", "cooldowns"),
-                    "delta, nunca o perfil inteiro; o HUD interpola entre eles"),
+                    List.of("aura", "auraMaxima", "outputPercent",
+                            "tecnicasAtivas", "cooldowns"),
+                    "delta de runtime; o HUD interpola aura e output"),
             s2c("ability_fx_event",
                     List.of("habilidadeId", "posicao", "variante"),
                     "som, particula e animacao; nao altera nenhuma logica no cliente"),

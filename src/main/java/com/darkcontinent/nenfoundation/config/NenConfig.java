@@ -115,4 +115,5 @@ public final class NenConfig {
     public static boolean logarTransicoes() {
         return DEV_MODE.get() && LOG_TRANSICOES.get();
     }
+
 }

@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 /** Regressoes de lag, clock, reconexao, maximo zero e delta malformado. */
 class AuraRegressaoTest {
     private static DeltaDeRuntimeS2C delta(float atual, float maxima) {
-        return new DeltaDeRuntimeS2C(atual, maxima, Set.of(), Map.of());
+        return new DeltaDeRuntimeS2C(atual, maxima, 1.0F, Set.of(), Map.of());
     }
 
     @Test void fracaoDeQuadroERecargaDeConfigNaoAlteramDeltaBruto() {

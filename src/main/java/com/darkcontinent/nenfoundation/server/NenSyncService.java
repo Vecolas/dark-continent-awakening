@@ -121,6 +121,7 @@ public final class NenSyncService {
         return new DeltaDeRuntimeS2C(
                 (float) estado.auraAtual(),
                 (float) estado.auraMaxima(),
+                estado.outputPercent(),
                 Set.copyOf(estado.tecnicasAtivas()),
                 Map.copyOf(estado.cooldowns()));
     }

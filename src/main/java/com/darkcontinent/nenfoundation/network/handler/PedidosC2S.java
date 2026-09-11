@@ -88,7 +88,8 @@ public final class PedidosC2S {
                         recusar(contexto, Motivo.ESTADO_INVALIDO);
                         return;
                     }
-                    recusar(contexto, validar.apply(jogador, pedido));
+                    Motivo rejeicao = validar.apply(jogador, pedido);
+                    if (rejeicao != null) recusar(contexto, rejeicao);
                 } catch (RuntimeException erro) {
                     falhar(contexto, erro);
                 }

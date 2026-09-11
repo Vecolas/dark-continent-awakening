@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class AuraPoolTest {
@@ -78,5 +79,22 @@ class AuraPoolTest {
         assertThrows(IllegalArgumentException.class, () -> pool.gastar(Double.NaN));
         assertThrows(IllegalArgumentException.class, () -> pool.recuperar(-1.0D));
         assertEquals(10.0D, pool.atual());
+    }
+    @Test
+    @DisplayName("ajustar output altera o valor e clampa entre 0.0 e 1.0")
+    void ajustarOutputClampaOValor() {
+        AuraPool pool = new AuraPool(10.0D);
+        assertEquals(1.0F, pool.outputPercent());
+
+        assertTrue(pool.ajustarOutput(0.5F));
+        assertEquals(0.5F, pool.outputPercent());
+
+        assertFalse(pool.ajustarOutput(0.5F), "mesmo valor nao retorna true");
+
+        assertTrue(pool.ajustarOutput(1.5F));
+        assertEquals(1.0F, pool.outputPercent());
+
+        assertTrue(pool.ajustarOutput(-0.5F));
+        assertEquals(0.0F, pool.outputPercent());
     }
 }

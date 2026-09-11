@@ -55,6 +55,8 @@ public final class NenPayloads {
     public static final List<Implementado> TODOS = List.of(
             new Implementado(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,
                     Direcao.C2S, AtivarTecnicaC2S.class),
+            new Implementado(AjustarOutputC2S.TYPE, AjustarOutputC2S.STREAM_CODEC,
+                    Direcao.C2S, AjustarOutputC2S.class),
             new Implementado(DesativarTecnicaC2S.TYPE, DesativarTecnicaC2S.STREAM_CODEC,
                     Direcao.C2S, DesativarTecnicaC2S.class),
             new Implementado(AtivarHabilidadeC2S.TYPE, AtivarHabilidadeC2S.STREAM_CODEC,

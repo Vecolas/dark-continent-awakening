@@ -28,6 +28,6 @@ class AuraInterpolationTest {
     }
 
     private static DeltaDeRuntimeS2C delta(float aura) {
-        return new DeltaDeRuntimeS2C(aura, 100.0F, Set.of(), Map.of());
+        return new DeltaDeRuntimeS2C(aura, 100.0F, 1.0F, Set.of(), Map.of());
     }
 }

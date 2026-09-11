@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
+import com.darkcontinent.nenfoundation.nen.category.NenCategory;
+import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import java.util.Map;
+import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +20,8 @@ class RuntimeNenStateTest {
 
     private static final ResourceLocation TEN = id("ten");
     private static final ResourceLocation HABILIDADE = id("habilidade_teste");
+
+
 
     @Test
     @DisplayName("estado novo e neutro e nao expoe colecoes mutaveis")
@@ -44,7 +51,7 @@ class RuntimeNenStateTest {
         estado.definirCooldown(HABILIDADE, 20);
         estado.iniciarCanalizacao(canalizacao);
 
-        assertEquals(12.5D, estado.auraAtual());
+        assertEquals(12.5D, estado.auraAtual(), 1e-9);
         assertEquals(1, estado.tecnicasAtivas().size());
         assertEquals(20, estado.cooldowns().get(HABILIDADE));
         assertSame(canalizacao, estado.canalizacao().orElseThrow());

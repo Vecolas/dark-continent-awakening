@@ -48,5 +48,13 @@ public final class OverlayDeAura {
                     ? "nenfoundation.hud.aura_exausta" : "nenfoundation.hud.sem_reserva"),
                     x, barraY + 8, aura.exausto() ? 0xFFFF7777 : 0xFFAAAAAA, true);
         }
+
+        // --- Barra de Output (AOP) ---
+        int barraOutputY = barraY + ALTURA + 12; // Deixa espaco para o texto de exaustao (ou sem reserva) se houver
+        g.fill(x, barraOutputY, x + largura, barraOutputY + ALTURA, 0xFF26352F);
+        g.fill(x, barraOutputY, x + Math.round(largura * aura.outputVisual()), barraOutputY + ALTURA, 0xFF4488DD);
+        
+        g.drawString(mc.font, String.format(Locale.ROOT, "Output: %d%%", Math.round(aura.outputPercent() * 100)),
+                x, barraOutputY + ALTURA + 2, 0xFF4488DD, true);
     }
 }

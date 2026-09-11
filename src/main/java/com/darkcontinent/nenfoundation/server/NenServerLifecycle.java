@@ -11,6 +11,7 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class NenServerLifecycle {
     private static NenTickScheduler.Registro registroDeAura;
+    private static NenTickScheduler.Registro registroDeTecnicas;
 
     private NenServerLifecycle() {
     }
@@ -18,10 +19,21 @@ public final class NenServerLifecycle {
     @SubscribeEvent
     public static void aoIniciarServidor(ServerAboutToStartEvent evento) {
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
+        // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a
+        // aura que o motor acabou de regenerar neste mesmo tick. Invertida, a
+        // tecnica decidiria com o saldo do tick anterior -- e o erro apareceria
+        // so como "as vezes Ren desliga uma fracao de segundo antes".
+        if (registroDeTecnicas == null) {
+            registroDeTecnicas = NenTickScheduler.registrar(NenTechniqueService::tick);
+        }
     }
 
     @SubscribeEvent
     public static void aoEncerrarServidor(ServerStoppedEvent evento) {
+        if (registroDeTecnicas != null) {
+            registroDeTecnicas.close();
+            registroDeTecnicas = null;
+        }
         if (registroDeAura != null) {
             registroDeAura.close();
             registroDeAura = null;

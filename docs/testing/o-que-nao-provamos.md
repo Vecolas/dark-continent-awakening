@@ -27,6 +27,7 @@ descoberto.
 | `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |
 | Ficha do jogador (#44) | projeção e paginação testadas; um cliente real mostrou unlock/lock em servidor dedicado, com capturas inspecionadas | teclas físicas, dois jogadores e conflitos com outros mods; ver [hud-jogador.md](hud-jogador.md) |
 | `runGameTestServer` | jogo carregado, perfil/runtime e 120 ticks de Aura pelo scheduler real; sete cenários | rede física, desenho do cliente e performance não são provados pelo listener de captura |
+| `NenDespertarGameTest` | que os eventos de despertar disparam de verdade no barramento, que cancelar **impede a gravação**, que despertar duas vezes não anuncia duas vezes, e que dois jogadores despertam independentes | que o despertar tenha consequência diferente por origem — hoje `OrigemDoDespertar` só viaja nos eventos, e **nenhuma origem muda nada** |
 | CI do GitHub | o build e reprodutivel numa maquina limpa | qualquer coisa que exija Minecraft rodando |
 | `Task :test FROM-CACHE` no log do CI | os inputs batem com uma execucao anterior que passou | que os testes rodaram **nesta** execucao. O portao do `doLast` nao dispara em tarefa cacheada, e a linha "Testes executados" some do log. Quem confere o numero e o passo "Contagem de testes", que soma os XML |
 

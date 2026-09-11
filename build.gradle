@@ -79,6 +79,23 @@ runs {
         if (project.hasProperty('entrarEm')) {
             arguments.addAll '--quickPlayMultiplayer', project.property('entrarEm').toString()
         }
+
+        // Um nome de jogador diferente, para poder ter DOIS ao mesmo tempo:
+        //   ./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Kurapika
+        //
+        // Cada nome ganha o proprio diretorio de execucao. Dois clientes
+        // dividindo `run/client` brigam pelo options.txt e pelo log, e o
+        // segundo sobrescreve o diagnostico do primeiro -- que e justamente o
+        // que se quer comparar num teste de dois jogadores.
+        //
+        // Com online-mode=false o UUID e derivado do nome, entao nomes
+        // diferentes sao jogadores diferentes de verdade, com perfis
+        // separados no save.
+        if (project.hasProperty('jogador')) {
+            def nome = project.property('jogador').toString()
+            arguments.addAll '--username', nome
+            workingDirectory project.layout.projectDirectory.dir('run').dir('client-' + nome)
+        }
     }
 
     server {

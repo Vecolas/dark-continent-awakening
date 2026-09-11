@@ -156,6 +156,7 @@ O procedimento inteiro esta em
 | O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |
 | O `PacotesDeclaradosTest` so ve `import` | violacao por reflexao ou por nome de classe em string passa | sem previsao |
 | O **overlay de debug** nunca foi visto na tela | o cache foi observado recebendo (log de diagnostico), mas ninguem apertou a tecla e olhou o desenho | quando alguem jogar |
-| Nunca houve **DOIS** jogadores ao mesmo tempo | um jogador real conectou e o fluxo inteiro funcionou, mas vazamento de estado entre perfis so o gametest cobriu (com mock). Latencia e desync continuam sem verificacao | #9 |
+| Nunca houve **DOIS** jogadores ao mesmo tempo, e **nao da para ter nesta maquina** | tentado em 2026-09-10: dois clientes congelam por falta de memoria (~1,9 GB livres de 16 GB). Matar um faz o outro conectar em segundos, entao e recurso e nao configuracao. Isolamento de perfil so o gametest cobriu, com mock; latencia e desync seguem sem verificacao | #9, e precisa de segunda maquina |
+| **Mutacao depois do login nao re-sincroniza o cliente** | verificado: desbloqueei tres tecnicas para o Gon conectado, e o cache do cliente continuou com `tecnicas=0`. O snapshot so e enviado no login | issue propria |
 | A cobertura de gametest e RASA | quatro cenarios de perfil. Ciclo de vida completo (morte, relog, troca de dimensao), rede e cliente continuam sem cobertura em jogo | conforme cada um for entregue |
 | `technique unlock` nao confere se a tecnica EXISTE | so o namespace e conferido; nao ha registro de tecnicas ate o M4. O comando avisa em voz alta, e aviso nao e portao | M4 |

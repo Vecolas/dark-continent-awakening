@@ -84,6 +84,34 @@ gamemode=creative
 
 **3.** Comandos por RCON no terceiro (qualquer cliente RCON serve).
 
+### Dois jogadores ao mesmo tempo
+
+```bash
+./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Gon
+./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Kurapika
+```
+
+`-Pjogador` faz duas coisas: passa `--username` e da a cada nome o PROPRIO
+diretorio de execucao. Dois clientes dividindo `run/client` brigam pelo
+`options.txt` e pelo log, e o segundo sobrescreve o diagnostico do primeiro --
+que e justamente o que se quer comparar.
+
+Com `online-mode=false` o UUID vem do nome, entao nomes diferentes sao
+jogadores diferentes de verdade, com perfis separados no save.
+
+> **Duas instancias do Gradle no MESMO diretorio de projeto travam uma na
+> outra** (lock de execucao). Para dois clientes, use dois `git worktree` --
+> o segundo pode ser `--detach` no mesmo commit.
+
+> **ATENCAO -- LIMITE DE MAQUINA MEDIDO, NAO SUPOSTO.** Na maquina onde isto
+> foi tentado (16 GB, com ~1,9 GB livres), **dois clientes Minecraft
+> simultaneos nao sobem**: ambos congelam em "Loaded 0 entity animations",
+> queimando CPU sem avancar. Matar um fez o outro conectar em segundos, o que
+> descarta erro de configuracao e aponta contencao de recurso.
+>
+> Ou seja: **a QA de dois jogadores precisa de duas maquinas, ou de bem mais
+> memoria livre.** Nao adianta insistir nesta.
+
 **4.** Para observar o que o cliente RECEBEU, ligue o diagnostico em
 `run/client/config/nenfoundation-common.toml`:
 

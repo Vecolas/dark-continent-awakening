@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.profile;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,19 +24,35 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class RuntimeNenState {
 
-    private double auraAtual;
+    private final AuraPool aura;
     private final Set<ResourceLocation> tecnicasAtivas = new HashSet<>();
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
 
+    public RuntimeNenState() {
+        this.aura = new AuraPool();
+    }
+
+    public RuntimeNenState(double auraMaxima) {
+        this.aura = new AuraPool(auraMaxima);
+    }
+
     /** Aura disponivel neste instante. A formula e os limites nascem no M2. */
     public double auraAtual() {
-        return this.auraAtual;
+        return this.aura.atual();
     }
 
     /** Atualiza a medida autoritativa; somente codigo server-side possui este objeto. */
     public void definirAuraAtual(double auraAtual) {
-        this.auraAtual = auraAtual;
+        // A ponte M1 aceita o primeiro valor antes de a formula M2 configurar a maxima.
+        if (this.aura.maxima() == 0.0D && auraAtual > 0.0D) {
+            this.aura.definirMaxima(auraAtual);
+        }
+        this.aura.definirAtual(auraAtual);
+    }
+
+    public AuraPool aura() {
+        return this.aura;
     }
 
     public Set<ResourceLocation> tecnicasAtivas() {

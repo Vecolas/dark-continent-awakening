@@ -5,22 +5,12 @@ import com.darkcontinent.nenfoundation.client.hud.NenHudLayout;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
-/** Aplica as molduras autorais sem fundir os assets numa textura gigante. */
+/** Aplica a moldura unificada que define a silhueta inteira da HUD. */
 public final class HudTextureRenderer {
     private static final ResourceLocation MOLDURA = textura("frame.png");
-    private static final ResourceLocation MOLDURA_RETRATO = textura("portrait_frame.png");
-    private static final ResourceLocation MOLDURA_BADGE = textura("badge_frame.png");
 
-    public void desenharMolduraDasBarras(GuiGraphics graficos, NenHudLayout layout) {
-        desenhar(graficos, MOLDURA, layout.molduraDasBarras(), 256, 80);
-    }
-
-    public void desenharMolduraDoRetrato(GuiGraphics graficos, NenHudLayout layout) {
-        desenhar(graficos, MOLDURA_RETRATO, layout.retrato(), 64, 64);
-    }
-
-    public void desenharMolduraDoBadge(GuiGraphics graficos, NenHudLayout layout) {
-        desenhar(graficos, MOLDURA_BADGE, layout.badge(), 32, 32);
+    public void desenharMoldura(GuiGraphics graficos, NenHudLayout layout) {
+        desenhar(graficos, MOLDURA, layout.moldura(), 512, 128);
     }
 
     private static void desenhar(GuiGraphics graficos, ResourceLocation textura,

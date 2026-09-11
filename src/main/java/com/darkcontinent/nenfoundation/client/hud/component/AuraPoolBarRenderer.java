@@ -15,14 +15,19 @@ public final class AuraPoolBarRenderer {
     private static final ResourceLocation TEXTURA_AURA =
             HudTextureRenderer.textura("aura_pool_fill.png");
 
-    public void desenhar(GuiGraphics graficos, NenHudLayout.Retangulo area,
+    public void desenharPreenchimento(GuiGraphics graficos, NenHudLayout.Retangulo area,
             AuraHudProjection aura) {
+        BarraSegmentadaRenderer.desenhar(graficos, area, aura.fracao(), COR_FUNDO, TEXTURA_AURA);
+    }
+
+    public void desenharTexto(GuiGraphics graficos, NenHudLayout.Retangulo area,
+            NenHudLayout.Retangulo areaDoValor, AuraHudProjection aura) {
         Minecraft mc = Minecraft.getInstance();
         graficos.drawString(mc.font, Component.translatable("nenfoundation.hud.aura"),
                 area.x(), area.y() - 11, COR_TEXTO, true);
         String valor = String.format(Locale.ROOT, "%.0f / %.0f", aura.atual(), aura.maxima());
-        graficos.drawString(mc.font, valor, area.x() + area.largura() - mc.font.width(valor),
-                area.y() - 11, COR_TEXTO, true);
-        BarraSegmentadaRenderer.desenhar(graficos, area, aura.fracao(), COR_FUNDO, TEXTURA_AURA);
+        graficos.drawString(mc.font, valor,
+                areaDoValor.x() + areaDoValor.largura() - mc.font.width(valor),
+                areaDoValor.y(), COR_TEXTO, true);
     }
 }

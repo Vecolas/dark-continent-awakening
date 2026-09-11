@@ -42,13 +42,12 @@ public final class OverlayDeAura {
                     NenHudLayout.MARGEM, NenHudLayout.MARGEM, 0xFFAAAAAA, true);
             return;
         }
-        this.aura.desenhar(g, layout.barraDeAura(), aura);
-        this.output.desenhar(g, layout.barraDeOutput(), aura);
-        // As barras ocupam os vazios da arte; a moldura fica por cima do fill.
-        this.texturas.desenharMolduraDasBarras(g, layout);
         this.retrato.desenhar(g, layout.retrato(), mc.player);
-        this.texturas.desenharMolduraDoRetrato(g, layout);
-        this.texturas.desenharMolduraDoBadge(g, layout);
+        this.aura.desenharPreenchimento(g, layout.barraDeAura(), aura);
+        this.output.desenharPreenchimento(g, layout.barraDeOutput(), aura);
+        this.texturas.desenharMoldura(g, layout);
+        this.aura.desenharTexto(g, layout.barraDeAura(), layout.valorDeAura(), aura);
+        this.output.desenharTexto(g, layout.barraDeOutput(), layout.valorDeOutput(), aura);
         this.badge.desenhar(g, layout.badge());
         if (aura.exausto() || aura.maxima() == 0) {
             g.drawString(mc.font, Component.translatable(aura.exausto()

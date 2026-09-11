@@ -17,5 +17,6 @@ public final class NenServerLifecycle {
     public static void aoEncerrarServidor(ServerStoppedEvent evento) {
         NenRuntimeService.encerrarTodasAsSessoes();
         PedidosC2S.limpar();
+        NenSyncService.limparMetricas();
     }
 }

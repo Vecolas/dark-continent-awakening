@@ -22,6 +22,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 public final class NenSyncService {
 
+    private static final NenSyncMetrics METRICAS = new NenSyncMetrics();
+
     private NenSyncService() {
     }
 
@@ -60,10 +62,12 @@ public final class NenSyncService {
     }
 
     /** Entrega de verdade, pulando quem nao pode receber. */
-    private static void entregarSePuder(ServerPlayer dono, CustomPacketPayload payload) {
+    private static boolean entregarSePuder(ServerPlayer dono, CustomPacketPayload payload) {
         if (consegueReceber(dono, payload)) {
             entregarAoDono(dono, payload, PacketDistributor::sendToPlayer);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -73,7 +77,9 @@ public final class NenSyncService {
      */
     public static void enviarDelta(ServerPlayer dono, double auraMaxima) {
         RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
-        entregarSePuder(dono, criarDelta(estado, auraMaxima));
+        if (entregarSePuder(dono, criarDelta(estado, auraMaxima))) {
+            METRICAS.registrarDeltaEnviado();
+        }
     }
 
     /**
@@ -87,9 +93,20 @@ public final class NenSyncService {
         if (!estado.auraSuja() || !consegueReceber(dono, DeltaDeRuntimeS2C.TYPE)) {
             return false;
         }
-        entregarSePuder(dono, criarDelta(estado, auraMaxima));
+        if (!entregarSePuder(dono, criarDelta(estado, auraMaxima))) {
+            return false;
+        }
+        METRICAS.registrarDeltaEnviado();
         estado.marcarAuraSincronizada();
         return true;
+    }
+
+    public static NenSyncMetrics metricas() {
+        return METRICAS;
+    }
+
+    static void limparMetricas() {
+        METRICAS.limpar();
     }
 
     static void enviarSnapshot(ServerPlayer dono, PersistentNenData perfil) {

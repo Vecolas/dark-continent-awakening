@@ -23,6 +23,14 @@ Nada nesta tabela sobe sozinho. Ver
 
 ## Mods do pack
 
+Ferramenta isolada de QA M2 (não adicionada ao pack nem ao Gradle): spark
+`1.10.124-neoforge-1.21.1`, arquivo `spark-1.10.124-neoforge.jar`, testado em
+2026-09-11. Licença GPL-3.0-only;
+[versão publicada](https://modrinth.com/mod/spark/version/v5qtqRQi).
+SHA-512 conferido antes de executar:
+`f86ce34f2759c69df82578c397ff55b666c84626229a98f598458b960c21b38c95d6bfef4772af7f963c4f4868e5e2d9aef6b99c1d51bab55bf45e0e6e6b5ed4`.
+JAR não versionado. Perfil medido em [perfis](../testing/perfis/README.md).
+
 | Mod | Versao travada | Data do teste | Quem testou |
 | --- | --- | --- | --- |
 | — | — | — | nenhum mod de terceiro no pack ainda |

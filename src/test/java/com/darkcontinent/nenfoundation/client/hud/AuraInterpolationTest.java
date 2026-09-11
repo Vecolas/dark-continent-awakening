@@ -20,11 +20,11 @@ class AuraInterpolationTest {
     void novoDeltaChegaAoAlvoSemPedirNovoPacote() {
         AuraInterpolation interpolacao = new AuraInterpolation(5L);
         interpolacao.receber(delta(100.0F), 20L);
-        interpolacao.receber(delta(0.0F), 25L);
+        interpolacao.receber(delta(50.0F), 25L);
 
         assertEquals(100.0F, interpolacao.valorAtual(25L));
-        assertEquals(60.0F, interpolacao.valorAtual(27L));
-        assertEquals(0.0F, interpolacao.valorAtual(30L));
+        assertEquals(80.0F, interpolacao.valorAtual(27L));
+        assertEquals(50.0F, interpolacao.valorAtual(30L));
     }
 
     private static DeltaDeRuntimeS2C delta(float aura) {

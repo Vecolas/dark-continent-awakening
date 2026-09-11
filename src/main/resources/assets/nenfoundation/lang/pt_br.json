@@ -45,5 +45,10 @@
   "nenfoundation.error.indisponivel": "Esta acao ainda nao esta disponivel nesta versao.",
   "nenfoundation.error.erro_interno": "Falha ao processar o pedido de Nen. Consulte o administrador.",
   "nenfoundation.hud.aura": "Aura",
-  "nenfoundation.hud.aura_exausta": "Aura exausta"
+  "nenfoundation.hud.aura_exausta": "Aura exausta",
+  "nenfoundation.hud.aguardando": "Aguardando aura do servidor",
+  "nenfoundation.hud.sem_reserva": "Sem reserva de Nen",
+  "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
+  "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
+  "nenfoundation.error.output_excedido": "Teto de output atingido neste tick."
 }

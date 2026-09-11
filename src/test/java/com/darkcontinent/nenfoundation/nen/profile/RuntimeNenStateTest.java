@@ -37,6 +37,7 @@ class RuntimeNenStateTest {
         RuntimeNenState estado = new RuntimeNenState();
         ActiveAbility canalizacao = new HabilidadeAtiva(HABILIDADE, 42L);
 
+        estado.definirAuraMaxima(20.0D);
         estado.definirAuraAtual(12.5D);
         assertTrue(estado.ativarTecnica(TEN));
         assertFalse(estado.ativarTecnica(TEN), "ativacao repetida deve ser idempotente");

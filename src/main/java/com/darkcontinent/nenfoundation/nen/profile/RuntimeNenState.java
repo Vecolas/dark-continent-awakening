@@ -26,6 +26,7 @@ public final class RuntimeNenState {
 
     private final AuraPool aura;
     private boolean auraSuja = true;
+    private long revisao;
     private final Set<ResourceLocation> tecnicasAtivas = new HashSet<>();
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
@@ -38,42 +39,45 @@ public final class RuntimeNenState {
         this.aura = new AuraPool(auraMaxima);
     }
 
-    /** Aura disponivel neste instante. A formula e os limites nascem no M2. */
+    /** Aura disponivel neste instante, validada pela fronteira do pool. */
     public double auraAtual() {
         return this.aura.atual();
     }
 
     /** Atualiza a medida autoritativa; somente codigo server-side possui este objeto. */
     public void definirAuraAtual(double auraAtual) {
-        // A ponte M1 aceita o primeiro valor antes de a formula M2 configurar a maxima.
-        if (this.aura.maxima() == 0.0D && auraAtual > 0.0D) {
-            this.aura.definirMaxima(auraAtual);
-        }
+        double antes = this.aura.atual();
         this.aura.definirAtual(auraAtual);
+        if (antes != this.aura.atual()) marcarAlterado();
     }
 
-    public AuraPool aura() {
-        return this.aura;
+    /** Nao expoe o pool mutavel: toda mutacao precisa marcar a revisao. */
+    public double auraMaxima() {
+        return this.aura.maxima();
+    }
+
+    public boolean exausto() {
+        return this.aura.maxima() > 0.0D && this.aura.exausto();
     }
 
     /** Troca a capacidade e marca o runtime para o proximo delta. */
     public void definirAuraMaxima(double auraMaxima) {
         double antes = this.aura.maxima();
         this.aura.definirMaxima(auraMaxima);
-        this.auraSuja |= antes != this.aura.maxima();
+        if (antes != this.aura.maxima()) marcarAlterado();
     }
 
     /** Debita por inteiro ou deixa o pool intacto, marcando somente mudanca real. */
     public boolean gastarAura(double quantidade) {
         boolean gastou = this.aura.gastar(quantidade);
-        this.auraSuja |= gastou;
+        if (gastou) marcarAlterado();
         return gastou;
     }
 
     /** Recupera e informa se o valor mudou. */
     public double recuperarAura(double quantidade) {
         double recuperada = this.aura.recuperar(quantidade);
-        this.auraSuja |= recuperada != 0.0D;
+        if (recuperada != 0.0D) marcarAlterado();
         return recuperada;
     }
 
@@ -86,16 +90,34 @@ public final class RuntimeNenState {
         this.auraSuja = false;
     }
 
+    public long revisao() {
+        return this.revisao;
+    }
+
+    /** Uma mutacao durante o envio permanece pendente para o proximo delta. */
+    public void confirmarSincronizacao(long revisaoEnviada) {
+        if (this.revisao == revisaoEnviada) this.auraSuja = false;
+    }
+
+    private void marcarAlterado() {
+        this.auraSuja = true;
+        this.revisao++;
+    }
+
     public Set<ResourceLocation> tecnicasAtivas() {
         return Collections.unmodifiableSet(this.tecnicasAtivas);
     }
 
     public boolean ativarTecnica(ResourceLocation tecnica) {
-        return this.tecnicasAtivas.add(Objects.requireNonNull(tecnica, "tecnica"));
+        boolean mudou = this.tecnicasAtivas.add(Objects.requireNonNull(tecnica, "tecnica"));
+        if (mudou) marcarAlterado();
+        return mudou;
     }
 
     public boolean desativarTecnica(ResourceLocation tecnica) {
-        return this.tecnicasAtivas.remove(Objects.requireNonNull(tecnica, "tecnica"));
+        boolean mudou = this.tecnicasAtivas.remove(Objects.requireNonNull(tecnica, "tecnica"));
+        if (mudou) marcarAlterado();
+        return mudou;
     }
 
     /** Ticks restantes por habilidade. A contagem e a politica chegam no M5. */
@@ -109,14 +131,17 @@ public final class RuntimeNenState {
             throw new IllegalArgumentException("ticksRestantes nao pode ser negativo");
         }
         if (ticksRestantes == 0) {
-            this.cooldowns.remove(habilidade);
+            removerCooldown(habilidade);
             return;
         }
-        this.cooldowns.put(habilidade, ticksRestantes);
+        Integer antes = this.cooldowns.put(habilidade, ticksRestantes);
+        if (!Objects.equals(antes, ticksRestantes)) marcarAlterado();
     }
 
     public void removerCooldown(ResourceLocation habilidade) {
-        this.cooldowns.remove(Objects.requireNonNull(habilidade, "habilidade"));
+        if (this.cooldowns.remove(Objects.requireNonNull(habilidade, "habilidade")) != null) {
+            marcarAlterado();
+        }
     }
 
     /** Instancia viva em canalizacao, quando houver. */

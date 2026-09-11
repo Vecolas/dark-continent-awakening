@@ -117,6 +117,11 @@ autoritativo.
 
 ## M2 — Aura Engine + HUD
 
+**Gate validado localmente em 2026-09-11; integração no GitHub pendente.**
+131 testes JUnit, 7 GameTests, servidor dedicado com dois clientes, medição
+de deltas e primeiro spark arquivado. Evidências e limites em
+[m2-aura-sync.md](../testing/m2-aura-sync.md). Não iniciar M3 antes de integrar.
+
 A primeira mecanica jogavel.
 
 **Dev A:** `AuraPool`, regeneracao, output, exaustao, formulas e configs,
@@ -141,7 +146,8 @@ MVP e so volta ao plano se um sistema de combate futuro tiver um consumidor
 claro (dash, dodge, bloqueio, parry ou ataque pesado). Esta decisao esta no
 [ADR-009](../adr/ADR-009-modelo-de-aura-sem-stamina-de-nen.md).
 
-Exemplo de HUD aprovado para a M2:
+Exemplo de HUD do desenho-alvo (output/estado dependem de evolução versionada
+do protocolo e das técnicas; não estão no payload runtime v1 da M2):
 
 ```
 AURA 16.840 / 21.500  ████████████████░░░░ 78%

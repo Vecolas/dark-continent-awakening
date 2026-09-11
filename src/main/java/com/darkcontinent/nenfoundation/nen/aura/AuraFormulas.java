@@ -1,65 +1,40 @@
 package com.darkcontinent.nenfoundation.nen.aura;
 
-import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
-import java.util.Objects;
 
 /**
- * Formulas de aura que ligam configuracao recarregavel ao pool de um jogador.
- *
- * <p>A maxima so existe para quem despertou: conceder reserva a um perfil
- * neutro faria o primeiro valor util do sistema nascer antes do despertar. O
- * potencial persistente e um acrescimo; a base continua sendo um botao de
- * ajuste fora do codigo. A regeneracao e exposta por tick para que o consumidor
- * nao congele um valor lido durante o login.
+ * Formulas minimas da M2. Reserva e output sao independentes; controle e
+ * afinidade ganham consumidores nas tecnicas. Nenhum resultado fica congelado.
  */
 public final class AuraFormulas {
-
+    /** Unidade de simulacao vanilla, nao compensacao de lag de parede. */
     private static final double TICKS_POR_SEGUNDO = 20.0D;
 
-    private AuraFormulas() {
+    private AuraFormulas() { }
+
+    public static double maxima(PersistentNenData perfil, ParametrosDeAura parametros) {
+        if (!perfil.awakened()) return 0.0D;
+        return somar(parametros.maximaBase(), perfil.auraPotential());
     }
 
-    public static double maxima(PersistentNenData perfil) {
-        Objects.requireNonNull(perfil, "perfil");
-        if (!perfil.awakened()) {
-            return 0.0D;
+    public static double output(PersistentNenData perfil, ParametrosDeAura parametros) {
+        if (!perfil.awakened()) return 0.0D;
+        return somar(parametros.outputBase(), perfil.output());
+    }
+
+    public static double regeneracaoPorTick(ParametrosDeAura parametros) {
+        return validar(parametros.regeneracaoPorSegundo()) / TICKS_POR_SEGUNDO;
+    }
+
+    private static double somar(double base, double progresso) {
+        return validar(validar(base) + validar(progresso));
+    }
+
+    private static double validar(double valor) {
+        // O delta M1 usa float. Double finito que vira Infinity na rede e invalido.
+        if (!Double.isFinite(valor) || valor < 0.0D || valor > Float.MAX_VALUE) {
+            throw new IllegalArgumentException("grandeza de aura fora do intervalo finito da rede");
         }
-        validarPotencial(perfil.auraPotential());
-        return maxima(perfil, NenConfig.auraMaximaBase());
-    }
-
-    /** Variante pura para testes e simuladores que fornecem a configuracao. */
-    public static double maxima(PersistentNenData perfil, double maximaBase) {
-        Objects.requireNonNull(perfil, "perfil");
-        validarBase(maximaBase);
-        if (!perfil.awakened()) {
-            return 0.0D;
-        }
-        validarPotencial(perfil.auraPotential());
-        return maximaBase + perfil.auraPotential();
-    }
-
-    /** Valor lido na hora para cada tick, sem copia congelada no runtime. */
-    public static double regeneracaoPorTick() {
-        return regeneracaoPorTick(NenConfig.auraRegeneracaoPorSegundo());
-    }
-
-    /** Variante pura para testes e simuladores que fornecem a configuracao. */
-    public static double regeneracaoPorTick(double porSegundo) {
-        validarBase(porSegundo);
-        return porSegundo / TICKS_POR_SEGUNDO;
-    }
-
-    private static void validarPotencial(double potencial) {
-        if (!Double.isFinite(potencial) || potencial < 0.0D) {
-            throw new IllegalArgumentException("auraPotential deve ser finito e nao negativo");
-        }
-    }
-
-    private static void validarBase(double valor) {
-        if (!Double.isFinite(valor) || valor < 0.0D) {
-            throw new IllegalArgumentException("valor de aura deve ser finito e nao negativo");
-        }
+        return valor;
     }
 }

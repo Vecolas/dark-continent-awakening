@@ -1,7 +1,5 @@
 package com.darkcontinent.nenfoundation.nen.aura;
 
-import java.util.Objects;
-
 /**
  * Reserva de aura autoritativa de uma unica sessao de jogador.
  *
@@ -15,7 +13,7 @@ public final class AuraPool {
     private double maxima;
     private double atual;
 
-    /** Cria uma reserva vazia com a maxima indicada. */
+    /** Cria uma reserva cheia explicitamente; a sessao normal nasce neutra. */
     public AuraPool(double maxima) {
         validarNumero(maxima, "maxima");
         if (maxima < 0.0D) {
@@ -85,7 +83,8 @@ public final class AuraPool {
             throw new IllegalArgumentException("quantidade nao pode ser negativa");
         }
         double antes = this.atual;
-        this.atual = Math.min(this.maxima, this.atual + quantidade);
+        // Soma so o espaco disponivel: duas entradas finitas podem somar infinito.
+        this.atual += Math.min(this.maxima - this.atual, quantidade);
         return this.atual - antes;
     }
 

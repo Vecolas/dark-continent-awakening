@@ -1,5 +1,8 @@
 package com.darkcontinent.nenfoundation.server;
 
+import com.darkcontinent.nenfoundation.config.NenConfig;
+import java.util.HashMap;
+import java.util.UUID;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
@@ -23,6 +26,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class NenSyncService {
 
     private static final NenSyncMetrics METRICAS = new NenSyncMetrics();
+    private static final Map<UUID, ControleDeSync> CONTROLES = new HashMap<>();
 
     private NenSyncService() {
     }
@@ -71,34 +75,21 @@ public final class NenSyncService {
     }
 
     /**
-     * Envia o delta do runtime atual ao dono. {@code auraMaxima} vem do
-     * consumidor que conhece a formula do M2; este servico nao cria uma segunda
-     * fonte para esse numero.
-     */
-    public static void enviarDelta(ServerPlayer dono, double auraMaxima) {
-        RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
-        if (entregarSePuder(dono, criarDelta(estado, auraMaxima))) {
-            METRICAS.registrarDeltaEnviado();
-        }
-    }
-
-    /**
      * Envia somente quando o runtime observou uma mudanca de aura.
      *
      * @return {@code true} quando um delta foi construido e a marca foi
      *     consumida; {@code false} em tick limpo ou conexao sem canal.
      */
-    public static boolean enviarDeltaSeAuraSuja(ServerPlayer dono, double auraMaxima) {
+    public static boolean enviarDeltaSeAuraSuja(ServerPlayer dono) {
         RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
-        if (!estado.auraSuja() || !consegueReceber(dono, DeltaDeRuntimeS2C.TYPE)) {
-            return false;
+        boolean enviou = CONTROLES.computeIfAbsent(dono.getUUID(), id -> new ControleDeSync())
+                .enviar(estado, dono.serverLevel().getGameTime(), NenConfig.intervaloDeSync(),
+                        delta -> entregarSePuder(dono, delta));
+        if (enviou) {
+            METRICAS.registrarDeltaEnviado();
+            NenAuraService.registrarDelta(dono);
         }
-        if (!entregarSePuder(dono, criarDelta(estado, auraMaxima))) {
-            return false;
-        }
-        METRICAS.registrarDeltaEnviado();
-        estado.marcarAuraSincronizada();
-        return true;
+        return enviou;
     }
 
     public static NenSyncMetrics metricas() {
@@ -107,7 +98,10 @@ public final class NenSyncService {
 
     static void limparMetricas() {
         METRICAS.limpar();
+        CONTROLES.clear();
     }
+
+    static void encerrarSessao(UUID id) { CONTROLES.remove(id); }
 
     static void enviarSnapshot(ServerPlayer dono, PersistentNenData perfil) {
         entregarSePuder(dono, criarSnapshot(perfil));
@@ -122,11 +116,11 @@ public final class NenSyncService {
                 Set.copyOf(perfil.progressionFlags()));
     }
 
-    static DeltaDeRuntimeS2C criarDelta(RuntimeNenState estado, double auraMaxima) {
+    static DeltaDeRuntimeS2C criarDelta(RuntimeNenState estado) {
         Objects.requireNonNull(estado, "estado");
         return new DeltaDeRuntimeS2C(
                 (float) estado.auraAtual(),
-                (float) auraMaxima,
+                (float) estado.auraMaxima(),
                 Set.copyOf(estado.tecnicasAtivas()),
                 Map.copyOf(estado.cooldowns()));
     }

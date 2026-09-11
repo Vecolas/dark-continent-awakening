@@ -9,10 +9,15 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class AuraFormulasTest {
+    private static final ParametrosDeAura PARAMETROS = new ParametrosDeAura() {
+        public double maximaBase() { return 100; }
+        public double regeneracaoPorSegundo() { return 1; }
+        public double outputBase() { return 10; }
+    };
 
     @Test
     void perfilNaoDespertadoNaoRecebeReserva() {
-        assertEquals(0.0D, AuraFormulas.maxima(PersistentNenData.NAO_DESPERTADO));
+        assertEquals(0.0D, AuraFormulas.maxima(PersistentNenData.NAO_DESPERTADO, PARAMETROS));
     }
 
     @Test
@@ -21,11 +26,11 @@ class AuraFormulasTest {
                 PersistentNenData.SCHEMA_ATUAL, true, NenCategory.ENHANCEMENT, true,
                 42.5D, 0.0D, 0.0D, Map.of(), Set.of(), Set.of(), Set.of());
 
-        assertEquals(142.5D, AuraFormulas.maxima(perfil, 100.0D), 0.000001D);
+        assertEquals(PARAMETROS.maximaBase() + perfil.auraPotential(), AuraFormulas.maxima(perfil, PARAMETROS));
     }
 
     @Test
     void regeneracaoEExpressaNaUnidadeDoScheduler() {
-        assertEquals(0.05D, AuraFormulas.regeneracaoPorTick(1.0D), 0.000001D);
+        assertEquals(PARAMETROS.regeneracaoPorSegundo(), AuraFormulas.regeneracaoPorTick(PARAMETROS) * 20);
     }
 }

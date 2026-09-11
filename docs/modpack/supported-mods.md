@@ -24,6 +24,10 @@ de viabilidade: se daqui a seis meses uma camada quebrar, as outras sobrevivem.
 **Nenhum mod de terceiro esta no pack.** O M0 entrega o perfil dev-minimal:
 NeoForge + Nen Foundation e nada mais.
 
+Na QA da M2 foi usado **spark apenas no servidor de testes**, sem adicioná-lo
+ao pack/Gradle. Versão, licença e hash em [version-lock.md](version-lock.md);
+não implica aprovação dos demais mods candidatos.
+
 A tabela abaixo e a lista **candidata**, com o marco em que cada um entra. Um
 mod so passa de candidato a aprovado depois de passar no smoke test de
 [compatibility.md](../testing/compatibility.md) e de ser registrado em
@@ -46,7 +50,7 @@ redistribuir ([ADR-007](../adr/ADR-007-assets-autorais.md)).
 | Patchouli | 2 | manual de Nen e lore | *a confirmar* | M6 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/patchouli) |
 | JEI **ou** EMI | 3 | viewer de receitas — escolher **um** | *a confirmar* | M6 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) / [EMI](https://www.curseforge.com/minecraft/mc-mods/emi) |
 | Jade | 3 | informacao contextual | *a confirmar* | M6 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/jade) |
-| spark | — | profiler; **ferramenta obrigatoria de QA** | *a confirmar* | M2 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/spark) |
+| spark | — | profiler; QA M2 executada | GPL-3.0-only | M2 | [Modrinth](https://modrinth.com/mod/spark/version/v5qtqRQi) |
 | ModernFix | — | correcoes e otimizacoes | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/modernfix) |
 | FerriteCore | — | uso de memoria | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/ferritecore) |
 | Embeddium | — | renderizacao client-side | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/embeddium) |

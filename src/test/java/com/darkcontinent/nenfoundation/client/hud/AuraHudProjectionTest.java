@@ -29,7 +29,7 @@ class AuraHudProjectionTest {
     @Test
     void fracaoFicaEntreZeroEUm() {
         NenClientCache cache = new NenClientCache(() -> 0L, () -> false);
-        cache.aoReceberDelta(new DeltaDeRuntimeS2C(150.0F, 100.0F, Set.of(), Map.of()));
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, Set.of(), Map.of()));
         assertEquals(1.0F, AuraHudProjection.de(cache).fracao());
     }
 }

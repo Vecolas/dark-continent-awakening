@@ -26,7 +26,7 @@ descoberto.
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |
 | `NenCommandsTest` | a arvore de `/nen` tem uma raiz so, ela exige permissao (provado contra um controle), nenhum comando escapa dela, e `reset` so e executavel com `confirmar` | que os comandos FAZEM o que dizem — nenhum foi executado contra um jogador de verdade |
 | Ficha do jogador (#44) | projeção e paginação testadas; um cliente real mostrou unlock/lock em servidor dedicado, com capturas inspecionadas | teclas físicas, dois jogadores e conflitos com outros mods; ver [hud-jogador.md](hud-jogador.md) |
-| `gameTestServer` | comportamento com o jogo DE PE: attachment de verdade, `ServerPlayer` de verdade, nivel de verdade. Quando um gametest reprova, o Gradle reprova junto | o que nao virou gametest — hoje, quatro cenarios de perfil e mais nada. Nada de rede real, cliente, dois jogadores humanos ou performance |
+| `runGameTestServer` | jogo carregado, perfil/runtime e 120 ticks de Aura pelo scheduler real; sete cenários | rede física, desenho do cliente e performance não são provados pelo listener de captura |
 | CI do GitHub | o build e reprodutivel numa maquina limpa | qualquer coisa que exija Minecraft rodando |
 | `Task :test FROM-CACHE` no log do CI | os inputs batem com uma execucao anterior que passou | que os testes rodaram **nesta** execucao. O portao do `doLast` nao dispara em tarefa cacheada, e a linha "Testes executados" some do log. Quem confere o numero e o passo "Contagem de testes", que soma os XML |
 
@@ -146,18 +146,33 @@ O procedimento inteiro esta em
 
 ---
 
-## Limites conhecidos AGORA (M0 e inicio do M1)
+## Limites conhecidos agora (após QA local da M2)
 
-| Limite | Consequencia | Quando fecha |
+| Limite | Consequência | Quando fecha |
 | --- | --- | --- |
-| Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
-| C2S registrado com recusa segura no M1 | técnicas/habilidades ainda não têm registros ou motores; aceitação, custo, alcance e linha de visão precisam de integração real | M4/M5 |
-| Nao ha portao de **carregamento de registro** | uma definicao orfa passaria despercebida | M5 |
-| Nao ha **medicao de performance** | "nao e gargalo" e opiniao | M2 (primeiro spark) |
-| O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |
-| O `PacotesDeclaradosTest` so ve `import` | violacao por reflexao ou por nome de classe em string passa | sem previsao |
-| O **overlay de debug** nunca foi visto na tela | o cache foi observado recebendo (log de diagnostico), mas ninguem apertou a tecla e olhou o desenho | quando alguem jogar |
-| Nunca houve **DOIS** jogadores ao mesmo tempo, e **nao da para ter nesta maquina** | tentado em 2026-09-10: dois clientes congelam por falta de memoria (~1,9 GB livres de 16 GB). Matar um faz o outro conectar em segundos, entao e recurso e nao configuracao. Isolamento de perfil so o gametest cobriu, com mock; latencia e desync seguem sem verificacao | #9, e precisa de segunda maquina |
-| **Mutacao depois do login nao re-sincroniza o cliente** | verificado: desbloqueei tres tecnicas para o Gon conectado, e o cache do cliente continuou com `tecnicas=0`. O snapshot so e enviado no login | issue propria |
-| A cobertura de gametest e RASA | quatro cenarios de perfil. Ciclo de vida completo (morte, relog, troca de dimensao), rede e cliente continuam sem cobertura em jogo | conforme cada um for entregue |
-| `technique unlock` nao confere se a tecnica EXISTE | so o namespace e conferido; nao ha registro de tecnicas ate o M4. O comando avisa em voz alta, e aviso nao e portao | M4 |
+| Dois clientes reais só em loopback | atraso de Internet, perda e comportamento remoto não medidos | QA de rede ampliada / M7 |
+| C2S segue recusando técnicas/habilidades inexistentes | aceitação, custo, alvo e alcance exigem motores próprios | M4/M5 |
+| Não há portão de carregamento de registro | definição órfã pode passar despercebida | M5 |
+| Primeiro spark cobre cenário leve | não prova estresse, modpack ou ausência de regressão sob carga | M7 |
+| Clone antigo continua no OneDrive | outro agente pode trabalhar lá; não sobrescrever nem apagar | coordenação dos clones |
+| `PacotesDeclaradosTest` só vê imports | reflexões e nomes em strings não cobertos | sem previsão |
+| Capturas de HUD são estáticas | não medem fluidez/ergonomia ou conflitos com mods | gameplay manual / M7 |
+| Reconexão real M2 usou novo processo | limpeza na mesma instância só coberta por teste de cache | ampliar QA manual |
+| `technique unlock` só valida namespace | não confirma registro da técnica, ainda inexistente | M4 |
+| Morte/dimensão de técnicas ativas não existe nesta fase | o teste atual cobre perfil/runtime, não efeitos de combate | M4/M5 |
+
+As antigas alegações de impossibilidade de dois clientes e falta de resync
+foram superadas pela QA M1/M2. A evidência atual está em
+[qa-matrix.md](qa-matrix.md) e [m2-aura-sync.md](m2-aura-sync.md);
+não devem ser copiadas como bloqueios atuais.
+
+## Falso verde corrigido na M2
+
+O motor e o HUD tinham testes isolados, mas não havia registro do motor no
+scheduler de produção. A integração agora é exercitada por 120 ticks de
+GameTest e por dois clientes reais. Os sete GameTests passam; o listener do
+novo cenário captura envelopes e não finge provar rede física.
+
+A remoção deliberada do registro em código de produção foi bloqueada pela
+revisão automática e não executada. Entradas inválidas, canal ausente, exceção
+de transporte e mutação reentrante foram exercitados em testes isolados.

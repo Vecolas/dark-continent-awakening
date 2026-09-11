@@ -39,6 +39,15 @@ também reduzirá output e defesa contra Nen. Ren poderá consumir aura por tick
 elevar output. Os multiplicadores são tuning de configuração acompanhado de
 regua; este ADR fixa as grandezas, não os valores finais.
 
+## Governança da decisão
+
+Por determinação do responsável pelo projeto nesta sessão, alterações deste
+modelo exigem decisão explícita registrada pelos **dois desenvolvedores**.
+O registro deve identificar ambos, indicar a aprovação de cada um, explicar a
+mudança e seu custo, e apontar este ADR. Sem esse registro, a alteração do
+modelo é recusada. Um agente não pode presumir nem assinar a aprovação do outro.
+Implementar ou corrigir o comportamento já aprovado não reabre a decisão.
+
 ## Custo assumido
 
 - O jogador não terá uma barra customizada de fôlego no MVP.

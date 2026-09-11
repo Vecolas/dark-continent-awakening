@@ -67,3 +67,13 @@ Issue: #
       NÃO muda**)
 - [ ] `git diff --cached --name-only` conferido antes do commit — nada da outra
       frente entrou junto
+
+## Depois do merge
+
+- [ ] **Instância de teste manual atualizada** — na árvore principal, depois do
+      `git pull`: `.\scripts\instancia.ps1 atualizar`
+
+<!-- O `servidor` já atualiza sozinho ao subir, então isto é redundância
+     barata: garante que a pasta esteja na versão nova antes de alguém abrir
+     o jogo, e não só a partir do próximo boot. Ver
+     docs/processo/instancia-de-teste.md. -->

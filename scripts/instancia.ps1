@@ -11,7 +11,7 @@
     Subcomandos:
       instalar    baixa e instala o servidor NeoForge dedicado
       atualizar   compila o mod e troca o JAR da instancia
-      servidor    sobe o servidor da instancia (sem Gradle)
+      servidor    recompila, troca o JAR e sobe o servidor (sem Gradle)
       cliente     sobe um cliente que entra nele sozinho
       status      mostra o que existe e qual versao esta instalada
 
@@ -28,7 +28,15 @@ param(
 
     [string]$Jogador = 'Dev',
     [int]$Porta = 25565,
-    [switch]$SemEntrar
+    [switch]$SemEntrar,
+
+    # Sobe o JAR que JA esta instalado, sem recompilar.
+    #
+    # Existe para um caso so: o build esta vermelho e voce quer entrar no jogo
+    # assim mesmo -- para investigar, ou para comparar com a versao anterior.
+    # Fora disso, use o padrao: o proposito desta pasta e estar sempre na
+    # versao mais recente.
+    [switch]$SemAtualizar
 )
 
 $ErrorActionPreference = 'Stop'
@@ -198,7 +206,10 @@ function Comando-Atualizar {
     $env:JAVA_HOME = Split-Path -Parent (Split-Path -Parent $java)
 
     & $Gradlew build --console=plain
-    if ($LASTEXITCODE -ne 0) { throw "o build falhou; o JAR nao foi trocado." }
+    if ($LASTEXITCODE -ne 0) {
+        throw ("o build falhou; o JAR nao foi trocado. Para entrar no jogo assim" +
+            " mesmo, com a versao ja instalada: .\scripts\instancia.ps1 servidor -SemAtualizar")
+    }
 
     $jar = Jar-Do-Mod
     if (-not $jar) { throw "nenhum nenfoundation-*.jar em build\libs apos o build." }
@@ -221,10 +232,30 @@ function Comando-Atualizar {
 
 function Comando-Servidor {
     $java = Resolver-Java
-    $args = Join-Path $Servidor 'libraries\net\neoforged\neoforge'
 
     if (-not (Test-Path -LiteralPath $Servidor)) {
         throw "a instancia nao existe. Rode: .\scripts\instancia.ps1 instalar"
+    }
+
+    # SUBIR JA ATUALIZA, e este e o ponto da pasta inteira.
+    #
+    # O servidor daqui roda o JAR de `mods/`, e nao o codigo do repositorio.
+    # Se a troca do JAR depender de alguem lembrar de rodar `atualizar`, um dia
+    # ela nao acontece -- e o teste manual mede a versao de ontem. A falha e
+    # SILENCIOSA: o servidor sobe, o mod carrega, o jogo funciona, e nada em
+    # lugar nenhum diz que aquele nao e o codigo que acabou de ser escrito.
+    #
+    # Pior ainda em par com o `cliente`: o cliente de desenvolvimento compila o
+    # repositorio a cada execucao, entao ele SEMPRE esta na versao nova. Um
+    # servidor velho contra um cliente novo produz divergencias que parecem bug
+    # de sincronizacao.
+    #
+    # O Gradle e incremental: sem mudanca, isto custa poucos segundos e nao
+    # recompila nada.
+    if (-not $SemAtualizar) {
+        Comando-Atualizar
+    } else {
+        Aviso "-SemAtualizar: subindo o JAR ja instalado, que pode NAO ser o codigo atual."
     }
 
     Titulo "Subindo o servidor da instancia"

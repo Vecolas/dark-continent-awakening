@@ -37,6 +37,7 @@ class RuntimeNenStateTest {
         RuntimeNenState estado = new RuntimeNenState();
         ActiveAbility canalizacao = new HabilidadeAtiva(HABILIDADE, 42L);
 
+        estado.definirAuraMaxima(20.0D);
         estado.definirAuraAtual(12.5D);
         assertTrue(estado.ativarTecnica(TEN));
         assertFalse(estado.ativarTecnica(TEN), "ativacao repetida deve ser idempotente");
@@ -64,6 +65,23 @@ class RuntimeNenStateTest {
         assertThrows(IllegalArgumentException.class,
                 () -> estado.definirCooldown(HABILIDADE, -1));
         assertTrue(estado.cooldowns().isEmpty());
+    }
+
+    @Test
+    @DisplayName("aura suja so muda quando o valor autoritativo muda")
+    void auraSujaTemCicloExplicito() {
+        RuntimeNenState estado = new RuntimeNenState(10.0D);
+
+        assertTrue(estado.auraSuja());
+        estado.marcarAuraSincronizada();
+        assertFalse(estado.auraSuja());
+        assertFalse(estado.gastarAura(11.0D));
+        assertFalse(estado.auraSuja());
+        assertTrue(estado.gastarAura(2.0D));
+        assertTrue(estado.auraSuja());
+        estado.marcarAuraSincronizada();
+        assertEquals(0.0D, estado.recuperarAura(0.0D));
+        assertFalse(estado.auraSuja());
     }
 
     private static ResourceLocation id(String caminho) {

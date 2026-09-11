@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.config;
 
+import com.darkcontinent.nenfoundation.nen.aura.ParametrosDeAura;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -42,13 +43,56 @@ public final class NenConfig {
                      "Excesso e cortado antes da fila; contadores aparecem no logout em modo dev.")
             .defineInRange("network.requestsPerSecond", 20, 1, 200);
 
+    private static final ModConfigSpec.DoubleValue AURA_MAXIMA_BASE = BUILDER
+            .comment("Reserva inicial de aura de um jogador despertado.",
+                     "O potencial persistente e somado pela formula do Aura Engine.")
+            .defineInRange("aura.maximaBase", 100.0D, 0.0D, 1_000_000.0D);
+
+    private static final ModConfigSpec.DoubleValue AURA_REGENERACAO_POR_SEGUNDO = BUILDER
+            .comment("Aura recuperada por segundo enquanto o pool puder recuperar.",
+                     "A formula converte este valor para a cadencia real do servidor.")
+            .defineInRange("aura.regeneracaoPorSegundo", 1.0D, 0.0D, 1_000_000.0D);
+
+    private static final ModConfigSpec.DoubleValue AURA_OUTPUT_BASE = BUILDER
+            .comment("Teto base de aura manifestada nas operacoes instantaneas de um tick.",
+                     "O output persistente e somado; isto nao aumenta a reserva.")
+            .defineInRange("aura.outputBase", 10.0D, 0.0D, 1_000_000.0D);
+
+    private static final ModConfigSpec.IntValue INTERVALO_DE_SYNC = BUILDER
+            .comment("Intervalo minimo, em ticks, entre deltas alterados. Tick limpo nao envia.")
+            .defineInRange("network.runtimeSyncTicks", 5, 1, 100);
+
+    private static final ModConfigSpec.IntValue INTERPOLACAO_DE_AURA = BUILDER
+            .comment("Duracao visual em ticks de cliente. Zero aplica o delta imediatamente.")
+            .defineInRange("client.auraInterpolationTicks", 5, 0, 20);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
+
+    /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
+    public static final ParametrosDeAura AURA = new ParametrosDeAura() {
+        @Override public double maximaBase() { return AURA_MAXIMA_BASE.get(); }
+        @Override public double regeneracaoPorSegundo() { return AURA_REGENERACAO_POR_SEGUNDO.get(); }
+        @Override public double outputBase() { return AURA_OUTPUT_BASE.get(); }
+    };
+
+    public static int intervaloDeSync() { return INTERVALO_DE_SYNC.get(); }
+    public static int interpolacaoDeAura() { return INTERPOLACAO_DE_AURA.get(); }
 
     private NenConfig() {
     }
 
     public static int pedidosPorSegundo() {
         return PEDIDOS_POR_SEGUNDO.get();
+    }
+
+    /** Le a capacidade base no instante do uso para respeitar recarga de config. */
+    public static double auraMaximaBase() {
+        return AURA_MAXIMA_BASE.get();
+    }
+
+    /** Le a regeneracao por segundo no instante do uso. */
+    public static double auraRegeneracaoPorSegundo() {
+        return AURA_REGENERACAO_POR_SEGUNDO.get();
     }
 
     /**

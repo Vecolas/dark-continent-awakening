@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.Set;
 import net.minecraft.server.level.ServerPlayer;
 
 /** Porta unica para o estado de combate em memoria dos jogadores conectados. */
@@ -45,6 +46,8 @@ public final class NenRuntimeService {
 
     static RuntimeNenState iniciarSessao(UUID jogadorId) {
         Objects.requireNonNull(jogadorId, "jogadorId");
+        NenSyncService.encerrarSessao(jogadorId);
+        NenAuraService.encerrarSessao(jogadorId);
         RuntimeNenState novo = new RuntimeNenState();
         ESTADOS.put(jogadorId, novo);
         return novo;
@@ -61,6 +64,8 @@ public final class NenRuntimeService {
 
     static void encerrarSessao(UUID jogadorId) {
         ESTADOS.remove(Objects.requireNonNull(jogadorId, "jogadorId"));
+        NenSyncService.encerrarSessao(jogadorId);
+        NenAuraService.encerrarSessao(jogadorId);
     }
 
     static int quantidadeDeSessoes() {
@@ -68,6 +73,7 @@ public final class NenRuntimeService {
     }
 
     static void encerrarTodasAsSessoes() {
+        for (UUID id : Set.copyOf(ESTADOS.keySet())) encerrarSessao(id);
         ESTADOS.clear();
     }
 }

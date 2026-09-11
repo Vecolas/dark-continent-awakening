@@ -40,11 +40,12 @@ class NenSyncServiceTest {
     @DisplayName("delta copia o runtime no instante do envio")
     void deltaNaoFicaVivoComEstadoMutavel() {
         RuntimeNenState estado = new RuntimeNenState();
+        estado.definirAuraMaxima(80.0D);
         estado.definirAuraAtual(12.5D);
         estado.ativarTecnica(TEN);
         estado.definirCooldown(DISPARO, 40);
 
-        var delta = NenSyncService.criarDelta(estado, 80.0D);
+        var delta = NenSyncService.criarDelta(estado);
         estado.definirAuraAtual(0.0D);
         estado.desativarTecnica(TEN);
         estado.removerCooldown(DISPARO);

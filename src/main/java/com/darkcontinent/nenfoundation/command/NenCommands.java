@@ -3,6 +3,11 @@ package com.darkcontinent.nenfoundation.command;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
+import com.darkcontinent.nenfoundation.server.NenAuraService;
+import com.darkcontinent.nenfoundation.config.NenConfig;
+import com.darkcontinent.nenfoundation.nen.aura.MotorDeAura;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import java.util.Locale;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -82,6 +87,18 @@ public final class NenCommands {
                 .requires(fonte -> fonte.hasPermission(NIVEL_DE_OPERADOR));
 
         raiz.then(Commands.literal("debug")
+                .then(Commands.literal("aura")
+                        .requires(fonte -> NenConfig.devModeAtivo())
+                        .then(Commands.argument("alvo", EntityArgument.player())
+                                .executes(ctx -> mostrarAura(ctx, alvoDoArgumento(ctx))))
+                        .then(Commands.literal("gastar")
+                                .then(Commands.argument("quantidade", DoubleArgumentType.doubleArg())
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> gastarAura(ctx, alvoDoArgumento(ctx))))))
+                        .then(Commands.literal("definir")
+                                .then(Commands.argument("quantidade", DoubleArgumentType.doubleArg(0))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> definirAura(ctx, alvoDoArgumento(ctx)))))))
                 .then(Commands.literal("profile")
                         .executes(ctx -> mostrarResumo(ctx, alvoOuProprio(ctx)))
                         .then(Commands.argument("alvo", EntityArgument.player())
@@ -113,6 +130,45 @@ public final class NenCommands {
     }
 
     // ------------------------------------------------------------- acoes
+
+    /** Diagnostico de runtime, sem escrita de perfil ou despertar. */
+    private static int mostrarAura(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        var estado = NenAuraService.consultar(alvo);
+        String texto = String.format(Locale.ROOT, "aura %s: %.3f/%.3f output=%.3f exausto=%s %s",
+                alvo.getGameProfile().getName(), estado.auraAtual(), estado.auraMaxima(),
+                NenAuraService.output(alvo), estado.exausto(), NenAuraService.medida(alvo));
+        ctx.getSource().sendSuccess(() -> Component.literal(texto), false);
+        return 1;
+    }
+
+    private static int gastarAura(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        MotorDeAura.Gasto gasto = NenAuraService.gastar(alvo, DoubleArgumentType.getDouble(ctx, "quantidade"));
+        if (gasto != MotorDeAura.Gasto.PERMITIDO) {
+            String chave = switch (gasto) {
+                case INVALIDO -> "aura_invalida";
+                case NAO_DESPERTO -> "nao_desperto";
+                case SEM_AURA -> "aura_insuficiente";
+                case OUTPUT_EXCEDIDO -> "output_excedido";
+                default -> throw new IllegalStateException("recusa desconhecida");
+            };
+            ctx.getSource().sendFailure(Component.translatable("nenfoundation.error." + chave));
+            return 0;
+        }
+        ctx.getSource().sendSuccess(() -> Component.literal("Gasto aplicado a " + alvo.getName().getString()), true);
+        return mostrarAura(ctx, alvo);
+    }
+
+    private static int definirAura(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        double quantidade = DoubleArgumentType.getDouble(ctx, "quantidade");
+        var estado = NenAuraService.consultar(alvo);
+        if (!Double.isFinite(quantidade) || quantidade > estado.auraMaxima()) {
+            ctx.getSource().sendFailure(Component.translatable("nenfoundation.error.aura_invalida"));
+            return 0;
+        }
+        estado.definirAuraAtual(quantidade);
+        ctx.getSource().sendSuccess(() -> Component.literal("Aura de debug alterada para " + alvo.getName().getString()), true);
+        return mostrarAura(ctx, alvo);
+    }
 
     private static int mostrarResumo(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
         PersistentNenData perfil = NenProfileService.ler(alvo);

@@ -6,6 +6,7 @@ import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
+import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,7 @@ public final class NenClientCache implements RecebedorDeNen {
 
     /** Tick do CLIENTE em que o ultimo delta chegou. -1 = nunca. */
     private long tickDoUltimoDelta = -1L;
+    private final AuraInterpolation auraInterpolation;
 
     private Optional<String> ultimoErro = Optional.empty();
 
@@ -89,8 +91,15 @@ public final class NenClientCache implements RecebedorDeNen {
 
     public NenClientCache(java.util.function.LongSupplier tickDoCliente,
             java.util.function.BooleanSupplier diagnosticoLigado) {
+        this(tickDoCliente, diagnosticoLigado, () -> 0);
+    }
+
+    public NenClientCache(java.util.function.LongSupplier tickDoCliente,
+            java.util.function.BooleanSupplier diagnosticoLigado,
+            java.util.function.IntSupplier duracaoDaInterpolacao) {
         this.tickDoCliente = tickDoCliente;
         this.diagnosticoLigado = diagnosticoLigado;
+        this.auraInterpolation = new AuraInterpolation(duracaoDaInterpolacao);
     }
 
     // ------------------------------------------------------------ recepcao
@@ -111,9 +120,12 @@ public final class NenClientCache implements RecebedorDeNen {
 
     @Override
     public void aoReceberDelta(DeltaDeRuntimeS2C payload) {
+        long tick = this.tickDoCliente.getAsLong();
+        // Valida antes de publicar no cache ou incrementar contadores.
+        this.auraInterpolation.receber(payload, tick);
         this.delta = Optional.of(payload);
         this.deltasRecebidos++;
-        this.tickDoUltimoDelta = this.tickDoCliente.getAsLong();
+        this.tickDoUltimoDelta = tick;
         if (this.diagnosticoLigado.getAsBoolean()) {
             LOG.info("delta recebido #{}: aura={}/{} tecnicasAtivas={} cooldowns={}",
                     this.deltasRecebidos, payload.aura(), payload.auraMaxima(),
@@ -180,6 +192,15 @@ public final class NenClientCache implements RecebedorDeNen {
         return this.delta.map(DeltaDeRuntimeS2C::auraMaxima).orElse(0.0F);
     }
 
+    /** Valor visual interpolado; o delta bruto continua disponível em {@link #delta()}. */
+    public float auraInterpolada() {
+        return auraInterpolada(0);
+    }
+
+    public float auraInterpolada(float parcial) {
+        return this.auraInterpolation.valorAtual(this.tickDoCliente.getAsLong() + parcial);
+    }
+
     public Optional<String> ultimoErro() {
         return this.ultimoErro;
     }
@@ -225,5 +246,6 @@ public final class NenClientCache implements RecebedorDeNen {
         this.fxRecebidos = 0;
         this.errosRecebidos = 0;
         this.tickDoUltimoDelta = -1L;
+        this.auraInterpolation.limpar();
     }
 }

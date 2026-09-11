@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.client;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
@@ -13,7 +14,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,8 @@ import org.slf4j.LoggerFactory;
  * intervalo entre sair de um servidor e entrar em outro com o perfil do
  * anterior visivel — dado de outro mundo na tela, sem nada acusar.
  *
- * <p>4. O tick do cliente e lido NA HORA, por um supplier, e nao guardado. E o
- * mesmo motivo de sempre: valor derivado congelado diverge da fonte em
- * silencio.
+ * <p>4. A animacao consulta o relogio da sessao, nao o tempo do mundo que
+ * pode saltar quando chega um pacote de sincronizacao ou muda a dimensao.
  *
  * <p>REGRA DE DEPENDENCIA: {@code nen/*}, {@code api/*}, {@code network/*} e
  * {@code server/*} NUNCA importam nada de {@code client/*}. A seta aponta so
@@ -53,13 +52,16 @@ public final class NenFoundationClient {
 
     private final NenClientCache cache;
     private final OverlayDeDebug overlay;
+    private final OverlayDeAura auraHud;
     private int errosExibidos;
+    private long ticksDaSessao;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
         // O contador de ticks do cliente, perguntado na hora do uso.
         this.cache = new NenClientCache(
-                NenFoundationClient::tickDoCliente, NenConfig::devModeAtivo);
+                () -> this.ticksDaSessao, NenConfig::devModeAtivo, NenConfig::interpolacaoDeAura);
         this.overlay = new OverlayDeDebug(this.cache);
+        this.auraHud = new OverlayDeAura(this.cache);
 
         Recebedores.registrar(this.cache);
 
@@ -68,20 +70,9 @@ public final class NenFoundationClient {
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
+        NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
 
         LOG.debug("Camada de cliente do Nen Foundation carregada.");
-    }
-
-    /**
-     * Tick do cliente.
-     *
-     * <p>Devolve 0 quando nao ha nivel carregado — o cache so usa isto para
-     * calcular "ha quantos ticks", e um valor negativo ali viraria uma
-     * diferenca sem sentido no overlay.
-     */
-    private static long tickDoCliente() {
-        Minecraft mc = Minecraft.getInstance();
-        return mc.level == null ? 0L : mc.level.getGameTime();
     }
 
     /**
@@ -94,10 +85,12 @@ public final class NenFoundationClient {
     private void aoSairDoServidor(ClientPlayerNetworkEvent.LoggingOut evento) {
         this.cache.limpar();
         this.errosExibidos = 0;
+        this.ticksDaSessao = 0;
     }
 
     private void aoTickDoCliente(ClientTickEvent.Post evento) {
         Minecraft mc = Minecraft.getInstance();
+        if (mc.level != null && !mc.isPaused()) this.ticksDaSessao++;
         while (NenKeybinds.FICHA_DO_JOGADOR.consumeClick()) {
             // Nunca roubar teclas do chat, inventario ou de outra tela.
             if (mc.player != null && mc.level != null && mc.screen == null) {

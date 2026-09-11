@@ -43,6 +43,7 @@ class NenRuntimeServiceTest {
     void resetSubstituiEstadoSemDuplicarSessao() {
         UUID jogador = UUID.randomUUID();
         RuntimeNenState anterior = NenRuntimeService.iniciarSessao(jogador);
+        anterior.definirAuraMaxima(40.0D);
         anterior.definirAuraAtual(30.0D);
 
         RuntimeNenState reiniciado = NenRuntimeService.iniciarSessao(jogador);

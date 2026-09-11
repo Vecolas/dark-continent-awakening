@@ -117,6 +117,11 @@ autoritativo.
 
 ## M2 — Aura Engine + HUD
 
+**Gate validado localmente em 2026-09-11; integração no GitHub pendente.**
+131 testes JUnit, 7 GameTests, servidor dedicado com dois clientes, medição
+de deltas e primeiro spark arquivado. Evidências e limites em
+[m2-aura-sync.md](../testing/m2-aura-sync.md). Não iniciar M3 antes de integrar.
+
 A primeira mecanica jogavel.
 
 **Dev A:** `AuraPool`, regeneracao, output, exaustao, formulas e configs,
@@ -127,6 +132,29 @@ framework de keybind, teste de frequencia de pacote.
 
 **Conjunto:** definir os invariantes numericos; instrumentar contadores de
 sync e de tick em modo dev; primeiro perfil com spark.
+
+### Regra de arquitetura da M2
+
+Aura nao e mana nem uma stamina comum. O jogador ve uma unica barra de
+`currentAura / maxAura`; o motor tambem calcula `auraOutput`, `auraControl`,
+`typeEfficiency` e o estado de Nen. Output e controle sao grandezas, nao barras
+concorrentes. Exaustao e derivada da reserva, output, controle e estado.
+
+Stamina fisica continua representada por vida, fome, exhaustion, sprint e
+velocidade de ataque do Minecraft. Uma barra customizada de folego fica fora do
+MVP e so volta ao plano se um sistema de combate futuro tiver um consumidor
+claro (dash, dodge, bloqueio, parry ou ataque pesado). Esta decisao esta no
+[ADR-009](../adr/ADR-009-modelo-de-aura-sem-stamina-de-nen.md).
+
+Exemplo de HUD do desenho-alvo (output/estado dependem de evolução versionada
+do protocolo e das técnicas; não estão no payload runtime v1 da M2):
+
+```
+AURA 16.840 / 21.500  ████████████████░░░░ 78%
+Output maximo: 1.800   Estado: REN
+```
+
+O output nao e uma segunda barra e nao deve ser confundido com a reserva.
 
 ### Gate de saida
 

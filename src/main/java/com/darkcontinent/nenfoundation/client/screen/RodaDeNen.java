@@ -6,6 +6,8 @@ import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
 import java.util.List;
 import java.util.OptionalInt;
+import com.mojang.blaze3d.platform.InputConstants;
+import org.lwjgl.glfw.GLFW;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -53,6 +55,10 @@ public final class RodaDeNen extends Screen {
     private static final int COR_ATIVA = 0xFF_3A_E8_D0;
     private static final int COR_TEXTO = 0xFF_D8_F4_FF;
     private static final int COR_TEXTO_APAGADO = 0xFF_6A_8A_96;
+    private static final int COR_MIOLO = 0xD0_02_08_0C;
+
+    /** Fresta entre fatias, em radianos. Sem ela a roda vira um disco so. */
+    private static final double FOLGA_ENTRE_FATIAS = 0.02D;
 
     private final NenClientCache cache;
     private List<ResourceLocation> fatias = List.of();
@@ -82,11 +88,46 @@ public final class RodaDeNen extends Screen {
 
     @Override
     public void tick() {
-        // Soltar a tecla fecha. Nao existe evento de "soltou" dentro de uma
-        // tela; perguntar a cada tick e o caminho que existe.
-        if (!NenKeybinds.RODA_DE_NEN.isDown()) {
+        // A TECLA E LIDA DO SISTEMA, e NAO do KeyMapping. Isto e a correcao de
+        // um bug que so aparece em jogo:
+        //
+        // `Minecraft.setScreen` chama `KeyMapping.releaseAll()` ao abrir uma
+        // tela. Entao `RODA_DE_NEN.isDown()` vira FALSE no instante em que a
+        // roda abre -- e este tick a fechava na hora. Como a tecla fisica
+        // continuava descida, o tick do cliente reabria, e `setScreen` chamava
+        // `mouseHandler.releaseMouse()` de novo, que RECENTRA O CURSOR.
+        //
+        // O resultado era um laco abre-fecha por tick: o mouse puxado para o
+        // meio o tempo todo, e o clique quase impossivel de acertar. Nada
+        // disso da erro; so fica intragavel.
+        if (!teclaDaRodaDescida()) {
             onClose();
         }
+    }
+
+    /**
+     * Se a tecla da roda esta descida AGORA, perguntando ao sistema.
+     *
+     * <p>Trata tecla e botao de mouse, porque a ligacao e remapeavel e alguem
+     * vai ligar isto num botao lateral do mouse.
+     */
+    public static boolean teclaDaRodaDescida() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getWindow() == null) {
+            return false;
+        }
+        InputConstants.Key tecla = NenKeybinds.RODA_DE_NEN.getKey();
+        long janela = mc.getWindow().getWindow();
+
+        return switch (tecla.getType()) {
+            case KEYSYM -> tecla.getValue() != InputConstants.UNKNOWN.getValue()
+                    && InputConstants.isKeyDown(janela, tecla.getValue());
+            case MOUSE -> GLFW.glfwGetMouseButton(janela, tecla.getValue()) == GLFW.GLFW_PRESS;
+            // SCANCODE nao tem consulta direta; cair no KeyMapping aqui e pior
+            // que nada, entao a roda simplesmente nao fecha sozinha -- e ESC
+            // continua funcionando.
+            default -> true;
+        };
     }
 
     @Override
@@ -124,28 +165,34 @@ public final class RodaDeNen extends Screen {
     private void desenharFatias(GuiGraphics g, int cx, int cy) {
         anelDeFundo(g, cx, cy);
 
-        for (int i = 0; i < this.fatias.size(); i++) {
+        int total = this.fatias.size();
+        double porFatia = 2.0D * Math.PI / total;
+
+        for (int i = 0; i < total; i++) {
             ResourceLocation id = this.fatias.get(i);
             boolean ativa = estaAtiva(id);
             boolean sobEsta = this.apontada.isPresent() && this.apontada.getAsInt() == i;
 
-            double angulo = GeometriaDaRoda.anguloCentralDaFatia(i, this.fatias.size());
-            int x = cx + (int) Math.round(Math.sin(angulo) * RAIO_DO_ROTULO);
-            int y = cy - (int) Math.round(Math.cos(angulo) * RAIO_DO_ROTULO);
+            double centro = GeometriaDaRoda.anguloCentralDaFatia(i, total);
 
-            // Um retangulo por fatia, centrado no angulo dela. Nao e um setor
-            // de circulo: desenhar setor exige malha propria, e a issue diz
-            // que icone e arte ficam fora. A SELECAO e radial de verdade; o
-            // que e aproximado e so o desenho.
-            int meiaLargura = 46;
-            int meiaAltura = 11;
-            g.fill(x - meiaLargura, y - meiaAltura, x + meiaLargura, y + meiaAltura,
-                    sobEsta ? COR_FATIA_APONTADA : COR_FATIA);
+            // O SETOR E CENTRADO no mesmo angulo que a selecao usa, e vai de
+            // meia fatia para cada lado. Qualquer outro recorte faria o desenho
+            // discordar do clique.
+            double de = centro - porFatia / 2.0D + FOLGA_ENTRE_FATIAS;
+            double ate = centro + porFatia / 2.0D - FOLGA_ENTRE_FATIAS;
+
+            int cor = sobEsta ? COR_FATIA_APONTADA : COR_FATIA;
+            DesenhoDaRoda.setorDeAnel(g, cx, cy,
+                    (float) RAIO_INTERNO, (float) RAIO_EXTERNO, de, ate, cor);
+
             if (ativa) {
-                g.renderOutline(x - meiaLargura, y - meiaAltura,
-                        meiaLargura * 2, meiaAltura * 2, COR_ATIVA);
+                // Uma faixa fina na borda externa marca a tecnica ligada.
+                DesenhoDaRoda.setorDeAnel(g, cx, cy,
+                        (float) (RAIO_EXTERNO - 4.0D), (float) RAIO_EXTERNO, de, ate, COR_ATIVA);
             }
 
+            int x = cx + (int) Math.round(Math.sin(centro) * RAIO_DO_ROTULO);
+            int y = cy - (int) Math.round(Math.cos(centro) * RAIO_DO_ROTULO);
             centralizado(g, nomeDe(id), x, y - 4, ativa ? COR_ATIVA : COR_TEXTO);
         }
     }
@@ -171,8 +218,9 @@ public final class RodaDeNen extends Screen {
     }
 
     private void anelDeFundo(GuiGraphics g, int cx, int cy) {
-        int r = (int) RAIO_EXTERNO + 22;
-        g.fill(cx - r, cy - r, cx + r, cy + r, COR_FUNDO);
+        DesenhoDaRoda.anel(g, cx, cy,
+                (float) (RAIO_INTERNO - 6.0D), (float) (RAIO_EXTERNO + 6.0D), COR_FUNDO);
+        DesenhoDaRoda.disco(g, cx, cy, (float) (RAIO_INTERNO - 6.0D), COR_MIOLO);
     }
 
     private void centralizado(GuiGraphics g, Component texto, int cx, int y, int cor) {

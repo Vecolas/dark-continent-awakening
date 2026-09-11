@@ -46,6 +46,7 @@
   "nenfoundation.error.erro_interno": "Failed to process the Nen request. Contact the administrator.",
   "nenfoundation.hud.aura": "Aura",
   "nenfoundation.hud.output": "Output",
+  "nenfoundation.hud.badge_provisorio": "念",
   "nenfoundation.hud.aura_exausta": "Aura exhausted",
   "nenfoundation.hud.aguardando": "Waiting for server aura",
   "nenfoundation.hud.sem_reserva": "No Nen reserve",

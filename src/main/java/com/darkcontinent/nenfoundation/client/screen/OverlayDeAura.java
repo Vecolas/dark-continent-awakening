@@ -6,7 +6,9 @@ import com.darkcontinent.nenfoundation.client.hud.NenHudLayout;
 import com.darkcontinent.nenfoundation.client.hud.NenHudVisibility;
 import com.darkcontinent.nenfoundation.client.hud.component.AuraOutputBarRenderer;
 import com.darkcontinent.nenfoundation.client.hud.component.AuraPoolBarRenderer;
-import com.darkcontinent.nenfoundation.client.hud.component.HudPlaceholderRenderer;
+import com.darkcontinent.nenfoundation.client.hud.component.HudTextureRenderer;
+import com.darkcontinent.nenfoundation.client.hud.component.NenTypeBadgeRenderer;
+import com.darkcontinent.nenfoundation.client.hud.component.PlayerHeadRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -17,7 +19,9 @@ public final class OverlayDeAura {
     private final NenClientCache cache;
     private final AuraPoolBarRenderer aura = new AuraPoolBarRenderer();
     private final AuraOutputBarRenderer output = new AuraOutputBarRenderer();
-    private final HudPlaceholderRenderer placeholders = new HudPlaceholderRenderer();
+    private final HudTextureRenderer texturas = new HudTextureRenderer();
+    private final PlayerHeadRenderer retrato = new PlayerHeadRenderer();
+    private final NenTypeBadgeRenderer badge = new NenTypeBadgeRenderer();
 
     public OverlayDeAura(NenClientCache cache) {
         this.cache = cache;
@@ -38,9 +42,13 @@ public final class OverlayDeAura {
                     NenHudLayout.MARGEM, NenHudLayout.MARGEM, 0xFFAAAAAA, true);
             return;
         }
-        this.placeholders.desenhar(g, layout);
+        this.texturas.desenharMolduraDasBarras(g, layout);
         this.aura.desenhar(g, layout.barraDeAura(), aura);
         this.output.desenhar(g, layout.barraDeOutput(), aura);
+        this.retrato.desenhar(g, layout.retrato(), mc.player);
+        this.texturas.desenharMolduraDoRetrato(g, layout);
+        this.texturas.desenharMolduraDoBadge(g, layout);
+        this.badge.desenhar(g, layout.badge());
         if (aura.exausto() || aura.maxima() == 0) {
             g.drawString(mc.font, Component.translatable(aura.exausto()
                     ? "nenfoundation.hud.aura_exausta" : "nenfoundation.hud.sem_reserva"),

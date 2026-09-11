@@ -8,6 +8,7 @@ package com.darkcontinent.nenfoundation.client.hud;
  * ao canto superior esquerdo sem espalhar numeros pelos renderers.
  */
 public record NenHudLayout(
+        Retangulo molduraDasBarras,
         Retangulo retrato,
         Retangulo badge,
         Retangulo barraDeAura,
@@ -25,6 +26,7 @@ public record NenHudLayout(
         int larguraDisponivel = Math.max(1, larguraGui - barrasX - MARGEM);
         int largura = Math.min(LARGURA_DAS_BARRAS, larguraDisponivel);
         return new NenHudLayout(
+                new Retangulo(barrasX - 5, MARGEM + 7, largura + 10, 42),
                 new Retangulo(MARGEM, MARGEM, RETRATO, RETRATO),
                 new Retangulo(MARGEM + (RETRATO - BADGE) / 2,
                         MARGEM + RETRATO + 2, BADGE, BADGE),

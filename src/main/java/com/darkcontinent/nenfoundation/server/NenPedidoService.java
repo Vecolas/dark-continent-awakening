@@ -52,7 +52,16 @@ public final class NenPedidoService {
             if (!Float.isFinite(ajustar.variacao())) return Motivo.PEDIDO_INVALIDO;
 
             RuntimeNenState estado = NenRuntimeService.estadoDe(jogador);
-            estado.ajustarOutput(estado.outputPercent() + ajustar.variacao());
+            // AJUSTA O SELECIONADO, nao o efetivo: o efetivo e derivado e nao
+            // tem setter. Somar sobre o efetivo faria a escolha do jogador ser
+            // silenciosamente rebaixada toda vez que o maximo estivesse abaixo.
+            //
+            // PONTO CEGO: este caminho ainda soma uma VARIACAO ARBITRARIA do
+            // cliente, em vez de pedir um passo. O passo de 5 pontos ja existe
+            // no dominio (AuraPool.PASSO_DE_OUTPUT), mas trocar o formato do
+            // payload e a issue #71 -- que esta bloqueada por exigir ADR de
+            // descongelamento do protocolo (ADR-004).
+            estado.definirOutputSelecionado(estado.outputSelecionado() + ajustar.variacao());
             NenSyncService.enviarDeltaSeAuraSuja(jogador);
             return null; // Sucesso, nao envia feedback de recusa
         } else {

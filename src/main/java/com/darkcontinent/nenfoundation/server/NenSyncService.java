@@ -121,7 +121,12 @@ public final class NenSyncService {
         return new DeltaDeRuntimeS2C(
                 (float) estado.auraAtual(),
                 (float) estado.auraMaxima(),
-                estado.outputPercent(),
+                // O EFETIVO, e nao o selecionado. O campo do payload continua
+                // se chamando outputPercent porque o protocolo esta congelado
+                // (ADR-004); o que mudou e a FONTE do valor, nao o formato.
+                // Levar o selecionado faria o HUD mostrar um numero que o
+                // servidor nao usa.
+                estado.outputEfetivo(),
                 Set.copyOf(estado.tecnicasAtivas()),
                 Map.copyOf(estado.cooldowns()));
     }

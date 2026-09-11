@@ -62,4 +62,50 @@ class NenRuntimeServiceTest {
                 () -> NenRuntimeService.estadoDe(ausente));
         assertEquals(0, NenRuntimeService.quantidadeDeSessoes());
     }
+
+    // ------------------------------------ a politica de reset do Output (#70)
+
+    /**
+     * A POLITICA, escrita em teste porque texto nao reprova:
+     *
+     * <p>O Output -- selecionado e maximo -- e estado de RUNTIME, e some em
+     * morte, logout, troca de dimensao e restart do servidor. Nada dele e
+     * persistido. Isso nao e esquecimento: e o ADR-002, que separa progresso
+     * de estado de combate. Persistir o Output exigiria revisao daquele ADR
+     * com aprovacao das duas pessoas, e a issue #70 nomeia esse bloqueio.
+     *
+     * <p>Os quatro eventos passam pelo mesmo caminho -- um RuntimeNenState
+     * NOVO --, entao um teste que prove o reset em um deles prova nos quatro.
+     * Os tres primeiros chamam {@code iniciarSessao}; o restart e o processo
+     * morrendo com o mapa em memoria.
+     */
+    @Test
+    @DisplayName("morte, dimensao e logout devolvem o Output ao padrao")
+    void outputNaoSobreviveAoCicloDeSessao() {
+        UUID jogador = UUID.nameUUIDFromBytes("output-reset".getBytes(
+                java.nio.charset.StandardCharsets.UTF_8));
+
+        RuntimeNenState antes = NenRuntimeService.iniciarSessao(jogador);
+        antes.definirOutputSelecionado(0.25F);
+        antes.definirOutputMaximo(0.5F);
+        assertEquals(0.25F, antes.outputEfetivo(), 1.0E-6F);
+
+        // Morte ou troca de dimensao: o ciclo de vida chama reiniciar, que e
+        // este mesmo caminho.
+        RuntimeNenState depois = NenRuntimeService.iniciarSessao(jogador);
+        assertEquals(1.0F, depois.outputSelecionado(), 1.0E-6F,
+                "O Output selecionado sobreviveu ao reset de sessao. Ele e"
+                        + " estado de combate: persistir exigiria revisao do"
+                        + " ADR-002 com aprovacao das duas pessoas.");
+        assertEquals(1.0F, depois.outputMaximo(), 1.0E-6F,
+                "O teto sobreviveu ao reset.");
+
+        // E o objeto antigo nao pode continuar sendo alcancavel pelo servico.
+        assertNotSame(antes, NenRuntimeService.estadoDe(jogador));
+
+        NenRuntimeService.encerrarSessao(jogador);
+        RuntimeNenState novaSessao = NenRuntimeService.iniciarSessao(jogador);
+        assertEquals(1.0F, novaSessao.outputEfetivo(), 1.0E-6F,
+                "O Output atravessou um logout.");
+    }
 }

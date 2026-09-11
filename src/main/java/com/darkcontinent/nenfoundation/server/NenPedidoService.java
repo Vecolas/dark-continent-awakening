@@ -41,6 +41,16 @@ public final class NenPedidoService {
                 }
             }
         } else if (pedido instanceof com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S ajustar) {
+            // ESTE PAYLOAD CARREGA UM NUMERO DO CLIENTE, e por isso o numero e
+            // conferido aqui -- do mesmo jeito que a posicao candidata de
+            // AtivarHabilidadeC2S e conferida logo acima.
+            //
+            // Sem esta linha, NaN atravessava: o clamp em AuraPool.ajustarOutput
+            // usa Math.min/Math.max, que propagam NaN em vez de segura-lo. O
+            // resultado era NaN gravado no runtime e enviado no delta ao HUD --
+            // sem excecao, sem log, e com a barra congelada para sempre.
+            if (!Float.isFinite(ajustar.variacao())) return Motivo.PEDIDO_INVALIDO;
+
             RuntimeNenState estado = NenRuntimeService.estadoDe(jogador);
             estado.ajustarOutput(estado.outputPercent() + ajustar.variacao());
             NenSyncService.enviarDeltaSeAuraSuja(jogador);

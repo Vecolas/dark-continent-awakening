@@ -87,8 +87,9 @@ desbloqueadas e proficiencia acumulada prova muito mais que um mundo novo.
 | Teste que le NBT real, nao so JSON | **existe** — `FixturesDeSaveTest` |
 | Portao que exige fixture por versao de schema | **existe** — reprova quando `SCHEMA_ATUAL` sobe sem fixture |
 | Ida e volta em NBT binario comprimido, no disco | **existe** |
-| Mundo de regressao guardado | falta — depende do ciclo de vida do jogador (issue #2) |
-| Teste do attachment gravando num save real | falta — precisa de gametest (M1) |
+| Playerdata de um servidor REAL, versionado | **existe** — `src/test/resources/saves/playerdata/dev-v1.dat` |
+| Teste do attachment no save real | **existe** — `PlayerdataRealTest` |
+| Mundo completo guardado | nao, e por escolha: o playerdata e o que importa para regressao de perfil, e cabe em 1 KB em vez de varios MB |
 | Suite completa de migracao | falta — M7 |
 
 Hoje o `NenProfileMigratorTest` cobre apenas a **recusa** de versao invalida e

@@ -64,6 +64,21 @@ runs {
 
     client {
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+
+        // Entrar num servidor SEM ninguem clicar:
+        //   ./gradlew runClient -PentrarEm=localhost:25565
+        //
+        // POR QUE ISTO EXISTE: varias garantias deste projeto so podem ser
+        // verificadas com um cliente e um servidor falando de verdade -- o
+        // payload chegando na rede, o perfil sendo entregue so ao dono, o save
+        // do mundo contendo o perfil. Sem isto, "um jogador conectado" e uma
+        // etapa manual, e etapa manual nao acontece toda vez.
+        //
+        // Opcional de proposito: sem a propriedade, o runClient continua
+        // abrindo no menu, como sempre.
+        if (project.hasProperty('entrarEm')) {
+            arguments.addAll '--quickPlayMultiplayer', project.property('entrarEm').toString()
+        }
     }
 
     server {

@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.client;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -54,7 +55,8 @@ public final class NenFoundationClient {
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
         // O contador de ticks do cliente, perguntado na hora do uso.
-        this.cache = new NenClientCache(NenFoundationClient::tickDoCliente);
+        this.cache = new NenClientCache(
+                NenFoundationClient::tickDoCliente, NenConfig::devModeAtivo);
         this.overlay = new OverlayDeDebug(this.cache);
 
         Recebedores.registrar(this.cache);

@@ -12,7 +12,8 @@ public record AuraHudProjection(boolean disponivel, float atual, float maxima, b
             return new AuraHudProjection(false, 0.0F, 0.0F, false);
         }
         var valor = delta.orElseThrow();
-        return new AuraHudProjection(true, valor.aura(), valor.auraMaxima(), valor.aura() <= 0.0F);
+        float auraVisual = cache.auraInterpolada();
+        return new AuraHudProjection(true, auraVisual, valor.auraMaxima(), valor.aura() <= 0.0F);
     }
 
     /** Percentual protegido contra maximo zero ou pacote invalido. */

@@ -6,6 +6,7 @@ import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.progression.Marcos;
+import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -105,11 +106,26 @@ public final class NenAwakeningService {
      * v1 ja os separa. A atribuicao tem issue e servico proprios.
      */
     static PersistentNenData comDespertar(PersistentNenData antes) {
-        if (antes.awakened() && antes.temMarco(Marcos.DESPERTOU)) {
+        if (antes.awakened() && antes.temMarco(Marcos.DESPERTOU)
+                && antes.conheceTecnica(Ten.ID)) {
             return antes;
         }
         Set<ResourceLocation> marcos = new LinkedHashSet<>(antes.progressionFlags());
         marcos.add(Marcos.DESPERTOU);
+
+        // DESPERTAR LIBERA TEN, e nao mais nada.
+        //
+        // No cânone, Ten e a primeira coisa que se aprende: e o estado que
+        // segura a aura, e a base das outras tecnicas. Sem isto, um jogador
+        // desperta e nao tem tecnica nenhuma para usar -- a roda nasce vazia,
+        // e a unica forma de ter Ten seria um comando de operador.
+        //
+        // ISTO NAO E PROGRESSAO. Progressao e o M6, com requisito e treino.
+        // Aqui e o minimo para que despertar signifique alguma coisa, e esta
+        // declarado como decisao em vez de aparecer como efeito colateral.
+        Set<ResourceLocation> tecnicas = new LinkedHashSet<>(antes.unlockedTechniques());
+        tecnicas.add(Ten.ID);
+
         return new PersistentNenData(
                 antes.schemaVersion(),
                 true,
@@ -119,7 +135,7 @@ public final class NenAwakeningService {
                 antes.control(),
                 antes.output(),
                 antes.techniqueProficiency(),
-                antes.unlockedTechniques(),
+                tecnicas,
                 antes.unlockedAbilities(),
                 marcos);
     }

@@ -4,7 +4,12 @@ import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import net.minecraft.resources.ResourceLocation;
 
-/** Validacao comum, sem mutacao. O catalogo vem do servidor, nunca dos unlocks. */
+/**
+ * Validacao comum, sem mutacao. O catalogo vem do servidor, nunca dos unlocks.
+ *
+ * <p>{@code null} significa PEDIDO VALIDO. Quem chama decide o que fazer com
+ * ele; este arquivo nao executa nada.
+ */
 public final class ValidacaoDePedido {
     private ValidacaoDePedido() { }
 
@@ -27,7 +32,16 @@ public final class ValidacaoDePedido {
             return Motivo.NAO_DESBLOQUEADO;
         }
         if (habilidade && runtime.cooldowns().getOrDefault(id, 0) > 0) return Motivo.EM_RECARGA;
-        // M1 nao possui motores/definicoes M4/M5. Nunca fabricar ativacao aqui.
-        return Motivo.INDISPONIVEL;
+
+        // DAQUI PARA BAIXO O PEDIDO ESTA VALIDO. Quem executa e o chamador.
+        //
+        // Ate o M4 este metodo devolvia INDISPONIVEL sempre, porque nao havia
+        // motor para executar nada -- e fabricar ativacao sem motor seria
+        // dizer ao jogador que algo aconteceu quando nada aconteceu.
+        //
+        // Agora existe motor de TECNICA. HABILIDADE continua sem motor ate o
+        // M5, e por isso continua respondendo INDISPONIVEL: o que mudou foi o
+        // mundo, e nao a regra.
+        return habilidade ? Motivo.INDISPONIVEL : null;
     }
 }

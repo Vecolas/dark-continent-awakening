@@ -29,8 +29,23 @@ class ValidacaoDePedidoTest {
                 PersistentNenData.NAO_DESPERTADO, runtime));
         assertEquals(Motivo.ID_INEXISTENTE, ValidacaoDePedido.validar(ID, false, false, true,
                 perfil(true), runtime));
-        assertEquals(Motivo.INDISPONIVEL, ValidacaoDePedido.validar(ID, false, true, true,
-                perfil(true), runtime));
+        // TECNICA VALIDA DEIXOU DE SER INDISPONIVEL, e isso e mudanca
+        // deliberada do M4, nao regressao.
+        //
+        // Ate aqui o metodo devolvia INDISPONIVEL sempre, porque nao havia
+        // motor para executar nada -- fabricar ativacao sem motor seria dizer
+        // ao jogador que algo aconteceu quando nada aconteceu. O motor de
+        // TECNICA existe desde a issue #85; `null` significa "pedido valido, o
+        // chamador que execute".
+        assertNull(ValidacaoDePedido.validar(ID, false, true, true,
+                perfil(true), runtime),
+                "tecnica existente, desbloqueada e com estado valido devia passar");
+
+        // HABILIDADE continua sem motor ate o M5, e por isso continua
+        // INDISPONIVEL. O que mudou foi o mundo, e nao a regra.
+        assertEquals(Motivo.INDISPONIVEL, ValidacaoDePedido.validar(ID, true, true, true,
+                perfil(true), runtime),
+                "habilidade nao tem motor ate o M5; fabricar ativacao aqui seria mentir");
     }
 
     @Test

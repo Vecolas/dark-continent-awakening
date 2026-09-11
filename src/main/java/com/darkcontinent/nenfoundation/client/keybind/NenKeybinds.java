@@ -52,11 +52,25 @@ public final class NenKeybinds {
             GLFW.GLFW_KEY_C,
             CATEGORIA);
 
+    /**
+     * Abre a roda de Nen enquanto SEGURADA.
+     *
+     * <p>Segurar, e nao alternar: a roda e um gesto, nao uma tela. Alternando,
+     * o jogador esqueceria a roda aberta e levaria dano olhando um menu.
+     */
+    public static final KeyMapping RODA_DE_NEN = new KeyMapping(
+            "key.nenfoundation.roda_de_nen",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_R,
+            CATEGORIA);
+
     private NenKeybinds() {
     }
 
     public static void registrar(RegisterKeyMappingsEvent evento) {
         evento.register(FICHA_DO_JOGADOR);
+        evento.register(RODA_DE_NEN);
         evento.register(OVERLAY_DE_DEBUG);
         evento.register(AJUSTAR_OUTPUT);
     }

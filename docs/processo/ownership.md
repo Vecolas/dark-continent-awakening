@@ -58,7 +58,7 @@ Alem do review normal de PR, alguns marcos pedem revisao cruzada explicita:
 | Protecao de branch e CODEOWNERS exigem GitHub pago | — | **risco ACEITO** conscientemente, ADR-008 |
 | Licenca do codigo | — | **decidida**: All Rights Reserved, ADR-008 |
 | Nenhuma maquina tem JDK 21 | — | **resolvido**: Temurin 21.0.12 instalado; build verde sem JDK portatil |
-| Handles do GitHub das duas pessoas nao estao registrados aqui | a segunda pessoa entrar no repositorio | em aberto |
+| Handles do GitHub das duas pessoas nao estao registrados aqui | a segunda pessoa entrar no repositorio | **resolvido**: ver a secao abaixo |
 | O repositorio vive dentro do OneDrive | mover quando nao houver worktree ativa | em aberto por escolha; ver CONVENCOES secao 10 |
 
 > **Sobre a protecao de branch:** aceitar o risco NAO e autorizar push direto.
@@ -73,11 +73,18 @@ a pessoa X decidir Y" e.
 
 ## Dev A e Dev B
 
-Substitua pelos nomes reais quando as duas pessoas estiverem no repositorio.
-Enquanto isso, a tabela vale pelos papeis:
-
-- **Dev A** — nucleo: dominio, servidor, persistencia, rede, regras.
-- **Dev B** — superficie: cliente, HUD, dados, integracoes, modpack, QA.
+| Papel | Handle | Como foi confirmado |
+| --- | --- | --- |
+| **Dev A** — nucleo: dominio, servidor, persistencia, rede, regras | **@Vecolas** | responsavel pelo repositorio; autor da maioria dos PRs de nucleo |
+| **Dev B** — superficie: cliente, HUD, dados, integracoes, modpack, QA | **@jonex-01** | autor dos PRs #78 e #83 (HUD, AOP, assets), mergeados na `main` |
 
 A divisao nao e hierarquica. Ela existe porque essas duas metades quase nunca
 tocam nos mesmos arquivos.
+
+> **Como os handles foram descobertos, e por que isso importa:** eles nao foram
+> perguntados a ninguem -- saem do `author.login` dos PRs mergeados. Handle
+> registrado de ouvido e handle que erra uma letra e nao notifica ninguem, que
+> e exatamente a falha que esta linha existe para evitar.
+
+**Uma issue com "Owner: Dev B" agora pode ser atribuida de verdade.** Ate aqui
+ela nao notificava ninguem -- era um papel sem endereco.

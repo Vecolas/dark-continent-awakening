@@ -19,8 +19,8 @@ trabalham neste repositório.
 NeoForge 21.1.250, Java 21, Gradle 9.2.1, JUnit 5. **Duas pessoas trabalham em
 paralelo** — várias decisões existem por causa disso.
 
-Estado: **M0 concluído** (bootstrap, contratos congelados, portões, CI).
-Próximo: **M1**.
+Estado e próximo marco: consultar [`docs/processo/marcos.md`](docs/processo/marcos.md).
+Não inferir conclusão só por classes existentes ou por build verde.
 
 ---
 
@@ -28,7 +28,7 @@ Próximo: **M1**.
 
 O trabalho está recortado em **issues do GitHub**, com milestones M1..M8.
 
-**O próximo marco é o M1**, e ele tem 8 issues finas, prontas para pegar:
+**Histórico de divisão do M1** (não é uma fila de trabalho atual):
 
 | # | Issue | Owner |
 | --- | --- | --- |
@@ -49,18 +49,20 @@ a [#16](../../issues/16)), com lanes e gate escritos. Elas viram issues finas
 quando o marco anterior fechar — **e não antes**. Recortar agora significa
 decidir coisas que o marco anterior ainda vai revelar.
 
-As dívidas e bloqueios abertos do M0 são as issues
-[#17](../../issues/17) a [#24](../../issues/24). Duas afetam quem for
-trabalhar agora:
-
-- **[#17](../../issues/17) — nenhuma máquina tem JDK 21 instalado.** Sem isso o
-  build não roda. É a primeira coisa a resolver.
-- **[#19](../../issues/19) — o repositório está dentro do OneDrive.** Já causou
-  uma falha real de build.
+Consulte issues abertas e PRs antes de reservar trabalho; os agentes podem
+estar em clones diferentes. Nesta máquina a execução usa
+`C:\dev\dark-continent-awakening`. A árvore antiga no OneDrive foi preservada;
+não a sincronize por sobrescrita nem encerre processos Java de outra frente.
+Java 21 está instalado, mas `PATH` pode apontar para 16: confira `JAVA_HOME`.
 
 ---
 
 ## Ordem de leitura obrigatória
+
+Para implementações, testes, revisão e Git, leia também a
+[política de skills compartilhadas](docs/processo/skills-do-projeto.md) e as
+skills aplicáveis nela indicadas. Elas estão habilitadas por escopo para Codex
+e Claude; exemplos das skills não revogam ADRs nem contratos congelados.
 
 1. **[`disciplina-de-engenharia/SKILL.md`](disciplina-de-engenharia/SKILL.md)**
    — as regras gerais de engenharia, versionadas **dentro do repositório** para
@@ -88,10 +90,10 @@ viabilidade) estão em [`docs/pesquisa/`](docs/pesquisa/).
 ## Comandos
 
 ```bash
-./gradlew build          # compila + 21 testes + portões. Verde antes de PR.
+./gradlew build          # compila + testes + portões. Confira a contagem real.
 ./gradlew runServer      # servidor dedicado. Obrigatório se o PR toca o núcleo.
 ./gradlew runClient      # cliente
-./gradlew gameTestServer # gametests
+./gradlew runGameTestServer # confira o resumo, não só exit 0
 ./gradlew runData        # datagen
 ```
 
@@ -135,6 +137,11 @@ ordinal 0), `PersistentNenData` v1, ids e direções de payload, `NenTechnique`,
 
 Ver [`ADR-004`](docs/adr/ADR-004-identidade-congelada.md). Há portões que
 reprovam a mudança.
+
+O modelo de Aura tem governança adicional no
+[`ADR-009`](docs/adr/ADR-009-modelo-de-aura-sem-stamina-de-nen.md): mudanças
+exigem registro e concordância explícita dos dois desenvolvedores.
+O agente não pode substituir essas aprovações.
 
 ---
 

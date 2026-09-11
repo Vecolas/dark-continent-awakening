@@ -323,9 +323,14 @@ Estao aqui porque sao previsiveis, silenciosos e caros.
 
 ## Estado atual
 
-**M0 entregue.** Repositorio, contratos congelados, portoes, CI e documentacao.
+Antes de implementar, testar, revisar ou integrar, aplicar a
+[política de skills compartilhadas](docs/processo/skills-do-projeto.md).
+As skills aplicáveis em `.claude/skills` devem ser lidas integralmente; suas
+sugestões genéricas não revogam decisões aprovadas do projeto.
 
-**Proximo: M1** — `PersistentNenData` ligado ao ciclo de vida do jogador,
-`RuntimeNenState`, os records de payload e o protocolo de sync.
+**Fonte de verdade:** [marcos.md](docs/processo/marcos.md), com evidências de QA
+e pendências de integração. Não deduzir entrega a partir de código compilável.
 
-Nao comece o M1 sem instrucao explicita.
+Não iniciar um marco sem autorização explícita. Mudanças no modelo de Aura
+exigem decisão conjunta registrada conforme o
+[ADR-009](docs/adr/ADR-009-modelo-de-aura-sem-stamina-de-nen.md).

@@ -42,6 +42,16 @@ public final class NenConfig {
                      "Excesso e cortado antes da fila; contadores aparecem no logout em modo dev.")
             .defineInRange("network.requestsPerSecond", 20, 1, 200);
 
+    private static final ModConfigSpec.DoubleValue AURA_MAXIMA_BASE = BUILDER
+            .comment("Reserva inicial de aura de um jogador despertado.",
+                     "O potencial persistente e somado pela formula do Aura Engine.")
+            .defineInRange("aura.maximaBase", 100.0D, 0.0D, 1_000_000.0D);
+
+    private static final ModConfigSpec.DoubleValue AURA_REGENERACAO_POR_SEGUNDO = BUILDER
+            .comment("Aura recuperada por segundo enquanto o pool puder recuperar.",
+                     "A formula converte este valor para a cadencia real do servidor.")
+            .defineInRange("aura.regeneracaoPorSegundo", 1.0D, 0.0D, 1_000_000.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private NenConfig() {
@@ -49,6 +59,16 @@ public final class NenConfig {
 
     public static int pedidosPorSegundo() {
         return PEDIDOS_POR_SEGUNDO.get();
+    }
+
+    /** Le a capacidade base no instante do uso para respeitar recarga de config. */
+    public static double auraMaximaBase() {
+        return AURA_MAXIMA_BASE.get();
+    }
+
+    /** Le a regeneracao por segundo no instante do uso. */
+    public static double auraRegeneracaoPorSegundo() {
+        return AURA_REGENERACAO_POR_SEGUNDO.get();
     }
 
     /**

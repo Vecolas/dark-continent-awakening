@@ -74,23 +74,39 @@ public final class NenAwakeningService {
         Objects.requireNonNull(jogador, "jogador");
         Objects.requireNonNull(origem, "origem");
 
-        if (NenProfileService.ler(jogador).awakened()) {
-            return Resultado.JA_ESTAVA;
-        }
+        // SAIR CEDO AQUI FOI UM BUG, e ele durou ate alguem abrir a roda.
+        //
+        // A versao anterior devolvia JA_ESTAVA e ia embora. Quando o despertar
+        // passou a liberar Ten, todo perfil que ja tinha despertado ANTES
+        // dessa mudanca ficou desperto e sem tecnica nenhuma -- para sempre.
+        // A roda nascia vazia, /nen awaken respondia "ja estava", e nada em
+        // lugar nenhum dizia que faltava algo.
+        //
+        // E o mesmo defeito que NenCategoryService.revelar ja tinha: quem sai
+        // cedo nao conserta o estado pela metade. So o BOOLEANO decide se
+        // anuncia; o conserto acontece de qualquer jeito, e em silencio.
+        boolean jaEstava = NenProfileService.ler(jogador).awakened();
 
-        NenDespertandoEvent pergunta = new NenDespertandoEvent(jogador, origem);
-        if (NeoForge.EVENT_BUS.post(pergunta).isCanceled()) {
-            if (NenConfig.devModeAtivo()) {
-                LOG.info("Despertar de {} cancelado por um listener (origem {}).",
-                        jogador.getGameProfile().getName(), origem);
+        if (!jaEstava) {
+            NenDespertandoEvent pergunta = new NenDespertandoEvent(jogador, origem);
+            if (NeoForge.EVENT_BUS.post(pergunta).isCanceled()) {
+                if (NenConfig.devModeAtivo()) {
+                    LOG.info("Despertar de {} cancelado por um listener (origem {}).",
+                            jogador.getGameProfile().getName(), origem);
+                }
+                return Resultado.CANCELADO;
             }
-            return Resultado.CANCELADO;
         }
 
-        // Grava so depois de ninguem ter impedido. O servico de perfil publica
-        // o snapshot sozinho quando a mudanca e efetiva.
+        // Grava so depois de ninguem ter impedido. Para quem ja estava
+        // desperto, isto e o CONSERTO -- e nao ha o que cancelar num fato que
+        // ja aconteceu. O servico de perfil publica o snapshot sozinho quando a
+        // mudanca e efetiva, e nao publica quando nao ha mudanca.
         NenProfileService.atualizar(jogador, NenAwakeningService::comDespertar);
 
+        if (jaEstava) {
+            return Resultado.JA_ESTAVA;
+        }
         NeoForge.EVENT_BUS.post(new NenDespertadoEvent(jogador, origem));
         return Resultado.DESPERTOU;
     }

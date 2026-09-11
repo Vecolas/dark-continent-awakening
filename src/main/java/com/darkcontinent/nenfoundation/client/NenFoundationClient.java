@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.client;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
@@ -53,6 +54,7 @@ public final class NenFoundationClient {
 
     private final NenClientCache cache;
     private final OverlayDeDebug overlay;
+    private final OverlayDeAura auraHud;
     private int errosExibidos;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
@@ -60,6 +62,7 @@ public final class NenFoundationClient {
         this.cache = new NenClientCache(
                 NenFoundationClient::tickDoCliente, NenConfig::devModeAtivo);
         this.overlay = new OverlayDeDebug(this.cache);
+        this.auraHud = new OverlayDeAura(this.cache);
 
         Recebedores.registrar(this.cache);
 
@@ -68,6 +71,7 @@ public final class NenFoundationClient {
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
+        NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
 
         LOG.debug("Camada de cliente do Nen Foundation carregada.");
     }

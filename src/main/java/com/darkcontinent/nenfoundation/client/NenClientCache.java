@@ -6,6 +6,7 @@ import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
+import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,7 @@ public final class NenClientCache implements RecebedorDeNen {
 
     /** Tick do CLIENTE em que o ultimo delta chegou. -1 = nunca. */
     private long tickDoUltimoDelta = -1L;
+    private final AuraInterpolation auraInterpolation = new AuraInterpolation(5L);
 
     private Optional<String> ultimoErro = Optional.empty();
 
@@ -113,7 +115,9 @@ public final class NenClientCache implements RecebedorDeNen {
     public void aoReceberDelta(DeltaDeRuntimeS2C payload) {
         this.delta = Optional.of(payload);
         this.deltasRecebidos++;
-        this.tickDoUltimoDelta = this.tickDoCliente.getAsLong();
+        long tick = this.tickDoCliente.getAsLong();
+        this.tickDoUltimoDelta = tick;
+        this.auraInterpolation.receber(payload, tick);
         if (this.diagnosticoLigado.getAsBoolean()) {
             LOG.info("delta recebido #{}: aura={}/{} tecnicasAtivas={} cooldowns={}",
                     this.deltasRecebidos, payload.aura(), payload.auraMaxima(),
@@ -180,6 +184,11 @@ public final class NenClientCache implements RecebedorDeNen {
         return this.delta.map(DeltaDeRuntimeS2C::auraMaxima).orElse(0.0F);
     }
 
+    /** Valor visual interpolado; o delta bruto continua disponível em {@link #delta()}. */
+    public float auraInterpolada() {
+        return this.auraInterpolation.valorAtual(this.tickDoCliente.getAsLong());
+    }
+
     public Optional<String> ultimoErro() {
         return this.ultimoErro;
     }
@@ -225,5 +234,6 @@ public final class NenClientCache implements RecebedorDeNen {
         this.fxRecebidos = 0;
         this.errosRecebidos = 0;
         this.tickDoUltimoDelta = -1L;
+        this.auraInterpolation.limpar();
     }
 }

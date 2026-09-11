@@ -43,5 +43,7 @@
   "nenfoundation.error.pedido_invalido": "Pedido de Nen invalido.",
   "nenfoundation.error.em_recarga": "Habilidade em recarga.",
   "nenfoundation.error.indisponivel": "Esta acao ainda nao esta disponivel nesta versao.",
-  "nenfoundation.error.erro_interno": "Falha ao processar o pedido de Nen. Consulte o administrador."
+  "nenfoundation.error.erro_interno": "Falha ao processar o pedido de Nen. Consulte o administrador.",
+  "nenfoundation.hud.aura": "Aura",
+  "nenfoundation.hud.aura_exausta": "Aura exausta"
 }

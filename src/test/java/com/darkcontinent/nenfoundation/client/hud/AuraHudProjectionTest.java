@@ -1,0 +1,35 @@
+package com.darkcontinent.nenfoundation.client.hud;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.darkcontinent.nenfoundation.client.NenClientCache;
+import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+
+class AuraHudProjectionTest {
+
+    @Test
+    void ausenciaNaoEConfundidaComAuraZero() {
+        NenClientCache cache = new NenClientCache(() -> 0L, () -> false);
+        AuraHudProjection ausente = AuraHudProjection.de(cache);
+        assertFalse(ausente.disponivel());
+        assertFalse(ausente.exausto());
+
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(0.0F, 100.0F, Set.of(), Map.of()));
+        AuraHudProjection exausto = AuraHudProjection.de(cache);
+        assertTrue(exausto.disponivel());
+        assertTrue(exausto.exausto());
+        assertEquals(0.0F, exausto.fracao());
+    }
+
+    @Test
+    void fracaoFicaEntreZeroEUm() {
+        NenClientCache cache = new NenClientCache(() -> 0L, () -> false);
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(150.0F, 100.0F, Set.of(), Map.of()));
+        assertEquals(1.0F, AuraHudProjection.de(cache).fracao());
+    }
+}

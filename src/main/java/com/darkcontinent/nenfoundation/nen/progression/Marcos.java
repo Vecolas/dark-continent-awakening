@@ -32,6 +32,27 @@ public final class Marcos {
      */
     public static final ResourceLocation DESPERTOU = NenFoundation.id("despertou");
 
+    /**
+     * O jogador descobriu qual e a propria categoria.
+     *
+     * <p>Gravado pela revelacao, junto com {@code category_revealed = true}.
+     * Mesma dupla do despertar, pela mesma razao: o booleano e o estado, e o
+     * marco e o registro consultavel de que o fato aconteceu.
+     *
+     * <p>POR QUE ELE PRECISA EXISTIR, e nao so o evento: o
+     * {@code CategoriaReveladaEvent} passa uma vez e some. Uma quest que
+     * pergunta "esta pessoa ja fez a Water Divination?" depois do fato -- ao
+     * relogar, ao reabrir o questbook, ao recarregar o pack -- nao tem evento
+     * nenhum para escutar. Sem o marco, a unica saida seria ler o perfil por
+     * dentro, que e exatamente o que os marcos existem para evitar.
+     *
+     * <p>NAO ha marco para a ATRIBUICAO, e isso e de proposito: marcos viajam
+     * no snapshot ate o cliente, e a atribuicao e o fato que precisa ficar
+     * escondido.
+     */
+    public static final ResourceLocation CATEGORIA_REVELADA =
+            NenFoundation.id("categoria_revelada");
+
     private Marcos() {
     }
 }

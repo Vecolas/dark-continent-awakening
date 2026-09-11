@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.server;
 
+import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
 import com.darkcontinent.nenfoundation.network.payload.AtivarHabilidadeC2S;
@@ -39,6 +40,11 @@ public final class NenPedidoService {
                     return Motivo.ALVO_INVALIDO;
                 }
             }
+        } else if (pedido instanceof com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S ajustar) {
+            RuntimeNenState estado = NenRuntimeService.estadoDe(jogador);
+            estado.pool().ajustarOutput(ajustar.variacao());
+            NenSyncService.enviarDelta(jogador);
+            return null; // Sucesso, nao envia feedback de recusa
         } else {
             return Motivo.PEDIDO_INVALIDO;
         }

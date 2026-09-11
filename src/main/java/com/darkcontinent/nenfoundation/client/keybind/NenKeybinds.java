@@ -44,11 +44,20 @@ public final class NenKeybinds {
             GLFW.GLFW_KEY_UNKNOWN,
             CATEGORIA);
 
+    /** Tecla para aumentar/diminuir AOP. C aumenta, Shift+C diminui. */
+    public static final KeyMapping AJUSTAR_OUTPUT = new KeyMapping(
+            "key.nenfoundation.ajustar_output",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_C,
+            CATEGORIA);
+
     private NenKeybinds() {
     }
 
     public static void registrar(RegisterKeyMappingsEvent evento) {
         evento.register(FICHA_DO_JOGADOR);
         evento.register(OVERLAY_DE_DEBUG);
+        evento.register(AJUSTAR_OUTPUT);
     }
 }

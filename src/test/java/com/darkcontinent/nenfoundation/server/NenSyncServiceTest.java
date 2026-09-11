@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
@@ -36,21 +37,31 @@ class NenSyncServiceTest {
         assertEquals(Set.of(TEN), snapshotRevelado.tecnicasDesbloqueadas());
     }
 
+    /** Parametros de teste sem config carregada: base 100, vigor desabilitado. */
+    private static final AuraPool.Parametros P = AuraPool.Parametros.de(100.0D, 1.0D, 0.10D);
+
     @Test
     @DisplayName("delta copia o runtime no instante do envio")
     void deltaNaoFicaVivoComEstadoMutavel() {
+        PersistentNenData pf = perfil(NenCategory.ENHANCEMENT, true);
         RuntimeNenState estado = new RuntimeNenState();
-        estado.definirAuraAtual(12.5D);
+        // configura aura: resetar para max (110 = 100*(1+0.1 de potencial 10)) e gastar ate 12.5
+        // Como auraPotential=10 => max = 100*(1+10) = 1100 neste perfil, mas usamos P.base = 100
+        // => max = 100*(1+10) = 1100. Gastamos 1100 - 12.5 para ficar em 12.5
+        estado.pool().resetarParaMaximo(pf, P);
+        estado.pool().gastarAura(AuraPool.auraMaxima(pf, P) - 12.5D, pf, P);
         estado.ativarTecnica(TEN);
         estado.definirCooldown(DISPARO, 40);
 
-        var delta = NenSyncService.criarDelta(estado, 80.0D);
-        estado.definirAuraAtual(0.0D);
+        var delta = NenSyncService.criarDelta(estado, pf, P);
+        // mutacoes apos o snapshot nao devem afetar o delta ja criado
+        estado.pool().gastarAura(12.5D, pf, P);
         estado.desativarTecnica(TEN);
         estado.removerCooldown(DISPARO);
 
-        assertEquals(12.5F, delta.aura());
-        assertEquals(80.0F, delta.auraMaxima());
+        assertEquals(12.5F, delta.aura(), 0.01F);
+        assertEquals((float) AuraPool.auraMaxima(pf, P), delta.auraMaxima(), 0.01F);
+        assertEquals(1.0F, delta.outputPercent(), 0.01F);
         assertEquals(Set.of(TEN), delta.tecnicasAtivas());
         assertEquals(Map.of(DISPARO, 40), delta.cooldowns());
     }

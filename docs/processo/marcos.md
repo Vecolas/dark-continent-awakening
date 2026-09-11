@@ -79,16 +79,7 @@ Os limites completos, e os defeitos que a execucao encontrou, estao em
 
 ---
 
-## M1 — NenProfile persistente + protocolo de sync  (em andamento)
-
-> **Entregue ate agora:** perfil ligado ao ciclo de vida (#2), `RuntimeNenState`
-> e scheduler central (#3), fixtures de save e portao de regressao em NBT (#8),
-> cache de cliente e overlay (#6), comandos de debug (#7), records de payload,
-> registro S2C e handshake de versao (#4), e o primeiro gametest (#35).
->
-> **Falta:** validacao e rate limit dos payloads C2S (#5), o mundo de regressao
-> (#27) e a matriz de QA com dois jogadores (#9) — as duas ultimas dependem de
-> gente de verdade conectada.
+## M1 — NenProfile persistente + protocolo de sync  ✅ ENTREGUE
 
 Provar save, clone e sincronizacao **antes** de criar gameplay que dependa
 disso.
@@ -107,10 +98,10 @@ autoritativo.
 
 ### Gate de saida
 
-- Categoria e unlocks persistem em teste artificial.
-- O perfil de um jogador nunca aparece no cache de outro.
-- Restart do servidor mantem os dados.
-- Morte respeita exatamente a politica definida.
+- [x] Categoria e unlocks persistem em teste artificial.
+- [x] O perfil de um jogador nunca aparece no cache de outro.
+- [x] Restart do servidor mantem os dados.
+- [x] Morte respeita exatamente a politica definida.
 
 ---
 

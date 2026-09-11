@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.server;
 
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
@@ -62,13 +63,16 @@ public final class NenSyncService {
     }
 
     /**
-     * Envia o delta do runtime atual ao dono. {@code auraMaxima} vem do
-     * consumidor que conhece a formula do M2; este servico nao cria uma segunda
-     * fonte para esse numero.
+     * Envia o delta do runtime atual ao dono.
+     *
+     * <p>Os parametros sao lidos da config na hora — qualquer recarregamento
+     * de config tem efeito no proximo sync, sem reiniciar o servidor.
      */
-    public static void enviarDelta(ServerPlayer dono, double auraMaxima) {
+    public static void enviarDelta(ServerPlayer dono) {
+        PersistentNenData perfil = NenProfileService.ler(dono);
         RuntimeNenState estado = NenRuntimeService.estadoDe(dono);
-        entregarSePuder(dono, criarDelta(estado, auraMaxima));
+        AuraPool.Parametros p = AuraPool.Parametros.daConfig();
+        entregarSePuder(dono, criarDelta(estado, perfil, p));
     }
 
     static void enviarSnapshot(ServerPlayer dono, PersistentNenData perfil) {
@@ -84,11 +88,17 @@ public final class NenSyncService {
                 Set.copyOf(perfil.progressionFlags()));
     }
 
-    static DeltaDeRuntimeS2C criarDelta(RuntimeNenState estado, double auraMaxima) {
+    static DeltaDeRuntimeS2C criarDelta(
+            RuntimeNenState estado, PersistentNenData perfil, AuraPool.Parametros p) {
         Objects.requireNonNull(estado, "estado");
+        Objects.requireNonNull(perfil, "perfil");
+        Objects.requireNonNull(p, "p");
+        AuraPool pool = estado.pool();
+        double auraMax = AuraPool.auraMaxima(perfil, p);
         return new DeltaDeRuntimeS2C(
-                (float) estado.auraAtual(),
-                (float) auraMaxima,
+                (float) pool.auraAtual(),
+                (float) auraMax,
+                pool.outputPercent(),
                 Set.copyOf(estado.tecnicasAtivas()),
                 Map.copyOf(estado.cooldowns()));
     }

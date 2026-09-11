@@ -115,8 +115,9 @@ public final class NenClientCache implements RecebedorDeNen {
         this.deltasRecebidos++;
         this.tickDoUltimoDelta = this.tickDoCliente.getAsLong();
         if (this.diagnosticoLigado.getAsBoolean()) {
-            LOG.info("delta recebido #{}: aura={}/{} tecnicasAtivas={} cooldowns={}",
+            LOG.info("delta recebido #{}: aura={}/{} output={}% tecnicasAtivas={} cooldowns={}",
                     this.deltasRecebidos, payload.aura(), payload.auraMaxima(),
+                    (int) (payload.outputPercent() * 100),
                     payload.tecnicasAtivas().size(), payload.cooldowns().size());
         }
     }
@@ -178,6 +179,11 @@ public final class NenClientCache implements RecebedorDeNen {
 
     public float auraMaximaOuZero() {
         return this.delta.map(DeltaDeRuntimeS2C::auraMaxima).orElse(0.0F);
+    }
+
+    /** Output de aura (AOP) em porcentagem, de 0.0 a 1.0 (100%). Padrão 1.0. */
+    public float outputPercent() {
+        return this.delta.map(DeltaDeRuntimeS2C::outputPercent).orElse(1.0F);
     }
 
     public Optional<String> ultimoErro() {

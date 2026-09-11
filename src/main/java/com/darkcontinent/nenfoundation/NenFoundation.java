@@ -4,7 +4,9 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
+import com.darkcontinent.nenfoundation.server.AuraTickSubsystem;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
+import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -71,6 +73,7 @@ public final class NenFoundation {
      * <p>E o primeiro momento em que ler {@link NenConfig} e legitimo.
      */
     private static void aoPreparar(FMLCommonSetupEvent evento) {
+        NenTickScheduler.registrar(new AuraTickSubsystem());
         if (NenConfig.devModeAtivo()) {
             LOG.info("Modo de desenvolvimento LIGADO. Transicoes de estado em log: {}.",
                     NenConfig.logarTransicoes());

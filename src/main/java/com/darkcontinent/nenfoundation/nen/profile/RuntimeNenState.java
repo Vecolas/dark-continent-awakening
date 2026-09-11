@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.profile;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,19 +24,29 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class RuntimeNenState {
 
-    private double auraAtual;
+    private final AuraPool pool = new AuraPool();
     private final Set<ResourceLocation> tecnicasAtivas = new HashSet<>();
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
 
-    /** Aura disponivel neste instante. A formula e os limites nascem no M2. */
-    public double auraAtual() {
-        return this.auraAtual;
+    /**
+     * O motor de Aura e Vigor deste jogador.
+     *
+     * <p>Use este getter para gastar, regenerar e sincronizar os pools.
+     * O AuraPool e o unico lugar que impoem os invariantes numericos.
+     */
+    public AuraPool pool() {
+        return this.pool;
     }
 
-    /** Atualiza a medida autoritativa; somente codigo server-side possui este objeto. */
-    public void definirAuraAtual(double auraAtual) {
-        this.auraAtual = auraAtual;
+    /**
+     * Aura atual — atalho de leitura para codigo que nao precisa do pool inteiro.
+     *
+     * <p>COMPATIBILIDADE: delega para {@link AuraPool#auraAtual()}. Codigo novo
+     * deve preferir {@link #pool()} e chamar os metodos diretamente.
+     */
+    public double auraAtual() {
+        return this.pool.auraAtual();
     }
 
     public Set<ResourceLocation> tecnicasAtivas() {

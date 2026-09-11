@@ -7,6 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
+import com.darkcontinent.nenfoundation.nen.category.NenCategory;
+import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import java.util.Map;
+import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +20,14 @@ class RuntimeNenStateTest {
 
     private static final ResourceLocation TEN = id("ten");
     private static final ResourceLocation HABILIDADE = id("habilidade_teste");
+
+    /** Perfil neutro para usar nos testes que precisam de um contexto de perfil. */
+    private static final PersistentNenData PERFIL = new PersistentNenData(
+            1, false, NenCategory.UNDETERMINED, false,
+            0.0D, 0.0D, 0.0D, Map.of(), Set.of(), Set.of(), Set.of());
+
+    /** Parametros de teste: base 100, sem vigor. */
+    private static final AuraPool.Parametros P = AuraPool.Parametros.de(100.0D, 1.0D, 0.10D);
 
     @Test
     @DisplayName("estado novo e neutro e nao expoe colecoes mutaveis")
@@ -37,13 +50,15 @@ class RuntimeNenStateTest {
         RuntimeNenState estado = new RuntimeNenState();
         ActiveAbility canalizacao = new HabilidadeAtiva(HABILIDADE, 42L);
 
-        estado.definirAuraAtual(12.5D);
+        // pool vem zerado; resetar para maximo garante aura != 0 para o teste
+        estado.pool().resetarParaMaximo(PERFIL, P);
+        estado.pool().gastarAura(100.0D - 12.5D, PERFIL, P); // => 12.5 restam
         assertTrue(estado.ativarTecnica(TEN));
         assertFalse(estado.ativarTecnica(TEN), "ativacao repetida deve ser idempotente");
         estado.definirCooldown(HABILIDADE, 20);
         estado.iniciarCanalizacao(canalizacao);
 
-        assertEquals(12.5D, estado.auraAtual());
+        assertEquals(12.5D, estado.auraAtual(), 1e-9);
         assertEquals(1, estado.tecnicasAtivas().size());
         assertEquals(20, estado.cooldowns().get(HABILIDADE));
         assertSame(canalizacao, estado.canalizacao().orElseThrow());

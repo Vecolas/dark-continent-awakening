@@ -43,7 +43,16 @@ class NenRuntimeServiceTest {
     void resetSubstituiEstadoSemDuplicarSessao() {
         UUID jogador = UUID.randomUUID();
         RuntimeNenState anterior = NenRuntimeService.iniciarSessao(jogador);
-        anterior.definirAuraAtual(30.0D);
+        // Simula que o pool anterior tinha estado (via pool direto, sem config)
+        // O pool novo deve comecar zerado, mesmo que o anterior tivesse aura.
+        // Nao ha mais definirAuraAtual(): o acesso direto ao pool basta para o teste.
+        anterior.pool().resetarParaMaximo(
+                new com.darkcontinent.nenfoundation.nen.profile.PersistentNenData(
+                        1, false,
+                        com.darkcontinent.nenfoundation.nen.category.NenCategory.UNDETERMINED,
+                        false, 0.0D, 0.0D, 0.0D,
+                        java.util.Map.of(), java.util.Set.of(), java.util.Set.of(), java.util.Set.of()),
+                com.darkcontinent.nenfoundation.nen.aura.AuraPool.Parametros.de(30.0D, 0.0D, 0.10D));
 
         RuntimeNenState reiniciado = NenRuntimeService.iniciarSessao(jogador);
 

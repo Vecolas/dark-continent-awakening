@@ -1,11 +1,15 @@
 package com.darkcontinent.nenfoundation.client;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.client.hud.AuraHudRenderer;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
+import net.minecraft.client.gui.screens.Screen;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -51,11 +55,15 @@ public final class NenFoundationClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NenFoundationClient.class);
 
+    /** Instancia unica; o Minecraft so carrega um mod client por JVM. */
+    private static NenFoundationClient INSTANCIA;
+
     private final NenClientCache cache;
     private final OverlayDeDebug overlay;
     private int errosExibidos;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
+        INSTANCIA = this;
         // O contador de ticks do cliente, perguntado na hora do uso.
         this.cache = new NenClientCache(
                 NenFoundationClient::tickDoCliente, NenConfig::devModeAtivo);
@@ -64,12 +72,28 @@ public final class NenFoundationClient {
         Recebedores.registrar(this.cache);
 
         modEventBus.addListener(NenKeybinds::registrar);
+        AuraHudRenderer.registrar(modEventBus);
 
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
 
         LOG.debug("Camada de cliente do Nen Foundation carregada.");
+    }
+
+    /**
+     * O cache de estado do cliente local.
+     *
+     * <p>Uso restrito: somente codigo client-only. O portao PacotesDeclaradosTest
+     * reprova qualquer importacao de client/ fora do pacote client/.
+     */
+    public static NenClientCache cache() {
+        if (INSTANCIA == null) {
+            throw new IllegalStateException(
+                    "NenFoundationClient nao foi inicializado ainda. " +
+                    "cache() so pode ser chamado apos o carregamento do cliente.");
+        }
+        return INSTANCIA.cache;
     }
 
     /**
@@ -115,6 +139,12 @@ public final class NenFoundationClient {
         while (NenKeybinds.OVERLAY_DE_DEBUG.consumeClick()) {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
+        }
+        while (NenKeybinds.AJUSTAR_OUTPUT.consumeClick()) {
+            if (mc.player != null && mc.level != null && mc.screen == null) {
+                float variacao = Screen.hasShiftDown() ? -0.10F : +0.10F;
+                PacketDistributor.sendToServer(new AjustarOutputC2S(variacao));
+            }
         }
     }
 }

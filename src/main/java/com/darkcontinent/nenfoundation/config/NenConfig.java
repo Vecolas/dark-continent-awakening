@@ -42,6 +42,26 @@ public final class NenConfig {
                      "Excesso e cortado antes da fila; contadores aparecem no logout em modo dev.")
             .defineInRange("network.requestsPerSecond", 20, 1, 200);
 
+    // ------------------------------------------------------------------ aura
+
+    private static final ModConfigSpec.DoubleValue AURA_BASE_MAXIMA = BUILDER
+            .comment("Reserva maxima de aura de um jogador recem-despertado.",
+                     "Multiplicada por auraPotential do perfil nas formulas do M2.",
+                     "Nasce aqui porque o AuraPool (consumidor) existe a partir do M2.")
+            .defineInRange("aura.baseMaximum", 100.0D, 1.0D, 1_000_000.0D);
+
+    private static final ModConfigSpec.DoubleValue AURA_REGEN_POR_TICK = BUILDER
+            .comment("Aura regenerada por tick (20 ticks/s).",
+                     "Padrao 0.05 = ~1 de aura por segundo. Ajustar com regua de spark.")
+            .defineInRange("aura.regenPerTick", 0.05D, 0.0D, 1000.0D);
+
+    private static final ModConfigSpec.DoubleValue AURA_LIMIAR_EXAUSTAO = BUILDER
+            .comment("Fracao do maximo abaixo da qual o jogador entra em estado de exaustao.",
+                     "0.10 = abaixo de 10% da aura maxima. Usada pelo HUD e por eventos futuros.")
+            .defineInRange("aura.exhaustionThreshold", 0.10D, 0.0D, 1.0D);
+
+    // Vigor removido no pivot para AOP.
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private NenConfig() {
@@ -71,4 +91,27 @@ public final class NenConfig {
     public static boolean logarTransicoes() {
         return DEV_MODE.get() && LOG_TRANSICOES.get();
     }
+
+    // -------------------------------------------------------------- aura api
+
+    /** Reserva maxima de aura base. Lida na hora; configuracao e recarregavel. */
+    public static double auraBaseMaxima() {
+        return AURA_BASE_MAXIMA.get();
+    }
+
+    /** Aura regenerada por tick. */
+    public static double auraRegenPorTick() {
+        return AURA_REGEN_POR_TICK.get();
+    }
+
+    /**
+     * Fracao do maximo abaixo da qual o jogador esta em exaustao de aura.
+     *
+     * <p>Valor derivado: use {@code auraAtual <= auraMaxima * auraLimiarExaustao()} para
+     * decidir se o estado de exaustao esta ativo.
+     */
+    public static double auraLimiarExaustao() {
+        return AURA_LIMIAR_EXAUSTAO.get();
+    }
+
 }

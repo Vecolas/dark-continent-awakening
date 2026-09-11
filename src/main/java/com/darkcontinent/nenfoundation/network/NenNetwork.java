@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
 import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
+import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
 import com.darkcontinent.nenfoundation.network.payload.AtivarHabilidadeC2S;
 import java.util.function.BiFunction;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,6 +77,8 @@ public final class NenNetwork {
 
         PayloadRegistrar entrada = registrar.executesOn(HandlerThread.NETWORK);
         entrada.playToServer(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,
+                (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
+        entrada.playToServer(AjustarOutputC2S.TYPE, AjustarOutputC2S.STREAM_CODEC,
                 (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
         entrada.playToServer(DesativarTecnicaC2S.TYPE, DesativarTecnicaC2S.STREAM_CODEC,
                 (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));

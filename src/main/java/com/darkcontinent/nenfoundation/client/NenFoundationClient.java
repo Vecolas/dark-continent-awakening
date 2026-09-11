@@ -118,6 +118,14 @@ public final class NenFoundationClient {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
         }
+        // A RODA ABRE NO PRIMEIRO FRAME EM QUE A TECLA ESTA DESCIDA, e fecha
+        // sozinha quando ela sobe -- a propria tela pergunta isso no tick.
+        // `consumeClick` nao serve aqui: ele conta pressionadas, e o gesto e
+        // "enquanto segurada".
+        if (NenKeybinds.RODA_DE_NEN.isDown() && mc.screen == null) {
+            com.darkcontinent.nenfoundation.client.screen.RodaDeNen.abrir(this.cache);
+        }
+
         while (NenKeybinds.AJUSTAR_OUTPUT.consumeClick()) {
             if (mc.player != null && mc.level != null && mc.screen == null) {
                 float variacao = Screen.hasShiftDown() ? -0.10F : +0.10F;

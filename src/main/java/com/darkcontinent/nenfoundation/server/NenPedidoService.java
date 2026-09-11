@@ -18,6 +18,26 @@ import net.minecraft.server.level.ServerPlayer;
 public final class NenPedidoService {
     private NenPedidoService() { }
 
+    /** Liga a tecnica e traduz o resultado do motor em recusa, ou {@code null}. */
+    private static Motivo ligar(ServerPlayer jogador, ResourceLocation id) {
+        NenTechniqueService.Resultado r = NenTechniqueService.ativar(jogador, id);
+        return switch (r.estado()) {
+            // JA_ATIVA nao e recusa: o jogador apertou de novo, e o estado
+            // final e o que ele queria. Responder erro aqui faria a roda
+            // piscar uma mensagem por segurar a tecla.
+            case ATIVOU, JA_ATIVA -> null;
+            case DESCONHECIDA -> Motivo.ID_INEXISTENTE;
+            case RECUSADA -> Motivo.ESTADO_INVALIDO;
+        };
+    }
+
+    /** Desliga a tecnica. Desligar o que ja esta desligado tambem nao e erro. */
+    private static Motivo desligar(ServerPlayer jogador, ResourceLocation id) {
+        NenTechniqueService.desligar(jogador, id,
+                com.darkcontinent.nenfoundation.nen.technique.StopReason.PLAYER_REQUEST);
+        return null;
+    }
+
     public static Motivo validar(ServerPlayer jogador, CustomPacketPayload pedido) {
         ResourceLocation id;
         boolean habilidade = pedido instanceof AtivarHabilidadeC2S;
@@ -67,8 +87,25 @@ public final class NenPedidoService {
         } else {
             return Motivo.PEDIDO_INVALIDO;
         }
-        return ValidacaoDePedido.validar(id, habilidade, false,
+        // O CATALOGO AGORA EXISTE para tecnica: `existe` deixa de ser sempre
+        // falso e passa a perguntar ao registro. Ate o M4 nao havia registro,
+        // e por isso todo id era desconhecido.
+        boolean existe = !habilidade && NenTechniqueService.registro().porId(id).isPresent();
+
+        Motivo recusa = ValidacaoDePedido.validar(id, habilidade, existe,
                 jogador.isAlive() && !jogador.isRemoved() && !jogador.isSpectator(),
                 NenProfileService.ler(jogador), NenRuntimeService.estadoDe(jogador));
+        if (recusa != null || habilidade) {
+            return recusa;
+        }
+
+        // VALIDAR E EXECUTAR ESTAO NO MESMO METODO, e isso e uma divida que
+        // este arquivo ja carregava: o ramo de AjustarOutputC2S faz o mesmo.
+        // O nome `validar` deixou de descrever o que o metodo faz. Esta
+        // registrado na issue #71; nao foi consertado aqui para nao misturar
+        // um refactor de fluxo com a entrega da roda.
+        return pedido instanceof DesativarTecnicaC2S
+                ? desligar(jogador, id)
+                : ligar(jogador, id);
     }
 }

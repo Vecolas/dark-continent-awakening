@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
@@ -560,6 +561,105 @@ public final class NenTecnicaGameTest {
         @Override public ResourceLocation id() { return this.id; }
         @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
         @Override public double multiplicadorDeRegeneracao() { return this.multiplicador; }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    // ------------------------------ o limite simultaneo E a Aura (#97)
+
+    /**
+     * NAO HA TETO DE SLOTS. Quantas tecnicas ficam ligadas e o que a Aura paga.
+     *
+     * <p>Esta e a regra que o responsavel definiu, e ela precisa de teste
+     * porque senao e so uma frase bonita: um teto de slots poderia ser
+     * acrescentado por engano depois, e nada acusaria -- o jogo so ficaria
+     * menor.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void aAuraEOLimiteDeTecnicasSimultaneas(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        // Cinco tecnicas baratas: nada no modelo impede as cinco juntas.
+        List<NenTechnique> cinco = List.of(
+                new Cobradora("a", 20.0D), new Cobradora("b", 20.0D),
+                new Cobradora("c", 20.0D), new Cobradora("d", 20.0D),
+                new Cobradora("e", 20.0D));
+
+        comRegistro(cinco, () -> {
+            NenRuntimeService.estadoDe(jogador).definirAuraMaxima(1000.0D);
+            NenRuntimeService.estadoDe(jogador).definirAuraAtual(1000.0D);
+
+            for (NenTechnique t : cinco) {
+                exigir(NenTechniqueService.ativar(jogador, t.id()).estado()
+                                == NenTechniqueService.Ativacao.ATIVOU,
+                        "a tecnica " + t.id() + " foi recusada com aura de sobra."
+                                + " Um teto de SLOTS teria entrado sem ninguem pedir.");
+            }
+            exigir(NenRuntimeService.estadoDe(jogador).tecnicasAtivas().size() == 5,
+                    "com aura de sobra, as cinco deviam ficar ligadas; ficaram "
+                            + NenRuntimeService.estadoDe(jogador).tecnicasAtivas().size());
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void semAuraAsTecnicasCaemAteSobrarOQueCabe(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        List<NenTechnique> cinco = List.of(
+                new Cobradora("a", 20.0D), new Cobradora("b", 20.0D),
+                new Cobradora("c", 20.0D), new Cobradora("d", 20.0D),
+                new Cobradora("e", 20.0D));
+
+        comRegistro(cinco, () -> {
+            NenRuntimeService.estadoDe(jogador).definirAuraMaxima(1000.0D);
+            NenRuntimeService.estadoDe(jogador).definirAuraAtual(1000.0D);
+            for (NenTechnique t : cinco) {
+                NenTechniqueService.ativar(jogador, t.id());
+            }
+
+            // Cada uma cobra 1.0 por tick. Com 2.5 de aura, o tick paga duas e
+            // recusa as outras tres -- e sao ELAS que caem, nao um numero
+            // magico de slots.
+            NenRuntimeService.estadoDe(jogador).definirAuraAtual(2.5D);
+            NenTechniqueService.tick(jogador, NenRuntimeService.estadoDe(jogador));
+
+            int sobraram = NenRuntimeService.estadoDe(jogador).tecnicasAtivas().size();
+            exigir(sobraram > 0 && sobraram < 5,
+                    "Com aura para duas, sobraram " + sobraram + " de 5. O limite"
+                            + " tem de EMERGIR do custo: nem todas sobrevivem, nem"
+                            + " todas caem juntas.");
+
+            // E a aura nao pode ter ficado negativa no processo.
+            exigir(NenRuntimeService.estadoDe(jogador).auraAtual() >= 0.0D,
+                    "a aura ficou negativa: "
+                            + NenRuntimeService.estadoDe(jogador).auraAtual());
+        });
+
+        helper.succeed();
+    }
+
+    /** Tecnica minima que so cobra manutencao. */
+    private static final class Cobradora implements NenTechnique, ConsomeAura {
+        private final ResourceLocation id;
+        private final double custoPorSegundo;
+
+        Cobradora(String nome, double custoPorSegundo) {
+            this.id = idDeTeste(nome);
+            this.custoPorSegundo = custoPorSegundo;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+        @Override public double custoPorTick() { return this.custoPorSegundo / 20.0D; }
 
         @Override
         public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {

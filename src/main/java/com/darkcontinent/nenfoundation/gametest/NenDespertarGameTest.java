@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.progression.Marcos;
+import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.server.NenAwakeningService;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
 import java.util.ArrayList;
@@ -171,6 +172,73 @@ public final class NenDespertarGameTest {
                 "O segundo jogador despertou sozinho. O perfil do primeiro vazou.");
         exigir(!NenProfileService.ler(outro).temMarco(Marcos.DESPERTOU),
                 "O marco do primeiro apareceu no segundo.");
+
+        helper.succeed();
+    }
+
+    /**
+     * Um perfil que despertou ANTES de Ten existir recebe Ten, sem reanunciar.
+     *
+     * <p>ESTE TESTE NASCE DE UM BUG REAL, encontrado ao abrir a roda: ela vinha
+     * vazia. O `despertar` saia cedo com JA_ESTAVA para quem ja tinha
+     * despertado, e a mutacao que libera Ten nunca rodava. Todo perfil anterior
+     * a essa mudanca ficava desperto e sem tecnica nenhuma -- para sempre, e
+     * sem nada no log dizendo que faltava algo.
+     *
+     * <p>E o mesmo defeito que o `revelar` ja tinha tido. Quem sai cedo nao
+     * conserta o estado pela metade.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void perfilDespertoSemTenRecebeTenSemReanunciar(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+
+        // Um save de antes de Ten existir: desperto, com o marco, sem tecnica.
+        NenProfileService.atualizar(jogador, antes -> new PersistentNenData(
+                antes.schemaVersion(), true, antes.category(), antes.categoryRevealed(),
+                antes.auraPotential(), antes.control(), antes.output(),
+                antes.techniqueProficiency(), java.util.Set.of(),
+                antes.unlockedAbilities(), java.util.Set.of(Marcos.DESPERTOU)));
+
+        PersistentNenData meiaEstado = NenProfileService.ler(jogador);
+        exigir(meiaEstado.awakened() && meiaEstado.unlockedTechniques().isEmpty(),
+                "o teste nao conseguiu montar o perfil antigo que ele mede.");
+
+        List<String> anunciados = new ArrayList<>();
+        comListener(NenDespertadoEvent.class,
+                e -> {
+                    if (e.jogador() == jogador) {
+                        anunciados.add("anunciado");
+                    }
+                },
+                () -> {
+                    NenAwakeningService.Resultado r = NenAwakeningService
+                            .despertar(jogador, OrigemDoDespertar.COMANDO);
+                    exigir(r == NenAwakeningService.Resultado.JA_ESTAVA,
+                            "Esperava JA_ESTAVA para quem ja estava desperto, veio " + r);
+                });
+
+        exigir(NenProfileService.ler(jogador).conheceTecnica(Ten.ID),
+                "O perfil antigo NAO recebeu Ten. A roda continuaria vazia, e"
+                        + " /nen awaken continuaria respondendo 'ja estava' --"
+                        + " sem nada dizer que falta alguma coisa.");
+        exigir(anunciados.isEmpty(),
+                "O conserto reanunciou o despertar. Quem ja despertou ha"
+                        + " semanas veria o onboarding de novo.");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void despertarLiberaTen(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+
+        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+
+        exigir(NenProfileService.ler(jogador).conheceTecnica(Ten.ID),
+                "Despertar nao liberou Ten. Sem isso o jogador desperta e nao"
+                        + " tem tecnica nenhuma para usar: a roda nasce vazia.");
 
         helper.succeed();
     }

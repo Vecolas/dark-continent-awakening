@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.client;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import net.minecraft.client.Minecraft;
@@ -96,6 +97,13 @@ public final class NenFoundationClient {
     }
 
     private void aoTickDoCliente(ClientTickEvent.Post evento) {
+        Minecraft mc = Minecraft.getInstance();
+        while (NenKeybinds.FICHA_DO_JOGADOR.consumeClick()) {
+            // Nunca roubar teclas do chat, inventario ou de outra tela.
+            if (mc.player != null && mc.level != null && mc.screen == null) {
+                mc.setScreen(new TelaDoJogador(this.cache));
+            }
+        }
         // A ultima recusa fica na action bar mesmo com overlay de debug desligado.
         // Rajadas recebidas no mesmo tick substituem o texto, sem inundar o chat.
         if (this.errosExibidos != this.cache.errosRecebidos()

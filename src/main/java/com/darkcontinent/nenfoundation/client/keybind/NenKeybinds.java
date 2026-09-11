@@ -28,6 +28,14 @@ public final class NenKeybinds {
 
     public static final String CATEGORIA = "key.categories.nenfoundation";
 
+    /** Consulta do jogador; remapeavel nos controles, sem depender de modo dev. */
+    public static final KeyMapping FICHA_DO_JOGADOR = new KeyMapping(
+            "key.nenfoundation.ficha_do_jogador",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            CATEGORIA);
+
     /** Liga e desliga o overlay tecnico. Sem tecla padrao, de proposito. */
     public static final KeyMapping OVERLAY_DE_DEBUG = new KeyMapping(
             "key.nenfoundation.overlay_de_debug",
@@ -40,6 +48,7 @@ public final class NenKeybinds {
     }
 
     public static void registrar(RegisterKeyMappingsEvent evento) {
+        evento.register(FICHA_DO_JOGADOR);
         evento.register(OVERLAY_DE_DEBUG);
     }
 }

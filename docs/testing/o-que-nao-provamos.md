@@ -81,8 +81,14 @@ condicao e invalida, ela precisa de portao.
 | `gradlew runServer` | **`Done (8.041s)`**, sem `NoClassDefFoundError`, gametest namespace `nenfoundation` habilitado |
 | portoes alimentados com quebra deliberada | reprovaram, e os dois com a mensagem certa |
 
-O JDK 21 usado foi um Temurin 21.0.12.1 portatil, fora do sistema. **A maquina
-nao tem JDK 21 instalado** — ver a tabela de limites abaixo.
+Aquela verificacao usou um JDK portatil, fora do sistema. **Isso deixou de ser
+um limite:** o Temurin 21.0.12 foi instalado na maquina em 2026-09-10, e o
+`gradlew build` roda verde sem nenhum JDK portatil.
+
+Uma pegadinha sobreviveu, e vale conhecer antes de investigar o Gradle a toa:
+`java -version` nesta maquina responde **16.0.2**, porque um JDK 16 antigo
+continua primeiro no `PATH`. O build nao usa o `PATH` — ele usa `JAVA_HOME`,
+que aponta para o 21.
 
 ### Os tres defeitos que a execucao encontrou
 
@@ -121,7 +127,6 @@ servidor sobe" a partir do codigo de saida — a conclusao vem de procurar
 
 | Limite | Consequencia | Quando fecha |
 | --- | --- | --- |
-| **Nenhuma maquina do projeto tem JDK 21 instalado.** A verificacao usou um JDK portatil em diretorio temporario, que nao sobrevive. | ninguem consegue buildar hoje sem instalar o Temurin 21 | ao instalar; ver README |
 | Nenhum payload **trafegou** numa conexao real | ida e volta e contra buffer em memoria; registro existe, envio nao (depende de #2 e #5) | M1, quando o servidor passar a enviar |
 | Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
 | Os payloads **C2S nao estao registrados** | o cliente nao consegue pedir nada; registrar exige handler com validacao (#2 e #5) | M1 |

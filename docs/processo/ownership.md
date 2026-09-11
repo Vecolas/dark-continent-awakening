@@ -55,10 +55,16 @@ Alem do review normal de PR, alguns marcos pedem revisao cruzada explicita:
 
 | Bloqueio | Quem destrava | Estado |
 | --- | --- | --- |
-| Protecao de branch e CODEOWNERS exigem GitHub pago em repo privado | decisao dos dois (pagar, abrir o repo, ou aceitar) | em aberto |
-| Licenca do codigo ainda e *All Rights Reserved* por padrao | decisao dos dois | em aberto — ver ADR-007 |
-| Handles do GitHub das duas pessoas nao estao registrados aqui | preencher esta tabela | em aberto |
-| Nenhuma maquina do projeto tem JDK 21 confirmado | instalar Temurin 21 | ver README |
+| Protecao de branch e CODEOWNERS exigem GitHub pago | — | **risco ACEITO** conscientemente, ADR-008 |
+| Licenca do codigo | — | **decidida**: All Rights Reserved, ADR-008 |
+| Nenhuma maquina tem JDK 21 | — | **resolvido**: Temurin 21.0.12 instalado; build verde sem JDK portatil |
+| Handles do GitHub das duas pessoas nao estao registrados aqui | a segunda pessoa entrar no repositorio | em aberto |
+| O repositorio vive dentro do OneDrive | mover quando nao houver worktree ativa | em aberto por escolha; ver CONVENCOES secao 10 |
+
+> **Sobre a protecao de branch:** aceitar o risco NAO e autorizar push direto.
+> A regra de PR continua valendo; o que mudou e que agora esta escrito que ela
+> nao tem mecanismo por tras, e que um push direto na `main` nao produz aviso
+> nenhum. Ver ADR-008.
 
 Bloqueio sem nome nao serve. "Depende de aprovacao" nao e bloqueio; "depende de
 a pessoa X decidir Y" e.

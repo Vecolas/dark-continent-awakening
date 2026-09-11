@@ -1,10 +1,14 @@
 # CONVENÇÕES — como se trabalha neste repositório
 
-As regras gerais de engenharia **não moram aqui**. Elas moram na skill
-`disciplina-de-engenharia` (`~/.claude/skills/disciplina-de-engenharia/`), que é
-a fonte de verdade para: portões, falso verde, onde mora um número, nomes e
-comentários, ponto cego declarado, duas fontes para a mesma verdade, git, issue
-como unidade de trabalho e o que uma entrega precisa declarar.
+As regras gerais de engenharia **não moram aqui**. Elas moram em
+[`disciplina-de-engenharia/`](disciplina-de-engenharia/) — cópia versionada da
+skill de mesmo nome, e **é a cópia do repositório que vale** —, fonte de
+verdade para: portões, falso verde, onde mora um número, nomes e comentários,
+ponto cego declarado, duas fontes para a mesma verdade, git, issue como unidade
+de trabalho e o que uma entrega precisa declarar.
+
+Por que ela está duplicada aqui, e a regra de desempate:
+[`disciplina-de-engenharia/LEIA-ME.md`](disciplina-de-engenharia/LEIA-ME.md).
 
 Duplicar aquilo aqui criaria duas fontes para a mesma verdade — que é
 exatamente o que a seção 7 da skill proíbe. Este arquivo guarda **só o que é
@@ -14,11 +18,11 @@ Leitura obrigatória antes de implementar:
 
 | Onde | O quê |
 | --- | --- |
-| `SKILL.md`, seção 14 | ramo, commit, PR |
-| `references/processo-e-entrega.md` | issue, bloqueio nomeado, entrega que declara o que não foi verificado, **e o comando que engole o trabalho dos outros** |
-| `references/o-verificador-tambem-mente.md` | o falso verde na camada das ferramentas |
-| `references/portoes-e-reguas.md` | portão que morde dos dois lados |
-| `references/armadilhas-silenciosas.md` | defaults, enums, aritmética que some, ciclo de vida |
+| `disciplina-de-engenharia/SKILL.md`, seção 14 | ramo, commit, PR |
+| `disciplina-de-engenharia/references/processo-e-entrega.md` | issue, bloqueio nomeado, entrega que declara o que não foi verificado, **e o comando que engole o trabalho dos outros** |
+| `disciplina-de-engenharia/references/o-verificador-tambem-mente.md` | o falso verde na camada das ferramentas |
+| `disciplina-de-engenharia/references/portoes-e-reguas.md` | portão que morde dos dois lados |
+| `disciplina-de-engenharia/references/armadilhas-silenciosas.md` | defaults, enums, aritmética que some, ciclo de vida |
 
 ---
 
@@ -48,10 +52,16 @@ está em [`docs/processo/fronteira-de-arquivos.md`](docs/processo/fronteira-de-a
 `develop` — para duas pessoas, integração frequente na `main` reduz
 divergência mais do que uma branch de integração ajuda.
 
-**Proteção de branch não está ativa.** Em repositório privado, ela exige plano
-pago do GitHub. Ou seja, "nunca commitar na `main`" depende de disciplina, não
-de trava. É um bloqueio nomeado em
-[`docs/processo/ownership.md`](docs/processo/ownership.md#bloqueios-conhecidos).
+**Proteção de branch não está ativa, e isso é uma decisão, não uma pendência.**
+Em repositório privado ela exige plano pago do GitHub, e o risco foi aceito
+conscientemente ([ADR-008](docs/adr/ADR-008-licenca-e-protecao-de-branch.md)).
+
+Consequência prática, escrita para não ser esquecida: **um push direto na
+`main` não produz nenhum aviso** — não é recusado, não alerta ninguém, e só
+aparece quando alguém olha o histórico (`git log --first-parent main`).
+
+Aceitar o risco não é autorizar o push direto. A regra continua valendo; ela só
+não tem mecanismo por trás.
 
 ### 2. Verde local antes de abrir PR
 

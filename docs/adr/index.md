@@ -21,6 +21,7 @@ acusa o que nunca entrou nela.
 | [ADR-005](ADR-005-versoes-pinadas.md) | Versoes pinadas e uma dependencia por vez | aceita |
 | [ADR-006](ADR-006-epic-fight-fora-da-fundacao.md) | Epic Fight e adapter opcional e tardio | aceita |
 | [ADR-007](ADR-007-assets-autorais.md) | Todo asset e autoral; nada e extraido da obra | aceita |
+| [ADR-008](ADR-008-licenca-e-protecao-de-branch.md) | Licenca do codigo e ausencia de protecao de branch | aceita |
 
 ## Como escrever um ADR
 

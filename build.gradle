@@ -65,36 +65,48 @@ runs {
     client {
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
 
-        // Entrar num servidor SEM ninguem clicar:
-        //   ./gradlew runClient -PentrarEm=localhost:25565
+        // Tres propriedades OPCIONAIS. Sem nenhuma, o runClient abre no menu
+        // como sempre.
         //
-        // POR QUE ISTO EXISTE: varias garantias deste projeto so podem ser
-        // verificadas com um cliente e um servidor falando de verdade -- o
-        // payload chegando na rede, o perfil sendo entregue so ao dono, o save
-        // do mundo contendo o perfil. Sem isto, "um jogador conectado" e uma
-        // etapa manual, e etapa manual nao acontece toda vez.
+        //   -PentrarEm=host:porta   entra num servidor sozinho, sem clicar
+        //   -Pjogador=<nome>        --username, e o sufixo do diretorio padrao
+        //   -PdirCliente=<caminho>  onde mundos e options.txt ficam
         //
-        // Opcional de proposito: sem a propriedade, o runClient continua
-        // abrindo no menu, como sempre.
-        if (project.hasProperty('entrarEm')) {
-            arguments.addAll '--quickPlayMultiplayer', project.property('entrarEm').toString()
+        // POR QUE `entrarEm` EXISTE: varias garantias deste projeto so podem
+        // ser verificadas com um cliente e um servidor falando de verdade --
+        // o payload chegando na rede, o perfil entregue so ao dono, o save
+        // contendo o perfil. Sem isto, "um jogador conectado" e etapa manual,
+        // e etapa manual nao acontece toda vez.
+        //
+        // POR QUE `jogador` MUDA O DIRETORIO: dois clientes dividindo
+        // `run/client` brigam pelo options.txt e pelo log, e o segundo
+        // sobrescreve o diagnostico do primeiro -- que e justamente o que se
+        // quer comparar num teste de dois jogadores. Com online-mode=false o
+        // UUID vem do nome, entao nomes diferentes sao jogadores diferentes
+        // de verdade, com perfis separados no save.
+        //
+        // O DIRETORIO E DECIDIDO UMA VEZ SO, e este e o ponto do bloco.
+        // Antes, `dirCliente` e `jogador` chamavam `workingDirectory` cada um,
+        // e a segunda chamada vencia em silencio: pedir os dois mandava o
+        // cliente para `run/client-<nome>` enquanto o script anunciava
+        // `instancia/cliente`, e o diretorio anunciado ficava vazio. Duas
+        // coisas decidindo o mesmo valor sempre terminam assim.
+        def nomeDoJogador = project.findProperty('jogador')?.toString()
+        def dirPedido = project.findProperty('dirCliente')?.toString()
+
+        if (nomeDoJogador != null) {
+            arguments.addAll '--username', nomeDoJogador
         }
 
-        // Um nome de jogador diferente, para poder ter DOIS ao mesmo tempo:
-        //   ./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Kurapika
-        //
-        // Cada nome ganha o proprio diretorio de execucao. Dois clientes
-        // dividindo `run/client` brigam pelo options.txt e pelo log, e o
-        // segundo sobrescreve o diagnostico do primeiro -- que e justamente o
-        // que se quer comparar num teste de dois jogadores.
-        //
-        // Com online-mode=false o UUID e derivado do nome, entao nomes
-        // diferentes sao jogadores diferentes de verdade, com perfis
-        // separados no save.
-        if (project.hasProperty('jogador')) {
-            def nome = project.property('jogador').toString()
-            arguments.addAll '--username', nome
-            workingDirectory project.layout.projectDirectory.dir('run').dir('client-' + nome)
+        if (dirPedido != null) {
+            workingDirectory project.layout.projectDirectory.dir(dirPedido)
+        } else if (nomeDoJogador != null) {
+            workingDirectory project.layout.projectDirectory
+                    .dir('run').dir('client-' + nomeDoJogador)
+        }
+
+        if (project.hasProperty('entrarEm')) {
+            arguments.addAll '--quickPlayMultiplayer', project.property('entrarEm').toString()
         }
     }
 

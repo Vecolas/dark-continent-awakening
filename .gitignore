@@ -36,6 +36,12 @@ logs/
 repo/
 !**/src/**/repo/
 
+### Instancia de teste manual ###
+# Minecraft instalado + mundos + logs + o JAR do mod. Centenas de MB,
+# regeravel com um comando, e nada disso pertence ao historico.
+# Os SCRIPTS que a criam ficam em scripts/ e sao versionados.
+/instancia/
+
 ### Modpack ###
 # JARs de terceiros nunca entram no repositorio: as licencas nao permitem
 # redistribuicao e o repo nao e um mirror. O pack se descreve por manifesto.

@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.profile;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,19 +24,66 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class RuntimeNenState {
 
-    private double auraAtual;
+    private final AuraPool aura;
+    private boolean auraSuja = true;
     private final Set<ResourceLocation> tecnicasAtivas = new HashSet<>();
     private final Map<ResourceLocation, Integer> cooldowns = new HashMap<>();
     private ActiveAbility canalizacao;
 
+    public RuntimeNenState() {
+        this.aura = new AuraPool();
+    }
+
+    public RuntimeNenState(double auraMaxima) {
+        this.aura = new AuraPool(auraMaxima);
+    }
+
     /** Aura disponivel neste instante. A formula e os limites nascem no M2. */
     public double auraAtual() {
-        return this.auraAtual;
+        return this.aura.atual();
     }
 
     /** Atualiza a medida autoritativa; somente codigo server-side possui este objeto. */
     public void definirAuraAtual(double auraAtual) {
-        this.auraAtual = auraAtual;
+        // A ponte M1 aceita o primeiro valor antes de a formula M2 configurar a maxima.
+        if (this.aura.maxima() == 0.0D && auraAtual > 0.0D) {
+            this.aura.definirMaxima(auraAtual);
+        }
+        this.aura.definirAtual(auraAtual);
+    }
+
+    public AuraPool aura() {
+        return this.aura;
+    }
+
+    /** Troca a capacidade e marca o runtime para o proximo delta. */
+    public void definirAuraMaxima(double auraMaxima) {
+        double antes = this.aura.maxima();
+        this.aura.definirMaxima(auraMaxima);
+        this.auraSuja |= antes != this.aura.maxima();
+    }
+
+    /** Debita por inteiro ou deixa o pool intacto, marcando somente mudanca real. */
+    public boolean gastarAura(double quantidade) {
+        boolean gastou = this.aura.gastar(quantidade);
+        this.auraSuja |= gastou;
+        return gastou;
+    }
+
+    /** Recupera e informa se o valor mudou. */
+    public double recuperarAura(double quantidade) {
+        double recuperada = this.aura.recuperar(quantidade);
+        this.auraSuja |= recuperada != 0.0D;
+        return recuperada;
+    }
+
+    public boolean auraSuja() {
+        return this.auraSuja;
+    }
+
+    /** Consome a marca apenas depois que o transporte aceitou o delta. */
+    public void marcarAuraSincronizada() {
+        this.auraSuja = false;
     }
 
     public Set<ResourceLocation> tecnicasAtivas() {

@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.api.event.CategoriaAtribuidaEvent;
 import com.darkcontinent.nenfoundation.api.event.CategoriaReveladaEvent;
 import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
+import com.darkcontinent.nenfoundation.nen.category.SorteioDeCategoria;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.progression.Marcos;
 import com.darkcontinent.nenfoundation.server.NenAwakeningService;
@@ -397,6 +398,54 @@ public final class NenCategoriaGameTest {
                 "atribuir ao segundo mudou o primeiro.");
         exigir(NenProfileService.ler(outro).category() == NenCategory.MANIPULATION,
                 "o segundo nao recebeu a propria categoria.");
+
+        helper.succeed();
+    }
+
+    /**
+     * A semente que chega ao sorteio e a DO MUNDO.
+     *
+     * <p>Portao vindo da implementacao paralela da #59 -- ver o PR #81. Ele
+     * cobre um buraco que os testes daqui tinham: {@code sorteioPara} podia
+     * passar a usar uma constante, ou a semente errada, e
+     * {@code sorteioEDeterministicoEPrevisivel} continuaria verde, porque
+     * aquele teste so confere que a previsao bate com a atribuicao -- as duas
+     * saindo do mesmo caminho errado.
+     *
+     * <p>Aqui o valor esperado e calculado pela funcao PURA, com a semente
+     * lida do servidor, e comparado com o que o servico realmente gravou.
+     *
+     * <p>{@code ServerLevel.getSeed()} devolve
+     * {@code worldGenOptions().seed()}, que e igual em toda dimensao -- entao
+     * a categoria de um jogador nao muda por ele estar no Nether. Isso foi
+     * conferido na fonte do 1.21.1, e nao suposto.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void aSementeDoMundoAlimentaOSorteio(GameTestHelper helper) {
+        ServerPlayer um = jogadorDesperto(helper);
+        ServerPlayer outro = jogadorDesperto(helper);
+
+        long semente = helper.getLevel().getServer().overworld().getSeed();
+
+        NenCategoryService.atribuirPorSorteio(um);
+        exigir(!NenProfileService.ler(outro).category().eReal(),
+                "O segundo jogador ganhou categoria sozinho: o perfil do"
+                        + " primeiro vazou.");
+
+        NenCategoryService.atribuirPorSorteio(outro);
+
+        NenCategory esperadaUm = SorteioDeCategoria.sortear(semente, um.getUUID());
+        NenCategory esperadaOutro = SorteioDeCategoria.sortear(semente, outro.getUUID());
+
+        exigir(NenProfileService.ler(um).category() == esperadaUm,
+                "A categoria gravada nao bate com o sorteio puro para a semente"
+                        + " do mundo. Esperava " + esperadaUm + ", veio "
+                        + NenProfileService.ler(um).category()
+                        + " -- a semente que chega ao sorteio nao e a do mundo.");
+        exigir(NenProfileService.ler(outro).category() == esperadaOutro,
+                "Idem para o segundo jogador: esperava " + esperadaOutro
+                        + ", veio " + NenProfileService.ler(outro).category());
 
         helper.succeed();
     }

@@ -149,32 +149,50 @@ class TenTest {
         double teto = valorDeConfig("aura.multiplicadorMaximoDeRegeneracao");
 
         double multiplicadorEfetivo = Math.min(multTen, teto);
-        double ganhoPorSegundo = regenBase * multiplicadorEfetivo - regenBase;
-        double saldoPorSegundo = ganhoPorSegundo - custoTen;
+
+        // O SALDO E ABSOLUTO, e nao relativo a regeneracao base.
+        //
+        // A primeira versao deste portao comparava o GANHO SOBRE A BASE com o
+        // custo -- e aprovava numeros em que a aura ainda SUBIA com Ten ligado,
+        // so que mais devagar. Quem abriu em jogo viu exatamente isso: "nao
+        // pareceu consumir nada". Era falso verde: o teste media uma coisa e o
+        // ADR dizia outra.
+        //
+        // O que a reserva faz com Ten ligado e: + regeneracao total - custo.
+        double regeneracaoComTen = regenBase * multiplicadorEfetivo;
+        double saldoPorSegundo = regeneracaoComTen - custoTen;
 
         assertTrue(saldoPorSegundo < 0.0D,
-                "Com os numeros distribuidos, Ten se paga: ganho de "
-                        + ganhoPorSegundo + "/s contra custo de " + custoTen
-                        + "/s, saldo " + saldoPorSegundo + "/s. Pelo item 6 do"
-                        + " ADR-010 o saldo de um estado sustentado precisa ser"
-                        + " NEGATIVO -- senao Ten vira o estado permanente obvio.");
+                "Com os numeros distribuidos a aura NAO CAI com Ten ligado:"
+                        + " regeneracao de " + regeneracaoComTen + "/s contra custo de "
+                        + custoTen + "/s, saldo " + saldoPorSegundo + "/s. Pelo item 6"
+                        + " do ADR-010 usar Nen gasta, e nenhum estado sustentado"
+                        + " se paga.");
     }
 
     @Test
-    @DisplayName("a regeneracao de Ten reduz o custo, mas nao chega a paga-lo")
-    void tenReduzMasNaoPaga() {
+    @DisplayName("a retencao de Ten existe: ele drena menos do que custa")
+    void tenRetemAlgumaCoisa() {
         double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
         double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
         double multTen = valorDeConfig("tecnica.ten.multiplicadorDeRegeneracao");
 
-        double ganho = regenBase * multTen - regenBase;
-
-        assertTrue(ganho > 0.0D,
+        assertTrue(multTen > 1.0D,
                 "Ten nao melhora a regeneracao em nada. A retencao e o unico"
                         + " efeito que ele tem hoje; sem ela, Ten cobra aura e"
                         + " nao faz nada -- que era justamente o desenho recusado.");
-        assertTrue(ganho < custoTen,
-                "O ganho (" + ganho + "/s) chegou ao custo (" + custoTen + "/s).");
+
+        // A retencao aparece na DIFERENCA entre o que Ten custaria sem ela e o
+        // que ele custa de fato. Sem a retencao a reserva cairia `custo -
+        // regenBase`; com ela, cai menos.
+        double drenoSemRetencao = custoTen - regenBase;
+        double drenoComRetencao = custoTen - regenBase * multTen;
+
+        assertTrue(drenoComRetencao > 0.0D,
+                "com os numeros atuais Ten nao drena; ver o teste do saldo");
+        assertTrue(drenoComRetencao < drenoSemRetencao,
+                "A retencao nao esta reduzindo nada: dreno de " + drenoComRetencao
+                        + "/s contra " + drenoSemRetencao + "/s sem ela.");
     }
 
     /**

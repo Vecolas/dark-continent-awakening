@@ -121,8 +121,11 @@ public final class NenFoundationClient {
         // A RODA ABRE NO PRIMEIRO FRAME EM QUE A TECLA ESTA DESCIDA, e fecha
         // sozinha quando ela sobe -- a propria tela pergunta isso no tick.
         // `consumeClick` nao serve aqui: ele conta pressionadas, e o gesto e
-        // "enquanto segurada".
-        if (NenKeybinds.RODA_DE_NEN.isDown() && mc.screen == null) {
+        // "enquanto segurada". E a leitura e da tecla FISICA, e nao do
+        // KeyMapping: abrir a tela chama KeyMapping.releaseAll(), entao o
+        // KeyMapping mente justamente enquanto a roda esta aberta.
+        if (com.darkcontinent.nenfoundation.client.screen.RodaDeNen.teclaDaRodaDescida()
+                && mc.screen == null) {
             com.darkcontinent.nenfoundation.client.screen.RodaDeNen.abrir(this.cache);
         }
 

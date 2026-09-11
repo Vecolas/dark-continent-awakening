@@ -10,9 +10,8 @@ de trabalho e o que uma entrega precisa declarar.
 Por que ela está duplicada aqui, e a regra de desempate:
 [`disciplina-de-engenharia/LEIA-ME.md`](disciplina-de-engenharia/LEIA-ME.md).
 
-Duplicar aquilo aqui criaria duas fontes para a mesma verdade — que é
-exatamente o que a seção 7 da skill proíbe. Este arquivo guarda **só o que é
-específico do Dark Continent Awakening**.
+Este arquivo guarda **só o que é específico do Dark Continent Awakening**.
+Regra geral vai para a skill; o que é daqui fica aqui.
 
 Leitura obrigatória antes de implementar:
 

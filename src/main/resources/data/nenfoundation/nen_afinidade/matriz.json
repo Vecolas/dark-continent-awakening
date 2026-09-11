@@ -1,0 +1,47 @@
+{
+  "nota": "Os valores das cinco comuns sao a tabela classica por distancia no diagrama hexagonal (100 / 80 / 60 / 40), com a ordem Enhancement - Transmutation - Conjuration - Specialization - Manipulation - Emission. Os tres campos de cada celula nascem IGUAIS porque o canone da um numero so; eles existem separados para poderem divergir aqui, em datapack, sem tocar em codigo. ATENCAO: 'especialista_nas_outras' NAO e canone - o material nao fixa numeros para um Specialist aprendendo as outras categorias. Aquele valor e abstracao de gameplay e esta aqui para ser girado quando existir consumidor (M4). Nao o cite como se fosse canone.",
+
+  "comuns": {
+    "enhancement": {
+      "enhancement":   { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 },
+      "transmutation": { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "conjuration":   { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "manipulation":  { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "emission":      { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 }
+    },
+    "transmutation": {
+      "enhancement":   { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "transmutation": { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 },
+      "conjuration":   { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "manipulation":  { "learning_rate": 0.4, "max_proficiency": 0.4, "effectiveness": 0.4 },
+      "emission":      { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 }
+    },
+    "conjuration": {
+      "enhancement":   { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "transmutation": { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "conjuration":   { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 },
+      "manipulation":  { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "emission":      { "learning_rate": 0.4, "max_proficiency": 0.4, "effectiveness": 0.4 }
+    },
+    "manipulation": {
+      "enhancement":   { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "transmutation": { "learning_rate": 0.4, "max_proficiency": 0.4, "effectiveness": 0.4 },
+      "conjuration":   { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "manipulation":  { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 },
+      "emission":      { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 }
+    },
+    "emission": {
+      "enhancement":   { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "transmutation": { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 },
+      "conjuration":   { "learning_rate": 0.4, "max_proficiency": 0.4, "effectiveness": 0.4 },
+      "manipulation":  { "learning_rate": 0.8, "max_proficiency": 0.8, "effectiveness": 0.8 },
+      "emission":      { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 }
+    }
+  },
+
+  "especializacao": {
+    "propria":                 { "learning_rate": 1.0, "max_proficiency": 1.0, "effectiveness": 1.0 },
+    "outros_aprendendo":       { "learning_rate": 0.0, "max_proficiency": 0.0, "effectiveness": 0.0 },
+    "especialista_nas_outras": { "learning_rate": 0.6, "max_proficiency": 0.6, "effectiveness": 0.6 }
+  }
+}

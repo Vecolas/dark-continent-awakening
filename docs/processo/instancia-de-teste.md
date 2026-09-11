@@ -21,21 +21,43 @@ O cliente **entra no servidor sozinho**. Não há tela de "adicionar servidor".
 
 ```powershell
 .\scripts\instancia.ps1 status       # o que existe e qual versão está lá
-.\scripts\instancia.ps1 atualizar    # recompila e troca o JAR
+.\scripts\instancia.ps1 atualizar    # recompila e troca o JAR, sem subir nada
 ```
 
-### Depois de mexer no código
+### Depois de mexer no código: nada
+
+**`servidor` já recompila e troca o JAR antes de subir.** Não há passo manual
+depois de escrever código, e é de propósito.
+
+Por quê: o servidor daqui roda o JAR de `mods/`, e não o código do
+repositório. Se a troca dependesse de alguém lembrar de rodar `atualizar`, um
+dia ela não aconteceria — e o teste manual mediria a versão de ontem. **A
+falha é silenciosa:** o servidor sobe, o mod carrega, o jogo funciona, e nada
+em lugar nenhum diz que aquele não é o código que acabou de ser escrito.
+
+Pior ainda no par: o `cliente` é o de desenvolvimento e **compila o
+repositório a cada execução**, então ele sempre está na versão nova. Servidor
+velho contra cliente novo produz divergências que parecem bug de
+sincronização, e a investigação começa no lugar errado.
+
+O Gradle é incremental: sem mudança no código, isso custa poucos segundos.
+
+A troca **apaga a versão antiga antes de copiar** — dois JARs do mesmo
+`mod_id` em `mods/` fazem o NeoForge recusar o boot, e depois de um bump de
+versão os nomes são diferentes, então sobrescrever não resolveria.
+
+### Quando o build está vermelho
 
 ```powershell
-.\scripts\instancia.ps1 atualizar
+.\scripts\instancia.ps1 servidor -SemAtualizar
 ```
 
-Recompila e substitui o JAR. **Ele apaga a versão antiga antes de copiar** —
-dois JARs do mesmo `mod_id` em `mods/` fazem o NeoForge recusar o boot, e
-depois de um bump de versão os nomes são diferentes, então sobrescrever não
-resolveria.
+Sobe o JAR que já está instalado. É o único caso em que isso se usa —
+investigar com o jogo aberto, ou comparar com a versão anterior. O script
+avisa, em amarelo, que aquilo pode não ser o código atual.
 
-O `status` avisa quando o build está mais novo que o JAR instalado.
+O `status` compara a data do JAR instalado com a do último build, e avisa
+quando estão diferentes.
 
 ---
 

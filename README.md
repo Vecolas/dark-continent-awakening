@@ -3,9 +3,10 @@
 Um modpack de Hunter × Hunter para Minecraft 1.21.1, construído em volta de uma
 fundação de Nen **autoral**: o **Nen Foundation** (`nenfoundation`).
 
-> **Estado: M0 — bootstrap.** O repositório compila, os contratos estão
-> congelados e os portões funcionam. Ainda não há gameplay: o próximo marco é o
-> M1.
+> **Estado: M1 em andamento.** O M0 fechou: contratos congelados, portões,
+> CI. O M1 já entregou persistência de perfil, runtime e scheduler, protocolo
+> S2C, cache de cliente, comandos de debug e o primeiro gametest. Falta a
+> validação C2S e a QA com dois jogadores.
 
 ---
 
@@ -66,23 +67,30 @@ echo "org.gradle.java.home=C:/Program Files/Eclipse Adoptium/jdk-21.0.12.101-hot
 ./gradlew build
 ```
 
-Isso compila, roda os 21 testes unitários e os portões, e gera
+Isso compila, roda a suíte unitária e os portões, e gera
 `build/libs/nenfoundation-0.1.0.jar`.
 
-A saída termina com `Testes executados: 21`. Se ela disser zero, o build
-**reprova** — suíte vazia não é aprovação.
+A saída termina com `Testes executados: N`. **Se ela disser zero, o build
+reprova** — suíte vazia não é aprovação. O número não está escrito aqui de
+propósito: ele muda a cada entrega, e um número no README envelhece em
+silêncio.
 
 ### 3. Rodar
 
 ```bash
-./gradlew runClient       # cliente
-./gradlew runServer       # servidor dedicado
-./gradlew gameTestServer  # roda os gametests e sai
-./gradlew runData         # datagen
+./gradlew runClient          # cliente
+./gradlew runServer          # servidor dedicado
+./gradlew runGameTestServer  # roda os gametests e sai
+./gradlew runData            # datagen
 ```
 
-Na primeira vez que rodar `runServer`, aceite a EULA do Minecraft criando
-`run/server/eula.txt` com `eula=true`.
+Na primeira vez que rodar cada um, aceite a EULA do Minecraft criando
+`run/<perfil>/eula.txt` com `eula=true`.
+
+> **Não conclua nada a partir do `BUILD SUCCESSFUL` de uma tarefa `run*`.**
+> Já houve duas vezes neste repositório em que o Gradle saiu `0` com o jogo
+> morto dentro. Procure a linha certa no log: `Done (` para o servidor,
+> `required tests` para o gametest.
 
 > **`runServer` é o único ambiente que pega uma classe client-only alcançada
 > pelo núcleo.** Singleplayer roda um servidor interno no mesmo processo do
@@ -104,6 +112,7 @@ Na primeira vez que rodar `runServer`, aceite a EULA do Minecraft criando
 | escrever uma habilidade | [`docs/api/abilities.md`](docs/api/abilities.md) |
 | entender o protocolo de rede | [`docs/multiplayer/protocol.md`](docs/multiplayer/protocol.md) |
 | **saber o que o verde não prova** | [`docs/testing/o-que-nao-provamos.md`](docs/testing/o-que-nao-provamos.md) |
+| as regras gerais de engenharia | [`disciplina-de-engenharia/`](disciplina-de-engenharia/) |
 
 Os documentos-fonte (plano técnico, roadmap, pesquisa de viabilidade) estão em
 [`docs/pesquisa/`](docs/pesquisa/).
@@ -121,8 +130,10 @@ organizacional — várias decisões de arquitetura existem por causa disso.
   [`ADR-004`](docs/adr/ADR-004-identidade-congelada.md).
 - **Lista escrita de arquivos hostis a merge** — e a regra de nunca usar
   `git add -A` enquanto a outra frente estiver viva na mesma árvore.
-- **Ninguém commita na `main`.** Proteção de branch exige plano pago do GitHub
-  em repositório privado, então isso depende de disciplina, não de trava.
+- **Ninguém commita na `main`.** Não há proteção de branch — o risco foi
+  aceito conscientemente ([ADR-008](docs/adr/ADR-008-licenca-e-protecao-de-branch.md)),
+  e um push direto **não produz aviso nenhum**. A regra continua valendo; ela
+  só não tem mecanismo por trás.
 
 ---
 
@@ -130,7 +141,7 @@ organizacional — várias decisões de arquitetura existem por causa disso.
 
 ```
 M0 Bootstrap  ✅
- └─> M1 Persistência + sync
+ └─> M1 Persistência + sync   (em andamento)
       └─> M2 Aura Engine + HUD
            └─> M3 Despertar + categoria
                 └─> M4 Ten / Ren / Zetsu / Gyo

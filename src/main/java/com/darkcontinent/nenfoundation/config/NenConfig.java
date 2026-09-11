@@ -37,9 +37,18 @@ public final class NenConfig {
                      "So tem efeito com dev.enabled = true.")
             .define("dev.logStateTransitions", false);
 
+    private static final ModConfigSpec.IntValue PEDIDOS_POR_SEGUNDO = BUILDER
+            .comment("Cota C2S por jogador, somando ativacao, desativacao e habilidade.",
+                     "Excesso e cortado antes da fila; contadores aparecem no logout em modo dev.")
+            .defineInRange("network.requestsPerSecond", 20, 1, 200);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private NenConfig() {
+    }
+
+    public static int pedidosPorSegundo() {
+        return PEDIDOS_POR_SEGUNDO.get();
     }
 
     /**

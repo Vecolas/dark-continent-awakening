@@ -58,7 +58,10 @@ class NenProfileServiceTest {
         assertEquals(Set.of(MARCO), primeiro.perfil.progressionFlags());
         assertEquals(Set.of(), segundo.perfil.progressionFlags());
         assertEquals(1, primeiro.escritas);
+        assertEquals(1, primeiro.avisos);
+        assertSame(primeiro.perfil, primeiro.publicado);
         assertEquals(0, segundo.escritas);
+        assertEquals(0, segundo.avisos);
     }
 
     @Test
@@ -70,6 +73,7 @@ class NenProfileServiceTest {
 
         assertSame(PersistentNenData.NAO_DESPERTADO, resultado);
         assertEquals(0, memoria.escritas);
+        assertEquals(0, memoria.avisos);
     }
 
     @Test
@@ -81,6 +85,15 @@ class NenProfileServiceTest {
                 () -> NenProfileService.atualizar(memoria, atual -> null));
         assertSame(PersistentNenData.NAO_DESPERTADO, memoria.perfil);
         assertEquals(0, memoria.escritas);
+    }
+
+    @Test
+    void recordIgualTambemNaoEnviaAviso() {
+        Memoria memoria = new Memoria(PersistentNenData.NAO_DESPERTADO);
+        NenProfileService.atualizar(memoria,
+                atual -> copiarCom(atual, atual.schemaVersion(), atual.progressionFlags()));
+        assertEquals(0, memoria.escritas);
+        assertEquals(0, memoria.avisos);
     }
 
     private static PersistentNenData copiarCom(
@@ -102,6 +115,8 @@ class NenProfileServiceTest {
     private static final class Memoria implements NenProfileService.Armazenamento {
         private PersistentNenData perfil;
         private int escritas;
+        private int avisos;
+        private PersistentNenData publicado;
 
         private Memoria(PersistentNenData perfil) {
             this.perfil = perfil;
@@ -116,6 +131,13 @@ class NenProfileServiceTest {
         public void gravar(PersistentNenData novoPerfil) {
             this.perfil = novoPerfil;
             this.escritas++;
+        }
+
+        @Override
+        public void aoAlterar(PersistentNenData novoPerfil) {
+            assertSame(this.perfil, novoPerfil, "aviso saiu antes de gravar o attachment");
+            this.publicado = novoPerfil;
+            this.avisos++;
         }
     }
 }

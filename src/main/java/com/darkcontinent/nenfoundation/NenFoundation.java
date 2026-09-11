@@ -4,6 +4,8 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
+import com.darkcontinent.nenfoundation.server.NenPedidoService;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -56,7 +58,8 @@ public final class NenFoundation {
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
 
-        modEventBus.addListener(NenNetwork::registrar);
+        modEventBus.addListener((RegisterPayloadHandlersEvent evento) ->
+                NenNetwork.registrar(evento, NenPedidoService::validar));
         modEventBus.addListener(NenFoundation::aoPreparar);
 
         LOG.info("Nen Foundation registrado. Protocolo de rede v{}.", NenProtocol.VERSION);

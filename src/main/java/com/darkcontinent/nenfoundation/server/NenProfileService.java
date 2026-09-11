@@ -27,7 +27,8 @@ public final class NenProfileService {
 
     /**
      * Aplica uma mutacao imutavel e grava o resultado no attachment do mesmo
-     * jogador.
+     * jogador. Mudanca efetiva publica o snapshot depois de persistir; no-op
+     * nao publica. Assim todo consumidor, incluindo comandos, herda o sync.
      */
     public static PersistentNenData atualizar(
             ServerPlayer jogador, UnaryOperator<PersistentNenData> mutacao) {
@@ -55,6 +56,7 @@ public final class NenProfileService {
         PersistentNenData valido = NenProfileMigrator.migrar(alterado);
         if (!valido.equals(atual)) {
             armazenamento.gravar(valido);
+            armazenamento.aoAlterar(valido);
         }
         return valido;
     }
@@ -63,6 +65,10 @@ public final class NenProfileService {
         PersistentNenData ler();
 
         void gravar(PersistentNenData perfil);
+
+        /** Publica somente depois da escrita; leitura/migracao nao e mutacao. */
+        default void aoAlterar(PersistentNenData perfil) {
+        }
     }
 
     private record AttachmentDoJogador(ServerPlayer jogador) implements Armazenamento {
@@ -74,6 +80,11 @@ public final class NenProfileService {
         @Override
         public void gravar(PersistentNenData perfil) {
             this.jogador.setData(NenAttachments.NEN_PERSISTENTE, perfil);
+        }
+
+        @Override
+        public void aoAlterar(PersistentNenData perfil) {
+            NenSyncService.enviarSnapshot(this.jogador, perfil);
         }
     }
 }

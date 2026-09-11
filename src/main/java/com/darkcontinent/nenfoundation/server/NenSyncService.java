@@ -48,7 +48,7 @@ public final class NenSyncService {
         return dono.connection != null && dono.connection.hasChannel(payload.type());
     }
 
-    /** Envia ao jogador seu perfil visivel, imediatamente apos o login. */
+    /** Envia ao dono seu perfil visivel; login e mutacao usam o mesmo transporte. */
     public static void enviarSnapshot(ServerPlayer dono) {
         PersistentNenData perfil = NenProfileService.ler(dono);
         enviarSnapshot(dono, perfil);

@@ -1,6 +1,15 @@
 package com.darkcontinent.nenfoundation.network;
 
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
+import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
+import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
+import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
+import com.darkcontinent.nenfoundation.network.payload.AtivarHabilidadeC2S;
+import java.util.function.BiFunction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.registration.HandlerThread;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
@@ -26,14 +35,9 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
  * com {@code NoClassDefFoundError} — sem falhar na compilacao, em
  * singleplayer, nem em {@code runClient}.
  *
- * <p>3. {@code enqueueWork} em todo handler. O payload chega na thread de rede;
- * mexer em estado de jogo a partir dela e corrida de dados com sintoma
- * intermitente. O NeoForge devolve a execucao para a thread principal.
- *
- * <p>4. Os payloads C2S ainda NAO estao registrados. Registrar exige handler, e
- * handler C2S precisa validar contra o perfil e o runtime — issues #2 e #5.
- * Registrar agora com validacao pela metade seria abrir a porta antes de haver
- * fechadura.
+ * <p>3. S2C usa a thread principal padrao. C2S usa NETWORK explicitamente
+ * para cortar spam antes de enqueueWork; a validacao de jogo e injetada pela
+ * composicao do mod, preservando a direcao server -> network.
  *
  * <p>ARQUIVO HOSTIL A MERGE: uma pessoa por vez.
  */
@@ -42,7 +46,8 @@ public final class NenNetwork {
     private NenNetwork() {
     }
 
-    public static void registrar(RegisterPayloadHandlersEvent evento) {
+    public static void registrar(RegisterPayloadHandlersEvent evento,
+            BiFunction<ServerPlayer, CustomPacketPayload, Motivo> validar) {
         PayloadRegistrar registrar = evento.registrar(String.valueOf(NenProtocol.VERSION));
 
         registrar.playToClient(
@@ -68,5 +73,13 @@ public final class NenNetwork {
                 FeedbackDeErroS2C.STREAM_CODEC,
                 (payload, contexto) -> contexto.enqueueWork(
                         () -> Recebedores.atual().aoReceberErro(payload)));
+
+        PayloadRegistrar entrada = registrar.executesOn(HandlerThread.NETWORK);
+        entrada.playToServer(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,
+                (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
+        entrada.playToServer(DesativarTecnicaC2S.TYPE, DesativarTecnicaC2S.STREAM_CODEC,
+                (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
+        entrada.playToServer(AtivarHabilidadeC2S.TYPE, AtivarHabilidadeC2S.STREAM_CODEC,
+                (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
     }
 }

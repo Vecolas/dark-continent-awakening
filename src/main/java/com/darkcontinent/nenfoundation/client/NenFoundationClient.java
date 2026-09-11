@@ -52,6 +52,7 @@ public final class NenFoundationClient {
 
     private final NenClientCache cache;
     private final OverlayDeDebug overlay;
+    private int errosExibidos;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
         // O contador de ticks do cliente, perguntado na hora do uso.
@@ -91,9 +92,18 @@ public final class NenFoundationClient {
      */
     private void aoSairDoServidor(ClientPlayerNetworkEvent.LoggingOut evento) {
         this.cache.limpar();
+        this.errosExibidos = 0;
     }
 
     private void aoTickDoCliente(ClientTickEvent.Post evento) {
+        // A ultima recusa fica na action bar mesmo com overlay de debug desligado.
+        // Rajadas recebidas no mesmo tick substituem o texto, sem inundar o chat.
+        if (this.errosExibidos != this.cache.errosRecebidos()
+                && Minecraft.getInstance().player != null) {
+            this.cache.ultimoErro().ifPresent(chave -> Minecraft.getInstance().player
+                    .displayClientMessage(net.minecraft.network.chat.Component.translatable(chave), true));
+            this.errosExibidos = this.cache.errosRecebidos();
+        }
         while (NenKeybinds.OVERLAY_DE_DEBUG.consumeClick()) {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");

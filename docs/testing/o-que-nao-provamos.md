@@ -150,7 +150,7 @@ O procedimento inteiro esta em
 | Limite | Consequencia | Quando fecha |
 | --- | --- | --- |
 | Nunca houve **dois jogadores** | desync, vazamento de estado entre perfis e latencia sao inteiramente nao verificados | M1 em diante |
-| Os payloads **C2S nao estao registrados** | o cliente nao consegue pedir nada; registrar exige handler com validacao (#2 e #5) | M1 |
+| C2S registrado com recusa segura no M1 | técnicas/habilidades ainda não têm registros ou motores; aceitação, custo, alcance e linha de visão precisam de integração real | M4/M5 |
 | Nao ha portao de **carregamento de registro** | uma definicao orfa passaria despercebida | M5 |
 | Nao ha **medicao de performance** | "nao e gargalo" e opiniao | M2 (primeiro spark) |
 | O repositorio esta **dentro do OneDrive** | ja causou uma falha real de build (`Unable to delete file`) | ao mover para fora |

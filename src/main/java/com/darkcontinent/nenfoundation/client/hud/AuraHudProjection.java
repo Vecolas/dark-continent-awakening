@@ -18,9 +18,9 @@ public record AuraHudProjection(boolean disponivel, float atual, float maxima, b
         }
         var valor = delta.orElseThrow();
         float auraVisual = cache.auraInterpolada(parcial);
-        // FIXME: interpolacao do output nao esta no cache ainda, mas retornamos o percent original para manter API
         return new AuraHudProjection(true, valor.aura(), valor.auraMaxima(),
-                valor.auraMaxima() > 0 && valor.aura() == 0, auraVisual, valor.outputPercent(), valor.outputPercent());
+                valor.auraMaxima() > 0 && valor.aura() == 0, auraVisual,
+                valor.outputPercent(), cache.outputInterpolado(parcial));
     }
 
     /** Percentual protegido contra maximo zero ou pacote invalido. */

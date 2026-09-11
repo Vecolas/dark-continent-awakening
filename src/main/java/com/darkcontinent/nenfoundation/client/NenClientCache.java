@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
+import com.darkcontinent.nenfoundation.client.hud.animation.HudValueAnimator;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,7 @@ public final class NenClientCache implements RecebedorDeNen {
     /** Tick do CLIENTE em que o ultimo delta chegou. -1 = nunca. */
     private long tickDoUltimoDelta = -1L;
     private final AuraInterpolation auraInterpolation;
+    private final HudValueAnimator outputInterpolation;
 
     private Optional<String> ultimoErro = Optional.empty();
 
@@ -91,15 +93,23 @@ public final class NenClientCache implements RecebedorDeNen {
 
     public NenClientCache(java.util.function.LongSupplier tickDoCliente,
             java.util.function.BooleanSupplier diagnosticoLigado) {
-        this(tickDoCliente, diagnosticoLigado, () -> 0);
+        this(tickDoCliente, diagnosticoLigado, () -> 0, () -> 0);
     }
 
     public NenClientCache(java.util.function.LongSupplier tickDoCliente,
             java.util.function.BooleanSupplier diagnosticoLigado,
             java.util.function.IntSupplier duracaoDaInterpolacao) {
+        this(tickDoCliente, diagnosticoLigado, duracaoDaInterpolacao, duracaoDaInterpolacao);
+    }
+
+    public NenClientCache(java.util.function.LongSupplier tickDoCliente,
+            java.util.function.BooleanSupplier diagnosticoLigado,
+            java.util.function.IntSupplier duracaoDaAura,
+            java.util.function.IntSupplier duracaoDoOutput) {
         this.tickDoCliente = tickDoCliente;
         this.diagnosticoLigado = diagnosticoLigado;
-        this.auraInterpolation = new AuraInterpolation(duracaoDaInterpolacao);
+        this.auraInterpolation = new AuraInterpolation(duracaoDaAura);
+        this.outputInterpolation = new HudValueAnimator(duracaoDoOutput);
     }
 
     // ------------------------------------------------------------ recepcao
@@ -123,6 +133,7 @@ public final class NenClientCache implements RecebedorDeNen {
         long tick = this.tickDoCliente.getAsLong();
         // Valida antes de publicar no cache ou incrementar contadores.
         this.auraInterpolation.receber(payload, tick);
+        this.outputInterpolation.receber(payload.outputPercent(), 1.0F, tick, false);
         this.delta = Optional.of(payload);
         this.deltasRecebidos++;
         this.tickDoUltimoDelta = tick;
@@ -207,6 +218,11 @@ public final class NenClientCache implements RecebedorDeNen {
         return this.delta.map(DeltaDeRuntimeS2C::outputPercent).orElse(1.0F);
     }
 
+    /** Output visual interpolado; nunca e enviado de volta ao servidor. */
+    public float outputInterpolado(float parcial) {
+        return this.outputInterpolation.valorAtual(this.tickDoCliente.getAsLong() + parcial);
+    }
+
     public Optional<String> ultimoErro() {
         return this.ultimoErro;
     }
@@ -253,5 +269,6 @@ public final class NenClientCache implements RecebedorDeNen {
         this.errosRecebidos = 0;
         this.tickDoUltimoDelta = -1L;
         this.auraInterpolation.limpar();
+        this.outputInterpolation.limpar();
     }
 }

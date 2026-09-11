@@ -66,6 +66,10 @@ public final class NenConfig {
             .comment("Duracao visual em ticks de cliente. Zero aplica o delta imediatamente.")
             .defineInRange("client.auraInterpolationTicks", 5, 0, 20);
 
+    private static final ModConfigSpec.IntValue INTERPOLACAO_DE_OUTPUT = BUILDER
+            .comment("Duracao visual do Output em ticks de cliente. Zero aplica imediatamente.")
+            .defineInRange("client.outputInterpolationTicks", 3, 0, 20);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -77,6 +81,7 @@ public final class NenConfig {
 
     public static int intervaloDeSync() { return INTERVALO_DE_SYNC.get(); }
     public static int interpolacaoDeAura() { return INTERPOLACAO_DE_AURA.get(); }
+    public static int interpolacaoDeOutput() { return INTERPOLACAO_DE_OUTPUT.get(); }
 
     private NenConfig() {
     }

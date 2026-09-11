@@ -66,7 +66,8 @@ public final class NenFoundationClient {
         INSTANCIA = this;
         // O contador de ticks do cliente, perguntado na hora do uso.
         this.cache = new NenClientCache(
-                () -> this.ticksDaSessao, NenConfig::devModeAtivo, NenConfig::interpolacaoDeAura);
+                () -> this.ticksDaSessao, NenConfig::devModeAtivo,
+                NenConfig::interpolacaoDeAura, NenConfig::interpolacaoDeOutput);
         this.overlay = new OverlayDeDebug(this.cache);
         this.auraHud = new OverlayDeAura(this.cache);
 

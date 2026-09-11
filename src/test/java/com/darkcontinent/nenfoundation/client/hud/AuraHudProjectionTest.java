@@ -32,4 +32,18 @@ class AuraHudProjectionTest {
         cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of()));
         assertEquals(1.0F, AuraHudProjection.de(cache).fracao());
     }
+
+    @Test
+    void outputVisualAnimaSemAlterarValorConfirmado() {
+        long[] tick = {0L};
+        NenClientCache cache = new NenClientCache(() -> tick[0], () -> false, () -> 5, () -> 2);
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 0.5F, Set.of(), Map.of()));
+        tick[0] = 1;
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of()));
+        tick[0] = 2;
+
+        AuraHudProjection projecao = AuraHudProjection.de(cache);
+        assertEquals(1.0F, projecao.outputPercent());
+        assertEquals(0.75F, projecao.outputVisual());
+    }
 }

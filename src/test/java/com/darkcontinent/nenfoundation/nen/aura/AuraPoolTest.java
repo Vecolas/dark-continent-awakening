@@ -97,4 +97,44 @@ class AuraPoolTest {
         assertTrue(pool.ajustarOutput(-0.5F));
         assertEquals(0.0F, pool.outputPercent());
     }
+
+    @Test
+    @DisplayName("ajustarOutput recusa NaN e infinito, porque o clamp NAO os segura")
+    void outputRecusaNumeroInvalido() {
+        AuraPool pool = new AuraPool(100.0D);
+        pool.ajustarOutput(0.5F);
+
+        // ESTE E O PONTO: Math.min(NaN, 1.0F) devolve NaN, e Math.max(0.0F, NaN)
+        // tambem. Um clamp que PARECE defensivo deixa NaN passar inteiro.
+        //
+        // E o valor vem de um payload C2S: o cliente manda a variacao e o
+        // servidor soma. Um cliente modificado enviando NaN gravava NaN no
+        // runtime, e dali ele saia no delta para o HUD -- sem excecao e sem log.
+        assertThrows(IllegalArgumentException.class,
+                () -> pool.ajustarOutput(Float.NaN),
+                "NaN foi aceito no output.");
+        assertThrows(IllegalArgumentException.class,
+                () -> pool.ajustarOutput(Float.POSITIVE_INFINITY),
+                "infinito positivo foi aceito no output.");
+        assertThrows(IllegalArgumentException.class,
+                () -> pool.ajustarOutput(Float.NEGATIVE_INFINITY),
+                "infinito negativo foi aceito no output.");
+
+        assertFalse(Float.isNaN(pool.outputPercent()),
+                "o output ficou NaN mesmo com a recusa.");
+        assertEquals(0.5F, pool.outputPercent(),
+                "uma tentativa recusada nao pode mexer no valor que ja estava la.");
+    }
+
+    @Test
+    @DisplayName("ajustarOutput continua limitando valores validos fora da faixa")
+    void outputAindaFazClampDoQueEValido() {
+        AuraPool pool = new AuraPool(100.0D);
+
+        pool.ajustarOutput(5.0F);
+        assertEquals(1.0F, pool.outputPercent(), "acima de 1.0 devia virar 1.0");
+
+        pool.ajustarOutput(-3.0F);
+        assertEquals(0.0F, pool.outputPercent(), "abaixo de zero devia virar 0.0");
+    }
 }

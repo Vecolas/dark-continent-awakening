@@ -69,8 +69,29 @@ public final class AuraPool {
         this.atual = atual;
     }
 
-    /** Ajusta o output limitando entre 0.0 (0%) e 1.0 (100%). Retorna se houve mudanca. */
+    /**
+     * Ajusta o output limitando entre 0.0 (0%) e 1.0 (100%). Retorna se houve
+     * mudanca.
+     *
+     * <p>POR QUE A VALIDACAO VEM ANTES DO CLAMP, e nao depois: o clamp NAO
+     * segura NaN. {@code Math.min(NaN, 1.0F)} devolve NaN, e
+     * {@code Math.max(0.0F, NaN)} tambem -- entao um clamp que parece defensivo
+     * deixa NaN passar inteiro para o campo.
+     *
+     * <p>Isso importa porque este valor chega de um payload C2S: o cliente
+     * manda a variacao, o servidor soma e ajusta. Um cliente modificado
+     * enviando NaN gravava NaN no runtime, e dali ele saia no delta para o HUD.
+     * NaN atravessa multiplicacao sem erro -- o sintoma nao e uma excecao, e um
+     * numero que some da tela e uma barra que nunca mais se mexe.
+     *
+     * <p>A recusa e uma EXCECAO, e nao um {@code return false}, pelo mesmo
+     * motivo de {@link #gastar}: um valor invalido chegando aqui significa que
+     * alguem falhou em validar antes, e engolir isso em silencio esconde o
+     * chamador errado. A camada de rede recusa primeiro, com motivo; esta aqui
+     * e a rede de baixo.
+     */
     public boolean ajustarOutput(float novoPercent) {
+        validarNumero(novoPercent, "novoPercent");
         float ajustado = Math.max(0.0F, Math.min(novoPercent, 1.0F));
         if (ajustado != this.outputPercent) {
             this.outputPercent = ajustado;

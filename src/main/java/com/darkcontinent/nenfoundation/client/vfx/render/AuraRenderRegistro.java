@@ -39,6 +39,11 @@ public final class AuraRenderRegistro {
      */
     private static final AuraGeometryProfile GEOMETRIA = AuraGeometryProfile.ten();
 
+    /** A geometria com que as malhas foram construidas. Fonte unica. */
+    public static AuraGeometryProfile geometria() {
+        return GEOMETRIA;
+    }
+
     private AuraRenderRegistro() {
     }
 

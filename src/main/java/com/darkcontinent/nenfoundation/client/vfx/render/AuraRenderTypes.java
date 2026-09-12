@@ -86,6 +86,28 @@ public final class AuraRenderTypes {
     private static final RenderType SHELL_SIMPLES =
             RenderType.entityTranslucentEmissive(TEXTURA_PLANA);
 
+    /** A textura do filamento: nucleo claro, borda em fade. Autoral (ADR-007). */
+    public static final ResourceLocation TEXTURA_DE_RIBBON =
+            NenFoundation.id("textures/vfx/nen/aura_ribbon_core.png");
+
+    /**
+     * O material dos filamentos.
+     *
+     * <p>SEM SHADER PROPRIO NO AV2, de proposito. O gate deste marco e
+     * geometrico -- "os filamentos nascem na superficie e acompanham os
+     * membros" --, e um shader novo so acrescentaria uma variavel a mais entre
+     * o codigo e a resposta. O material emissivo da o estado certo: translucido,
+     * sem cull, e sem escrita de profundidade.
+     *
+     * <p>NO_CULL IMPORTA AQUI mais do que na shell: a tira e uma superficie de
+     * espessura zero, e a orientacao de face esta invertida pelo
+     * {@code scale(-1,-1,1)} do renderer de entidade. Com cull ligado, metade
+     * dos filamentos desapareceria -- e os que sumissem dependeriam do angulo
+     * da camera, que e o pior tipo de bug para reproduzir.
+     */
+    private static final RenderType RIBBON =
+            RenderType.entityTranslucentEmissive(TEXTURA_DE_RIBBON);
+
     private AuraRenderTypes() {
     }
 
@@ -97,6 +119,11 @@ public final class AuraRenderTypes {
      */
     public static RenderType shell() {
         return AuraShaders.pronto() ? SHELL : SHELL_SIMPLES;
+    }
+
+    /** O tipo de render dos filamentos. Sempre a mesma instancia. */
+    public static RenderType ribbon() {
+        return RIBBON;
     }
 
     /** Se o que sera desenhado usa o shader proprio. */

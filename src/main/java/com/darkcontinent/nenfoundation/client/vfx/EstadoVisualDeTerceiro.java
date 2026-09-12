@@ -72,13 +72,14 @@ public final class EstadoVisualDeTerceiro {
                 AuraDistribution.uniforme(), cor, cor);
     }
 
-    /** Quanto da aura se mostra em cada nivel de detalhe. */
+    /**
+     * Quanto da aura se mostra em cada nivel de detalhe.
+     *
+     * <p>A TABELA SAIU DAQUI e passou a morar no proprio {@link AuraRenderLod}.
+     * Antes eram duas listas de numeros que precisavam concordar -- e um nivel
+     * novo no enum compilaria com este {@code switch} desatualizado.
+     */
     private static float intensidadePara(AuraRenderLod lod) {
-        return switch (lod) {
-            case FULL -> 1.0F;
-            case SHELL -> 0.6F;
-            case SIMPLIFIED -> 0.3F;
-            case HIDDEN -> 0.0F;
-        };
+        return lod.intensidade();
     }
 }

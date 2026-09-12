@@ -212,9 +212,7 @@ que **é** verificável está em [`av-aura-visual.md`](av-aura-visual.md).
 | Uma GPU só | todo número de performance desta trilha foi medido numa máquina | quando a segunda pessoa medir na dela |
 | Quatro ambientes de renderização, e existem dezenas | vanilla, Embeddium, Iris sem pack e Iris com pack cobrem o comum, não o real | nunca por completo; a matriz cresce por relato |
 | Skins de teste não são skins de jogador | transparência, overlay completo e desenhos fora do padrão vão achar casos que Steve e Alex não acham | por relato de jogador |
-| `EmissorDeParticulasDeAura` ainda é o efeito que se vê | a shell nova não desenha nada até o AV0, e a nuvem antiga só vira acabamento no AV3 — **entre os dois o jogo mostra os dois** | AV3 |
 | `AuraVisualPreset` tem campos que ninguém lê | `shellScale` e `edgeIntensity` existem desde o M4 sem renderer; são config órfã dentro do código | AV1, quando o perfil de datapack os substituir |
-| Duas tabelas de LOD | `AuraRenderLod` corta em 8/20/40; a arquitetura define cinco níveis em 12/24/48/72 | AV3, quando forem reconciliadas |
 | O renderer ainda não lê a distribuição | o delta já carrega a alocação e as **partículas** já se movem por ela (#211), mas nenhuma geometria multiplica intensidade por região — o consumidor visual do [ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md) só nasce com a shell | AV1 (#175) |
 | "Não vaza por parede" é teste de olho | o gate do AV5 é uma captura com o jogador atrás de um bloco; um vazamento de poucos pixels em ângulo raro passa | sem previsão |
 | Bloom `FAST` e `HIGH` são duas fontes do mesmo halo | vão divergir com o tempo; a trava é captura de comparação arquivada, e não um portão | sem previsão |

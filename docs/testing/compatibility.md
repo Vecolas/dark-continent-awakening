@@ -2,14 +2,16 @@
 
 ## Regra geral
 
-O nucleo funciona **sozinho**. Toda integracao e opcional
-([ADR-003](../adr/ADR-003-integracoes-opcionais.md)).
+O nucleo funciona sem as integracoes do pack. GeckoLib e biblioteca de runtime
+obrigatoria do pipeline de entidades; as demais integracoes continuam opcionais
+([ADR-003](../adr/ADR-003-integracoes-opcionais.md),
+[ADR-012](../adr/ADR-012-geckolib-obrigatorio.md)).
 
 O primeiro teste de compatibilidade e, portanto, o mais importante e o mais
 facil de esquecer:
 
 > **Remover todos os mods opcionais e verificar que o Nen Foundation ainda
-> inicia em cliente e em servidor dedicado.**
+> inicia em cliente e em servidor dedicado com NeoForge + GeckoLib.**
 
 Isso entra na matriz do M6, quando as integracoes existirem. Ate la e trivial,
 porque nao ha integracao nenhuma — e e exatamente por isso que a verificacao
@@ -36,7 +38,6 @@ Cada mod da lista aprovada roda estes tres, no minimo:
 | JEI **ou** EMI | itens do mod aparecem; **nao instalar os dois** | M6 |
 | Jade | tooltip aparece e **nao** revela Nen alheio | M6 |
 | Curios | slot funciona; **nao** usar como armazenamento de perfil | pos-MVP |
-| GeckoLib | animacao de entidade roda | pos-MVP |
 | ModernFix / FerriteCore / Embeddium | perfil de spark antes e depois | M7 |
 | spark | o profiler funciona e o perfil e arquivavel | M2 |
 

@@ -1,8 +1,8 @@
 # Manifesto do Nen Foundation.
 #
-# DECISAO QUE ESTE ARQUIVO CARREGA: nenhuma dependencia opcional e declarada
-# aqui como obrigatoria. O JAR tem de iniciar em cliente e em servidor dedicado
-# com NeoForge e mais nada. Ver ADR-003.
+# DECISAO QUE ESTE ARQUIVO CARREGA: integracoes de pack continuam opcionais.
+# GeckoLib e a unica biblioteca de runtime obrigatoria alem de NeoForge porque
+# o pipeline de entidades animadas faz parte deste JAR. Ver ADR-003 e ADR-012.
 #
 # As versoes vem de gradle.properties via ProcessResources; nao escreva numero
 # de versao a mao neste arquivo -- ele viraria a segunda fonte da mesma verdade.
@@ -40,4 +40,11 @@ modId = "minecraft"
 type = "required"
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "geckolib"
+type = "required"
+versionRange = "[${geckolib_version},4.9)"
+ordering = "AFTER"
 side = "BOTH"

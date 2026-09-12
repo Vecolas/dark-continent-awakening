@@ -21,8 +21,9 @@ de viabilidade: se daqui a seis meses uma camada quebrar, as outras sobrevivem.
 
 ## Estado atual
 
-**Nenhum mod de terceiro esta no pack.** O M0 entrega o perfil dev-minimal:
-NeoForge + Nen Foundation e nada mais.
+**GeckoLib e a unica biblioteca de runtime obrigatoria.** O perfil dev-minimal
+passa a ser NeoForge + GeckoLib + Nen Foundation; integracoes de quests,
+scripts, combate e performance continuam opcionais.
 
 Na QA da M2 foi usado **spark apenas no servidor de testes**, sem adicioná-lo
 ao pack/Gradle. Versão, licença e hash em [version-lock.md](version-lock.md);
@@ -54,7 +55,7 @@ redistribuir ([ADR-007](../adr/ADR-007-assets-autorais.md)).
 | ModernFix | — | correcoes e otimizacoes | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/modernfix) |
 | FerriteCore | — | uso de memoria | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/ferritecore) |
 | Embeddium | — | renderizacao client-side | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/embeddium) |
-| GeckoLib | 6 | animacao de entidade e item | *a confirmar* | pos-MVP | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/geckolib) |
+| GeckoLib 4.8.3 | 6 | animacao de entidades do mesmo JAR | MIT | EN0 | [site/wiki oficial](https://wiki.geckolib.com/docs/geckolib4/) |
 | Curios API | 6 | Hunter License e acessorios | *a confirmar* | pos-MVP | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/curios) |
 | Epic Fight | 5 | combate e animacao — **so apos o gate** | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod) |
 

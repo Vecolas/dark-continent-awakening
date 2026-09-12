@@ -33,7 +33,12 @@ JAR não versionado. Perfil medido em [perfis](../testing/perfis/README.md).
 
 | Mod | Versao travada | Data do teste | Quem testou |
 | --- | --- | --- | --- |
-| — | — | — | nenhum mod de terceiro no pack ainda |
+| GeckoLib | 4.8.3 para NeoForge/Minecraft 1.21.1 | 2026-09-12 | Codex (`build`, `runData`, 68 GameTests e client/server smoke verdes) |
+
+Artefato resolvido do Maven oficial:
+`geckolib-neoforge-1.21.1-4.8.3.jar`. SHA-512:
+`4b8f3bcdc04450aa97af136353341f136921259f16f2363f3cfe77956860455f27c38f9701b3f0e8a78ea86067411ecd35d391803b753276934057481e770556`.
+O JAR nao e versionado.
 
 ---
 

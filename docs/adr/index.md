@@ -25,6 +25,7 @@ acusa o que nunca entrou nela.
 | [ADR-009](ADR-009-modelo-de-aura-sem-stamina-de-nen.md) | Aura composta e uma unica barra visivel, sem stamina de Nen | aceita |
 | [ADR-010](ADR-010-regeneracao-por-estado-de-nen.md) | A regeneracao de Aura depende do estado de Nen ativo | aceita |
 | [ADR-011](ADR-011-descongelamento-do-protocolo.md) | O protocolo de rede descongela, com versao e regra | aceita |
+| [ADR-012](ADR-012-geckolib-obrigatorio.md) | GeckoLib e biblioteca obrigatoria do pipeline de entidades | aceita |
 
 ## Como escrever um ADR
 

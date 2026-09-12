@@ -4,7 +4,7 @@ Tres ambientes, tres perguntas diferentes. Usar o errado custa horas.
 
 | Perfil | O que tem | Responde |
 | --- | --- | --- |
-| **dev-minimal** | NeoForge + Nen Foundation | "o nucleo esta certo?" |
+| **dev-minimal** | NeoForge + GeckoLib + Nen Foundation | "o nucleo esta certo?" |
 | **dev-pack** | pack completo com as integracoes aprovadas | "a combinacao funciona?" |
 | **server** | servidor dedicado, config versionada, mundo descartavel | "funciona de verdade?" |
 

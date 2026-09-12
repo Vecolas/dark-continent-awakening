@@ -39,10 +39,18 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 repositories {
     mavenCentral()
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup 'software.bernie.geckolib'
+        }
+    }
 }
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
+    implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
     testImplementation platform("org.junit:junit-bom:${junit_version}")
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -51,8 +59,8 @@ dependencies {
 
 // --- Perfis de execucao -------------------------------------------------
 // `client` e `server` sao o perfil dev-minimal do plano tecnico, secao 23:
-// NeoForge + Nen Foundation e nada mais. Bug do nucleo se reproduz AQUI antes
-// de se olhar o modpack completo. O perfil dev-pack e uma instancia separada,
+// NeoForge + GeckoLib + Nen Foundation e nada mais. Bug do nucleo se reproduz
+// AQUI antes de se olhar o modpack completo. O perfil dev-pack e uma instancia separada,
 // fora deste projeto Gradle; ver docs/modpack/perfis-de-execucao.md.
 runs {
     configureEach {
@@ -199,6 +207,7 @@ tasks.withType(ProcessResources).configureEach {
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            geckolib_version       : geckolib_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

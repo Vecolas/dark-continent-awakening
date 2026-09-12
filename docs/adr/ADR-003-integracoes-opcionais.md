@@ -29,6 +29,11 @@ NeoForge e mais nada instalado.
    quest do FTB. Trocar o questbook nao pode apagar progresso.
 6. Script nenhum valida aura, dano, cooldown ou seguranca de rede.
 
+O [ADR-012](ADR-012-geckolib-obrigatorio.md) cria uma excecao estreita para
+GeckoLib: ele deixa de ser integracao opcional do pack e passa a ser biblioteca
+obrigatoria do pipeline de entidades animadas. As demais integracoes continuam
+sob todas as regras deste ADR.
+
 ## Custo assumido
 
 - **Duplicacao aparente.** O nucleo tem marcos de progressao e o FTB Quests tem

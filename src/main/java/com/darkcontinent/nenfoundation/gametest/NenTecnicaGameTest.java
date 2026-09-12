@@ -22,6 +22,8 @@ import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.StopReason;
 import com.darkcontinent.nenfoundation.nen.technique.TechniqueActivationResult;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
+import com.darkcontinent.nenfoundation.nen.technique.ProtegeComAura;
+import com.darkcontinent.nenfoundation.server.NenDanoService;
 import com.darkcontinent.nenfoundation.server.NenRuntimeService;
 import com.darkcontinent.nenfoundation.server.NenTechniqueService;
 import java.util.ArrayList;
@@ -472,7 +474,7 @@ public final class NenTecnicaGameTest {
         Set<ResourceLocation> ids = todas.stream().map(NenTechnique::id)
                 .collect(java.util.stream.Collectors.toSet());
         if (!ids.contains(Ten.ID)) {
-            todas.add(new Ten(() -> 0.0D, () -> 1.0D));
+            todas.add(new Ten(() -> 0.0D, () -> 1.0D, () -> 0.0D));
         }
         if (!ids.contains(Ren.ID)) {
             todas.add(new Ren(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
@@ -482,7 +484,7 @@ public final class NenTecnicaGameTest {
                     () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
         }
         if (!ids.contains(Ken.ID)) {
-            todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+            todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO, () -> 0.0D));
         }
         if (!ids.contains(Shu.ID)) {
             todas.add(new Shu(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme()));
@@ -500,7 +502,7 @@ public final class NenTecnicaGameTest {
 
     /** Ten de teste, com numeros proprios: os da config nao sao o assunto aqui. */
     private static Ten tenDeTeste(double custoPorSegundo, double multiplicador) {
-        return new Ten(() -> custoPorSegundo, () -> multiplicador);
+        return new Ten(() -> custoPorSegundo, () -> multiplicador, () -> 0.0D);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1028,7 +1030,7 @@ public final class NenTecnicaGameTest {
     @PrefixGameTestTemplate(false)
     public static void zetsuETenSeExcluemNasDuasOrdens(GameTestHelper helper) {
         ServerPlayer jogador = jogadorDesperto(helper);
-        Ten ten = new Ten(() -> 3.0D, () -> 2.0D);
+        Ten ten = new Ten(() -> 3.0D, () -> 2.0D, () -> 0.0D);
         Ren ren = new Ren(() -> 10.0D, () -> 1.0D);
         Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
 
@@ -1309,6 +1311,90 @@ public final class NenTecnicaGameTest {
             exigir(estado.tecnicasAtivas().contains(Shu.ID),
                     "trocar de item derrubou Shu; ela cobre o que esta na mao"
                             + " AGORA, e nao o que estava quando ligou.");
+        });
+
+        helper.succeed();
+    }
+
+    // ------------------------------------------------- defesa (#213)
+
+    /** So protege. Sem custo, sem teto: mede a protecao sem medir o resto. */
+    private static final class Protetora
+            implements NenTechnique, ProtegeComAura {
+        private final ResourceLocation id;
+        private final double protecao;
+
+        Protetora(String nome, double protecao) {
+            this.id = idDeTeste(nome);
+            this.protecao = protecao;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+        @Override public double protecaoBase() { return this.protecao; }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    /**
+     * ENTRE DUAS PROTECOES, VALE A MAIOR -- e nao a soma.
+     *
+     * <p>ESTE TESTE EXISTE PORQUE O DEFEITO E INVISIVEL EM JOGO. Zetsu exclui
+     * todas as outras tecnicas que protegem, entao nunca ha duas ativas ao
+     * mesmo tempo -- e com uma so, somar e pegar a maior dao o mesmo resultado.
+     * A mutacao que troca `max` por `+=` passou por todos os 92 gametests.
+     *
+     * <p>Somar faria duas tecnicas modestas darem uma protecao que nenhuma das
+     * duas promete, e o defeito ficaria dormindo ate a primeira combinacao
+     * legitima. Por isso as tecnicas aqui sao falsas e CONVIVEM.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void entreDuasProtecoesValeAMaior(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Protetora fraca = new Protetora("fraca", 0.2D);
+        Protetora forte = new Protetora("forte", 0.6D);
+
+        comRegistro(List.of(fraca, forte), () -> {
+            NenTechniqueService.ativar(jogador, fraca.id());
+            NenTechniqueService.ativar(jogador, forte.id());
+
+            double protecao = NenDanoService.protecaoDe(
+                    NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
+
+            exigir(Math.abs(protecao - 0.6D) < 1.0e-6D,
+                    "com 0.2 e 0.6 ativas, a protecao virou " + protecao
+                            + ". Somar da 0.8 -- uma protecao que nenhuma das duas"
+                            + " promete.");
+        });
+
+        helper.succeed();
+    }
+
+    /** Uma protecao ZERO explicita apaga a das outras, e nao e ignorada. */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void protecaoZeroExplicitaNaoEhIgnorada(GameTestHelper helper) {
+        // Zetsu implementa a interface devolvendo ZERO, e isso significa "eu
+        // apago a protecao" -- diferente de nao implementar, que seria "eu nao
+        // mexo nisso". Hoje ele exclui as outras, entao a diferenca nao aparece
+        // em jogo; ela aparecera na primeira tecnica que combine com ele.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Protetora zero = new Protetora("zero", 0.0D);
+
+        comRegistro(List.of(zero), () -> {
+            NenTechniqueService.ativar(jogador, zero.id());
+            double protecao = NenDanoService.protecaoDe(
+                    NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
+            exigir(protecao == 0.0D,
+                    "uma tecnica de protecao zero devolveu " + protecao);
         });
 
         helper.succeed();

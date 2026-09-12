@@ -38,7 +38,7 @@ import net.minecraft.server.level.ServerPlayer;
  * divida, e nao como acaso.
  */
 public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
-        ModificaRegeneracao, ConsomeAura {
+        ModificaRegeneracao, ConsomeAura, ProtegeComAura {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("zetsu");
@@ -122,5 +122,23 @@ public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
     public void onDeactivate(ServerPlayer jogador, NenContext ctx, StopReason motivo) {
         // Nada a limpar: teto e multiplicador sao derivados, e o servico
         // recalcula ao desligar.
+    }
+
+    /**
+     * ZERO, e este zero e o preco inteiro de Zetsu.
+     *
+     * <p>No canone, quem esta em Zetsu e atingido por um ataque reforcado com
+     * Nen sofre dano MUITO maior. Zetsu nao e "modo furtivo de graca": e
+     * desligar a armadura para sumir do radar.
+     *
+     * <p>Ele IMPLEMENTA a interface devolvendo zero em vez de nao implementar,
+     * e a diferenca importa: implementar e dizer "eu apago a protecao"; nao
+     * implementar seria "eu nao mexo nisso", e ai a protecao de outra tecnica
+     * ativa sobreviveria. Zetsu exclui as outras hoje, mas a regra nao pode
+     * depender disso.
+     */
+    @Override
+    public double protecaoBase() {
+        return 0.0D;
     }
 }

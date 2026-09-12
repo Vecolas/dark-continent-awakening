@@ -2,7 +2,7 @@ package com.darkcontinent.nenfoundation.nen.technique;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
-import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 import net.minecraft.resources.ResourceLocation;
@@ -68,8 +68,8 @@ public final class Gyo implements NenTechnique, RedistribuiAura, ConsomeAura {
     }
 
     @Override
-    public AlocacaoDeAura alocacaoDesejada(RegiaoDoCorpo foco) {
-        return AlocacaoDeAura.concentrando(foco,
+    public AlocacaoDeAura alocacaoDesejada(FocoDeAura foco) {
+        return AlocacaoDeAura.concentrando(foco.regiaoEscolhida(),
                 (float) this.fracaoConcentrada.getAsDouble());
     }
 

@@ -8,10 +8,12 @@ import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
+import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
 import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import com.darkcontinent.nenfoundation.nen.technique.RedistribuiAura;
+import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -477,6 +479,9 @@ public final class NenTecnicaGameTest {
         if (!ids.contains(Zetsu.ID)) {
             todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
                     () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        if (!ids.contains(Shu.ID)) {
+            todas.add(new Shu(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme()));
         }
         if (!ids.contains(Gyo.ID)) {
             // Gyo entrou no quarteto quando a alocacao nasceu (ADR-014), e o
@@ -1071,9 +1076,11 @@ public final class NenTecnicaGameTest {
         @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
 
         @Override
-        public AlocacaoDeAura alocacaoDesejada(RegiaoDoCorpo foco) {
+        public AlocacaoDeAura alocacaoDesejada(FocoDeAura foco) {
             // IGNORA O FOCO de proposito: este duble representa uma tecnica de
-            // regiao fixa, como Ko num ponto escolhido antes.
+            // regiao fixa, como Ko num ponto escolhido antes. E e por isso que
+            // o foco e argumento e nao campo -- Gyo le a regiao escolhida, Shu
+            // le o braco dominante, e esta aqui nao le nada.
             return AlocacaoDeAura.concentrando(this.regiao, this.fracao);
         }
 
@@ -1170,6 +1177,134 @@ public final class NenTecnicaGameTest {
                             + NenRuntimeService.estadoDe(jogador).alocacao()
                             + ". O jogador renasceria com quase toda a aura num"
                             + " braco, sem nada na tela dizendo por que.");
+        });
+
+        helper.succeed();
+    }
+
+    // ----------------------------------------------------------- Shu
+
+    private static Shu shuDeTeste() {
+        return new Shu(() -> 0.0D, () -> 0.30D);
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void shuRecusaMaoVaziaComMotivoProprio(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                net.minecraft.world.item.ItemStack.EMPTY);
+
+        comRegistro(comAsParceiras(shuDeTeste()), () -> {
+            NenTechniqueService.Resultado r = NenTechniqueService.ativar(jogador, Shu.ID);
+            exigir(r.estado() == NenTechniqueService.Ativacao.RECUSADA,
+                    "Shu ligou com a mao vazia; nao ha o que envolver.");
+            exigir(r.motivo().isPresent(),
+                    "A recusa veio SEM MOTIVO. 'Aperto a tecla e nao acontece"
+                            + " nada' e o pior relato de bug que existe.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void shuConcentraNoBracoDaMaoDominante(GameTestHelper helper) {
+        // O JOGADOR E CANHOTO DE PROPOSITO, e este detalhe e o teste inteiro.
+        //
+        // A primeira versao usava o jogador padrao, que e destro -- e ai fixar
+        // BRACO_DIREITO no codigo passava igual. Alimentar o portao com esse
+        // defeito mostrou: ele aprovava a versao que ignora a mao dominante, e
+        // o erro so apareceria para quem joga canhoto, sem dar erro nenhum.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        // PELO CAMINHO DE VERDADE: a mao dominante e opcao do cliente, e
+        // `updateOptions` e por onde o servidor a recebe. Mexer no EntityData
+        // direto nao compila -- o campo e protegido -- e tambem seria escrever
+        // por fora do caminho que o jogo usa.
+        jogador.updateOptions(new net.minecraft.server.level.ClientInformation(
+                "en_us", 8, net.minecraft.world.entity.player.ChatVisiblity.FULL,
+                true, 0, net.minecraft.world.entity.HumanoidArm.LEFT, false, false));
+        exigir(jogador.getMainArm() == net.minecraft.world.entity.HumanoidArm.LEFT,
+                "nao consegui tornar o jogador canhoto; o teste mediria o destro"
+                        + " de novo e aprovaria qualquer coisa.");
+
+        jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STICK));
+
+        comRegistro(comAsParceiras(shuDeTeste()), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            NenTechniqueService.ativar(jogador, Shu.ID);
+
+            exigir(estado.alocacao().maisConcentrada() == RegiaoDoCorpo.BRACO_ESQUERDO,
+                    "Shu concentrou em " + estado.alocacao().maisConcentrada()
+                            + " num jogador CANHOTO. O braco sai da mao"
+                            + " dominante; assumir o direito poe a aura no braco"
+                            + " errado de parte dos jogadores, e isso nao da erro"
+                            + " nenhum.");
+            exigir(estado.alocacao().soma(), "a alocacao de Shu nao fecha");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void shuCaiQuandoAMaoEsvazia(GameTestHelper helper) {
+        // A MAO E LIDA A CADA TICK, e nao na ativacao. Guardar o item de quando
+        // ligou faria Shu continuar cobrindo uma espada ja guardada -- erro
+        // numero 1 da lista do CLAUDE.md, congelar na ativacao o que devia ser
+        // consultado depois.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STICK));
+
+        comRegistro(comAsParceiras(shuDeTeste()), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+            NenTechniqueService.ativar(jogador, Shu.ID);
+            exigir(estado.tecnicasAtivas().contains(Shu.ID), "Shu nao ligou");
+
+            jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                    net.minecraft.world.item.ItemStack.EMPTY);
+            NenTechniqueService.tick(jogador, estado);
+
+            exigir(!estado.tecnicasAtivas().contains(Shu.ID),
+                    "Shu continuou ligada com a mao vazia. Ela estaria cobrindo"
+                            + " um item que nao esta mais ali, cobrando aura por"
+                            + " isso.");
+            exigir(estado.alocacao().equals(AlocacaoDeAura.uniforme()),
+                    "a alocacao ficou presa no braco depois de Shu cair: "
+                            + estado.alocacao());
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void trocarDeItemNaoDerrubaShu(GameTestHelper helper) {
+        // O outro lado da mesma regra: trocar de item com Shu ligada muda o que
+        // esta coberto, e nao desliga nada. Se o item fosse congelado na
+        // ativacao, esta troca teria de derrubar a tecnica para nao mentir.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STICK));
+
+        comRegistro(comAsParceiras(shuDeTeste()), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+            NenTechniqueService.ativar(jogador, Shu.ID);
+
+            jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                    new net.minecraft.world.item.ItemStack(
+                            net.minecraft.world.item.Items.IRON_SWORD));
+            NenTechniqueService.tick(jogador, estado);
+
+            exigir(estado.tecnicasAtivas().contains(Shu.ID),
+                    "trocar de item derrubou Shu; ela cobre o que esta na mao"
+                            + " AGORA, e nao o que estava quando ligou.");
         });
 
         helper.succeed();

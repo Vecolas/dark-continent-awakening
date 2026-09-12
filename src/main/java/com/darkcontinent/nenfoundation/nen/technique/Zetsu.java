@@ -70,14 +70,18 @@ public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
      * declarar exclusao com ele -- o selamento RECUSA apontar para tecnica que
      * nao existe. Foi ponto cego declarado nos dois arquivos, e morreu aqui.
      *
-     * <p>GYO ENTROU DEPOIS, e o portao cobrou na hora: Gyo declarou Zetsu, esta
-     * lista nao declarou Gyo, e o servidor RECUSOU SUBIR com
-     * "exclusao pela metade". Nao foi teste que pegou -- foi o selamento,
-     * que acontece antes de qualquer jogador existir.
+     * <p>GYO E SHU ENTRARAM DEPOIS, e o portao cobrou nas duas vezes: cada uma
+     * declarou Zetsu, esta lista nao declarou de volta, e o servidor RECUSOU
+     * SUBIR com "exclusao pela metade". Nao foi teste que pegou -- foi o
+     * selamento, que acontece antes de qualquer jogador existir.
+     *
+     * <p>Vale notar o que isso significa: toda tecnica que LIBERE aura entra
+     * nesta lista, e o portao garante que ninguem esqueca. Zetsu fecha os nos;
+     * nao ha meio-termo entre fechar e liberar.
      */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Ten.ID, Ren.ID, Gyo.ID);
+        return Set.of(Ten.ID, Ren.ID, Gyo.ID, Shu.ID);
     }
 
     @Override

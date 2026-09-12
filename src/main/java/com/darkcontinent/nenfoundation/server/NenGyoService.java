@@ -1,10 +1,12 @@
 package com.darkcontinent.nenfoundation.server;
 
+import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
 import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.HumanoidArm;
 
 /**
  * Onde cada jogador esta concentrando a aura.
@@ -59,6 +61,34 @@ public final class NenGyoService {
      */
     public static RegiaoDoCorpo regiaoDe(UUID jogadorId) {
         return ESCOLHIDA.getOrDefault(jogadorId, PADRAO);
+    }
+
+    /**
+     * O foco completo deste jogador: a regiao escolhida e o braco dominante.
+     *
+     * <p>O BRACO SAI DO JOGADOR, e nao de uma escolha: quem joga canhoto tem a
+     * mao dominante a esquerda, e Shu tem de concentrar la. Assumir o direito
+     * funcionaria para a maioria e poria a aura no braco errado de algumas
+     * pessoas -- um defeito que nao da erro nenhum.
+     */
+    public static FocoDeAura focoDe(ServerPlayer jogador) {
+        return new FocoDeAura(regiaoDe(jogador), bracoDominanteDe(jogador));
+    }
+
+    /**
+     * Idem, por UUID: o inicio de sessao nao tem {@code ServerPlayer}.
+     *
+     * <p>Cai no braco padrao, e isso basta: no primeiro recalculo nao ha
+     * tecnica ativa nenhuma, entao o braco nao e consultado por ninguem.
+     */
+    public static FocoDeAura focoDe(UUID jogadorId) {
+        return new FocoDeAura(regiaoDe(jogadorId), FocoDeAura.padrao().bracoPrincipal());
+    }
+
+    private static RegiaoDoCorpo bracoDominanteDe(ServerPlayer jogador) {
+        return jogador.getMainArm() == HumanoidArm.LEFT
+                ? RegiaoDoCorpo.BRACO_ESQUERDO
+                : RegiaoDoCorpo.BRACO_DIREITO;
     }
 
     /** Troca a escolha deste jogador. */

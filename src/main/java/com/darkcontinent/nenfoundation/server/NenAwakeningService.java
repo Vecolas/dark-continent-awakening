@@ -9,6 +9,7 @@ import com.darkcontinent.nenfoundation.nen.progression.Marcos;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Gyo;
+import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -128,7 +129,8 @@ public final class NenAwakeningService {
         if (antes.awakened() && antes.temMarco(Marcos.DESPERTOU)
                 && antes.conheceTecnica(Ten.ID) && antes.conheceTecnica(Ren.ID)
                 && antes.conheceTecnica(Zetsu.ID)
-                && antes.conheceTecnica(Gyo.ID)) {
+                && antes.conheceTecnica(Gyo.ID)
+                && antes.conheceTecnica(Shu.ID)) {
             return antes;
         }
         Set<ResourceLocation> marcos = new LinkedHashSet<>(antes.progressionFlags());
@@ -149,6 +151,11 @@ public final class NenAwakeningService {
         tecnicas.add(Ren.ID);
         tecnicas.add(Zetsu.ID);
         tecnicas.add(Gyo.ID);
+        // SHU E INTERMEDIARIA NO CANONE -- ela vem depois do dominio dos quatro
+        // principios. Entra no despertar mesmo assim porque NAO HA PROGRESSAO
+        // (M6): sem ela, Shu so existiria por comando de operador e ninguem a
+        // veria em jogo. Divida declarada, e nao descuido.
+        tecnicas.add(Shu.ID);
 
         return new PersistentNenData(
                 antes.schemaVersion(),

@@ -1,7 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.technique;
 
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
-import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
 
 /**
  * Uma tecnica que muda ONDE a aura esta enquanto estiver ativa.
@@ -40,5 +40,5 @@ public interface RedistribuiAura {
      *
      * @param foco a regiao em que ESTE jogador esta concentrando
      */
-    AlocacaoDeAura alocacaoDesejada(RegiaoDoCorpo foco);
+    AlocacaoDeAura alocacaoDesejada(FocoDeAura foco);
 }

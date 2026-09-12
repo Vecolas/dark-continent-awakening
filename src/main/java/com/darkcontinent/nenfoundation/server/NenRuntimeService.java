@@ -55,7 +55,7 @@ public final class NenRuntimeService {
         // recem-criado nasce com o teto ABSOLUTO; sem esta chamada o jogador
         // comecaria a sessao com o teto de quem esta em Ren, e so voltaria ao
         // normal depois de ligar e desligar alguma tecnica -- sem erro nenhum.
-        NenTechniqueService.recalcularDerivados(novo, NenGyoService.regiaoDe(jogadorId));
+        NenTechniqueService.recalcularDerivados(novo, NenGyoService.focoDe(jogadorId));
         return novo;
     }
 

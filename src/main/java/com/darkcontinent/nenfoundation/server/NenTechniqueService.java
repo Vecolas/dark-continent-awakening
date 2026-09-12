@@ -9,7 +9,7 @@ import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
-import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
 import com.darkcontinent.nenfoundation.nen.technique.RedistribuiAura;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
@@ -368,7 +368,7 @@ public final class NenTechniqueService {
      * assinatura -- era o argumento certo escondido, e qualquer recalculo fora
      * da janela leria o padrao em silencio.
      */
-    public static void recalcularDerivados(RuntimeNenState estado, RegiaoDoCorpo foco) {
+    public static void recalcularDerivados(RuntimeNenState estado, FocoDeAura foco) {
         RegistroDeTecnicas atual = registro;
         estado.definirMultiplicadorDeRegeneracao(
                 multiplicadorDe(atual, estado.tecnicasAtivas()));
@@ -392,7 +392,7 @@ public final class NenTechniqueService {
      * espalhada. Estado definido, e nao ausencia de estado.
      */
     static AlocacaoDeAura alocacaoDe(RegistroDeTecnicas registro,
-            Set<ResourceLocation> ativas, RegiaoDoCorpo foco) {
+            Set<ResourceLocation> ativas, FocoDeAura foco) {
         AlocacaoDeAura escolhida = AlocacaoDeAura.uniforme();
         float maiorConcentracao = escolhida.em(escolhida.maisConcentrada());
 
@@ -420,7 +420,7 @@ public final class NenTechniqueService {
     }
 
     private static void recalcularRegeneracao(ServerPlayer jogador, RuntimeNenState estado) {
-        recalcularDerivados(estado, NenGyoService.regiaoDe(jogador));
+        recalcularDerivados(estado, NenGyoService.focoDe(jogador));
     }
 
     /**

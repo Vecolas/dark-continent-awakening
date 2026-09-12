@@ -338,8 +338,8 @@ O que as técnicas futuras fazem com isso:
 
 Isso torna Gyo, Ko e Ryu **mudança de número**, e não renderer novo. A
 autoridade continua sendo o servidor: `AuraDistribution` de `client/vfx/` é
-**projeção** do que chegou, e perde o construtor próprio quando o delta carregar
-o campo (ADR-014).
+**projeção** do que chegou, por `AuraDistribution.daAlocacao(...)` — e isso já
+está em jogo desde o PR #211 (ADR-014).
 
 ---
 

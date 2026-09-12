@@ -67,13 +67,34 @@ precisa de qualquer jeito.
 | `AuraVisualQuality` | **fica** | ganha `ULTRA` e os interruptores separados |
 | `AuraRenderLod` | **fica, recalibrado** | os cortes 8/20/40 passam para a tabela de cinco níveis no AV3 |
 | `AuraBodyRegion` | **fica** | vira índice de intensidade no shader |
-| `AuraDistribution` | **fica, rebaixado** | vira **projeção** do delta do servidor e perde o construtor próprio (ADR-014) |
+| `AuraDistribution` | **fica, rebaixado** | virou **projeção** do delta do servidor no PR #211, por `daAlocacao(...)`. Os construtores próprios **ficam** — ver a nota abaixo |
 | `AuraFlowPattern` / `AuraFlowSample` | **substituídos** | eram posicionamento barato de filamento sem renderer; o lugar deles é `ribbon/AuraCurve` |
 | `AuraImpactState` | **fica** | passa a alimentar o ripple localizado de verdade |
 | `ModoVisualDeTecnica` | **fica** | a precedência (Zetsu > Ren > Ten) continua sendo a única ponte domínio → visual |
 | `SessaoDeVfxDeAura` | **fica** | continua sendo o dono do controlador e o único que o tica |
 | `EstadoVisualDeTerceiro` | **fica** | a decisão de derivar em vez de guardar estado por entidade continua certa |
 | `EmissorDeParticulasDeAura` | **rebaixado a acabamento** | deixa de ser "a aura" e passa a ser faísca, com o teto que já tem |
+
+#### Uma discrepancia entre o ADR-014 e o codigo que ele gerou
+
+O [ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md), em *Custo assumido*,
+promete que `AuraDistribution` **"deixa de ter construtor proprio assim que o
+delta carregar o campo"**. O delta passou a carregar o campo no PR #211 — e os
+construtores **continuam la**, de proposito.
+
+O codigo esta certo, e o texto do ADR e que envelheceu. A razao esta escrita no
+proprio arquivo: a transicao **interpola entre duas distribuicoes**, e Zetsu
+**zera todas as regioes** — nenhuma das duas vem do servidor, porque nenhuma
+delas e um fato de gameplay. Sao quadros intermediarios de uma animacao local.
+
+A regra que o ADR-014 queria proteger sobrevive inteira, e e mais estreita do
+que a frase que ele usou: **ninguem inventa aqui uma distribuicao que influencie
+dano, custo ou alcance.** Essa nasce no servidor. Construir uma distribuicao
+para desenhar um quadro de transicao nunca foi o risco.
+
+Registrado aqui, e nao corrigido dentro do ADR-014, porque ADR e registro
+historico de decisao e porque aquele arquivo e da outra lane. O ajuste da frase
+e dela.
 
 ### A janela em que o jogo fica pior antes de ficar melhor
 

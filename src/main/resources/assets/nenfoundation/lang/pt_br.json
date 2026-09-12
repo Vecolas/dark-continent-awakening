@@ -50,6 +50,7 @@
   "nenfoundation.ficha.habilidades_total": "Habilidades desbloqueadas",
   "nenfoundation.ficha.marcos_total": "Marcos de progressao",
   "key.nenfoundation.overlay_de_debug": "Overlay tecnico (depuracao)",
+  "key.nenfoundation.ajustar_output": "Ajustar Output de Aura (Shift para diminuir)",
   "nenfoundation.error.limite": "Muitos pedidos de Nen. Aguarde um instante.",
   "nenfoundation.error.estado_invalido": "Seu estado atual nao permite esse pedido.",
   "nenfoundation.error.nao_desperto": "Voce ainda nao despertou o Nen.",

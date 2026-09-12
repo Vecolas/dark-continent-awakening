@@ -17,16 +17,23 @@ O gate original falava em **quatro** técnicas. São **três**.
 | Ten | entregue | #86 |
 | Ren | entregue | #87 |
 | Zetsu | entregue | #125 |
-| **Gyo** | **não existe** | #126, com bloqueios nomeados |
+| **Gyo** | entregue pela metade | #126 |
+| **Shu** | entregue | #162 |
+| **Ken** | entregue | #162 |
+| **Ko** | entregue | #162 |
 
-Gyo ficou de fora porque as duas metades dele — concentrar aura numa região e
-perceber o que está escondido — não têm substrato: não há modelo de alocação de
-aura, não há camada de percepção, e `nen/combat/` tem só o `package-info`.
-Implementar assim mesmo produziria uma técnica que custa aura e não faz nada
-observável.
+**Este gate passou a cobrir SETE técnicas, e não três.** O texto que estava
+aqui dizia que Gyo *não existe* e que `nen/combat/` tem só o `package-info` —
+os dois deixaram de ser verdade em 2026-09-12, e ninguém voltou para apagá-los.
+Um roteiro que descreve um estado antigo manda conferir três técnicas num jogo
+que tem sete: as outras quatro não aparecem em lugar nenhum da lista, e é assim
+que um item passa a não ser testado por ninguém.
 
-**Este gate cobre três técnicas.** Dizer "as quatro passaram" seria falso verde
-sobre uma técnica que não existe.
+**Das duas metades de Gyo, uma existe.** Concentrar aura numa região está de
+pé, com ADR próprio ([ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md)),
+o modelo no servidor e a alocação chegando ao cliente. **Perceber o que está
+escondido não existe** — não há camada de percepção, e não há In para esconder
+nada. É essa metade, e só ela, que continua em #126.
 
 ---
 
@@ -150,7 +157,7 @@ registrada.
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
 | C1 | Ligar Ren e esperar a aura zerar | Ren desliga sozinho | ✅ **automatizado** — `tenCaiQuandoAAuraAcaba` |
-| C2 | O motivo do desligamento | `OUT_OF_AURA` | ✅ **automatizado** — mesmo teste |
+| C2 | O motivo do desligamento | `OUT_OF_AURA` | ✅ **automatizado** — `auraZeroEncerraComOUT_OF_AURA` |
 | C3 | Várias técnicas com pouca aura | caem até sobrar o que cabe, e a aura não fica negativa | ✅ **automatizado** — `semAuraAsTecnicasCaemAteSobrarOQueCabe` |
 
 ### D. Pontos de saída — o item mais importante
@@ -248,7 +255,7 @@ desenho — **Zetsu não vazar** — só podia ser provada aqui.
 
 | Quem revisa | O quê | Feito |
 | --- | --- | --- |
-| Dev A | Zetsu (e Gyo, que não existe — revisar os bloqueios de #126) | |
+| Dev A | Zetsu e Gyo | |
 | Dev B | Ten e Ren | |
 
 ---

@@ -4,8 +4,10 @@ import com.darkcontinent.nenfoundation.enemy.api.CanonLevel;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyFaction;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
+import com.darkcontinent.nenfoundation.enemy.ai.AmbushRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
+import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPoint;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
@@ -63,10 +65,57 @@ public final class HunterExamProfiles {
         return new WeakPointResolver("forehead", "body", 0.62D, 0.5D);
     }
 
+    /**
+     * HP 50, dano de rajada 10, velocidade FORA DA TERRA 0.12 -- o sapo so anda
+     * depois de desenterrar.
+     *
+     * <p>maxLight 15: o frog-in-waiting passa o tempo ENTERRADO. Exigir
+     * escuridao para ele nascer faria a emboscada simplesmente nunca existir --
+     * e isso nao da erro nenhum, aparece como um pantano vazio que ninguem
+     * consegue explicar. A faixa antiga (0 a 7) foi escrita antes de existir o
+     * estado enterrado, quando "emboscador" ainda queria dizer "noturno".</p>
+     */
     public static EnemyDefinition frogInWaiting() {
         return new EnemyDefinition(metadata("frog_in_waiting", ThreatTier.DANGEROUS, true, false),
                 new EnemyAttributes(50, 0.12F, 10, 3, 20, 0.35F),
-                spawn("#nenfoundation:swamp_predator_biomes", 0, 7, false, true, 2));
+                spawn("#nenfoundation:swamp_predator_biomes", 0, 15, false, true, 2));
+    }
+
+    /**
+     * Emerge de 10 ticks, bocada de 4, digestao de 20.
+     *
+     * <p>O WINDUP E O AVISO. Meio segundo de solo se abrindo e o unico tempo
+     * que o jogador tem antes de ser engolido; encurtar isto transforma o mob
+     * em morte sem telegrafo, que e justamente o que o plano proibe. O WINDUP e
+     * interrompivel, a bocada NAO: quem ja foi mordido nao perde a mordida por
+     * um tapa dado no mesmo tick.</p>
+     */
+    public static AttackDefinition frogSwallow() {
+        return new AttackDefinition("swallow", 10, 4, 20, 10, 0.4F, true, false, true);
+    }
+
+    /**
+     * Cilindro de gatilho de 2.5 blocos por 2 de altura, 5 segundos de recarga
+     * e 3 segundos sem alvo antes de se enterrar de novo.
+     *
+     * <p>O raio esta amarrado a caixa (1.4 x 1.0): gatilho maior do que o
+     * alcance da bocada produz uma emboscada que emerge longe e nao pega
+     * ninguem -- sem erro nenhum no log.</p>
+     */
+    public static AmbushRules frogAmbushRules() {
+        return new AmbushRules(2.5D, 2.0D, 100, 60);
+    }
+
+    /**
+     * 5 segundos preso, um pulso de 3 de dano por segundo, e 12 de dano NO SAPO
+     * compram a soltura.
+     *
+     * <p>Os numeros se leem juntos: aguentar os 100 ticks calado custa 15 de
+     * vida (5 pulsos), enquanto reagir custa acertar 12 num sapo de 50 -- bater
+     * tem de ser MELHOR do que esperar, ou a janela de escape e decorativa.</p>
+     */
+    public static GrabRules frogGrabRules() {
+        return new GrabRules(100, 20, 3.0F, 12.0F);
     }
 
     public static EnemyDefinition foxbear() {

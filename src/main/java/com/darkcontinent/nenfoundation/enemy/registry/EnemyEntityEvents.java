@@ -1,10 +1,13 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
+import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
@@ -16,24 +19,44 @@ public final class EnemyEntityEvents {
 
     public static void attributes(EntityAttributeCreationEvent event) {
         event.put(EnemyEntityTypes.GREAT_STAMP.get(), GreatStampEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.FROG_IN_WAITING.get(), FrogInWaitingEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
-        // Os limites de luz sao LIDOS do perfil, nao repetidos aqui. Antes o 10 estava
-        // nos dois lugares; girar o numero na SpawnRule nao mudava nada em jogo, e o
-        // botao morto so aparece depois de uma tarde de balanceamento perdida.
-        SpawnRule regra = HunterExamProfiles.greatStamp().spawnRule();
-        int luzMinima = regra.minLight();
-        int luzMaxima = regra.maxLight();
         event.register(EnemyEntityTypes.GREAT_STAMP.get(),
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                (type, level, spawnType, pos, random) -> {
-                    int luz = level.getMaxLocalRawBrightness(pos);
-                    return spawnType != MobSpawnType.SPAWNER
-                            && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)
-                            && luz >= luzMinima && luz <= luzMaxima;
-                },
+                noChaoComLuzDoPerfil(HunterExamProfiles.greatStamp().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // O sapo tambem nasce no chao: ele emboscada ENTERRADO, e nao ha "enterrar"
+        // sem um bloco solido embaixo. A faixa de luz e a do perfil dele, que vai ate
+        // 15 justamente porque exigir escuridao faria a emboscada nunca nascer.
+        event.register(EnemyEntityTypes.FROG_IN_WAITING.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+    }
+
+    /**
+     * Predicado unico de "chao solido, dentro da faixa de luz DO PERFIL, e nao
+     * vindo de spawner".
+     *
+     * <p>Os limites de luz sao LIDOS do perfil, nao repetidos aqui. Antes o 10
+     * do great stamp estava nos dois lugares; girar o numero na {@link SpawnRule}
+     * nao mudava nada em jogo, e o botao morto so aparece depois de uma tarde de
+     * balanceamento perdida. Com dois mobs usando a mesma forma, copiar o corpo
+     * do predicado faria a mesma divergencia nascer de novo -- em dobro.</p>
+     */
+    private static <T extends Entity> SpawnPlacements.SpawnPredicate<T> noChaoComLuzDoPerfil(SpawnRule regra) {
+        int luzMinima = regra.minLight();
+        int luzMaxima = regra.maxLight();
+        return (type, level, spawnType, pos, random) -> {
+            int luz = level.getMaxLocalRawBrightness(pos);
+            return spawnType != MobSpawnType.SPAWNER
+                    && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)
+                    && luz >= luzMinima && luz <= luzMaxima;
+        };
     }
 }

@@ -172,6 +172,10 @@ O procedimento inteiro esta em
 | Ninguém viu o Great Stamp na tela | a geometria é emprestada do hoglin e o telégrafo de cabeça baixa lê a fase sincronizada; que a pose leia como "vai investir" só `runClient` à mão responde | QA manual dos inimigos |
 | A manada nunca nasceu num mundo | o biome modifier e a tag de bioma existem e o placement lê a faixa de luz do perfil, mas nenhum mundo foi gerado para conferir que o spawn natural acontece | QA manual dos inimigos |
 | O multiplicador da testa não tem prova de lado único | o teste garante que resolver e catálogo não divergem, mas que nenhum OUTRO ponto do mod multiplique o mesmo dano é hoje só disciplina, não portão | quando nascer dano de Nen (M5) |
+| O agarrão do Frog-In-Waiting nunca prendeu ninguém | `GrabRules` e `AmbushRules` são puros e testados, e a régua garante que a janela de reação existe nos números; que a vítima de fato monte no sapo, apanhe em pulsos e seja solta só `runGameTestServer` ou teste manual respondem | gametest de inimigos |
+| A recusa de desmontagem é ampla de propósito | enquanto o agarrão dura, `EntityMountEvent` é cancelado para aquela vítima — inclusive se a desmontagem vier de fora (um `/tp`, outro mod). O prejuízo está limitado aos 100 ticks; soltar de graça por qualquer efeito seria pior | quando houver razão medida para afinar |
+| Ninguém viu o sapo enterrado na tela | o corpo some por `skipDraw` e sobra cabeça e olhos, e a boca abre pela fase publicada pelo servidor; o sinal da rotação da boca e a leitura de "perturbação no solo" só `runClient` à mão respondem | QA manual dos inimigos |
+| O agarrão não sobrevive ao save | vítima, relógio e dano acumulado são runtime; ao recarregar, o sapo ejeta quem o vanilla restaurou como passageiro. É escolha, não descuido — mas nunca foi exercitada num mundo real | gametest de inimigos |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em

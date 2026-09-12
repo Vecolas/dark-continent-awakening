@@ -116,6 +116,7 @@ public final class NenPlayerLifecycle {
             desligarTecnicasEmSilencio(jogador, StopReason.LOGOUT);
             NenRuntimeService.encerrarSessao(jogador);
             NenPresencaService.esquecer(jogador);
+            NenGyoService.esquecer(jogador);
             PedidosC2S.encerrar(jogador.connection.getConnection());
         }
     }

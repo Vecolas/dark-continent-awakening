@@ -94,10 +94,9 @@ O ADR-009 exige aprovacao registrada dos dois desenvolvedores.
 | Desenvolvedor | Papel | Aprovacao |
 | --- | --- | --- |
 | **@Vecolas** | Dev A — nucleo | **aprovado**, por instrucao direta nesta sessao: *"o zetsu tem que regenerar as auras mesmo, e assim que funciona no anime"* e *"o ten regenera um pouco mantendo a protecao"* |
-| **@jonex-01** | Dev B — superficie | **pendente** — nao houve relato de aprovacao para esta emenda |
+| **@jonex-01** | Dev B — superficie | **aprovado**, relatado por @Vecolas em 2026-09-12 |
 
-> A aprovacao do Dev B esta **em aberto**, e isto e deliberado: o ADR-010
-> original registrou a dele como relatada por @Vecolas, e repetir o relato sem
-> ele ter sido dado seria inventar consentimento. A emenda entra em vigor no
-> codigo porque o responsavel pelo nucleo decidiu; o registro diz a verdade
-> sobre quem aprovou o que.
+> A aprovacao do Dev B foi **relatada por @Vecolas**, e nao dada diretamente ao
+> agente -- do mesmo jeito que no ADR-010. Fica registrado assim, e nao como
+> aprovacao direta, porque a diferenca importa se algum dia alguem precisar
+> saber quem leu o que.

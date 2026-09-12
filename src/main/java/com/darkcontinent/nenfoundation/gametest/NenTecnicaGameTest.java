@@ -8,6 +8,10 @@ import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.technique.Gyo;
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
+import com.darkcontinent.nenfoundation.nen.technique.RedistribuiAura;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -473,6 +477,12 @@ public final class NenTecnicaGameTest {
         if (!ids.contains(Zetsu.ID)) {
             todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
                     () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        if (!ids.contains(Gyo.ID)) {
+            // Gyo entrou no quarteto quando a alocacao nasceu (ADR-014), e o
+            // portao de simetria cobrou na hora: Zetsu passou a recusar Gyo, e
+            // sem ele aqui a exclusao vira orfa e o registro nao sela.
+            todas.add(new Gyo(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme()));
         }
         return List.copyOf(todas);
     }
@@ -1037,6 +1047,129 @@ public final class NenTecnicaGameTest {
                             + " derrubado por conflito: " + estado.outputMaximo()
                             + ". Derrubar por conflito e um ponto de saida como"
                             + " outro qualquer, e ele tambem precisa limpar.");
+        });
+
+        helper.succeed();
+    }
+
+    // ------------------------------------------------- alocacao (ADR-014)
+
+    /** So redistribui. Sem custo, para medir a alocacao sem medir aura. */
+    private static final class Concentradora
+            implements NenTechnique, RedistribuiAura {
+        private final ResourceLocation id;
+        private final RegiaoDoCorpo regiao;
+        private final float fracao;
+
+        Concentradora(String nome, RegiaoDoCorpo regiao, float fracao) {
+            this.id = idDeTeste(nome);
+            this.regiao = regiao;
+            this.fracao = fracao;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+
+        @Override
+        public AlocacaoDeAura alocacaoDesejada(RegiaoDoCorpo foco) {
+            // IGNORA O FOCO de proposito: este duble representa uma tecnica de
+            // regiao fixa, como Ko num ponto escolhido antes.
+            return AlocacaoDeAura.concentrando(this.regiao, this.fracao);
+        }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void aAlocacaoNasceUniformeEVoltaAoDesligar(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Concentradora gyo = new Concentradora("gyo", RegiaoDoCorpo.CABECA, 0.45F);
+
+        comRegistro(List.of(gyo), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            exigir(estado.alocacao().equals(AlocacaoDeAura.uniforme()),
+                    "sessao nova nao nasceu com a aura espalhada: " + estado.alocacao()
+                            + ". Repouso uniforme e estado DEFINIDO, e nao ausencia"
+                            + " de estado.");
+
+            NenTechniqueService.ativar(jogador, gyo.id());
+            exigir(estado.alocacao().em(RegiaoDoCorpo.CABECA) > 0.4F,
+                    "concentrar nao mudou a alocacao: " + estado.alocacao());
+            exigir(estado.alocacao().em(RegiaoDoCorpo.PERNA_DIREITA)
+                            < AlocacaoDeAura.uniforme().em(RegiaoDoCorpo.PERNA_DIREITA),
+                    "concentrar na cabeca nao TIROU das pernas. Sem a troca, Gyo"
+                            + " vira bonus em vez de escolha.");
+
+            NenTechniqueService.desligar(jogador, gyo.id(), StopReason.PLAYER_REQUEST);
+            exigir(estado.alocacao().equals(AlocacaoDeAura.uniforme()),
+                    "A ALOCACAO FICOU PRESA depois de desligar: " + estado.alocacao()
+                            + ". Isto nao da erro nenhum -- o jogador so continua"
+                            + " com a aura concentrada para sempre.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void entreDuasAlocacoesValeAMaisConcentrada(GameTestHelper helper) {
+        // NEM SOMA NEM MEDIA. Somar estouraria a invariante de 1.0 na primeira
+        // combinacao. A media seria pior de um jeito mais sutil: Ko com Ken
+        // viraria uma concentracao morna -- nem a defesa do corpo inteiro, nem
+        // o punho devastador -- que e o oposto do que as duas fazem.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Concentradora leve = new Concentradora("leve", RegiaoDoCorpo.CABECA, 0.4F);
+        Concentradora ko = new Concentradora("ko", RegiaoDoCorpo.BRACO_DIREITO, 0.9F);
+
+        comRegistro(List.of(leve, ko), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            NenTechniqueService.ativar(jogador, leve.id());
+            NenTechniqueService.ativar(jogador, ko.id());
+
+            exigir(estado.alocacao().maisConcentrada() == RegiaoDoCorpo.BRACO_DIREITO,
+                    "com as duas ativas, venceu " + estado.alocacao().maisConcentrada()
+                            + " em vez do braco. A intencao mais extrema vence.");
+            exigir(estado.alocacao().em(RegiaoDoCorpo.BRACO_DIREITO) > 0.85F,
+                    "a concentracao foi diluida: " + estado.alocacao());
+            exigir(estado.alocacao().soma(),
+                    "a alocacao combinada nao fecha em 1.0: " + estado.alocacao());
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void aAlocacaoNaoAtravessaAMorte(GameTestHelper helper) {
+        // O terceiro derivado, e o mais facil de esquecer: teto e multiplicador
+        // ja tem teste de ponto de saida; a alocacao nasceu depois deles.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Concentradora ko = new Concentradora("morte", RegiaoDoCorpo.BRACO_DIREITO, 0.95F);
+
+        comRegistro(List.of(ko), () -> {
+            NenTechniqueService.ativar(jogador, ko.id());
+            exigir(NenRuntimeService.estadoDe(jogador).alocacao()
+                            .em(RegiaoDoCorpo.BRACO_DIREITO) > 0.9F,
+                    "a concentracao nao aconteceu; o teste mediria o vazio.");
+
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                    new net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone(
+                            jogador, jogador, true));
+
+            exigir(NenRuntimeService.estadoDe(jogador).alocacao()
+                            .equals(AlocacaoDeAura.uniforme()),
+                    "A ALOCACAO ATRAVESSOU A MORTE: "
+                            + NenRuntimeService.estadoDe(jogador).alocacao()
+                            + ". O jogador renasceria com quase toda a aura num"
+                            + " braco, sem nada na tela dizendo por que.");
         });
 
         helper.succeed();

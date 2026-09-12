@@ -8,6 +8,7 @@ import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.progression.Marcos;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -126,7 +127,8 @@ public final class NenAwakeningService {
     static PersistentNenData comDespertar(PersistentNenData antes) {
         if (antes.awakened() && antes.temMarco(Marcos.DESPERTOU)
                 && antes.conheceTecnica(Ten.ID) && antes.conheceTecnica(Ren.ID)
-                && antes.conheceTecnica(Zetsu.ID)) {
+                && antes.conheceTecnica(Zetsu.ID)
+                && antes.conheceTecnica(Gyo.ID)) {
             return antes;
         }
         Set<ResourceLocation> marcos = new LinkedHashSet<>(antes.progressionFlags());
@@ -146,6 +148,7 @@ public final class NenAwakeningService {
         tecnicas.add(Ten.ID);
         tecnicas.add(Ren.ID);
         tecnicas.add(Zetsu.ID);
+        tecnicas.add(Gyo.ID);
 
         return new PersistentNenData(
                 antes.schemaVersion(),

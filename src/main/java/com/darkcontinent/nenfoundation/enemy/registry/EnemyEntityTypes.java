@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.enemy.registry;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,6 +26,14 @@ public final class EnemyEntityTypes {
             TYPES.register("frog_in_waiting",
                     () -> EntityType.Builder.of(FrogInWaitingEntity::new, MobCategory.CREATURE)
                             .sized(1.4F, 1.0F).build(NenFoundation.id("frog_in_waiting").toString()));
+
+    // Caixa de GENTE, de proposito: 0.9 x 1.95 e quase a do jogador. O disfarce
+    // comeca pela silhueta -- uma hitbox de macaco entregaria o bicho de longe, e a
+    // pista que o mob ensina (ele so anda quando ninguem olha) nunca seria testada.
+    public static final DeferredHolder<EntityType<?>, EntityType<ManFacedApeEntity>> MAN_FACED_APE =
+            TYPES.register("man_faced_ape",
+                    () -> EntityType.Builder.of(ManFacedApeEntity::new, MobCategory.CREATURE)
+                            .sized(0.9F, 1.95F).build(NenFoundation.id("man_faced_ape").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

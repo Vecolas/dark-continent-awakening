@@ -40,7 +40,7 @@ public final class FrogInWaitingGameTest {
     @PrefixGameTestTemplate(false)
     public static void oSapoNasceEnterrado(GameTestHelper helper) {
         FrogInWaitingEntity sapo = helper.spawn(
-                FrogInWaitingEntity.registeredType(), new BlockPos(5, 1, 5));
+                FrogInWaitingEntity.registeredType(), new BlockPos(5, 2, 5));
         helper.assertTrue(sapo.estaEnterrado(),
                 "o sapo nasceu fora da terra: a emboscada comeca entregue.");
         helper.assertFalse(sapo.estaAgarrando(),
@@ -59,8 +59,8 @@ public final class FrogInWaitingGameTest {
     @PrefixGameTestTemplate(false)
     public static void quemFoiEngolidoNaoSaiApertandoShift(GameTestHelper helper) {
         FrogInWaitingEntity sapo = helper.spawn(
-                FrogInWaitingEntity.registeredType(), new BlockPos(5, 1, 5));
-        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 1, 5));
+                FrogInWaitingEntity.registeredType(), new BlockPos(5, 2, 5));
+        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 2, 5));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(sapo.estaAgarrando(),
@@ -91,8 +91,8 @@ public final class FrogInWaitingGameTest {
     @PrefixGameTestTemplate(false)
     public static void oAgarraoSoltaQuandoOTempoAcaba(GameTestHelper helper) {
         FrogInWaitingEntity sapo = helper.spawn(
-                FrogInWaitingEntity.registeredType(), new BlockPos(5, 1, 5));
-        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 1, 5));
+                FrogInWaitingEntity.registeredType(), new BlockPos(5, 2, 5));
+        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 2, 5));
         int duracao = HunterExamProfiles.frogGrabRules().ticksMaximos();
 
         helper.startSequence()
@@ -124,8 +124,8 @@ public final class FrogInWaitingGameTest {
     @PrefixGameTestTemplate(false)
     public static void matarOSapoSoltaAVitima(GameTestHelper helper) {
         FrogInWaitingEntity sapo = helper.spawn(
-                FrogInWaitingEntity.registeredType(), new BlockPos(5, 1, 5));
-        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 1, 5));
+                FrogInWaitingEntity.registeredType(), new BlockPos(5, 2, 5));
+        IronGolem presa = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(6, 2, 5));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(sapo.estaAgarrando(),

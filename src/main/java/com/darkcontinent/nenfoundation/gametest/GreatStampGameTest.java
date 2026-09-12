@@ -27,8 +27,16 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
  *
  * <p>COMO A ARENA FOI GERADA: NBT gzipado com {@code size=[11,6,11]},
  * {@code palette=[air, stone]}, {@code DataVersion=3955} e 121 entradas de
- * {@code blocks} formando o piso em y=0 -- o mesmo esquema do {@code empty.nbt},
- * lido dele campo a campo. E binario e gerado; nao se edita a mao.
+ * {@code blocks} formando o piso na camada 0 do template -- o mesmo esquema do
+ * {@code empty.nbt}, lido dele campo a campo. E binario e gerado; nao se edita a mao.
+ *
+ * <p><b>O PISO FICA EM y=1, E NAO EM y=0.</b> {@code prepareTestStructure} cria o
+ * structure block UM BLOCO ABAIXO do conteudo ({@code blockpos.below()}), e
+ * {@code helper.absolutePos} conta a partir do structure block. Entao a camada 0 do
+ * template chega como y=1 relativo, e QUEM NASCE EM y=1 NASCE DENTRO DA PEDRA.
+ * Isso custou uma investigacao: o macaco, o mais alto dos tres mobs, apanhava de
+ * {@code inWall} e largava o disfarce -- o teste reprovava com uma mensagem que
+ * culpava o mob. Todo spawn destes cenarios usa y=2.
  *
  * <p>A VITIMA DE TESTE E UM GOLEM DE FERRO, e isso nao e capricho:
  * {@code makeMockServerPlayerInLevel()} devolve um jogador com
@@ -56,9 +64,9 @@ public final class GreatStampGameTest {
     @PrefixGameTestTemplate(false)
     public static void aTestaDoiMaisQueOCorpo(GameTestHelper helper) {
         GreatStampEntity pelaFrente = helper.spawnWithNoFreeWill(
-                GreatStampEntity.registeredType(), new BlockPos(3, 1, 5));
+                GreatStampEntity.registeredType(), new BlockPos(3, 2, 5));
         GreatStampEntity pelasCostas = helper.spawnWithNoFreeWill(
-                GreatStampEntity.registeredType(), new BlockPos(7, 1, 5));
+                GreatStampEntity.registeredType(), new BlockPos(7, 2, 5));
         encarar(pelaFrente);
         encarar(pelasCostas);
 
@@ -98,8 +106,8 @@ public final class GreatStampGameTest {
     @GameTest(template = ARENA, timeoutTicks = 300)
     @PrefixGameTestTemplate(false)
     public static void aFaseDaCargaNuncaFicaPresa(GameTestHelper helper) {
-        GreatStampEntity stamp = helper.spawn(GreatStampEntity.registeredType(), new BlockPos(2, 1, 5));
-        IronGolem vitima = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(8, 1, 5));
+        GreatStampEntity stamp = helper.spawn(GreatStampEntity.registeredType(), new BlockPos(2, 2, 5));
+        IronGolem vitima = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(8, 2, 5));
         encarar(stamp);
         stamp.setTarget(vitima);
 
@@ -123,10 +131,10 @@ public final class GreatStampGameTest {
     @GameTest(template = ARENA, timeoutTicks = 300)
     @PrefixGameTestTemplate(false)
     public static void aManadaNaoSeMata(GameTestHelper helper) {
-        GreatStampEntity queInveste = helper.spawn(GreatStampEntity.registeredType(), new BlockPos(2, 1, 5));
+        GreatStampEntity queInveste = helper.spawn(GreatStampEntity.registeredType(), new BlockPos(2, 2, 5));
         GreatStampEntity noCaminho = helper.spawnWithNoFreeWill(
-                GreatStampEntity.registeredType(), new BlockPos(4, 1, 5));
-        IronGolem alvo = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(9, 1, 5));
+                GreatStampEntity.registeredType(), new BlockPos(4, 2, 5));
+        IronGolem alvo = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(9, 2, 5));
         encarar(queInveste);
         encarar(noCaminho);
         queInveste.setTarget(alvo);

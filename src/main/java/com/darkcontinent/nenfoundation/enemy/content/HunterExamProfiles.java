@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.enemy.api.EnemyFaction;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
 import com.darkcontinent.nenfoundation.enemy.ai.AmbushRules;
+import com.darkcontinent.nenfoundation.enemy.ai.DisguiseRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
@@ -116,6 +117,82 @@ public final class HunterExamProfiles {
      */
     public static GrabRules frogGrabRules() {
         return new GrabRules(100, 20, 3.0F, 12.0F);
+    }
+
+    /**
+     * HP 24, dano 4, velocidade 0.29, armadura 1 -- corpo FRAGIL de proposito.
+     *
+     * <p>A forca do man-faced ape e engano e numeros, nao couro. Dar a ele um
+     * corpo que aguenta troca de golpes premiaria justamente o jogador que NAO
+     * percebeu o disfarce, e a pista observavel viraria enfeite. Pelo mesmo
+     * motivo ele nao tem ponto fraco: nao ha regiao a acertar num bicho que ja
+     * morre rapido inteiro.</p>
+     *
+     * <p>territorial=false e social=true: ele nao defende lugar nenhum (nunca
+     * avisa, so espreita), e nasce em BANDO -- o limite de 4 por grupo e o que
+     * faz "revelar junto" ter com quem acontecer.</p>
+     *
+     * <p>maxLight 15: disfarcado de gente, ele precisa nascer de DIA, que e
+     * quando alguem passa pela selva e pode ser enganado. Exigir escuridao faria
+     * o mob nunca existir na pratica -- e isso nao da erro nenhum, aparece como
+     * uma selva vazia que ninguem consegue explicar.</p>
+     */
+    public static EnemyDefinition manFacedApe() {
+        return new EnemyDefinition(metadata("man_faced_ape", ThreatTier.DANGEROUS, false, true),
+                new EnemyAttributes(24, 0.29F, 4, 1, 24, 0.1F),
+                spawn("#nenfoundation:jungle_ambusher_biomes", 0, 15, true, false, 4));
+    }
+
+    /**
+     * Golpe de 8 ticks de aviso, 4 de janela e 12 de recuperacao.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: ele e lido de {@link #manFacedApe()},
+     * porque o corpo a corpo do macaco e o ataque comum dele -- o mesmo
+     * ATTACK_DAMAGE que o atributo publica. Repetir o 4 aqui criaria duas fontes
+     * para a mesma verdade: girar o atributo numa sessao de balanceamento
+     * mudaria o golpe em jogo e nao mudaria este numero, e a divergencia so
+     * apareceria como uma representacao que promete um dano diferente do que o
+     * jogador leva.</p>
+     */
+    public static AttackDefinition manFacedApeStrike() {
+        return new AttackDefinition("strike", 8, 4, 12,
+                manFacedApe().attributes().attackDamage(), 0.5F, true, false, true);
+    }
+
+    /**
+     * Revela a 3.5 blocos, encara a partir de cosseno 0.6, chama o bando num
+     * raio de 12 e telegrafa por 10 ticks.
+     *
+     * <p>Os numeros se leem juntos: 0.6 e cerca de 53 graus para cada lado do
+     * olhar -- o jogador nao precisa mirar em cheio, basta manter o macaco no
+     * campo de visao, que e a contrapartida ensinavel. O raio do bando e maior
+     * que a distancia de revelacao DE PROPOSITO: quem revela precisa alcancar
+     * companheiros que ainda estao longe do jogador, ou "pack ambush" viraria
+     * "um macaco por vez".</p>
+     */
+    public static DisguiseRules manFacedApeDisguise() {
+        return new DisguiseRules(3.5D, 0.6D, 12.0D, 10);
+    }
+
+    /**
+     * Os ids que ESTE repositorio ja publica como entidade registrada.
+     *
+     * <p>ACRESCENTE O MOB AQUI NO MESMO PR QUE REGISTRA O ENTITYTYPE DELE. O
+     * portao de spawn varre esta lista para exigir que toda tag de bioma
+     * declarada exista como arquivo E seja referenciada por um biome modifier;
+     * um mob de FORA desta lista fica SEM PORTAO, e nada acusa -- ele apenas
+     * nunca aparece no mundo, e o relato de bug vira "o bioma esta vazio".</p>
+     *
+     * <p>"foxbear" fica de fora DE PROPOSITO: ele pertence a outra frente, hoje
+     * nao tem arquivo de tag nem biome modifier, e essa divida e dela. Inclui-lo
+     * aqui transformaria o portao num alarme que esta lane nao pode desligar --
+     * e portao que ninguem consegue apagar acaba ignorado.</p>
+     */
+    public static Map<String, EnemyDefinition> publicados() {
+        return Map.of(
+                "great_stamp", greatStamp(),
+                "frog_in_waiting", frogInWaiting(),
+                "man_faced_ape", manFacedApe());
     }
 
     public static EnemyDefinition foxbear() {

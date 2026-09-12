@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:jungle_ambusher_biomes",
+  "spawners": [
+    {
+      "type": "nenfoundation:man_faced_ape",
+      "weight": 10,
+      "minCount": 2,
+      "maxCount": 4
+    }
+  ]
+}

@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.enemy.registry;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -20,6 +21,7 @@ public final class EnemyEntityEvents {
     public static void attributes(EntityAttributeCreationEvent event) {
         event.put(EnemyEntityTypes.GREAT_STAMP.get(), GreatStampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FROG_IN_WAITING.get(), FrogInWaitingEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MAN_FACED_APE.get(), ManFacedApeEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -36,6 +38,16 @@ public final class EnemyEntityEvents {
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // O macaco tambem nasce no chao, e com a MESMA forma de predicado: a faixa de
+        // luz dele vai ate 15 porque ele se disfarca de gente, e ninguem e enganado no
+        // escuro. Copiar o corpo do predicado aqui faria o terceiro lugar onde a mesma
+        // regra pode divergir do perfil -- por isso ele e lido, nao repetido.
+        event.register(EnemyEntityTypes.MAN_FACED_APE.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

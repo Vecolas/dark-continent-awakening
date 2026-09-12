@@ -14,7 +14,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -135,16 +134,23 @@ class FrogInWaitingPerfilTest {
      * de bioma declarada no perfil precisa existir como arquivo de tag E ser referenciada
      * por pelo menos um biome modifier.
      *
-     * <p>"foxbear" fica FORA desta lista DE PROPOSITO: ele pertence a outra frente, hoje
-     * nao tem arquivo de tag nem biome modifier, e essa divida e dela. Incluir o foxbear
-     * aqui transformaria este portao num alarme que a nossa lane nao pode desligar --
-     * e portao que ninguem consegue apagar acaba sendo ignorado.</p>
+     * <p>A lista dos publicados vem de {@link HunterExamProfiles#publicados()}, e nao de
+     * um bloco escrito a mao aqui dentro. Escrita a mao ela era uma SEGUNDA fonte da
+     * mesma verdade: o mob novo entrava no jogo e ficava de fora do portao, que seguia
+     * verde varrendo menos. Agora o lugar de lembrar e um so, e todo mob publicado cai
+     * neste portao sozinho.</p>
+     *
+     * <p>"foxbear" fica FORA de {@code publicados()} DE PROPOSITO: ele pertence a outra
+     * frente, hoje nao tem arquivo de tag nem biome modifier, e essa divida e dela.
+     * Inclui-lo transformaria este portao num alarme que a nossa lane nao pode desligar
+     * -- e portao que ninguem consegue apagar acaba sendo ignorado.</p>
      */
     @Test
     void todaTagDeBiomaDeclaradaExisteETemBiomeModifier() {
-        Map<String, EnemyDefinition> publicados = new LinkedHashMap<>();
-        publicados.put("great_stamp", HunterExamProfiles.greatStamp());
-        publicados.put("frog_in_waiting", HunterExamProfiles.frogInWaiting());
+        Map<String, EnemyDefinition> publicados = HunterExamProfiles.publicados();
+        assertFalse(publicados.isEmpty(),
+                "HunterExamProfiles.publicados() veio vazio: varredura vazia nao e aprovacao, "
+                        + "e um portao que nao varre ninguem passa sempre");
 
         Path raiz = Repo.raiz();
         List<Path> modificadores = Repo.varrer(

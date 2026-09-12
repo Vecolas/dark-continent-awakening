@@ -375,15 +375,23 @@ public final class FrogInWaitingEntity extends BaseHxHMob {
         if (estaAgarrando()) return;
         AABB boca = getBoundingBox().inflate(ALCANCE_DA_BOCADA);
         for (LivingEntity vitima : level().getEntitiesOfClass(LivingEntity.class, boca, this::presaValida)) {
-            if (!vitima.hurt(damageSources().mobAttack(this), BOCADA.damage())) continue;
-            if (vitima.startRiding(this, true)) {
-                vitimaAgarrada = vitima;
-                ticksAgarrado = 0;
-                danoDesdeOAgarrao = 0.0F;
+            // AGARRA PRIMEIRO, MORDE DEPOIS -- e nao o contrario.
+            //
+            // Condicionar o agarrao ao dano da mordida parece natural e quebra o mob
+            // inteiro em dois casos reais: no PACIFICO o dano de mob contra jogador e
+            // zerado e hurt() devolve false, e durante os ticks de invulnerabilidade
+            // de um golpe anterior tambem. Nos dois o sapo morderia para sempre sem
+            // nunca engolir ninguem -- sem erro nenhum no log.
+            if (!vitima.startRiding(this, true)) {
+                // Nao coube na boca: leva a mordida e o empurrao, e a bocada segue vazia.
+                vitima.hurt(damageSources().mobAttack(this), BOCADA.damage());
+                vitima.knockback(BOCADA.knockback(), getX() - vitima.getX(), getZ() - vitima.getZ());
                 return;
             }
-            // Nao coube na boca: leva o empurrao da mordida e a bocada segue vazia.
-            vitima.knockback(BOCADA.knockback(), getX() - vitima.getX(), getZ() - vitima.getZ());
+            vitimaAgarrada = vitima;
+            ticksAgarrado = 0;
+            danoDesdeOAgarrao = 0.0F;
+            vitima.hurt(damageSources().mobAttack(this), BOCADA.damage());
             return;
         }
     }

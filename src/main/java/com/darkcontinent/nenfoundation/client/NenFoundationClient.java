@@ -9,6 +9,9 @@ import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
+import com.darkcontinent.nenfoundation.client.vfx.render.AuraRenderRegistro;
 import com.darkcontinent.nenfoundation.client.vfx.EstadoVisualDeTerceiro;
 import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import com.darkcontinent.nenfoundation.client.vfx.EmissorDeParticulasDeAura;
@@ -90,6 +93,13 @@ public final class NenFoundationClient {
 
         modEventBus.addListener(NenKeybinds::registrar);
         modEventBus.addListener(EnemyRenderers::registrar);
+        modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
+        modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
+
+        // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
+        // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a
+        // sessao do jogador local e o cache dos sinais dos outros.
+        AuraVisualSystem.ligar(this::estadoVisualDe);
 
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
@@ -114,6 +124,12 @@ public final class NenFoundationClient {
         // primeiro delta do servidor novo chegar -- e, se ele nunca chegar
         // porque o jogador nao despertou la, para sempre.
         this.vfx.limpar();
+        // A FONTE DO AuraVisualSystem NAO E DESLIGADA AQUI, e isso e
+        // deliberado. `ligar` acontece uma vez, no construtor, e este objeto
+        // vive tanto quanto o mod; desligar no logout deixaria a aura morta
+        // para sempre a partir do segundo servidor -- sem erro nenhum. O que
+        // precisa ser limpo por sessao e o ESTADO, e ele acabou de ser: o
+        // cache acima e a sessao de vfx na linha anterior.
         this.errosExibidos = 0;
         this.ticksDaSessao = 0;
     }
@@ -193,6 +209,39 @@ public final class NenFoundationClient {
         EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
 
         this.tickDaAuraDosOutros(mc, densidade);
+    }
+
+    /**
+     * O estado visual de um jogador, para quem vai DESENHAR.
+     *
+     * <p>E a fonte que o {@link AuraVisualSystem} entrega a layer, e a razao de
+     * ela existir: a layer nao pode conhecer cache nem rede, senao cada renderer
+     * novo reimplementaria esta regra e os dois divergiriam.
+     *
+     * <p>DOIS CAMINHOS, e eles nao sao simetricos de proposito. O jogador local
+     * tem um interpolador com transicao; os outros sao DERIVADOS do sinal, sem
+     * estado guardado -- porque estado por entidade precisaria ser limpo quando
+     * ela sai do alcance, desloga, morre ou troca de dimensao, e um desses
+     * caminhos sempre fica para tras.
+     *
+     * <p>O cliente nao sabe que tecnica o vizinho ligou. Ele recebe um sinal de
+     * tres valores ja filtrado pelo servidor, e quem esta em Zetsu chega como
+     * NENHUM -- igual a quem nunca despertou.
+     */
+    private AuraVisualState estadoVisualDe(net.minecraft.world.entity.player.Player jogador) {
+        Minecraft mc = Minecraft.getInstance();
+        if (jogador == null || mc.player == null) {
+            return AuraVisualState.desligado();
+        }
+        if (jogador == mc.player) {
+            return this.vfx.estado();
+        }
+        var sinal = this.cache.presencaDe(jogador.getId());
+        if (sinal == SinalDeAura.NENHUM) {
+            return AuraVisualState.desligado();
+        }
+        return EstadoVisualDeTerceiro.de(sinal,
+                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador)));
     }
 
     /**

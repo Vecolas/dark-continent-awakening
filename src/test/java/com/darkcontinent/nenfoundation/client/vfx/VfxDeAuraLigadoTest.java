@@ -1,0 +1,232 @@
+package com.darkcontinent.nenfoundation.client.vfx;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
+import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
+import java.util.Set;
+import net.minecraft.resources.ResourceLocation;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+/**
+ * A parte do VFX que da para provar sem o jogo de pe.
+ *
+ * <p>O QUE ESTES TESTES NAO PROVAM: que alguma coisa aparece na tela. Isso e
+ * {@code runClient} a mao, e esta dito no relato e em
+ * {@code o-que-nao-provamos.md}. O que eles cobrem e a aritmetica -- e e nela
+ * que moram os defeitos que nao dao erro: transicao que estala, tecnica
+ * discreta que nunca aparece, e aura do mundo anterior que fica na tela.
+ */
+class VfxDeAuraLigadoTest {
+
+    // ------------------------------------------------------- precedencia
+
+    @Test
+    @DisplayName("Ren ganha de Ten, porque os dois convivem")
+    void renGanhaDeTen() {
+        assertEquals(AuraVisualMode.REN, ModoVisualDeTecnica.de(Set.of(Ten.ID, Ren.ID)),
+                "Com Ten e Ren ligados a tela mostrou o menor dos dois. Esta"
+                        + " disputa acontece o tempo todo em jogo: Ten e Ren"
+                        + " convivem de proposito.");
+        assertEquals(AuraVisualMode.TEN, ModoVisualDeTecnica.de(Set.of(Ten.ID)));
+        assertEquals(AuraVisualMode.REN, ModoVisualDeTecnica.de(Set.of(Ren.ID)));
+    }
+
+    @Test
+    @DisplayName("Zetsu ganha de todo mundo: supressao que perde nao suprime")
+    void zetsuGanhaDeTodos() {
+        // Hoje Zetsu EXCLUI Ten e Ren, entao esta combinacao nao acontece em
+        // jogo -- e por isso a regra precisa de teste: ela ficaria dormindo ate
+        // a primeira tecnica que combine com ele, e ai apareceria como "as
+        // vezes Zetsu brilha".
+        assertEquals(AuraVisualMode.ZETSU,
+                ModoVisualDeTecnica.de(Set.of(Ten.ID, Ren.ID, Zetsu.ID)));
+    }
+
+    @Test
+    @DisplayName("nada ligado, e tecnica desconhecida, nao acendem nada")
+    void desconhecidaNaoAcende() {
+        assertEquals(AuraVisualMode.OFF, ModoVisualDeTecnica.de(Set.of()));
+        assertEquals(AuraVisualMode.OFF, ModoVisualDeTecnica.de(null));
+        assertEquals(AuraVisualMode.OFF, ModoVisualDeTecnica.de(
+                        Set.of(ResourceLocation.fromNamespaceAndPath("outromod", "hatsu_x"))),
+                "Uma tecnica que este codigo nao conhece ganhou um visual."
+                        + " Inventar efeito para ela e mostrar ao jogador algo que"
+                        + " nao significa nada.");
+    }
+
+    // -------------------------------------------------------- transicao
+
+    @Test
+    @DisplayName("na metade da transicao, a aura esta na metade")
+    void transicaoSegueACurvaNominal() {
+        // ESTE TESTE ACHOU UM DEFEITO DE VERDADE -- e a PRIMEIRA versao dele
+        // nao achava nada, o que vale registrar.
+        //
+        // O controlador interpolava de `atual` para `alvo` e reescrevia
+        // `atual`, entao cada passo saia de um ponto ja movido. A primeira
+        // tentativa de teste procurou um "estalo" no ultimo tick e passou
+        // mesmo com o defeito: o erro nao e um salto no fim.
+        //
+        // O erro e a CURVA INTEIRA. Interpolando do valor movido, cada passo
+        // cobre uma fracao do que RESTA, e a aura chega perto do alvo em
+        // metade do tempo pedido -- uma transicao de 20 ticks termina em 12, e
+        // o que sobra rasteja. Com a origem congelada, o smoothstep vale o que
+        // diz: na metade dos passos, exatamente metade do caminho.
+        AuraVisualController c = new AuraVisualController();
+        c.receber(AuraVisualMode.REN, 1.0F);
+
+        float anterior = 0.0F;
+        for (int i = 0; i < 10; i++) {
+            float agora = c.avancar(0.05F).intensity();
+            assertTrue(agora >= anterior, "a intensidade andou para tras no passo " + i);
+            anterior = agora;
+        }
+
+        assertEquals(0.5F, anterior, 0.02F,
+                "Na metade dos passos a aura estava em " + anterior + ", e nao em"
+                        + " 0.5. A curva nao e a que o smoothstep promete: a"
+                        + " transicao corre demais no comeco e rasteja no fim.");
+
+        for (int i = 0; i < 10; i++) {
+            anterior = c.avancar(0.05F).intensity();
+        }
+        assertEquals(1.0F, anterior, 1.0e-5F, "a transicao nao chegou ao alvo");
+    }
+
+    @Test
+    @DisplayName("a cor da tecnica atravessa ate o estado visual")
+    void aCorChegaAoEstado() {
+        // Antes, o controlador gravava 0xFFFFFFFF fixo e ignorava qualquer cor.
+        // As particulas sairiam todas brancas, e Ten, Ren e Zetsu ficariam
+        // indistinguiveis -- sem nenhum erro em lugar nenhum.
+        AuraVisualController c = new AuraVisualController();
+        int laranja = 0xFF_F0_8A_30;
+        c.receber(AuraVisualMode.REN, 1.0F, AuraDistribution.uniforme(), laranja, laranja);
+
+        assertEquals(laranja, c.avancar(1.0F).primaryColor(),
+                "a cor passada no comando nao chegou ao estado visual.");
+    }
+
+    // ---------------------------------------------------------- sessao
+
+    @Test
+    @DisplayName("tick sem mudanca NAO reinicia a transicao")
+    void tickSemMudancaNaoReinicia() {
+        // Se a sessao reenviasse o comando todo tick, a transicao voltaria a
+        // zero a cada tick e a aura ficaria congelada no primeiro quadro --
+        // para sempre, e sem erro nenhum.
+        SessaoDeVfxDeAura sessao = new SessaoDeVfxDeAura();
+        for (int i = 0; i < 10; i++) {
+            sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 0.2F);
+        }
+        assertEquals(1.0F, sessao.estado().intensity(), 1.0e-5F,
+                "Depois de dez ticks com passo de 0.2 a transicao devia ter"
+                        + " terminado. Ela reiniciou a cada tick: a aura ficaria"
+                        + " presa no comeco da animacao.");
+    }
+
+    @Test
+    @DisplayName("limpar apaga tudo, e e o que impede a aura do mundo anterior")
+    void limparApagaTudo() {
+        SessaoDeVfxDeAura sessao = new SessaoDeVfxDeAura();
+        sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 1.0F);
+        assertTrue(sessao.estado().enabled(), "a aura nao ligou; nao ha o que limpar");
+
+        sessao.limpar();
+        assertEquals(AuraVisualMode.OFF, sessao.estado().mode());
+        assertTrue(!sessao.estado().enabled(),
+                "A aura sobreviveu ao limpar. Ao trocar de servidor, o jogador"
+                        + " continuaria com o efeito do mundo anterior ate o"
+                        + " primeiro delta novo -- e para sempre, se ele nao"
+                        + " despertar no servidor novo.");
+    }
+
+    @Test
+    @DisplayName("NaN vindo do output nao explode o tick do cliente")
+    void nanNaoExplode() {
+        // O output ja atravessou o protocolo como NaN uma vez neste projeto. O
+        // controlador valida e LANCA -- e uma excecao no tick do cliente leva a
+        // tela junto.
+        SessaoDeVfxDeAura sessao = new SessaoDeVfxDeAura();
+        sessao.aoTick(Set.of(Ren.ID), Float.NaN, 0xFF112233, Float.NaN);
+        assertTrue(Float.isFinite(sessao.estado().intensity()),
+                "NaN atravessou ate o estado visual.");
+    }
+
+    // -------------------------------------------------------- emissao
+
+    @Test
+    @DisplayName("Ten e discreto, mas nao invisivel")
+    void tenAparecePorSorteio() {
+        // Ten pede uma fracao de particula por tick. Arredondar daria ZERO para
+        // sempre: a tecnica mais basica do jogo nao teria efeito nenhum, e o
+        // sintoma seria "Ten nao faz nada".
+        AuraVisualState ten = estadoDe(AuraVisualMode.TEN, 1.0F);
+        int comSorteioBaixo = EmissorDeParticulasDeAura.quantasEmitir(ten, 1.0D, 0.0F);
+        assertTrue(comSorteioBaixo >= 1,
+                "Com o sorteio favoravel Ten devia emitir ao menos uma particula;"
+                        + " emitiu " + comSorteioBaixo + ".");
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(ten, 1.0D, 0.999F),
+                "Com o sorteio desfavoravel Ten deve ficar quieto -- e o que o"
+                        + " torna discreto em vez de constante.");
+    }
+
+    @Test
+    @DisplayName("Ren emite mais que Ten, sempre")
+    void renEmiteMaisQueTen() {
+        float sorteio = 0.5F;
+        int ten = EmissorDeParticulasDeAura.quantasEmitir(
+                estadoDe(AuraVisualMode.TEN, 1.0F), 1.0D, sorteio);
+        int ren = EmissorDeParticulasDeAura.quantasEmitir(
+                estadoDe(AuraVisualMode.REN, 1.0F), 1.0D, sorteio);
+        assertTrue(ren > ten,
+                "Ren (" + ren + ") nao emite mais que Ten (" + ten + "). Se os dois"
+                        + " saem iguais, o jogador nao distingue o estado de combate"
+                        + " do estado de repouso olhando.");
+    }
+
+    @Test
+    @DisplayName("Zetsu e densidade zero nao emitem nada")
+    void zetsuESilencioNaoEmitem() {
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        estadoDe(AuraVisualMode.ZETSU, 1.0F), 1.0D, 0.0F),
+                "Zetsu emitiu particula. Ele e o estado em que o jogador SOME do"
+                        + " radar; brilhar seria o contrario do que ele faz.");
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        estadoDe(AuraVisualMode.REN, 1.0F), 0.0D, 0.0F),
+                "densidade zero na config devia desligar o desenho por completo.");
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(null, 1.0D, 0.0F));
+    }
+
+    @Test
+    @DisplayName("densidade absurda na config nao trava o cliente")
+    void densidadeAbsurdaTemTeto() {
+        int quantas = EmissorDeParticulasDeAura.quantasEmitir(
+                estadoDe(AuraVisualMode.REN, 1.0F), 1_000_000.0D, 0.5F);
+        assertTrue(quantas <= 12 && quantas > 0,
+                "Sem teto, um numero errado na config emitiria " + quantas
+                        + " particulas por tick e travaria o cliente -- e config e"
+                        + " arquivo que qualquer um edita a mao.");
+    }
+
+    @Test
+    @DisplayName("a cor sai inteira para o vetor da poeira")
+    void corViraVetor() {
+        var v = EmissorDeParticulasDeAura.corComo(0xFF_FF_80_00);
+        assertEquals(1.0F, v.x(), 1.0e-3F);
+        assertEquals(0.502F, v.y(), 1.0e-2F);
+        assertEquals(0.0F, v.z(), 1.0e-3F);
+        assertNotEquals(v.x(), v.z(), "o canal vermelho e o azul sairam iguais");
+    }
+
+    private static AuraVisualState estadoDe(AuraVisualMode modo, float intensidade) {
+        AuraVisualController c = new AuraVisualController();
+        c.receber(modo, intensidade);
+        return c.avancar(1.0F);
+    }
+}

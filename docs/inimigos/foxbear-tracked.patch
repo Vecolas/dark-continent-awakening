@@ -1,0 +1,62 @@
+diff --git a/src/main/java/com/darkcontinent/nenfoundation/NenFoundation.java b/src/main/java/com/darkcontinent/nenfoundation/NenFoundation.java
+index c3036e8..91b0fb0 100644
+--- a/src/main/java/com/darkcontinent/nenfoundation/NenFoundation.java
++++ b/src/main/java/com/darkcontinent/nenfoundation/NenFoundation.java
+@@ -2,6 +2,8 @@ package com.darkcontinent.nenfoundation;
+ 
+ import com.darkcontinent.nenfoundation.config.NenConfig;
+ import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
++import com.darkcontinent.nenfoundation.registry.EnemyAttributes;
++import com.darkcontinent.nenfoundation.registry.EnemyEntityTypes;
+ import com.darkcontinent.nenfoundation.network.NenNetwork;
+ import com.darkcontinent.nenfoundation.network.NenProtocol;
+ import com.darkcontinent.nenfoundation.server.NenPedidoService;
+@@ -58,6 +60,8 @@ public final class NenFoundation {
+         modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
+ 
+         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
++        EnemyEntityTypes.ENTITY_TYPES.register(modEventBus);
++        modEventBus.addListener(EnemyAttributes::registrar);
+ 
+         modEventBus.addListener((RegisterPayloadHandlersEvent evento) ->
+                 NenNetwork.registrar(evento, NenPedidoService::validar));
+diff --git a/src/main/java/com/darkcontinent/nenfoundation/client/NenFoundationClient.java b/src/main/java/com/darkcontinent/nenfoundation/client/NenFoundationClient.java
+index f6d6e2e..1150963 100644
+--- a/src/main/java/com/darkcontinent/nenfoundation/client/NenFoundationClient.java
++++ b/src/main/java/com/darkcontinent/nenfoundation/client/NenFoundationClient.java
+@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
+ import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
+ import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
+ import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
++import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
+ import com.darkcontinent.nenfoundation.config.NenConfig;
+ import com.darkcontinent.nenfoundation.network.handler.Recebedores;
+ import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
+@@ -74,6 +75,7 @@ public final class NenFoundationClient {
+         Recebedores.registrar(this.cache);
+ 
+         modEventBus.addListener(NenKeybinds::registrar);
++        modEventBus.addListener(EnemyRenderers::registrar);
+ 
+         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
+         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
+diff --git a/src/main/resources/assets/nenfoundation/lang/en_us.json b/src/main/resources/assets/nenfoundation/lang/en_us.json
+index 8267058..5355f91 100644
+--- a/src/main/resources/assets/nenfoundation/lang/en_us.json
++++ b/src/main/resources/assets/nenfoundation/lang/en_us.json
+@@ -81,4 +81,5 @@
+   "nenfoundation.error.aura_invalida": "Invalid aura amount.",
+   "nenfoundation.error.aura_insuficiente": "Not enough aura.",
+   "nenfoundation.error.output_excedido": "Output limit reached for this tick."
++  ,"entity.nenfoundation.foxbear": "Foxbear"
+ }
+diff --git a/src/main/resources/assets/nenfoundation/lang/pt_br.json b/src/main/resources/assets/nenfoundation/lang/pt_br.json
+index 087af6c..a0b7753 100644
+--- a/src/main/resources/assets/nenfoundation/lang/pt_br.json
++++ b/src/main/resources/assets/nenfoundation/lang/pt_br.json
+@@ -81,4 +81,5 @@
+   "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
+   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
+   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick."
++  ,"entity.nenfoundation.foxbear": "Urso-Raposa"
+ }

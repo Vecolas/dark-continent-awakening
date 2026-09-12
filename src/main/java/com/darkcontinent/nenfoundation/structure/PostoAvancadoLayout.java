@@ -19,13 +19,15 @@ public record PostoAvancadoLayout(int footprint, int fenceHeight, int buildingHe
     }
 
     public static PostoAvancadoLayout referencia() {
-        return new PostoAvancadoLayout(37, 4, 9, 16, List.of(
-                new Modulo("portao", 15, 33, 7, 4),
-                new Modulo("patio", 8, 8, 21, 18),
-                new Modulo("predio_principal", 9, 25, 19, 10),
-                new Modulo("torre", 25, 3, 8, 8),
-                new Modulo("pesquisa", 25, 18, 9, 10),
-                new Modulo("deposito", 3, 18, 8, 9)));
+        return new PostoAvancadoLayout(37, 3, 7, 14, List.of(
+                new Modulo("portao_logistico", -4, 17, 9, 2),
+                new Modulo("patio_operacional", -7, -7, 15, 10),
+                new Modulo("comando", -8, 3, 17, 10),
+                new Modulo("torre_scaffold", -3, -17, 7, 7),
+                new Modulo("deposito", -17, -7, 9, 9),
+                new Modulo("laboratorio", 9, -8, 9, 11),
+                new Modulo("manutencao", -17, 3, 9, 10),
+                new Modulo("triagem", 9, 4, 9, 9)));
     }
 
     public record Modulo(String id, int x, int z, int largura, int profundidade) {
@@ -36,7 +38,9 @@ public record PostoAvancadoLayout(int footprint, int fenceHeight, int buildingHe
         }
 
         public boolean cabeNo(int lado) {
-            return x >= 0 && z >= 0 && x + largura <= lado && z + profundidade <= lado;
+            int metade = lado / 2;
+            return x >= -metade && z >= -metade
+                    && x + largura - 1 <= metade && z + profundidade - 1 <= metade;
         }
     }
 }

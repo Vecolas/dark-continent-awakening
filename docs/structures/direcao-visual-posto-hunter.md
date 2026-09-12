@@ -4,6 +4,10 @@ Este é o contrato de arte da issue #231. O posto precisa parecer uma equipe
 experiente instalada em território hostil: modular, usado, competente e
 reparável. A identidade vem da operação de campo, não de símbolos grandes.
 
+Referência visual aprovada: `referencia-posto-hunter-v2.png`. Ela orienta
+proporção, torre aberta, cercamento transparente, fachadas baixas, cabos,
+lonas e iluminação técnica; não é um asset de gameplay.
+
 ## Leitura desejada
 
 - madeira estrutural escura e funcional;
@@ -11,6 +15,8 @@ reparável. A identidade vem da operação de campo, não de símbolos grandes.
 - lonas claras/cinzentas para cobertura e reparos;
 - caixas, barris, mapas, mesas de pesquisa e amostras;
 - iluminação prática, concentrada em acesso, pátio, pesquisa e vigia;
+- torre de observação aberta, com plataformas e travamentos metálicos;
+- portão logístico largo e cercamento baixo/transparente;
 - irregularidade de uso sem transformar o posto em ruína.
 
 ## Leitura proibida
@@ -21,6 +27,7 @@ reparável. A identidade vem da operação de campo, não de símbolos grandes.
 - laboratório futurista;
 - steampunk ornamental;
 - excesso de brasões, bandeiras ou logos.
+- fogueira central ou lanternas penduradas como linguagem dominante.
 
 ## Regra de revisão
 

@@ -33,7 +33,7 @@ JAR não versionado. Perfil medido em [perfis](../testing/perfis/README.md).
 
 | Mod | Versao travada | Data do teste | Quem testou |
 | --- | --- | --- | --- |
-| GeckoLib | 4.8.3 para NeoForge/Minecraft 1.21.1 | 2026-09-12 | Codex (`build`, `runData`, 68 GameTests e client/server smoke verdes) |
+| GeckoLib | 4.8.3 para NeoForge/Minecraft 1.21.1 | 2026-09-12 | Codex (`build`, `runData`, 68 GameTests e client smoke verdes; `runServer` chegou a `Done` com spark de QA presente) |
 
 Artefato resolvido do Maven oficial:
 `geckolib-neoforge-1.21.1-4.8.3.jar`. SHA-512:

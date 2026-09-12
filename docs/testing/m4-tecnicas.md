@@ -58,6 +58,19 @@ Rodar antes de começar; se algum destes falhar, a QA manual não deve começar.
 
 ---
 
+## Como ler as colunas
+
+| Marca | O que significa |
+| --- | --- |
+| ✅ **automatizado** | há gametest; não precisa de ninguém |
+| ✅ **data** | alguém confirmou em jogo, na data |
+| ⬜ **tela** | a regra está provada no servidor; **falta ver acontecer** |
+| *(vazio)* | ninguém verificou, de jeito nenhum |
+
+> A diferença entre ⬜ e vazio importa. Uma linha ⬜ não é trabalho de
+> investigação: é olhar e confirmar. Uma linha vazia pode esconder qualquer
+> coisa.
+
 ## Preparação
 
 O limite desta máquina já foi medido e está em
@@ -128,9 +141,9 @@ registrada.
 
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
-| C1 | Ligar Ren e esperar a aura zerar | Ren desliga sozinho; o indicador some | |
-| C2 | Conferir o log do servidor | motivo `OUT_OF_AURA` | |
-| C3 | Tentar religar com aura zero | liga e cai de novo no tick seguinte, sem travar | |
+| C1 | Ligar Ren e esperar a aura zerar | Ren desliga sozinho | ✅ **automatizado** — `tenCaiQuandoAAuraAcaba` |
+| C2 | O motivo do desligamento | `OUT_OF_AURA` | ✅ **automatizado** — mesmo teste |
+| C3 | Várias técnicas com pouca aura | caem até sobrar o que cabe, e a aura não fica negativa | ✅ **automatizado** — `semAuraAsTecnicasCaemAteSobrarOQueCabe` |
 
 ### D. Pontos de saída — o item mais importante
 
@@ -140,12 +153,17 @@ reais.
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
 | D1 | Ligar Ren e **morrer** | ao renascer, nenhum indicador aceso | ✅ **2026-09-12** — confirmado |
-| D2 | Após D1, conferir o Output | voltou ao teto de repouso, **não** ao de Ren | |
-| D3 | Ligar Ren, **deslogar e voltar** | nenhum indicador aceso; aura recomeça | |
+| D2 | Após D1, o teto de Output | voltou ao de repouso, **não** ao de Ren | ✅ **automatizado** — `morteDesligaTudoEDevolveOTeto` |
+| D3 | Ligar Ren, **deslogar** | a sessão de runtime acaba e a técnica é avisada com `LOGOUT` | ✅ **automatizado** — `logoutDesligaTudoPeloEventoDeVerdade` |
 | D4 | Ligar Ren, **ir ao Nether** | os indicadores somem na travessia | ✅ **2026-09-12** — confirmado |
-| D5 | Após D4, o Output | de repouso, e não o elevado | |
+| D5 | Após D4, o Output | de repouso, e não o elevado | ✅ **automatizado** — `trocarDeDimensaoDesligaTudoEDevolveOTeto` |
 
-> **D2 e D5 são o ponto cego deste gate.** Um teto elevado que sobrevive ao
+> **D2 e D5 eram o ponto cego deste gate, e deixaram de ser.** Os gametests de
+> ciclo de vida postam o evento REAL no barramento e conferem que o teto voltou
+> — o que também prova que o handler está inscrito, e não só que o serviço sabe
+> desligar. O que sobrou de manual aqui é ver isso acontecer na tela.
+>
+> O texto original, mantido porque explica por que o item existe: Um teto elevado que sobrevive ao
 > ponto de saída não dá erro nenhum: o jogador simplesmente fica com o limite
 > de quem está em Ren, para sempre, sem nada acusar.
 >
@@ -162,9 +180,9 @@ reais.
 
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
-| E1 | `Gon` liga Ren, `Kurapika` liga Zetsu | cada HUD mostra só o seu | |
-| E2 | `Gon` desliga tudo | o HUD de `Kurapika` não muda | |
-| E3 | `Kurapika` morre | o estado de `Gon` não é afetado | |
+| E1 | `Gon` liga Ren, `Kurapika` liga Zetsu | cada HUD mostra só o seu | ⬜ **tela** — servidor provado por `doisJogadoresNaoSeMisturam` |
+| E2 | `Gon` desliga tudo | o HUD de `Kurapika` não muda | ⬜ **tela** — idem |
+| E3 | `Kurapika` morre | o estado de `Gon` não é afetado | ⬜ **tela** — ciclo de vida provado por `NenCicloDeVidaGameTest` |
 
 > E1–E3 existem por causa do erro nº 2 da lista do CLAUDE.md: estado de jogador
 > num campo da classe da técnica. As implementações são singleton, e dois
@@ -174,9 +192,9 @@ reais.
 
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
-| F1 | Caldeirão com água, folha na mão, clicar **sem Ren** | *"A água fica parada. Falta aura sobre ela."* | |
-| F2 | Ligar Ren e clicar | o ritual roda e revela a categoria | |
-| F3 | Clicar de novo com Ren | mesma categoria, **sem** reanunciar | |
+| F1 | Clicar **sem Ren** | a mensagem aparece na tela | ⬜ **tela** — a recusa e o motivo são provados por `despertoSemRenNaoFazOTeste` |
+| F2 | Ligar Ren e clicar | o ritual roda e revela a categoria | ✅ **automatizado** — `oTesteRevelaPelaApi` |
+| F3 | Clicar de novo com Ren | mesma categoria, **sem** reanunciar | ✅ **automatizado** — `refazerNaoResorteiaNada` |
 
 ### H. Aura visível, própria e dos outros (#98, #101, #155)
 

@@ -155,6 +155,36 @@ reais.
 | F2 | Ligar Ren e clicar | o ritual roda e revela a categoria | |
 | F3 | Clicar de novo com Ren | mesma categoria, **sem** reanunciar | |
 
+### H. Aura visível, própria e dos outros (#98, #101, #155)
+
+Esta seção nasceu depois do roteiro: o canal `aura_presence` e o desenho de
+partículas são posteriores. Ela existe porque a propriedade mais importante do
+desenho — **Zetsu não vazar** — só podia ser provada aqui.
+
+| # | Passo | Esperado | Evidência |
+| --- | --- | --- | --- |
+| H1 | Ligar Ten ou Ren | partículas em volta do próprio jogador | ✅ **2026-09-12** — confirmado em jogo |
+| H2 | O outro jogador olha | as partículas aparecem nele também | ✅ **2026-09-12** — *"funciona para todos"* |
+| H3 | Ligar **Zetsu** | nada visível, nem para si nem para os outros | ✅ **2026-09-12** — confirmado |
+| H4 | Nenhuma técnica ativa | nada visível | ✅ **2026-09-12** — confirmado |
+| H5 | Ten × Ren lado a lado | cores **diferentes**, sem ler o HUD | |
+| H6 | O outro se afasta | a aura enfraquece com a distância e some além de ~40 blocos | |
+| H7 | O outro sai de vista e volta | a aura está lá **na hora**, sem o alvo alternar nada | |
+
+> **H3 é a linha que justifica o desenho inteiro.** Zetsu não some porque o
+> cliente escolhe não desenhar: some porque o servidor manda `NENHUM`, o mesmo
+> byte de quem nunca despertou. O teste unitário prova a tabela; só esta linha
+> prova que o caminho todo — cálculo, payload, cliente, tela — respeita isso.
+>
+> **H4 confirma junto**, e é por isso que as duas andam em par: se `NENHUM`
+> desenhasse alguma coisa, H3 e H4 falhariam iguais.
+
+**H5, H6 e H7 continuam abertos**, e cada um falha por um motivo diferente:
+H5 é a tabela de cores (`AparenciaDeTecnica`), H6 é o `AuraRenderLod` — que até
+a issue #155 nunca decidia nada em jogo, porque só existia o próprio jogador a
+distância zero — e H7 é o `PlayerEvent.StartTracking`, o caso clássico de
+"aparece só depois que o outro liga e desliga".
+
 ### G. Revisão cruzada
 
 | Quem revisa | O quê | Feito |

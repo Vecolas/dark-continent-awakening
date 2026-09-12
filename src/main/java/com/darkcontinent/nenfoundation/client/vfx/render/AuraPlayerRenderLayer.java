@@ -5,8 +5,10 @@ import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
 import com.darkcontinent.nenfoundation.client.vfx.CorDaAura;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPlayerModel;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellMaterial;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellOpacity;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
+import com.darkcontinent.nenfoundation.client.vfx.shader.AuraShaders;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.EnumMap;
@@ -16,6 +18,7 @@ import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -88,7 +91,15 @@ public final class AuraPlayerRenderLayer
         }
 
         AuraShellOpacity opacidade = opacidadeDe(estado);
-        VertexConsumer vertices = buffers.getBuffer(AuraRenderTypes.shell());
+        AuraShellMaterial material = materialDe(estado);
+        RenderType tipo = AuraRenderTypes.shell();
+
+        // O TEMPO E POR ENTIDADE, e nao global. `idadeEmTicks` conta desde que
+        // AQUELA entidade nasceu, entao dois jogadores nunca estao na mesma fase
+        // do fluxo -- e sincronia acidental e a coisa mais artificial que um
+        // efeito organico pode fazer. Custo declarado: respawn e troca de
+        // dimensao recriam a entidade, e o fluxo da um salto.
+        float tempo = idadeEmTicks / 20.0F;
 
         for (AuraShellPass passe : AuraShellPass.values()) {
             float alphaDoPasse = opacidade.alphaDe(passe) * estado.intensity();
@@ -99,8 +110,45 @@ public final class AuraPlayerRenderLayer
             // COPIA A POSE FINAL. Ver o javadoc: `setupAnim` aqui DESCARTARIA
             // o que acabou de ser copiado.
             this.getParentModel().copyPropertiesTo(modelo);
+
+            AuraShaders.configurar(tempo, material.fresnelDe(passe),
+                    material.velocidadeDeFluxo(), material.escalaDeRuido(),
+                    material.reforcoDaBorda());
+
+            VertexConsumer vertices = buffers.getBuffer(tipo);
             desenharPorRegiao(modelo, pilha, vertices, luzEmpacotada, estado, alphaDoPasse);
+
+            // DESCARREGA O LOTE AGORA, e nao no fim do quadro. Os uniformes sao
+            // do PROGRAMA, e nao do vertice: sem esta descarga, os tres passes
+            // seriam desenhados juntos no fim com os uniformes do ULTIMO, e as
+            // tres camadas ficariam identicas -- exatamente o que os tres
+            // expoentes de Fresnel existem para evitar.
+            //
+            // O preco e uma chamada de desenho por passe, por jogador. Esta
+            // declarado, e e o AV8 que o ataca.
+            descarregar(buffers, tipo);
         }
+    }
+
+    /**
+     * Forca a emissao do que ja foi acumulado neste tipo de render.
+     *
+     * <p>SILENCIOSA QUANDO A FONTE NAO SABE DESCARREGAR. Nem todo
+     * {@code MultiBufferSource} e um lote -- capturas de tela e alguns mods
+     * passam implementacoes proprias. Nesses casos as tres camadas sairao com os
+     * mesmos uniformes, que e feio e nao e quebrado.
+     */
+    private static void descarregar(MultiBufferSource buffers, RenderType tipo) {
+        if (buffers instanceof MultiBufferSource.BufferSource lote) {
+            lote.endBatch(tipo);
+        }
+    }
+
+    /** O material do modo ativo. Ver {@link #opacidadeDe} para o par dele. */
+    static AuraShellMaterial materialDe(AuraVisualState estado) {
+        return estado.mode() == com.darkcontinent.nenfoundation.client.vfx.AuraVisualMode.REN
+                ? AuraShellMaterial.ren()
+                : AuraShellMaterial.ten();
     }
 
     /**

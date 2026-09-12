@@ -219,12 +219,19 @@ public final class NenCicloDeVidaGameTest {
                         + " o desligamento de tecnica nao limpe -- cooldown, aura,"
                         + " campo futuro -- atravessa a morte junto com ele.");
 
+        // IGUALDADE, E NAO "MENOR QUE". A linha D2 do roteiro pede o teto DE
+        // REPOUSO, e `< tetoComRen` aceita qualquer valor entre os dois -- um
+        // teto que caiu pela metade passaria, e o jogador ficaria com um limite
+        // que ninguem desenhou. A desigualdade so prova que algo baixou, e a
+        // pergunta do roteiro e PARA ONDE.
         float tetoDepois = NenRuntimeService.estadoDe(jogador).outputMaximo();
-        exigir(tetoDepois < tetoComRen,
-                "O TETO DE REN SOBREVIVEU A MORTE: " + tetoDepois + ", igual ao de"
-                        + " quem esta em Ren (" + tetoComRen + "). Isto nao da erro"
-                        + " nenhum -- o jogador so passa a liberar aura acima do"
-                        + " limite dele para sempre, sem nada acusar.");
+        float repouso = tetoDeRepouso(helper);
+        exigir(tetoDepois == repouso,
+                "O TETO NAO VOLTOU AO DE REPOUSO depois da morte: ficou em "
+                        + tetoDepois + ", e o de repouso e " + repouso + " (com Ren"
+                        + " era " + tetoComRen + "). Isto nao da erro nenhum -- o"
+                        + " jogador so passa a viver com um limite que ninguem"
+                        + " desenhou, sem nada acusar.");
 
         helper.succeed();
     }
@@ -244,9 +251,13 @@ public final class NenCicloDeVidaGameTest {
         exigir(NenRuntimeService.estadoDe(jogador).tecnicasAtivas().isEmpty(),
                 "Sobrou tecnica ativa depois da troca de dimensao: "
                         + NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
-        exigir(NenRuntimeService.estadoDe(jogador).outputMaximo() < tetoComRen,
-                "o teto de Ren atravessou o portal junto com o jogador: "
-                        + NenRuntimeService.estadoDe(jogador).outputMaximo());
+        // IGUALDADE pelo mesmo motivo de D2, logo acima.
+        float tetoDepois = NenRuntimeService.estadoDe(jogador).outputMaximo();
+        float repouso = tetoDeRepouso(helper);
+        exigir(tetoDepois == repouso,
+                "o teto nao voltou ao de repouso na travessia: ficou em "
+                        + tetoDepois + ", o de repouso e " + repouso + ", e com Ren"
+                        + " era " + tetoComRen + ".");
         exigir(NenRuntimeService.estadoDe(jogador) != antes,
                 "a troca de dimensao nao reiniciou o runtime; ver o mesmo motivo"
                         + " no teste de morte.");

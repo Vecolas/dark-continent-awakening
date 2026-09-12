@@ -189,6 +189,24 @@ public final class NenConfig {
                     "Se ele nao for claramente maior que o de Ten, Ken vira um Ten caro.")
             .defineInRange("tecnica.ken.protecaoBase", 0.75D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue KO_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ko consome por segundo. O MAIOR de todas.",
+                    "Ko e um golpe, nao um estado: ele custa muito por pouco tempo.")
+            .defineInRange("tecnica.ko.custoPorSegundo", 20.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue KO_FRACAO_CONCENTRADA = BUILDER
+            .comment("Quanto da aura Ko leva para a regiao escolhida.",
+                    "Perto de 1: o canone fala em praticamente TODA a aura num ponto.",
+                    "O resto do corpo fica com o que sobra dividido por cinco -- e e",
+                    "esse quase-nada que torna errar o golpe catastrofico.")
+            .defineInRange("tecnica.ko.fracaoConcentrada", 0.95D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.IntValue KO_DURACAO_EM_TICKS = BUILDER
+            .comment("Quantos ticks Ko dura antes de expirar sozinho.",
+                    "E ISTO QUE SEPARA KO DE GYO. Gyo se sustenta; Ko e um golpe.",
+                    "Vinte ticks e um segundo -- tempo de acertar, e nao de se defender.")
+            .defineInRange("tecnica.ko.duracaoEmTicks", 20, 1, 600);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -241,6 +259,15 @@ public final class NenConfig {
 
     /** Quanto Ken protege com a aura espalhada por igual. */
     public static double kenProtecaoBase() { return KEN_PROTECAO_BASE.get(); }
+
+    /** Custo de Ko por segundo. */
+    public static double koCustoPorSegundo() { return KO_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Quanto da aura Ko concentra. */
+    public static double koFracaoConcentrada() { return KO_FRACAO_CONCENTRADA.get(); }
+
+    /** Quantos ticks Ko dura. */
+    public static int koDuracaoEmTicks() { return KO_DURACAO_EM_TICKS.get(); }
 
     /** Custo de Ken por segundo. */
     public static double kenCustoPorSegundo() { return KEN_CUSTO_POR_SEGUNDO.get(); }

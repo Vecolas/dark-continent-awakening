@@ -24,6 +24,9 @@ import com.darkcontinent.nenfoundation.nen.technique.TechniqueActivationResult;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
 import com.darkcontinent.nenfoundation.nen.technique.ProtegeComAura;
 import com.darkcontinent.nenfoundation.server.NenDanoService;
+import com.darkcontinent.nenfoundation.nen.technique.Ko;
+import com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo;
+import com.darkcontinent.nenfoundation.server.NenKoService;
 import com.darkcontinent.nenfoundation.server.NenRuntimeService;
 import com.darkcontinent.nenfoundation.server.NenTechniqueService;
 import java.util.ArrayList;
@@ -482,6 +485,9 @@ public final class NenTecnicaGameTest {
         if (!ids.contains(Zetsu.ID)) {
             todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
                     () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        if (!ids.contains(Ko.ID)) {
+            todas.add(koDeTeste(1));
         }
         if (!ids.contains(Ken.ID)) {
             todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO, () -> 0.0D));
@@ -1395,6 +1401,163 @@ public final class NenTecnicaGameTest {
                     NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
             exigir(protecao == 0.0D,
                     "uma tecnica de protecao zero devolveu " + protecao);
+        });
+
+        helper.succeed();
+    }
+
+    // ----------------------------------------------------------- Ko (#213)
+
+    /** Ko de teste, com relogio proprio: o do servidor e compartilhado. */
+    private static Ko koDeTeste(int ticks) {
+        return new Ko(() -> 0.0D, () -> 0.95D, () -> ticks, NenKoService.INSTANCIA);
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void koExpiraSozinhoComEXPIRED(GameTestHelper helper) {
+        // O PRAZO E O QUE SEPARA KO DE GYO. Sem ele, os dois seriam a mesma
+        // tecnica com constantes diferentes, e a mais forte tornaria a outra
+        // inutil. `StopReason.EXPIRED` existia desde sempre e ninguem podia
+        // usa-lo -- Ko e a primeira tecnica com prazo.
+        ServerPlayer jogador = jogadorDesperto(helper);
+
+        comRegistro(comAsParceiras(koDeTeste(3)), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+
+            NenTechniqueService.ativar(jogador, Ko.ID);
+            exigir(estado.tecnicasAtivas().contains(Ko.ID), "Ko nao ligou");
+
+            NenTechniqueService.tick(jogador, estado);
+            NenTechniqueService.tick(jogador, estado);
+            exigir(estado.tecnicasAtivas().contains(Ko.ID),
+                    "Ko caiu antes do prazo; a janela de acerto some.");
+
+            NenTechniqueService.tick(jogador, estado);
+            exigir(!estado.tecnicasAtivas().contains(Ko.ID),
+                    "Ko NAO expirou depois do prazo. Sem prazo ele e Gyo com um"
+                            + " numero maior, e o jogador poderia ficar com o"
+                            + " corpo desprotegido para sempre de graca.");
+            exigir(estado.alocacao().equals(AlocacaoDeAura.uniforme()),
+                    "a alocacao ficou presa depois de Ko expirar: "
+                            + estado.alocacao());
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void koDeixaORestoDoCorpoQuaseNu(GameTestHelper helper) {
+        // O RISCO E A TECNICA. Com quase tudo num ponto, um golpe em qualquer
+        // outro lugar encontra quase nada -- e e por isso que errar e
+        // catastrofico.
+        ServerPlayer jogador = jogadorDesperto(helper);
+
+        comRegistro(comAsParceiras(koDeTeste(100)), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+            NenTechniqueService.ativar(jogador, Ko.ID);
+
+            float noFoco = FaixaDoCorpo.CABECA.auraDefendendo(estado.alocacao());
+            float longe = FaixaDoCorpo.PERNAS.auraDefendendo(estado.alocacao());
+
+            exigir(noFoco > 5.0F,
+                    "a regiao concentrada defende " + noFoco + "; com 95% ali,"
+                            + " ela devia estar muito acima do repouso (1.0).");
+            exigir(longe < 0.1F,
+                    "as pernas ainda defendem " + longe + " com o jogador em Ko."
+                            + " Sem essa exposicao, Ko nao tem risco nenhum.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void koInterrompidoNaoDeixaRelogioVivo(GameTestHelper helper) {
+        // QUEM LIGA, DESLIGA -- e aqui vale para o relogio. Um Ko derrubado por
+        // conflito deixaria a contagem viva, e o PROXIMO Ko duraria so o que
+        // sobrou do anterior. Isso nao da erro: da uma tecnica que as vezes
+        // dura menos, e ninguem sabe por que.
+        ServerPlayer jogador = jogadorDesperto(helper);
+
+        comRegistro(comAsParceiras(koDeTeste(100)), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+
+            NenTechniqueService.ativar(jogador, Ko.ID);
+            NenTechniqueService.tick(jogador, estado);
+            exigir(NenKoService.restanteDe(jogador) > 0, "o relogio nao comecou");
+
+            NenTechniqueService.desligar(jogador, Ko.ID, StopReason.PLAYER_REQUEST);
+            exigir(NenKoService.restanteDe(jogador) == 0,
+                    "o relogio de Ko sobreviveu ao desligamento: "
+                            + NenKoService.restanteDe(jogador) + " ticks.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void koEGyoNaoConvivem(GameTestHelper helper) {
+        // As duas concentram. Juntas, a regra "vence a mais concentrada"
+        // decidiria em silencio qual das escolhas do jogador vale.
+        Gyo gyo = new Gyo(() -> 0.0D, () -> 0.45D);
+        ServerPlayer jogador = jogadorDesperto(helper);
+
+        comRegistro(comAsParceiras(koDeTeste(100), gyo), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+
+            NenTechniqueService.ativar(jogador, Gyo.ID);
+            NenTechniqueService.ativar(jogador, Ko.ID);
+            exigir(!estado.tecnicasAtivas().contains(Gyo.ID),
+                    "Gyo continuou ligado com Ko; ativas: " + estado.tecnicasAtivas());
+
+            NenTechniqueService.ativar(jogador, Gyo.ID);
+            exigir(!estado.tecnicasAtivas().contains(Ko.ID),
+                    "na ordem inversa, Ko sobreviveu a Gyo. A exclusao vale nos"
+                            + " dois sentidos ou nao vale.");
+        });
+
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void koSemContagemEncerraEmVezDeFicarLigado(GameTestHelper helper) {
+        // O RAMO DEFENSIVO, e ele nao tinha prova. Um Ko ativo sem prazo
+        // registrado e estado quebrado -- pode acontecer se a contagem for
+        // limpa por outro caminho. O padrao seguro e ENCERRAR: deixar ligado
+        // para sempre uma tecnica que devia durar um golpe daria ao jogador
+        // concentracao permanente de graca, e o corpo desprotegido junto.
+        ServerPlayer jogador = jogadorDesperto(helper);
+
+        comRegistro(comAsParceiras(koDeTeste(100)), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+            NenTechniqueService.ativar(jogador, Ko.ID);
+
+            // O relogio some debaixo da tecnica, e ela continua ativa.
+            NenKoService.INSTANCIA.limpar(jogador);
+            exigir(estado.tecnicasAtivas().contains(Ko.ID),
+                    "Ko caiu antes do tick; o teste mediria outra coisa.");
+
+            NenTechniqueService.tick(jogador, estado);
+
+            exigir(!estado.tecnicasAtivas().contains(Ko.ID),
+                    "Ko ficou ligado sem contagem nenhuma. Sem o padrao seguro,"
+                            + " um estado quebrado vira concentracao permanente"
+                            + " -- e ninguem consegue desligar o que nao tem"
+                            + " prazo.");
         });
 
         helper.succeed();

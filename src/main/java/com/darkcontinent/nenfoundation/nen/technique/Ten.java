@@ -46,7 +46,8 @@ import net.minecraft.server.level.ServerPlayer;
  * contra aura hostil, que a issue #86 pedia, nao tem em que se apoiar: nao ha
  * dano de Nen no projeto. Ela vai para o sistema de combate, com issue propria.
  */
-public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura, ProtegeComAura {
+public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura,
+        ProtegeComAura, ReforcaGolpe {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ten");
@@ -54,6 +55,7 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
     private static final double TICKS_POR_SEGUNDO = 20.0D;
 
     private final DoubleSupplier protecao;
+    private final DoubleSupplier reforco;
 
 
     private final DoubleSupplier custoPorSegundo;
@@ -66,10 +68,12 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
      * garante que uma recarga de config seja vista no tick seguinte em vez de
      * no proximo restart.
      */
-    public Ten(DoubleSupplier custoPorSegundo, DoubleSupplier multiplicador, DoubleSupplier protecao) {
+    public Ten(DoubleSupplier custoPorSegundo, DoubleSupplier multiplicador,
+            DoubleSupplier protecao, DoubleSupplier reforco) {
         this.custoPorSegundo = custoPorSegundo;
         this.multiplicador = multiplicador;
         this.protecao = protecao;
+        this.reforco = reforco;
     }
 
     @Override
@@ -151,5 +155,10 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
     @Override
     public double protecaoBase() {
         return this.protecao.getAsDouble();
+    }
+
+    @Override
+    public double reforcoBase() {
+        return this.reforco.getAsDouble();
     }
 }

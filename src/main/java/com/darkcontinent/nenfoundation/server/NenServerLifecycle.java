@@ -44,9 +44,11 @@ public final class NenServerLifecycle {
         NenTechniqueService.instalar(RegistroDeTecnicas.selar(List.of(
                 new Ten(NenConfig::tenCustoPorSegundo,
                         NenConfig::tenMultiplicadorDeRegeneracao,
-                        NenConfig::tenProtecaoBase),
+                        NenConfig::tenProtecaoBase,
+                        NenConfig::tenReforcoBase),
                 new Ren(NenConfig::renCustoPorSegundo,
-                        NenConfig::renTetoDeOutput),
+                        NenConfig::renTetoDeOutput,
+                        NenConfig::renReforcoBase),
                 new Zetsu(NenConfig::zetsuCustoPorSegundo,
                         NenConfig::zetsuMultiplicadorDeRegeneracao,
                         NenConfig::zetsuTetoDeOutput),
@@ -56,14 +58,17 @@ public final class NenServerLifecycle {
                 new Gyo(NenConfig::gyoCustoPorSegundo,
                         NenConfig::gyoFracaoConcentrada),
                 new Shu(NenConfig::shuCustoPorSegundo,
-                        NenConfig::shuFracaoConcentrada),
+                        NenConfig::shuFracaoConcentrada,
+                        NenConfig::shuReforcoBase),
                 new Ken(NenConfig::kenCustoPorSegundo,
                         NenConfig::kenTetoDeOutput,
-                        NenConfig::kenProtecaoBase),
+                        NenConfig::kenProtecaoBase,
+                        NenConfig::kenReforcoBase),
                 new Ko(NenConfig::koCustoPorSegundo,
                         NenConfig::koFracaoConcentrada,
                         NenConfig::koDuracaoEmTicks,
-                        NenKoService.INSTANCIA))));
+                        NenKoService.INSTANCIA,
+                        NenConfig::koReforcoBase))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a

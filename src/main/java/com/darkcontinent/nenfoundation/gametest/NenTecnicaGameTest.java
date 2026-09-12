@@ -132,7 +132,7 @@ public final class NenTecnicaGameTest {
      * gametests seguintes -- e o sintoma seria um teste que passa sozinho e
      * falha na suite.
      */
-    private static void comRegistro(List<NenTechnique> tecnicas, Runnable corpo) {
+    static void comRegistro(List<NenTechnique> tecnicas, Runnable corpo) {
         RegistroDeTecnicas original = NenTechniqueService.registro();
         NenTechniqueService.instalar(RegistroDeTecnicas.selar(tecnicas));
         try {
@@ -477,10 +477,10 @@ public final class NenTecnicaGameTest {
         Set<ResourceLocation> ids = todas.stream().map(NenTechnique::id)
                 .collect(java.util.stream.Collectors.toSet());
         if (!ids.contains(Ten.ID)) {
-            todas.add(new Ten(() -> 0.0D, () -> 1.0D, () -> 0.0D));
+            todas.add(new Ten(() -> 0.0D, () -> 1.0D, () -> 0.0D, () -> 0.0D));
         }
         if (!ids.contains(Ren.ID)) {
-            todas.add(new Ren(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+            todas.add(new Ren(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO, () -> 0.0D));
         }
         if (!ids.contains(Zetsu.ID)) {
             todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
@@ -490,10 +490,10 @@ public final class NenTecnicaGameTest {
             todas.add(koDeTeste(1));
         }
         if (!ids.contains(Ken.ID)) {
-            todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO, () -> 0.0D));
+            todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO, () -> 0.0D, () -> 0.0D));
         }
         if (!ids.contains(Shu.ID)) {
-            todas.add(new Shu(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme()));
+            todas.add(new Shu(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme(), () -> 0.0D));
         }
         if (!ids.contains(Gyo.ID)) {
             // Gyo entrou no quarteto quando a alocacao nasceu (ADR-014), e o
@@ -508,7 +508,7 @@ public final class NenTecnicaGameTest {
 
     /** Ten de teste, com numeros proprios: os da config nao sao o assunto aqui. */
     private static Ten tenDeTeste(double custoPorSegundo, double multiplicador) {
-        return new Ten(() -> custoPorSegundo, () -> multiplicador, () -> 0.0D);
+        return new Ten(() -> custoPorSegundo, () -> multiplicador, () -> 0.0D, () -> 0.0D);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1093,8 +1093,8 @@ public final class NenTecnicaGameTest {
     @PrefixGameTestTemplate(false)
     public static void zetsuETenSeExcluemNasDuasOrdens(GameTestHelper helper) {
         ServerPlayer jogador = jogadorDesperto(helper);
-        Ten ten = new Ten(() -> 3.0D, () -> 2.0D, () -> 0.0D);
-        Ren ren = new Ren(() -> 10.0D, () -> 1.0D);
+        Ten ten = new Ten(() -> 3.0D, () -> 2.0D, () -> 0.0D, () -> 0.0D);
+        Ren ren = new Ren(() -> 10.0D, () -> 1.0D, () -> 0.0D);
         Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
 
         comRegistro(comAsParceiras(ten, ren, zetsu), () -> {
@@ -1254,7 +1254,7 @@ public final class NenTecnicaGameTest {
     // ----------------------------------------------------------- Shu
 
     private static Shu shuDeTeste() {
-        return new Shu(() -> 0.0D, () -> 0.30D);
+        return new Shu(() -> 0.0D, () -> 0.30D, () -> 0.0D);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1467,7 +1467,7 @@ public final class NenTecnicaGameTest {
 
     /** Ko de teste, com relogio proprio: o do servidor e compartilhado. */
     private static Ko koDeTeste(int ticks) {
-        return new Ko(() -> 0.0D, () -> 0.95D, () -> ticks, NenKoService.INSTANCIA);
+        return new Ko(() -> 0.0D, () -> 0.95D, () -> ticks, NenKoService.INSTANCIA, () -> 0.0D);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1640,7 +1640,7 @@ public final class NenTecnicaGameTest {
         jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
                 net.minecraft.world.item.ItemStack.EMPTY);
 
-        comRegistro(comAsParceiras(new Shu(() -> 0.0D, () -> 0.30D)), () -> {
+        comRegistro(comAsParceiras(new Shu(() -> 0.0D, () -> 0.30D, () -> 0.0D)), () -> {
             var recusa = com.darkcontinent.nenfoundation.server.NenPedidoService.validar(
                     jogador,
                     new com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S(Shu.ID));

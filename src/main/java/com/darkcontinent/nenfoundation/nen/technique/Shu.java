@@ -48,7 +48,8 @@ import net.minecraft.server.level.ServerPlayer;
  * que Shu entrega hoje e a concentracao no braco, real e autoritativa, e a
  * recusa quando a mao esta vazia.
  */
-public final class Shu implements NenTechnique, RedistribuiAura, ConsomeAura {
+public final class Shu implements NenTechnique, RedistribuiAura, ConsomeAura,
+        ReforcaGolpe {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("shu");
@@ -57,11 +58,14 @@ public final class Shu implements NenTechnique, RedistribuiAura, ConsomeAura {
 
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier fracaoConcentrada;
+    private final DoubleSupplier reforco;
 
     /** Recebe FONTES, e nao numeros. Ver o construtor de {@link Ten}. */
-    public Shu(DoubleSupplier custoPorSegundo, DoubleSupplier fracaoConcentrada) {
+    public Shu(DoubleSupplier custoPorSegundo, DoubleSupplier fracaoConcentrada,
+            DoubleSupplier reforco) {
         this.custoPorSegundo = custoPorSegundo;
         this.fracaoConcentrada = fracaoConcentrada;
+        this.reforco = reforco;
     }
 
     @Override
@@ -130,5 +134,10 @@ public final class Shu implements NenTechnique, RedistribuiAura, ConsomeAura {
     public void onDeactivate(ServerPlayer jogador, NenContext ctx, StopReason motivo) {
         // Nada a limpar: a alocacao volta sozinha quando o servico recalcula
         // sem Shu no conjunto, e o item nunca foi tocado.
+    }
+
+    @Override
+    public double reforcoBase() {
+        return this.reforco.getAsDouble();
     }
 }

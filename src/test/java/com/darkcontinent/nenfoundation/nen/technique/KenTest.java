@@ -20,7 +20,7 @@ class KenTest {
             "src/main/java/com/darkcontinent/nenfoundation/config/NenConfig.java";
 
     private static Ken ken() {
-        return new Ken(() -> 6.0D, () -> 0.8F, () -> 0.0D);
+        return new Ken(() -> 6.0D, () -> 0.8F, () -> 0.0D, () -> 0.0D);
     }
 
     @Test
@@ -87,8 +87,8 @@ class KenTest {
     @Test
     @DisplayName("Ken substitui Ten e Ren, e a exclusao vale dos dois lados")
     void kenSubstituiTenERen() {
-        Ten ten = new Ten(() -> 1.0D, () -> 1.0D, () -> 0.0D);
-        Ren ren = new Ren(() -> 1.0D, () -> 1.0D);
+        Ten ten = new Ten(() -> 1.0D, () -> 1.0D, () -> 0.0D, () -> 0.0D);
+        Ren ren = new Ren(() -> 1.0D, () -> 1.0D, () -> 0.0D);
 
         assertTrue(ken().incompativeisCom().contains(Ten.ID));
         assertTrue(ken().incompativeisCom().contains(Ren.ID));

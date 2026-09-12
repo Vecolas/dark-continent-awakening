@@ -38,7 +38,8 @@ import net.minecraft.server.level.ServerPlayer;
  * vale. Com Ken, Ko CONVIVE: concentrar dentro de um Ken e o caminho que o
  * cânone descreve para Ryu.
  */
-public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura {
+public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura,
+        ReforcaGolpe {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ko");
@@ -47,6 +48,7 @@ public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura {
 
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier fracaoConcentrada;
+    private final DoubleSupplier reforco;
     private final IntSupplier duracaoEmTicks;
     private final RelogioDeKo relogio;
 
@@ -76,9 +78,10 @@ public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura {
     }
 
     public Ko(DoubleSupplier custoPorSegundo, DoubleSupplier fracaoConcentrada,
-            IntSupplier duracaoEmTicks, RelogioDeKo relogio) {
+            IntSupplier duracaoEmTicks, RelogioDeKo relogio, DoubleSupplier reforco) {
         this.custoPorSegundo = custoPorSegundo;
         this.fracaoConcentrada = fracaoConcentrada;
+        this.reforco = reforco;
         this.duracaoEmTicks = duracaoEmTicks;
         this.relogio = relogio;
     }
@@ -135,4 +138,9 @@ public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura {
         this.relogio.limpar(jogador);
     }
 
+
+    @Override
+    public double reforcoBase() {
+        return this.reforco.getAsDouble();
+    }
 }

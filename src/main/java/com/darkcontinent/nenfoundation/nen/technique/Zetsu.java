@@ -37,7 +37,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <p>Ate la, Zetsu e mais seguro do que deveria ser. Esta registrado como
  * divida, e nao como acaso.
  */
-public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
+public final class Zetsu implements NenTechnique, LimitaTetoDeOutput, ReforcaGolpe,
         ModificaRegeneracao, ConsomeAura, ProtegeComAura {
 
     /** Id congelado: vai para NBT, datapack e quest. */
@@ -139,6 +139,20 @@ public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
      */
     @Override
     public double protecaoBase() {
+        return 0.0D;
+    }
+
+    /**
+     * ZERO, E EXPLICITO. Em Zetsu a aura deixa de ser emitida -- nao ha aura no
+     * punho para somar nada. Nao implementar a interface diria "eu nao mexo
+     * nisto", e aqui o ponto e o contrario: enquanto Zetsu estiver ligado, o
+     * golpe vale o que valeria sem Nen nenhum.
+     *
+     * <p>Hoje isto e redundante -- Zetsu exclui todas as tecnicas que reforcam.
+     * Esta escrito para a primeira que conviver com ele.
+     */
+    @Override
+    public double reforcoBase() {
         return 0.0D;
     }
 }

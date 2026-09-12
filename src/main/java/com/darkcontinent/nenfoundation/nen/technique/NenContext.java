@@ -55,4 +55,21 @@ public interface NenContext {
 
     /** Se a tecnica indicada esta ativa agora para este jogador. */
     boolean tecnicaAtiva(net.minecraft.resources.ResourceLocation tecnica);
+
+    /**
+     * A tecnica pede o proprio desligamento.
+     *
+     * <p>EXISTE PORQUE {@link StopReason#TARGET_LOST} ja existia e ninguem
+     * podia usa-lo: o enum previa "a tecnica perdeu o que sustentava", e nao
+     * havia caminho para a tecnica dizer isso. Shu foi a primeira a precisar --
+     * ela cobre o item da mao, e a mao esvazia.
+     *
+     * <p>CHAMAR DE DENTRO DO {@code serverTick} E SEGURO: o servico itera uma
+     * COPIA do conjunto de ativas justamente porque uma tecnica pode desligar a
+     * si mesma ou outra, e isso e legitimo.
+     *
+     * <p>Desligar o que ja esta desligado nao e erro, e desligar tecnica de
+     * outro jogador nao e possivel: o contexto e de um jogador so.
+     */
+    void desligar(net.minecraft.resources.ResourceLocation tecnica, StopReason motivo);
 }

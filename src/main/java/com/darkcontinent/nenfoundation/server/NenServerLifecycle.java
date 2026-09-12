@@ -8,6 +8,7 @@ import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Gyo;
+import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.List;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -50,7 +51,9 @@ public final class NenServerLifecycle {
                 // jogador e chega como argumento no recalculo. A implementacao
                 // e compartilhada por todo o servidor.
                 new Gyo(NenConfig::gyoCustoPorSegundo,
-                        NenConfig::gyoFracaoConcentrada))));
+                        NenConfig::gyoFracaoConcentrada),
+                new Shu(NenConfig::shuCustoPorSegundo,
+                        NenConfig::shuFracaoConcentrada))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a

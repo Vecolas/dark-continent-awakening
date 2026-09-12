@@ -141,6 +141,19 @@ public final class NenConfig {
                     "Ko, quando existir, usa a mesma conta com um numero perto de 1.")
             .defineInRange("tecnica.gyo.fracaoConcentrada", 0.45D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue SHU_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Shu consome por segundo.",
+                    "Shu LIBERA aura para envolver o objeto, entao pelo ADR-013 o saldo",
+                    "dela e negativo. Mais barata que Gyo: cobrir o que esta na mao",
+                    "custa menos que concentrar metade da aura numa regiao.")
+            .defineInRange("tecnica.shu.custoPorSegundo", 3.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue SHU_FRACAO_CONCENTRADA = BUILDER
+            .comment("Quanto da aura total Shu leva para o braco da mao dominante.",
+                    "Menor que a de Gyo: Shu ESTENDE a camada ate o objeto, e nao",
+                    "concentra o corpo inteiro num ponto.")
+            .defineInRange("tecnica.shu.fracaoConcentrada", 0.30D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -184,6 +197,12 @@ public final class NenConfig {
 
     /** Quanto da aura Gyo concentra na regiao escolhida. */
     public static double gyoFracaoConcentrada() { return GYO_FRACAO_CONCENTRADA.get(); }
+
+    /** Custo de Shu por segundo. */
+    public static double shuCustoPorSegundo() { return SHU_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Quanto da aura Shu leva para o braco da mao dominante. */
+    public static double shuFracaoConcentrada() { return SHU_FRACAO_CONCENTRADA.get(); }
 
     /** Custo de Zetsu por segundo. */
     public static double zetsuCustoPorSegundo() { return ZETSU_CUSTO_POR_SEGUNDO.get(); }

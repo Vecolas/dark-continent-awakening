@@ -68,5 +68,7 @@ public final class NenPayloads {
             new Implementado(FxDeHabilidadeS2C.TYPE, FxDeHabilidadeS2C.STREAM_CODEC,
                     Direcao.S2C, FxDeHabilidadeS2C.class),
             new Implementado(FeedbackDeErroS2C.TYPE, FeedbackDeErroS2C.STREAM_CODEC,
-                    Direcao.S2C, FeedbackDeErroS2C.class));
+                    Direcao.S2C, FeedbackDeErroS2C.class),
+            new Implementado(PresencaDeAuraS2C.TYPE, PresencaDeAuraS2C.STREAM_CODEC,
+                    Direcao.S2C, PresencaDeAuraS2C.class));
 }

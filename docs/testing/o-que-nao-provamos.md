@@ -165,8 +165,8 @@ O procedimento inteiro esta em
 | Zetsu não expõe o jogador a nada | no cânone a defesa de aura some; não há dano de Nen (`nen/combat` só tem `package-info`), então hoje o único custo real de Zetsu é não liberar Output — ele é mais seguro do que deveria ser | M5 |
 | Limitador vs. levantador de teto só se encontram em teste | Zetsu (único limitador) exclui Ren (único levantador), então a ordem das duas passagens de `tetoDe` não é exercitada por nada em jogo; a prova é o GameTest `quemAbaixaVenceQuemLevanta`, com técnicas falsas que convivem | quando nascer uma técnica que combine com ambos |
 | A aura visual nunca foi vista em jogo | os testes cobrem precedência, curva de transição e contagem de partículas; que algo apareça na tela só `runClient` à mão responde | QA manual do M4 |
-| Aura visual só existe para o jogador local | `NenSyncService` entrega o delta de runtime apenas ao dono do perfil, por decisão de privacidade; o cliente não tem estado de Nen de terceiros. Ver outro jogador em Ren exige canal novo com identidade — mexe em `NenProtocol` e provavelmente exige ADR apontando o ADR-004 | issue própria, pós-M4 |
-| `AuraVisibilityPolicy` e `AuraRenderLod` continuam sem uso real | ambos decidem sobre observador e distância, e os dois dependem de dado de terceiros que não chega. Para o próprio jogador a distância é sempre zero | junto do canal acima |
+| Aura de terceiros nunca foi vista com dois clientes | o canal `aura_presence` existe e tem gametest com dois jogadores server-side, mas que o pacote vire desenho na tela do outro só a QA com dois clientes responde | gate do M4 (#91) |
+| O sinal é o mesmo para todos os observadores | `aura_presence` não filtra por quem olha, porque a única regra de ocultação hoje depende só do alvo (Zetsu). Com Gyo (#126) a decisão passa a depender do observador e o envio vira um laço por observador — a forma do payload não muda | #126 |
 | `AuraImpactState` (ripple de Ten) não tem quem o dispare | não há dano de Nen; `nen/combat/` tem só o `package-info` | #103, bloqueada por #127 |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync

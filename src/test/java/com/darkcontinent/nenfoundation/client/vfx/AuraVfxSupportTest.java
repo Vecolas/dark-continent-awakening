@@ -10,23 +10,6 @@ import org.junit.jupiter.api.Test;
 
 class AuraVfxSupportTest {
     @Test
-    void lodReduzDetalhePorDistancia() {
-        assertEquals(AuraRenderLod.FULL, AuraRenderLod.porDistancia(2));
-        assertEquals(AuraRenderLod.SHELL, AuraRenderLod.porDistancia(8));
-        assertEquals(AuraRenderLod.SIMPLIFIED, AuraRenderLod.porDistancia(20));
-        assertEquals(AuraRenderLod.HIDDEN, AuraRenderLod.porDistancia(40.01));
-    }
-
-    @Test
-    void visibilidadeRespeitaZetsuInEGyo() {
-        assertFalse(AuraVisibilityPolicy.podeRenderizar(false, false, false, false));
-        assertTrue(AuraVisibilityPolicy.podeRenderizar(true, false, false, false));
-        assertFalse(AuraVisibilityPolicy.podeRenderizar(true, true, false, true));
-        assertFalse(AuraVisibilityPolicy.podeRenderizar(true, false, true, false));
-        assertTrue(AuraVisibilityPolicy.podeRenderizar(true, false, true, true));
-    }
-
-    @Test
     void fluxoEDeterministicoEPermaneceProximoDaSilhueta() {
         AuraFlowSample primeiro = AuraFlowPattern.sample(42L, 2, 10.0F, 1.0F);
         AuraFlowSample repetido = AuraFlowPattern.sample(42L, 2, 10.0F, 1.0F);

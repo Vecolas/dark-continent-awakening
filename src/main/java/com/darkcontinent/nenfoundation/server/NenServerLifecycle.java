@@ -17,6 +17,7 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class NenServerLifecycle {
     private static NenTickScheduler.Registro registroDeAura;
+    private static NenTickScheduler.Registro registroDePresenca;
     private static NenTickScheduler.Registro registroDeTecnicas;
 
     private NenServerLifecycle() {
@@ -46,6 +47,19 @@ public final class NenServerLifecycle {
         if (registroDeTecnicas == null) {
             registroDeTecnicas = NenTickScheduler.registrar(NenTechniqueService::tick);
         }
+        // PRESENCA POR ULTIMO, e no MESMO laco. Ela anuncia o resultado do
+        // tick, entao precisa rodar depois de aura e tecnica -- anunciar antes
+        // contaria o estado do tick anterior.
+        //
+        // E MORA AQUI, e nao espalhada pelos pontos onde tecnica muda. Sao
+        // muitos: ativar, desligar, conflito, queda por falta de aura, morte,
+        // logout, dimensao. Marcar "sujo" em cada um deles e o erro numero 3 da
+        // lista do CLAUDE.md -- um vai faltar, e o sinal fica velho sem nada
+        // acusar. Um unico ponto que RECALCULA nao tem como esquecer nenhum.
+        if (registroDePresenca == null) {
+            registroDePresenca = NenTickScheduler.registrar(
+                    (jogador, estado) -> NenPresencaService.anunciarSeMudou(jogador));
+        }
     }
 
     @SubscribeEvent
@@ -58,6 +72,11 @@ public final class NenServerLifecycle {
             registroDeAura.close();
             registroDeAura = null;
         }
+        if (registroDePresenca != null) {
+            registroDePresenca.close();
+            registroDePresenca = null;
+        }
+        NenPresencaService.limpar();
         NenRuntimeService.encerrarTodasAsSessoes();
         PedidosC2S.limpar();
         NenSyncService.limparMetricas();

@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.network.handler;
 
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
+import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 
@@ -45,4 +46,12 @@ public interface RecebedorDeNen {
 
     /** O servidor recusou alguma coisa, e disse por que. */
     void aoReceberErro(FeedbackDeErroS2C payload);
+
+    /**
+     * O que se percebe da aura de OUTRA pessoa.
+     *
+     * <p>Quem implementa nao decide visibilidade: essa decisao ja foi tomada no
+     * servidor, e o que chega aqui e so o que o observador tem direito de ver.
+     */
+    void aoReceberPresenca(PresencaDeAuraS2C payload);
 }

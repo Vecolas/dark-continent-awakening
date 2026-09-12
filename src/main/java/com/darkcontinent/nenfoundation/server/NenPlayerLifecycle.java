@@ -93,12 +93,29 @@ public final class NenPlayerLifecycle {
         }
     }
 
+    /**
+     * Quem comeca a enxergar alguem recebe o sinal de aura atual dele.
+     *
+     * <p>SEM ISTO O BUG E CHATO DE ACHAR: o anuncio so acontece quando o sinal
+     * MUDA, entao quem chega perto de alguem ja em Ren nao ve nada. A aura so
+     * apareceria quando a outra pessoa alternasse a tecnica, e o relato viraria
+     * "as vezes a aura do outro jogador nao aparece".
+     */
+    @SubscribeEvent
+    public static void aoComecarARastrear(PlayerEvent.StartTracking evento) {
+        if (evento.getEntity() instanceof ServerPlayer observador
+                && evento.getTarget() instanceof ServerPlayer alvo) {
+            NenPresencaService.anunciarPara(observador, alvo);
+        }
+    }
+
     /** Nenhum estado de combate sobrevive ao logout. */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void aoSair(PlayerEvent.PlayerLoggedOutEvent evento) {
         if (evento.getEntity() instanceof ServerPlayer jogador) {
             desligarTecnicasEmSilencio(jogador, StopReason.LOGOUT);
             NenRuntimeService.encerrarSessao(jogador);
+            NenPresencaService.esquecer(jogador);
             PedidosC2S.encerrar(jogador.connection.getConnection());
         }
     }

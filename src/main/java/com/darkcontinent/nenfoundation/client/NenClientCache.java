@@ -3,7 +3,9 @@ package com.darkcontinent.nenfoundation.client;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.network.handler.RecebedorDeNen;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
+import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
+import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
@@ -79,6 +81,7 @@ public final class NenClientCache implements RecebedorDeNen {
     private final HudValueAnimator outputInterpolation;
 
     private Optional<String> ultimoErro = Optional.empty();
+    private int presencasRecebidas;
 
     /**
      * Fonte do tick do cliente.
@@ -150,6 +153,40 @@ public final class NenClientCache implements RecebedorDeNen {
         // O cache nao toca em estado por causa de FX, de proposito. Ele so
         // conta, para o overlay poder mostrar que os FX estao chegando.
         this.fxRecebidos++;
+    }
+
+    /**
+     * O que se percebe da aura dos OUTROS.
+     *
+     * <p>MAPA POR ID DE ENTIDADE, e nao por UUID: e assim que a tela acha quem
+     * desenhar, e o id de entidade morre junto com a sessao -- que e
+     * exatamente o tempo de vida que este dado deve ter.
+     *
+     * <p>NENHUM E AUSENCIA, e nao um valor a guardar. Tirar do mapa em vez de
+     * gravar o silencio impede o mapa de crescer com todo jogador que o
+     * observador ja cruzou numa sessao longa.
+     */
+    private final java.util.Map<Integer, SinalDeAura> presencas =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    @Override
+    public void aoReceberPresenca(PresencaDeAuraS2C payload) {
+        if (payload.sinal() == SinalDeAura.NENHUM) {
+            this.presencas.remove(payload.entidadeId());
+        } else {
+            this.presencas.put(payload.entidadeId(), payload.sinal());
+        }
+        this.presencasRecebidas++;
+    }
+
+    /** O sinal de aura de uma entidade, ou NENHUM se nao se percebe nada. */
+    public SinalDeAura presencaDe(int entidadeId) {
+        return this.presencas.getOrDefault(entidadeId, SinalDeAura.NENHUM);
+    }
+
+    /** Quantos avisos de presenca chegaram; lido pelo overlay de debug. */
+    public int presencasRecebidas() {
+        return this.presencasRecebidas;
     }
 
     @Override
@@ -260,6 +297,11 @@ public final class NenClientCache implements RecebedorDeNen {
      * pacotes estao chegando quando nao esta chegando nenhum.
      */
     public void limpar() {
+        // A presenca dos outros e do MUNDO em que se estava. Levada para o
+        // servidor seguinte, o cliente desenharia aura em cima de quem calhar
+        // de ter o mesmo id de entidade.
+        this.presencas.clear();
+        this.presencasRecebidas = 0;
         this.snapshot = Optional.empty();
         this.delta = Optional.empty();
         this.ultimoErro = Optional.empty();

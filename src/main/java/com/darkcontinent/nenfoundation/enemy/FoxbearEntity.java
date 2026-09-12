@@ -81,7 +81,10 @@ public final class FoxbearEntity extends Animal {
             if (next == FoxbearState.ENGAGE) foxbear.setTarget(player);
             if (next == FoxbearState.RETURN_HOME) foxbear.setTarget(null);
         }
-        @Override public void stop() { player = null; }
+        @Override public void stop() {
+            if (foxbear.state != FoxbearState.ENGAGE) foxbear.setState(FoxbearState.RETURN_HOME);
+            player = null;
+        }
     }
     private static final class FoxbearAttackGoal extends MeleeAttackGoal {
         private final FoxbearEntity foxbear;

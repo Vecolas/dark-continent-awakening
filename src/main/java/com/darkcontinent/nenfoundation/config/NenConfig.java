@@ -78,10 +78,14 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue TEN_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Ten consome por segundo enquanto estiver ativo.",
-                    "Pelo item 6 do ADR-010 o saldo de Ten precisa ser NEGATIVO EM ABSOLUTO:",
-                    "a reserva tem de CAIR com Ten ligado. Por isso este custo supera a",
-                    "regeneracao TOTAL (base x multiplicador), e nao apenas o ganho sobre a base.")
-            .defineInRange("tecnica.ten.custoPorSegundo", 3.0D, 0.0D, 1_000.0D);
+                    "MENOR que a regeneracao total (base x multiplicador), de proposito:",
+                    "com Ten a reserva sobe DEVAGAR. No canone Ten e a manutencao que",
+                    "conserva aura e mantem a protecao -- quem descansa de verdade e",
+                    "Zetsu, e quem gasta e Ren.",
+                    "Isto nao contraria o item 6 do ADR-010: a regra vale para estados",
+                    "que LIBERAM aura. Ten retem, e o preco dele e nao poder liberar",
+                    "acima do teto de repouso.")
+            .defineInRange("tecnica.ten.custoPorSegundo", 1.5D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue TEN_MULTIPLICADOR_DE_REGENERACAO = BUILDER
             .comment("Quanto Ten multiplica a regeneracao de Aura enquanto ativo.",

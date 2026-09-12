@@ -67,6 +67,11 @@ Em regras concretas:
    custo de manter; ela nao o paga. Ha portao exigindo isso dos numeros
    distribuidos -- ver o custo assumido.
 
+   > **EMENDADO pelo [ADR-013](ADR-013-saldo-so-para-quem-libera-aura.md) em
+   > 2026-09-12:** esta regra passou a valer para os estados que **liberam**
+   > aura. Zetsu e Ten recuperam de proposito -- os precos deles sao a
+   > vulnerabilidade e o teto de Output, e nao a reserva. Ren continua sendo o
+   > unico que paga em aura.
 7. **Ten** e a primeira tecnica a usar isto: ela cobra manutencao continua e
    melhora a regeneracao. O saldo liquido e ajustavel em config, o que permite
    que Ten seja quase gratuito para quem treinou -- como o cânone descreve --

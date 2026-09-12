@@ -26,6 +26,7 @@ acusa o que nunca entrou nela.
 | [ADR-010](ADR-010-regeneracao-por-estado-de-nen.md) | A regeneracao de Aura depende do estado de Nen ativo | aceita |
 | [ADR-011](ADR-011-descongelamento-do-protocolo.md) | O protocolo de rede descongela, com versao e regra | aceita |
 | [ADR-012](ADR-012-geckolib-obrigatorio.md) | GeckoLib e biblioteca obrigatoria do pipeline de entidades | aceita |
+| [ADR-013](ADR-013-saldo-so-para-quem-libera-aura.md) | O saldo negativo vale para quem LIBERA aura | Zetsu e Ten ficam mais baratos do que deveriam ate a camada de dano existir (#127); "quem libera" nao e um campo, e desenho |
 
 ## Como escrever um ADR
 

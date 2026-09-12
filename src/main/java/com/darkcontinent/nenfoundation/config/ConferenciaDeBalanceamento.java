@@ -73,25 +73,25 @@ public final class ConferenciaDeBalanceamento {
 
     /** Le a config carregada e escreve no log o que estiver errado. */
     public static void conferirConfigCarregada() {
-        // ZETSU FICA DE FORA, e isto NAO e um esquecimento -- e uma
-        // contradicao aberta do projeto, escrita aqui para nao sumir.
+        // SO OS ESTADOS QUE LIBERAM AURA, e isso e a regra e nao uma excecao.
         //
-        // Com os numeros de hoje Zetsu tem saldo de +1.8 por segundo: ele SE
-        // PAGA, e pelo item 6 do ADR-010 isso seria proibido. So que Zetsu e o
-        // estado de DESCANSO -- no canone e assim que se recupera -- e o preco
-        // dele nao e aura: e ficar sem defesa de Nen.
+        // O item 6 do ADR-010 dizia "nenhum estado sustentado se paga". A
+        // decisao do responsavel em 2026-09-12 estreitou isso para os estados
+        // que LIBERAM aura, e o motivo e o canone:
         //
-        // Essa defesa NAO EXISTE ainda (#127), entao hoje Zetsu e de fato um
-        // buff permanente sem desvantagem. Incluir Zetsu nesta conferencia
-        // encheria o log de um aviso que ninguem pode resolver, e aviso que
-        // aparece sempre deixa de ser lido -- levando junto o proximo defeito
-        // de verdade.
+        //   Zetsu nao gasta nada e recupera -- o preco dele e ficar sem defesa;
+        //   Ten retem e recupera devagar -- o preco e nao liberar acima do teto;
+        //   Ren libera -- e esse paga em aura.
         //
-        // Qual das duas regras cede e decisao conjunta (ADR-010 tem tabela de
-        // governanca). Esta na issue de balanceamento; nao invente aqui.
+        // Um estado que nao libera nada nao tem como "se pagar em aura": ele
+        // nao gasta aura para existir. Cobrar dele o saldo negativo era exigir
+        // que o descanso cansasse.
+        //
+        // PONTO CEGO ENQUANTO #127 NAO EXISTIR: os precos de Zetsu e de Ten sao
+        // vulnerabilidade e teto, e a vulnerabilidade nao esta implementada.
+        // Ate la os dois sao mais baratos do que deveriam ser.
         List<String> achados = problemas(NenConfig.auraRegeneracaoPorSegundo(), List.of(
-                new Estado("Ten", NenConfig.tenMultiplicadorDeRegeneracao(),
-                        NenConfig.tenCustoPorSegundo())));
+                new Estado("Ren", 1.0D, NenConfig.renCustoPorSegundo())));
 
         for (String achado : achados) {
             LOG.error("[balanceamento] {}", achado);

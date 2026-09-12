@@ -42,7 +42,8 @@ public final class NenServerLifecycle {
         NenTechniqueService.instalarTetoDeRepouso(NenConfig::tetoDeOutputEmRepouso);
         NenTechniqueService.instalar(RegistroDeTecnicas.selar(List.of(
                 new Ten(NenConfig::tenCustoPorSegundo,
-                        NenConfig::tenMultiplicadorDeRegeneracao),
+                        NenConfig::tenMultiplicadorDeRegeneracao,
+                        NenConfig::tenProtecaoBase),
                 new Ren(NenConfig::renCustoPorSegundo,
                         NenConfig::renTetoDeOutput),
                 new Zetsu(NenConfig::zetsuCustoPorSegundo,
@@ -56,7 +57,8 @@ public final class NenServerLifecycle {
                 new Shu(NenConfig::shuCustoPorSegundo,
                         NenConfig::shuFracaoConcentrada),
                 new Ken(NenConfig::kenCustoPorSegundo,
-                        NenConfig::kenTetoDeOutput))));
+                        NenConfig::kenTetoDeOutput,
+                        NenConfig::kenProtecaoBase))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a

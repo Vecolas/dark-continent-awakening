@@ -168,6 +168,27 @@ public final class NenConfig {
                     "duracao. Acima do de repouso, senao a tecnica nao libera nada.")
             .defineInRange("tecnica.ken.tetoDeOutput", 0.8D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue TETO_DE_REDUCAO_DE_DANO = BUILDER
+            .comment("Quanto dano a aura pode segurar, no maximo, de 0 a 1.",
+                    "EXISTE PARA IMPEDIR IMORTALIDADE. Sem teto, uma combinacao de",
+                    "numeros mal escolhidos chega a 100% -- e isso nao da erro nenhum,",
+                    "so um jogador que nao morre mais.",
+                    "Ha um teto ABSOLUTO no codigo acima deste: nem pedindo 1.0 aqui a",
+                    "reducao passa dele.")
+            .defineInRange("combate.tetoDeReducaoDeDano", 0.45D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue TEN_PROTECAO_BASE = BUILDER
+            .comment("Quanto Ten protege com a aura espalhada por igual.",
+                    "Modesto de proposito: o canone chama a defesa de Ten de suficiente",
+                    "contra pressao de Nen e INSUFICIENTE contra ataque de Nen forte.")
+            .defineInRange("tecnica.ten.protecaoBase", 0.20D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue KEN_PROTECAO_BASE = BUILDER
+            .comment("Quanto Ken protege com a aura espalhada por igual.",
+                    "O MAIOR dos tres: Ken e a principal defesa geral contra Nen.",
+                    "Se ele nao for claramente maior que o de Ten, Ken vira um Ten caro.")
+            .defineInRange("tecnica.ken.protecaoBase", 0.75D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -211,6 +232,15 @@ public final class NenConfig {
 
     /** Quanto da aura Gyo concentra na regiao escolhida. */
     public static double gyoFracaoConcentrada() { return GYO_FRACAO_CONCENTRADA.get(); }
+
+    /** Quanto dano a aura pode segurar, no maximo. */
+    public static double tetoDeReducaoDeDano() { return TETO_DE_REDUCAO_DE_DANO.get(); }
+
+    /** Quanto Ten protege com a aura espalhada por igual. */
+    public static double tenProtecaoBase() { return TEN_PROTECAO_BASE.get(); }
+
+    /** Quanto Ken protege com a aura espalhada por igual. */
+    public static double kenProtecaoBase() { return KEN_PROTECAO_BASE.get(); }
 
     /** Custo de Ken por segundo. */
     public static double kenCustoPorSegundo() { return KEN_CUSTO_POR_SEGUNDO.get(); }

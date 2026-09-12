@@ -44,7 +44,7 @@ import net.minecraft.server.level.ServerPlayer;
  * O que Ken entrega hoje e teto, dreno e uma presenca propria para quem olha.
  * Isso e pouco, e esta escrito aqui em vez de descoberto depois.
  */
-public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAura {
+public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAura, ProtegeComAura {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ken");
@@ -53,11 +53,13 @@ public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
 
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier teto;
+    private final DoubleSupplier protecao;
 
     /** Recebe FONTES de numero, e nao numeros. Ver o construtor de {@link Ten}. */
-    public Ken(DoubleSupplier custoPorSegundo, DoubleSupplier teto) {
+    public Ken(DoubleSupplier custoPorSegundo, DoubleSupplier teto, DoubleSupplier protecao) {
         this.custoPorSegundo = custoPorSegundo;
         this.teto = teto;
+        this.protecao = protecao;
     }
 
     @Override
@@ -113,5 +115,17 @@ public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
     public void onDeactivate(ServerPlayer jogador, NenContext ctx, StopReason motivo) {
         // Nada a limpar: o teto volta sozinho quando o servico recalcula sem
         // Ken no conjunto.
+    }
+
+    /**
+     * A razao de ser da tecnica.
+     *
+     * <p>Ken e a principal defesa geral contra usuarios de Nen, e por isso este
+     * numero e o maior dos tres. Se ele nao for claramente maior que o de Ten,
+     * Ken vira um Ten caro -- e ha portao para isso.
+     */
+    @Override
+    public double protecaoBase() {
+        return this.protecao.getAsDouble();
     }
 }

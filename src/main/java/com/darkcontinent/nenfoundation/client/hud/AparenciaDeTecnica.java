@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client.hud;
 
+import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
@@ -38,6 +39,8 @@ public final class AparenciaDeTecnica {
         AUREOLA,
         /** Contorno fino e vazado: os nos fechados, nada sai. */
         CONTORNO,
+        /** Anel grosso e fechado: muita aura, o corpo inteiro coberto. */
+        MURALHA,
         /** Para tecnica que este arquivo nao conhece. */
         NEUTRA
     }
@@ -49,7 +52,8 @@ public final class AparenciaDeTecnica {
     private static final Map<ResourceLocation, Aparencia> CONHECIDAS = Map.of(
             Ten.ID, new Aparencia(0xFF_4A_C8_F0, Forma.ANEL),
             Ren.ID, new Aparencia(0xFF_F0_8A_30, Forma.AUREOLA),
-            Zetsu.ID, new Aparencia(0xFF_88_78_C8, Forma.CONTORNO));
+            Zetsu.ID, new Aparencia(0xFF_88_78_C8, Forma.CONTORNO),
+            Ken.ID, new Aparencia(0xFF_E8_D0_60, Forma.MURALHA));
 
     private AparenciaDeTecnica() {
     }

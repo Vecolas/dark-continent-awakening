@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 5
+- **Versao do protocolo:** 6
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -165,6 +165,17 @@ seria um identificador estavel de jogador viajando sem necessidade.
 **Enviado so na mudanca**, mais uma vez para quem comeca a rastrear o jogador
 (`PlayerEvent.StartTracking`). Sem essa segunda parte, quem chega perto de
 alguem que ja esta em Ren nao veria nada ate a outra pessoa alternar a tecnica.
+
+**v6 acrescentou `KEN` ao sinal.** A forma do payload nao mudou -- continua id
+de entidade mais um byte -- mas o CONJUNTO de valores possiveis mudou, e isso
+basta para subir a versao: um cliente v5 que receba `KEN` cai no valor seguro e
+ve `NENHUM`, ou seja, deixa de ver alguem que esta bem visivel. E a falha na
+direcao certa (ver de menos, nunca ver o escondido), e mesmo assim e uma
+mudanca de significado.
+
+**O valor novo entrou no FIM do enum.** O sinal viaja como ordinal; inserir no
+meio reescreveria `TEN` e `REN` para todo cliente ja conectado, sem erro nenhum
+em lugar nenhum.
 
 **Ponto cego declarado:** o envio usa `sendToPlayersTrackingEntity`, que manda o
 mesmo sinal para todos os rastreadores. Hoje basta, porque a unica regra de

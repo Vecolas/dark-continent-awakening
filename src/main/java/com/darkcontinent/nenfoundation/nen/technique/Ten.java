@@ -73,9 +73,16 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
         return ID;
     }
 
+    /**
+     * Ten recusa Zetsu, e tambem Ken.
+     *
+     * <p>KEN <i>E</i> TEN E REN SUSTENTADOS. Deixar os dois ligados cobraria
+     * duas manutencoes pelo mesmo efeito; a exclusao e o jeito honesto de
+     * dizer "isto ja inclui aquilo".
+     */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Zetsu.ID);
+        return Set.of(Zetsu.ID, Ken.ID);
     }
 
     @Override

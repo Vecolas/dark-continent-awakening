@@ -65,9 +65,13 @@ public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
         return ID;
     }
 
+    /**
+     * Ren recusa Zetsu, e tambem Ken, pelo mesmo motivo de Ten: Ken ja e Ren
+     * sustentado, e somar os dois tetos somaria algo que ja se sobrepoe.
+     */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Zetsu.ID);
+        return Set.of(Zetsu.ID, Ken.ID);
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import com.darkcontinent.nenfoundation.nen.technique.RedistribuiAura;
+import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
@@ -479,6 +480,9 @@ public final class NenTecnicaGameTest {
         if (!ids.contains(Zetsu.ID)) {
             todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
                     () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        if (!ids.contains(Ken.ID)) {
+            todas.add(new Ken(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
         }
         if (!ids.contains(Shu.ID)) {
             todas.add(new Shu(() -> 0.0D, () -> RegiaoDoCorpo.fracaoUniforme()));

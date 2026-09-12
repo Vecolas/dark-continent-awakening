@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 5;
+    public static final int VERSION = 6;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma

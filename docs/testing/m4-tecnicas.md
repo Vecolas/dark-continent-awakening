@@ -35,8 +35,8 @@ sobre uma técnica que não existe.
 Rodar antes de começar; se algum destes falhar, a QA manual não deve começar.
 
 ```bash
-./gradlew build            # 263 testes unitários e portões
-./gradlew runGameTestServer # 68 gametests, servidor de verdade
+./gradlew build            # 481 testes unitários e portões
+./gradlew runGameTestServer # 115 gametests, servidor de verdade
 ```
 
 | Critério do gate | Cobertura automática | O que ela **não** prova |
@@ -47,14 +47,22 @@ Rodar antes de começar; se algum destes falhar, a QA manual não deve começar.
 | Zetsu fecha o Output e devolve ao desligar | `zetsuFechaOOutputEDevolveAoDesligar` | o efeito sentido em jogo |
 | Zetsu drena aura | `zetsuDrenaAuraEnquantoLigado` | se a drenagem é perceptível |
 | O limite simultâneo é a aura, e não um teto de slots | `aAuraEOLimiteDeTecnicasSimultaneas` | — |
-| Logout/morte/dimensão desligam tudo | `desligarTodas` chamado direto nos gametests | **os handlers de evento reais**; ver dívida abaixo |
+| Logout/morte/dimensão desligam tudo | `logoutDesligaTudoPeloEventoDeVerdade`, `morteDesligaTudoEDevolveOTeto`, `trocarDeDimensaoDesligaTudoEDevolveOTeto` | que o jogador **veja** os indicadores sumirem |
+| Toda combinação inválida, nas duas ordens | `aMatrizInteiraNasDuasOrdens` — 42 pares, tirados do registro de produção | que a roda pisque e a técnica caia na tela |
+| A recusa chega com o motivo **dela** | `aRecusaDaTecnicaChegaComAChaveDela` | que a mensagem certa apareça no lugar certo |
+| Cada técnica tem cor e forma próprias | `AparenciaDeTecnicaTest`, lendo o pacote de técnicas | que elas se separem **de relance**, com nove pixels |
 
-> **Dívida declarada:** os gametests de ciclo de vida chamam `desligarTodas`
-> diretamente. Os handlers de `PlayerLoggedOutEvent`, `PlayerEvent.Clone` e
-> `PlayerChangedDimensionEvent` em `NenPlayerLifecycle` **não** são disparados
-> por teste automático. É exatamente o erro nº 3 da lista do CLAUDE.md
-> ("limpeza espalhada pelos pontos de saída"), e é por isso que os itens de
-> morte, logout e dimensão abaixo são manuais e obrigatórios.
+> **A dívida que morava aqui foi paga, e vale dizer como.** Este quadro
+> declarava que os gametests de ciclo de vida chamavam `desligarTodas`
+> diretamente, e que os handlers de `PlayerLoggedOutEvent`,
+> `PlayerEvent.Clone` e `PlayerChangedDimensionEvent` nunca eram disparados.
+> Eles passaram a ser: os três gametests postam o evento REAL no barramento, o
+> que prova também que o handler está **inscrito** — e não só que o serviço
+> sabe desligar.
+>
+> A distância entre as duas coisas é onde o erro nº 3 do CLAUDE.md mora:
+> um serviço que limpa certo e um handler que ninguém registrou dão exatamente
+> o mesmo verde.
 
 ---
 
@@ -162,6 +170,12 @@ reais.
 > ciclo de vida postam o evento REAL no barramento e conferem que o teto voltou
 > — o que também prova que o handler está inscrito, e não só que o serviço sabe
 > desligar. O que sobrou de manual aqui é ver isso acontecer na tela.
+>
+> **E eles exigem IGUALDADE com o teto de repouso, não “menor que o de Ren”.**
+> A versão anterior aceitava qualquer valor entre os dois: um teto que caísse
+> pela metade passava no portão, e o jogador ficaria com um limite que ninguém
+> desenhou. A pergunta destas duas linhas nunca foi se o teto baixou — é
+> **para onde** ele baixou.
 >
 > O texto original, mantido porque explica por que o item existe: Um teto elevado que sobrevive ao
 > ponto de saída não dá erro nenhum: o jogador simplesmente fica com o limite

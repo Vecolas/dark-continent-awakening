@@ -2,6 +2,9 @@ package com.darkcontinent.nenfoundation.structure;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 
 /**
@@ -25,6 +28,22 @@ public final class PostoAvancadoBlockout {
         }
         cercamento(blocos, layout.footprint());
         return List.copyOf(blocos);
+    }
+
+    /**
+     * Aplica o blockout usando o resolvedor de materiais da camada de worldgen.
+     * O gerador continua independente de registries, mas pode ser ligado a
+     * {@code BlockState} em runtime sem duplicar a geometria.
+     */
+    public static <T> void aplicar(Function<Material, T> resolvedor,
+            BiConsumer<BlockPos, T> consumidor) {
+        Objects.requireNonNull(resolvedor, "resolvedor do blockout ausente");
+        Objects.requireNonNull(consumidor, "consumidor do blockout ausente");
+        for (Placement placement : gerar()) {
+            T valor = Objects.requireNonNull(resolvedor.apply(placement.material()),
+                    "material sem valor: " + placement.material());
+            consumidor.accept(placement.posicao(), valor);
+        }
     }
 
     private static void modulo(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo, int altura) {

@@ -34,6 +34,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.Animation;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * Man-faced ape: a ameaca e o ENGANO, e a resposta do jogador e reconhecer a
@@ -56,8 +65,16 @@ import net.minecraft.world.phys.Vec3;
  * sincronizados carregam apenas DISFARCADO e a FASE do ataque, que e o que o
  * cliente precisa para desenhar o disfarce e o bote. O cliente nunca informa
  * olhar, acerto nem revelacao.</p>
+ *
+ * <p>CORPO PROPRIO (ADR-017). Ate aqui o macaco vestia DUAS silhuetas vanilla --
+ * a camada do aldeao disfarcado, a do piglin revelado. Agora ele e um
+ * {@link GeoEntity} com dois modelos autorais de ids proprios
+ * ({@code man_faced_ape_disfarce} e {@code man_faced_ape}), e o andaime saiu. O
+ * comportamento nao mudou uma linha -- aproximacao so sem ser observado,
+ * revelacao por distancia ou dano, e chamado do bando sao os mesmos que os tres
+ * gametests medem.</p>
  */
-public final class ManFacedApeEntity extends BaseHxHMob {
+public final class ManFacedApeEntity extends BaseHxHMob implements GeoEntity {
     /** Disfarcado ou nao; o cliente precisa saber para desenhar gente ou macaco. */
     private static final EntityDataAccessor<Boolean> DISFARCADO =
             SynchedEntityData.defineId(ManFacedApeEntity.class, EntityDataSerializers.BOOLEAN);
@@ -96,6 +113,49 @@ public final class ManFacedApeEntity extends BaseHxHMob {
     private static final double VELOCIDADE_DE_FUGA = 1.3D;
     private static final int RAIO_DA_FUGA = 16;
     private static final int ALTURA_DA_FUGA = 7;
+
+    // ------------------------------------------------------------- animacao
+    // Os nomes abaixo sao um CONTRATO com man_faced_ape_disfarce.animation.json e
+    // com man_faced_ape.animation.json. Errar um deles nao da erro: o GeckoLib
+    // simplesmente nao acha o clipe e deixa o osso parado. E o tipo de falha que so
+    // aparece na tela de quem joga.
+    //
+    // Os tres primeiros moram no arquivo do DISFARCE e movem ossos que so o corpo
+    // humano tem (hood); os quatro ultimos moram no arquivo do REVELADO e movem ossos
+    // que so o primata tem (jaw, ear_left, hand_left...). Por isso o clipe e os tres
+    // recursos precisam trocar pela MESMA pergunta -- ver vestindoCorpoHumano().
+    private static final RawAnimation DISFARCE_WALK = RawAnimation.begin().then("animation.man_faced_ape_disfarce.walk", Animation.LoopType.DEFAULT);
+    private static final RawAnimation DISFARCE_STARE = RawAnimation.begin().then("animation.man_faced_ape_disfarce.stare", Animation.LoopType.DEFAULT);
+    private static final RawAnimation DISFARCE_REVEAL = RawAnimation.begin().then("animation.man_faced_ape_disfarce.reveal", Animation.LoopType.DEFAULT);
+    private static final RawAnimation IDLE = RawAnimation.begin().then("animation.man_faced_ape.idle", Animation.LoopType.DEFAULT);
+    private static final RawAnimation WALK = RawAnimation.begin().then("animation.man_faced_ape.walk", Animation.LoopType.DEFAULT);
+    private static final RawAnimation RUN = RawAnimation.begin().then("animation.man_faced_ape.run", Animation.LoopType.DEFAULT);
+    private static final RawAnimation STRIKE = RawAnimation.begin().then("animation.man_faced_ape.strike", Animation.LoopType.DEFAULT);
+
+    /** Nome do unico controller; quem registrar um segundo clipe reusa esta constante. */
+    private static final String CONTROLLER_DO_CORPO = "corpo";
+    /**
+     * Ticks de mistura entre um clipe e o proximo.
+     *
+     * <p>Quatro, e nao cinco: a revelacao dura 10 ticks e a janela do golpe dura 4.
+     * Uma transicao mais longa do que a fase que ela atravessa comeria o golpe
+     * inteiro em mistura, e quem levasse a pancada nunca veria o braco descer.</p>
+     */
+    private static final int TRANSICAO_EM_TICKS = 4;
+    /**
+     * Deslocamento horizontal por tick acima do qual o clipe passa de walk para run.
+     *
+     * <p>NAO e botao de balanceamento e por isso nao vai para config: e o ponto de
+     * troca entre duas animacoes, medido em blocos/tick. Revelado, o macaco persegue
+     * a 1.0x e foge a 1.3x da MOVEMENT_SPEED (0.29), e so passeia a 0.8x quando esta
+     * sem alvo; o limiar separa o passeio dos dois. O valor e o do great stamp
+     * (0.13 para MOVEMENT_SPEED 0.23) reescalado pela velocidade deste mob -- a
+     * mesma calibragem, e nao um segundo numero inventado.</p>
+     */
+    private static final double LIMIAR_DE_CORRIDA = 0.16D;
+
+    /** Cache por INSTANCIA. Um cache estatico faria todos os macacos compartilharem um clipe. */
+    private final AnimatableInstanceCache cacheDeAnimacao = GeckoLibUtil.createInstanceCache(this);
 
     // Estado DA INSTANCIA. Guardar qualquer um destes numa Goal (ou num static)
     // faria todos os macacos do mundo compartilharem a mesma revelacao -- a Goal e
@@ -147,6 +207,30 @@ public final class ManFacedApeEntity extends BaseHxHMob {
         int ordinal = this.entityData.get(FASE_DE_ATAQUE);
         AttackPhase[] fases = AttackPhase.values();
         return ordinal >= 0 && ordinal < fases.length ? fases[ordinal] : AttackPhase.IDLE;
+    }
+
+    /**
+     * QUAL DOS DOIS CORPOS o jogador ve agora -- a UNICA pergunta que troca
+     * silhueta, textura, arquivo de animacao e clipe.
+     *
+     * <p>Ela vive aqui, e nao no {@code ManFacedApeGeoModel}, para que exista uma
+     * fonte so: modelo e clipe escolhidos por perguntas diferentes nao dariam erro
+     * nenhum, dariam um clipe procurando osso que o modelo carregado nao tem -- e
+     * um osso que nao existe fica parado, calado.</p>
+     *
+     * <p>O TELEGRAFO AINDA E CORPO HUMANO, e este e o ponto que surpreende: quando
+     * {@link #revelar} dispara, ele desliga {@code DISFARCADO} e publica
+     * {@link AttackPhase#WINDUP} NO MESMO TICK. A revelacao e justamente o corpo
+     * humano se desfazendo -- o clipe {@code reveal} mora no arquivo do disfarce e
+     * move ossos que so ele tem. Lida so por {@link #estaDisfarcado()}, a troca
+     * aconteceria um tick ANTES do clipe que a encena: o macaco ja estaria em cena
+     * e o unico aviso que o jogador recebe nunca tocaria, sem erro no log. O corpo
+     * humano sai quando os {@link DisguiseRules#ticksDeReveal()} ticks acabam.</p>
+     *
+     * <p>Vale nos dois lados: as duas leituras vem do {@code SynchedEntityData}.</p>
+     */
+    public boolean vestindoCorpoHumano() {
+        return estaDisfarcado() || faseDeAtaque() == AttackPhase.WINDUP;
     }
 
     @Override
@@ -335,6 +419,75 @@ public final class ManFacedApeEntity extends BaseHxHMob {
     private void publicarFase(AttackPhase fase) {
         this.entityData.set(FASE_DE_ATAQUE, fase.ordinal());
     }
+
+    // ------------------------------------------------------------- animacao
+
+    /**
+     * O CLIENTE NAO DECIDE NADA. Ele le o que o servidor ja publica --
+     * {@link #estaDisfarcado()} e {@link #faseDeAtaque()}, os dois vindos do
+     * SynchedEntityData -- e escolhe o clipe correspondente. Nao existe aqui
+     * nenhum timer, nenhuma heuristica de "parece que vai revelar" e nenhuma copia
+     * da regra de disfarce. Se a animacao e a hitbox discordarem, quem esta errado
+     * e o arquivo de animacao, nunca o servidor.
+     *
+     * <p>"ESTA SENDO OBSERVADO" NAO ENTRA AQUI, e nao e esquecimento:
+     * {@code observadoNesteTick} e campo de SERVIDOR, nao esta no
+     * SynchedEntityData, e no cliente ele responde {@code false} sempre. Usa-lo
+     * faria a pista -- o macaco que trava quando encarado -- sumir da tela, e nada
+     * acusaria: o campo existe, compila, e mente calado. O que o cliente tem e
+     * PARADO x ANDANDO, e parado JA E a pista, porque encarado ele para.</p>
+     *
+     * <p>Ordem de precedencia, da mais especifica para a menos: corpo humano
+     * (revelacao, caminhada, parada) e depois o primata (golpe, corrida, caminhada,
+     * ocio). O corpo vem antes da fase porque o clipe e o modelo tem de sair do
+     * MESMO arquivo -- ver {@link #vestindoCorpoHumano()}.</p>
+     *
+     * <p>PONTO CEGO DECLARADO: o ramo de {@link AttackPhase#ACTIVE} nao dispara em
+     * jogo hoje. O corpo a corpo do macaco e a {@code MeleeAttackGoal} do vanilla,
+     * que nao publica fase nenhuma -- so a revelacao publica WINDUP. O ramo fica
+     * escrito porque a regra e esta, e passa a valer no dia em que o golpe ganhar
+     * uma {@code AttackTimeline} propria; sem ele, a proxima pessoa reescreveria a
+     * regra do zero. Pelo mesmo motivo os clipes {@code hurt} e {@code death} do
+     * arquivo revelado ainda nao sao pedidos por ninguem.</p>
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<ManFacedApeEntity>(this, CONTROLLER_DO_CORPO,
+                TRANSICAO_EM_TICKS, this::clipeDoCorpo));
+    }
+
+    private PlayState clipeDoCorpo(AnimationState<ManFacedApeEntity> estado) {
+        if (vestindoCorpoHumano()) {
+            if (faseDeAtaque() == AttackPhase.WINDUP) return estado.setAndContinue(DISFARCE_REVEAL);
+            if (estado.isMoving()) return estado.setAndContinue(DISFARCE_WALK);
+            return estado.setAndContinue(DISFARCE_STARE);
+        }
+        if (faseDeAtaque() == AttackPhase.ACTIVE) return estado.setAndContinue(STRIKE);
+        if (estado.isMoving()) {
+            return estado.setAndContinue(velocidadeHorizontal() >= LIMIAR_DE_CORRIDA ? RUN : WALK);
+        }
+        return estado.setAndContinue(IDLE);
+    }
+
+    /**
+     * Blocos andados no ultimo tick, medidos por posicao.
+     *
+     * <p>Nao usa {@code getDeltaMovement()}: no cliente o delta de uma entidade
+     * remota so e escrito quando chega um pacote de velocidade, entao ele fica
+     * zerado na maior parte dos ticks e o macaco correria sempre no clipe de walk.
+     * {@code xo}/{@code zo} sao atualizados todo tick nos DOIS lados.</p>
+     */
+    private double velocidadeHorizontal() {
+        double dx = getX() - this.xo;
+        double dz = getZ() - this.zo;
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return cacheDeAnimacao; }
+
+    @Override
+    public double getTick(Object entidade) { return this.tickCount; }
 
     // ------------------------------------------------------------ geometria
 

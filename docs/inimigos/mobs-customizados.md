@@ -109,14 +109,14 @@ conseguem medir, e arte não trava IA.
 | Foxbear | geometria do urso-polar (textura já é autoral) | territorial, em jogo |
 | Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
 | Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
-| Man-faced Ape | geometria e textura de aldeão e piglin | disfarce, bando |
+| Man-faced Ape | **nada** — duas silhuetas próprias (disfarce humano e forma revelada) | disfarce, bando |
 | Spider Eagle | geometria e textura do phantom | ninho, mergulho, coleira |
 
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
-O Great Stamp e o Frog-In-Waiting saíram da dívida **visual**, mas nenhum dos
-dois é DONE pela ficha acima: faltam **sons próprios**. Eles são silenciosos —
+O Great Stamp, o Frog-In-Waiting e o Man-faced Ape saíram da dívida **visual**, mas nenhum dos
+dois é DONE pela ficha acima: faltam **sons próprios**. Os três são silenciosos —
 não emprestam som de vanilla, simplesmente não emitem. E isso hoje está
 **bloqueado por ferramenta**, não por esforço: o Minecraft só toca `.ogg`
 Vorbis e esta máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav`

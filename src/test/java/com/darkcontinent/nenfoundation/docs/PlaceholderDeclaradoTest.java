@@ -74,10 +74,10 @@ class PlaceholderDeclaradoTest {
             // GreatStampModel.java e GreatStampRenderer.java sairam daqui no PR que deu ao
             // great stamp modelo, esqueleto, animacoes, textura e renderer proprios
             // (ADR-017). FrogInWaitingModel.java e FrogInWaitingRenderer.java sairam no PR
-            // seguinte, pelo mesmo motivo. Nao reponha os nomes: a lista e a divida, e
-            // divida paga que continua escrita manda a proxima pessoa refazer o trabalho.
-            "ManFacedApeModel.java",
-            "ManFacedApeRenderer.java",
+            // seguinte, pelo mesmo motivo, e ManFacedApeModel.java e ManFacedApeRenderer.java
+            // no PR depois desse -- este foi o primeiro mob com DUAS silhuetas proprias, uma
+            // por id. Nao reponha os nomes: a lista e a divida, e divida paga que continua
+            // escrita manda a proxima pessoa refazer o trabalho.
             "SpiderEagleModel.java",
             "SpiderEagleRenderer.java");
 

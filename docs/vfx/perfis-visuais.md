@@ -15,7 +15,7 @@ Aqui isso se reparte em quatro lugares, e a diferença importa:
 
 | Onde | O que mora | Quem decide |
 | --- | --- | --- |
-| **Perfil visual (JSON de datapack)** | espessura, alpha, Fresnel, fluxo, contagem/comprimento/largura de ribbon, bloom, pressão, cor | o projeto, por sessão de arte |
+| **Perfil visual (JSON de _resource pack_)** | espessura, alpha, Fresnel, fluxo, contagem/comprimento/largura de ribbon, bloom, pressão, cor | o projeto, por sessão de arte |
 | **Config de cliente** (`NenClientConfig`) | qualidade, nível de bloom, densidade de partícula, distância máxima, primeira pessoa ligada, ticks de transição | **cada jogador**, para si |
 | **Constante de código** | tetos de segurança, limites de design, número de regiões, número de passes | ninguém — é desenho |
 | **Servidor** | técnica ativa, output, distribuição, visibilidade | a autoridade ([ADR-001](../adr/ADR-001-servidor-autoritativo.md)) |
@@ -274,6 +274,37 @@ existir**:
 
 Declarar `vfx.bloom` antes de existir bloom é exatamente o erro nº 7 da lista
 do `CLAUDE.md`: config órfã que ninguém lê, e uma tarde girando um botão morto.
+
+---
+
+## 9-B. Onde o perfil visual mora — e por que não é datapack
+
+**Correção ao que este documento dizia até o AV3.** O texto falava em "JSON de
+datapack". Está errado, e o código agora diz outra coisa: os perfis vivem em
+**`assets/nenfoundation/nen_vfx/`**, carregados pelo gerenciador de recursos do
+**cliente**.
+
+A razão é a mesma que separa `NenConfig` de `NenClientConfig`. Perfil visual não
+muda custo, alcance, dano nem visibilidade autoritativa — ele é direção de arte
+e conforto. Num **datapack**, o *servidor* passaria a ditar como a aura aparece
+na tela de cada pessoa, o que contradiz o [ADR-001](../adr/ADR-001-servidor-autoritativo.md)
+e a §1 deste próprio documento, que classifica estes números como "sessão de
+arte" e não como regra.
+
+Em `assets/`, três coisas passam a valer:
+
+- eles **recarregam com `F3+T`** — e é isso que torna a sessão de arte viável:
+  mexer no número, recarregar, olhar;
+- um **resource pack** pode sobrepô-los, como sobrepõe qualquer textura;
+- um arquivo torto vira **erro com motivo no log**, e o perfil de emergência
+  assume. O de emergência é *visivelmente mais fraco* que qualquer perfil real,
+  de propósito: "não carregou" precisa ser perceptível, e não indistinguível de
+  "carregou".
+
+O que **não** saiu para dado: a **geometria** (as três espessuras). Ela é
+consumida uma vez, na construção das malhas, e não pode recarregar sem
+reconstruí-las — então ela continua no código, e isso é limite real, não
+preguiça.
 
 ---
 

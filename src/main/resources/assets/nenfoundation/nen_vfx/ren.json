@@ -1,0 +1,15 @@
+{
+  "_comentario": "Ren: a MESMA shell de Ten, com a borda aberta e o fluxo rapido. Expoente de Fresnel MENOR = borda mais espessa. Nao e outro efeito.",
+
+  "alpha_interno": 0.09,
+  "alpha_borda": 0.32,
+  "alpha_externo": 0.09,
+
+  "fresnel_interno": 2.4,
+  "fresnel_borda": 1.8,
+  "fresnel_externo": 1.3,
+
+  "velocidade_de_fluxo": 0.32,
+  "escala_de_ruido": 4.0,
+  "reforco_da_borda": 1.2
+}

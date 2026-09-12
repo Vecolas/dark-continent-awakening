@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.client.screen;
 
 import com.darkcontinent.nenfoundation.client.NenClientCache;
+import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
@@ -77,6 +78,39 @@ public final class OverlayDeDebug {
      *
      * <p>Separado da renderizacao para poder ser testado sem o jogo carregado.
      */
+    /**
+     * O que se percebe dos OUTROS jogadores, e em que nivel de detalhe.
+     *
+     * <p>ESTA LINHA EXISTE PORQUE O TESTE MANUAL NAO CONSEGUIA SEPARAR DUAS
+     * COISAS. A aura de um jogador distante some -- mas as particulas do
+     * Minecraft ja somem sozinhas com a distancia, por descarte do proprio
+     * jogo. Olhando a tela, o corte por LOD e o descarte vanilla produzem o
+     * mesmo desaparecimento, e nenhum dos dois se prova.
+     *
+     * <p>Com a distancia e o LOD escritos aqui, da para ver qual dos dois
+     * aconteceu: se a aura sumiu com o LOD ainda em FULL ou SHELL, quem
+     * descartou foi o Minecraft, e nao esta regra.
+     *
+     * <p>E a regra do projeto: numero novo nasce medivel, e a regua entra junto
+     * do sistema que ela mede.
+     */
+    private void linhaDeTerceiros(List<String> l) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null || mc.player == null) {
+            return;
+        }
+        for (var outro : mc.level.players()) {
+            if (outro == mc.player) {
+                continue;
+            }
+            double distancia = mc.player.distanceTo(outro);
+            l.add(String.format(java.util.Locale.ROOT, "  %s: %s  %.1fm  lod=%s",
+                    outro.getGameProfile().getName(),
+                    this.cache.presencaDe(outro.getId()), distancia,
+                    AuraRenderLod.porDistancia(distancia)));
+        }
+    }
+
     public List<String> linhas() {
         List<String> l = new ArrayList<>();
         l.add("[Nen] protocolo v" + NenProtocol.VERSION
@@ -98,6 +132,9 @@ public final class OverlayDeDebug {
                 + "  delta=" + this.cache.deltasRecebidos()
                 + "  fx=" + this.cache.fxRecebidos()
                 + "  erro=" + this.cache.errosRecebidos());
+
+        l.add("recebidos  presenca=" + this.cache.presencasRecebidas());
+        linhaDeTerceiros(l);
 
         this.cache.ultimoErro().ifPresent(e -> l.add("ultimo erro: " + e));
         return l;

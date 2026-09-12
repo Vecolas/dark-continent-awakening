@@ -124,16 +124,24 @@ reais.
 
 | # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
-| D1 | Ligar Ren e **morrer** | ao renascer, nenhum indicador aceso | |
+| D1 | Ligar Ren e **morrer** | ao renascer, nenhum indicador aceso | ✅ **2026-09-12** — confirmado |
 | D2 | Após D1, conferir o Output | voltou ao teto de repouso, **não** ao de Ren | |
 | D3 | Ligar Ren, **deslogar e voltar** | nenhum indicador aceso; aura recomeça | |
-| D4 | Ligar Ren, **ir ao Nether** | os indicadores somem na travessia | |
+| D4 | Ligar Ren, **ir ao Nether** | os indicadores somem na travessia | ✅ **2026-09-12** — confirmado |
 | D5 | Após D4, o Output | de repouso, e não o elevado | |
 
 > **D2 e D5 são o ponto cego deste gate.** Um teto elevado que sobrevive ao
 > ponto de saída não dá erro nenhum: o jogador simplesmente fica com o limite
-> de quem está em Ren, para sempre, sem nada acusar. Se a barra de Output
-> parecer normal, medir mesmo assim com `/nen dump` ou o overlay de debug.
+> de quem está em Ren, para sempre, sem nada acusar.
+>
+> **Esta instrução era impossível de seguir até 2026-09-12.** Ela mandava medir
+> "com `/nen dump` ou o overlay de debug", e **nenhum dos dois mostrava o
+> teto** — o delta enviado ao cliente nem carrega esse campo. Uma régua que não
+> mede nada é pior que nenhuma: dá a impressão de que alguém conferiu.
+>
+> `/nen dump` agora imprime `output: selecionado / teto / efetivo`, o
+> multiplicador de regeneração e o sinal que os outros percebem. Depois de
+> morrer, **o teto tem de ter voltado ao de repouso**.
 
 ### E. Dois jogadores ao mesmo tempo
 
@@ -167,9 +175,9 @@ desenho — **Zetsu não vazar** — só podia ser provada aqui.
 | H2 | O outro jogador olha | as partículas aparecem nele também | ✅ **2026-09-12** — *"funciona para todos"* |
 | H3 | Ligar **Zetsu** | nada visível, nem para si nem para os outros | ✅ **2026-09-12** — confirmado |
 | H4 | Nenhuma técnica ativa | nada visível | ✅ **2026-09-12** — confirmado |
-| H5 | Ten × Ren lado a lado | cores **diferentes**, sem ler o HUD | |
-| H6 | O outro se afasta | a aura enfraquece com a distância e some além de ~40 blocos | |
-| H7 | O outro sai de vista e volta | a aura está lá **na hora**, sem o alvo alternar nada | |
+| H5 | Ten × Ren lado a lado | cores **diferentes**, sem ler o HUD | ✅ **2026-09-12** — confirmado |
+| H6 | O outro se afasta | a aura enfraquece com a distância e some além de ~40 blocos | ⚠️ **confundido** — some, mas as partículas vanilla já somem sozinhas com a distância; ver abaixo |
+| H7 | O outro sai de vista e volta | a aura está lá **na hora**, sem o alvo alternar nada | ✅ **2026-09-12** — confirmado |
 
 > **H3 é a linha que justifica o desenho inteiro.** Zetsu não some porque o
 > cliente escolhe não desenhar: some porque o servidor manda `NENHUM`, o mesmo
@@ -179,11 +187,15 @@ desenho — **Zetsu não vazar** — só podia ser provada aqui.
 > **H4 confirma junto**, e é por isso que as duas andam em par: se `NENHUM`
 > desenhasse alguma coisa, H3 e H4 falhariam iguais.
 
-**H5, H6 e H7 continuam abertos**, e cada um falha por um motivo diferente:
-H5 é a tabela de cores (`AparenciaDeTecnica`), H6 é o `AuraRenderLod` — que até
-a issue #155 nunca decidia nada em jogo, porque só existia o próprio jogador a
-distância zero — e H7 é o `PlayerEvent.StartTracking`, o caso clássico de
-"aparece só depois que o outro liga e desliga".
+> **H6 não conta como aprovado, e a razão importa.** A aura de quem está longe
+> realmente some — mas as partículas do Minecraft já somem sozinhas com a
+> distância, por descarte do próprio jogo. Olhando a tela, o corte do
+> `AuraRenderLod` e o descarte vanilla produzem o **mesmo desaparecimento**, e
+> nenhum dos dois se prova. Verde por coincidência é falso verde.
+>
+> Para separar os dois, o overlay de debug (`F6`) passou a escrever, por
+> jogador visível, o sinal, a distância e o LOD calculado. Se a aura sumiu com
+> o LOD ainda em `FULL` ou `SHELL`, quem descartou foi o Minecraft.
 
 ### G. Revisão cruzada
 

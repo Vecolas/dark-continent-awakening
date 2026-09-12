@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.gametest;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
+import com.darkcontinent.nenfoundation.command.NenCommands;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
@@ -154,6 +155,36 @@ public final class NenPresencaGameTest {
 
         exigir(NenPresencaService.sinalDe(jogador) == SinalDeAura.NENHUM,
                 "jogador sem sessao anunciou " + NenPresencaService.sinalDe(jogador));
+
+        helper.succeed();
+    }
+
+    /**
+     * O DUMP MOSTRA O TETO DE OUTPUT.
+     *
+     * <p>Este teste existe por um buraco achado no teste manual do gate: o
+     * roteiro manda conferir, depois de morrer, se o teto voltou ao de repouso
+     * -- e avisa que um teto elevado sobrevivente NAO da erro nenhum. So que
+     * ele mandava medir "com /nen dump ou o overlay de debug", e nenhum dos
+     * dois mostrava o teto. A instrucao existia e era impossivel de seguir.
+     *
+     * <p>Uma regua que nao mede nada e pior que nenhuma: ela da a impressao de
+     * que alguem conferiu.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void oDumpMostraOTetoDeOutput(GameTestHelper helper) {
+        ServerPlayer jogador = despertoComAura(helper);
+        NenTechniqueService.ativar(jogador, Ren.ID);
+
+        String texto = String.join(" | ", NenCommands.linhasDeRuntimeParaTeste(jogador));
+
+        exigir(texto.contains("teto="),
+                "o dump nao mostra o teto de Output. Sem ele, o item mais"
+                        + " perigoso do gate do M4 nao tem como ser conferido por"
+                        + " ninguem: " + texto);
+        exigir(texto.contains("presenca para os outros: REN"),
+                "o dump nao mostra o que os outros percebem; veio: " + texto);
 
         helper.succeed();
     }

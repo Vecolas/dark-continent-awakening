@@ -250,6 +250,33 @@ todas as combinacoes invalidas; definir `StopReason` e as mensagens de UX.
 - Aura zero encerra tecnica corretamente.
 - Morte e logout nao deixam estado fantasma.
 
+### Estado — 2026-09-11
+
+**Sao tres tecnicas, e nao quatro.** Ten (#86), Ren (#87) e Zetsu (#125) estao
+entregues. **Gyo nao foi implementado**, e o motivo esta em #126: as duas
+metades dele — concentrar aura numa regiao e perceber o que esta escondido —
+nao tem substrato. Nao ha modelo de alocacao de aura, nao ha camada de
+percepcao, e `nen/combat/` tem so o `package-info`. Escrever Gyo hoje
+produziria uma tecnica que custa aura e nao faz nada observavel.
+
+| Entrega | Estado |
+| --- | --- |
+| Ciclo de vida de `NenTechnique`, exclusao, interrupcao | entregue (#85) |
+| Ten, Ren | entregues (#86, #87) |
+| Zetsu, e a regra de quem ABAIXA o teto de Output | entregue (#125) |
+| Gyo | **fora**, com bloqueios nomeados (#126) |
+| Ativacao por roda / menu radial | entregue (#102, #106) |
+| Tecnicas ativas visiveis no HUD, por forma e cor | entregue (#129) |
+| A Water Divination passa a exigir Ren | entregue (#128) |
+| Icone por tecnica e FX distinto | **fora**: exigem arte autoral (ADR-007) e `client/particle/` vazio |
+| A vulnerabilidade de Zetsu ao dano de Nen | **fora**, bloqueada em `nen/combat` (#127) |
+| Gate executado em servidor dedicado | **pendente**: roteiro em [m4-tecnicas.md](../testing/m4-tecnicas.md), execucao manual exige dois clientes |
+
+**O M4 NAO ESTA FECHADO.** O que falta nao e codigo: e a execucao do gate com
+dois clientes reais, que esta maquina so aguenta com memoria livre suficiente
+(ver [qa-matrix.md](../testing/qa-matrix.md)). Nao deduzir entrega a partir de
+build verde.
+
 ---
 
 ## M5 — Framework de Hatsu / habilidades

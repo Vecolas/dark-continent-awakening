@@ -1,9 +1,13 @@
 package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
+import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
+import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -443,6 +447,36 @@ public final class NenTecnicaGameTest {
         helper.succeed();
     }
 
+    /**
+     * Ten, Ren e Zetsu SO SELAM JUNTAS, e este helper e a consequencia disso.
+     *
+     * <p>As tres se excluem, e o selamento do registro RECUSA exclusao que
+     * aponte para tecnica de fora. Registrar so uma delas reprova -- e reprovou
+     * mesmo, em sete gametests, no momento em que Zetsu entrou. O portao fez o
+     * trabalho dele; o que estava errado era o registro parcial.
+     *
+     * <p>As parceiras entram INERTES: custo zero e multiplicador neutro. Elas
+     * existem para o registro fechar, e nao para participar. Se alguma for
+     * ativada por engano, ela nao mexe em numero nenhum -- o teste continua
+     * medindo o que dizia medir.
+     */
+    private static List<NenTechnique> comAsParceiras(NenTechnique... tecnicas) {
+        List<NenTechnique> todas = new ArrayList<>(List.of(tecnicas));
+        Set<ResourceLocation> ids = todas.stream().map(NenTechnique::id)
+                .collect(java.util.stream.Collectors.toSet());
+        if (!ids.contains(Ten.ID)) {
+            todas.add(new Ten(() -> 0.0D, () -> 1.0D));
+        }
+        if (!ids.contains(Ren.ID)) {
+            todas.add(new Ren(() -> 0.0D, () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        if (!ids.contains(Zetsu.ID)) {
+            todas.add(new Zetsu(() -> 0.0D, () -> 1.0D,
+                    () -> AuraPool.OUTPUT_MAXIMO_ABSOLUTO));
+        }
+        return List.copyOf(todas);
+    }
+
     // ------------------------------------------------------------ Ten (#86)
 
     /** Ten de teste, com numeros proprios: os da config nao sao o assunto aqui. */
@@ -456,7 +490,7 @@ public final class NenTecnicaGameTest {
         ServerPlayer jogador = jogadorDesperto(helper);
         Ten ten = tenDeTeste(20.0D, 1.0D);   // 1.0 de aura por tick, sem ganho
 
-        comRegistro(List.of(ten), () -> {
+        comRegistro(comAsParceiras(ten), () -> {
             NenRuntimeService.estadoDe(jogador).definirAuraMaxima(100.0D);
             NenRuntimeService.estadoDe(jogador).definirAuraAtual(50.0D);
             NenTechniqueService.ativar(jogador, ten.id());
@@ -480,7 +514,7 @@ public final class NenTecnicaGameTest {
         ServerPlayer jogador = jogadorDesperto(helper);
         Ten ten = tenDeTeste(20.0D, 1.0D);
 
-        comRegistro(List.of(ten), () -> {
+        comRegistro(comAsParceiras(ten), () -> {
             NenRuntimeService.estadoDe(jogador).definirAuraMaxima(100.0D);
             NenRuntimeService.estadoDe(jogador).definirAuraAtual(0.0D);
             NenTechniqueService.ativar(jogador, ten.id());
@@ -503,7 +537,7 @@ public final class NenTecnicaGameTest {
         ServerPlayer jogador = jogadorDesperto(helper);
         Ten ten = tenDeTeste(0.0D, 2.0D);
 
-        comRegistro(List.of(ten), () -> {
+        comRegistro(comAsParceiras(ten), () -> {
             exigir(NenRuntimeService.estadoDe(jogador).multiplicadorDeRegeneracao() == 1.0D,
                     "sem tecnica ativa o multiplicador tem de ser neutro.");
 
@@ -530,7 +564,7 @@ public final class NenTecnicaGameTest {
         Ten um = tenDeTeste(0.0D, 2.0D);
         ModificadorDeTeste dobro = new ModificadorDeTeste("dobro", 3.0D);
 
-        comRegistro(List.of(um, dobro), () -> {
+        comRegistro(comAsParceiras(um, dobro), () -> {
             NenTechniqueService.ativar(jogador, um.id());
             NenTechniqueService.ativar(jogador, dobro.id());
 
@@ -773,6 +807,237 @@ public final class NenTecnicaGameTest {
         exigir(estado.multiplicadorDeRegeneracao() == 1.0D,
                 "sessao nova nasceu com multiplicador de regeneracao diferente de"
                         + " neutro: " + estado.multiplicadorDeRegeneracao());
+
+        helper.succeed();
+    }
+
+    // ----------------------------------------------------------- Zetsu (#88)
+
+    /** So ABAIXA o teto. Sem custo, sem regeneracao: mede uma coisa de cada vez. */
+    private static final class Limitadora
+            implements NenTechnique, LimitaTetoDeOutput {
+        private final ResourceLocation id;
+        private final float teto;
+
+        Limitadora(String nome, float teto) {
+            this.id = idDeTeste(nome);
+            this.teto = teto;
+        }
+
+        @Override public ResourceLocation id() { return this.id; }
+        @Override public Set<ResourceLocation> incompativeisCom() { return Set.of(); }
+        @Override public float tetoMaximoPermitido() { return this.teto; }
+
+        @Override
+        public TechniqueActivationResult canActivate(ServerPlayer j, NenContext c) {
+            return TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j, NenContext c) { }
+        @Override public void serverTick(ServerPlayer j, NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+    }
+
+    /**
+     * QUEM ABAIXA VENCE QUEM LEVANTA, mesmo com a que levanta pedindo mais.
+     *
+     * <p>ESTE TESTE EXISTE PORQUE O DEFEITO SERIA INVISIVEL. A unica limitadora
+     * de verdade hoje e Zetsu, e ela EXCLUI Ren -- entao as duas nunca ficam
+     * ativas juntas em jogo, e uma ordem errada em {@code tetoDe} nao mudaria
+     * nada que alguem pudesse ver. Ficaria dormindo ate a primeira tecnica que
+     * combinasse com as duas, e ai apareceria como uma supressao que nao
+     * suprime.
+     *
+     * <p>Por isso as tecnicas aqui sao falsas e NAO se excluem: e o unico jeito
+     * de exercitar as duas passagens no mesmo tick.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void quemAbaixaVenceQuemLevanta(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Levantadora sobe = new Levantadora("sobe", 1.0F);
+        Limitadora desce = new Limitadora("desce", 0.1F);
+
+        comRegistro(List.of(sobe, desce), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirOutputSelecionado(1.0F);
+
+            NenTechniqueService.ativar(jogador, sobe.id());
+            exigir(estado.outputMaximo() == 1.0F,
+                    "a levantadora nao levantou; veio " + estado.outputMaximo());
+
+            NenTechniqueService.ativar(jogador, desce.id());
+            exigir(estado.outputMaximo() == 0.1F,
+                    "A limitadora nao venceu a levantadora: teto " + estado.outputMaximo()
+                            + ". Se a ordem das duas passagens se inverter, limitar"
+                            + " deixa de limitar -- e como Zetsu exclui Ren, nada"
+                            + " em jogo acusaria isso.");
+
+            NenTechniqueService.desligar(jogador, desce.id(), StopReason.PLAYER_REQUEST);
+            exigir(estado.outputMaximo() == 1.0F,
+                    "ao sair a limitadora, o teto devia voltar ao que a levantadora"
+                            + " permite; veio " + estado.outputMaximo());
+        });
+
+        helper.succeed();
+    }
+
+    /** Duas restricoes nao se cancelam: vale a MENOR. */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void entreDoisLimitadoresValeOMenor(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Limitadora frouxa = new Limitadora("frouxa", 0.4F);
+        Limitadora dura = new Limitadora("dura", 0.1F);
+
+        comRegistro(List.of(frouxa, dura), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirOutputSelecionado(1.0F);
+
+            NenTechniqueService.ativar(jogador, frouxa.id());
+            NenTechniqueService.ativar(jogador, dura.id());
+
+            exigir(estado.outputMaximo() == 0.1F,
+                    "Com dois limitadores o teto devia ser o MENOR (0.1) e veio "
+                            + estado.outputMaximo() + ". Pegar o maior faria a"
+                            + " restricao mais fraca APAGAR a mais forte.");
+
+            NenTechniqueService.desligar(jogador, dura.id(), StopReason.PLAYER_REQUEST);
+            exigir(estado.outputMaximo() == 0.4F,
+                    "ao sair o limitador duro, devia sobrar o frouxo; veio "
+                            + estado.outputMaximo());
+        });
+
+        helper.succeed();
+    }
+
+    /** A Zetsu DE VERDADE: o Output efetivo vai a zero, e volta ao desligar. */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void zetsuFechaOOutputEDevolveAoDesligar(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
+
+        comRegistro(comAsParceiras(zetsu), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirOutputSelecionado(1.0F);
+            float antes = estado.outputEfetivo();
+            exigir(antes > 0.0F, "o jogador ja nao liberava nada antes de Zetsu");
+
+            NenTechniqueService.ativar(jogador, Zetsu.ID);
+            exigir(estado.outputEfetivo() == 0.0F,
+                    "Zetsu nao fechou o Output: efetivo " + estado.outputEfetivo()
+                            + ". Sem isso ele e furtividade com bonus de"
+                            + " regeneracao, e nenhuma desvantagem.");
+            exigir(estado.outputSelecionado() == 1.0F,
+                    "Zetsu rebaixou a ESCOLHA do jogador, e nao so o teto. Ao"
+                            + " desligar, o jogador acharia que perdeu o ajuste.");
+
+            NenTechniqueService.desligar(jogador, Zetsu.ID, StopReason.PLAYER_REQUEST);
+            exigir(estado.outputEfetivo() == antes,
+                    "o Output nao voltou ao sair de Zetsu: " + estado.outputEfetivo()
+                            + " contra " + antes + ". Teto rebaixado por tecnica"
+                            + " que ja parou nao da erro: o jogador so nunca mais"
+                            + " libera aura.");
+
+            exigir(estado.multiplicadorDeRegeneracao() == 1.0D,
+                    "o multiplicador de Zetsu sobreviveu ao desligamento: "
+                            + estado.multiplicadorDeRegeneracao());
+        });
+
+        helper.succeed();
+    }
+
+    /** Zetsu recupera melhor -- e o multiplicador entra enquanto ele esta ligado. */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void zetsuAceleraARegeneracao(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
+
+        comRegistro(comAsParceiras(zetsu), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            NenTechniqueService.ativar(jogador, Zetsu.ID);
+            exigir(estado.multiplicadorDeRegeneracao() == 3.0D,
+                    "Zetsu nao acelerou a regeneracao: multiplicador "
+                            + estado.multiplicadorDeRegeneracao());
+        });
+
+        helper.succeed();
+    }
+
+    /**
+     * Zetsu AINDA CUSTA. Item 6 do ADR-010: usar Nen gasta.
+     *
+     * <p>Se o custo sumisse, Zetsu viraria o estado permanente obvio -- ninguem
+     * teria motivo para desligar, e o sintoma seria "todo mundo anda em Zetsu",
+     * e nao um erro.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void zetsuDrenaAuraEnquantoLigado(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
+
+        comRegistro(comAsParceiras(zetsu), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(500.0D);
+
+            NenTechniqueService.ativar(jogador, Zetsu.ID);
+            double antes = estado.auraAtual();
+            NenTechniqueService.tick(jogador, estado);
+
+            exigir(estado.auraAtual() < antes,
+                    "Zetsu nao cobrou nada no tick: aura " + estado.auraAtual()
+                            + " igual a " + antes + ". Estado sustentado de graca"
+                            + " contraria o item 6 do ADR-010.");
+        });
+
+        helper.succeed();
+    }
+
+    /**
+     * A EXCLUSAO FUNCIONA NAS DUAS ORDENS.
+     *
+     * <p>O erro previsto no CLAUDE.md e exatamente este: "Ten sabe de Zetsu,
+     * Zetsu esquece de Ren -- a combinacao ilegal funciona". Uma exclusao
+     * declarada pela metade passa numa ordem e falha na outra, e ninguem repara
+     * porque a ordem em que se testa costuma ser sempre a mesma.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void zetsuETenSeExcluemNasDuasOrdens(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Ten ten = new Ten(() -> 3.0D, () -> 2.0D);
+        Ren ren = new Ren(() -> 10.0D, () -> 1.0D);
+        Zetsu zetsu = new Zetsu(() -> 1.2D, () -> 3.0D, () -> 0.0D);
+
+        comRegistro(comAsParceiras(ten, ren, zetsu), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+
+            // Ordem 1: Ten e Ren primeiro, Zetsu depois. As duas caem.
+            NenTechniqueService.ativar(jogador, Ten.ID);
+            NenTechniqueService.ativar(jogador, Ren.ID);
+            NenTechniqueService.ativar(jogador, Zetsu.ID);
+            exigir(estado.tecnicasAtivas().equals(Set.of(Zetsu.ID)),
+                    "Zetsu nao derrubou Ten e Ren; sobrou " + estado.tecnicasAtivas());
+
+            // Ordem 2: Zetsu primeiro, Ten depois. Zetsu cai.
+            NenTechniqueService.ativar(jogador, Ten.ID);
+            exigir(estado.tecnicasAtivas().equals(Set.of(Ten.ID)),
+                    "Ten nao derrubou Zetsu; ativas " + estado.tecnicasAtivas()
+                            + ". A exclusao vale nos DOIS sentidos ou nao vale.");
+
+            // E o teto voltou a ser o de quem ficou, e nao o zero que saiu.
+            exigir(estado.outputMaximo() > 0.0F,
+                    "o teto zero de Zetsu ficou para tras depois de ele ser"
+                            + " derrubado por conflito: " + estado.outputMaximo()
+                            + ". Derrubar por conflito e um ponto de saida como"
+                            + " outro qualquer, e ele tambem precisa limpar.");
+        });
 
         helper.succeed();
     }

@@ -34,10 +34,10 @@ import net.minecraft.server.level.ServerPlayer;
  * um multiplicador tambem faria as duas tecnicas competirem pela mesma
  * alavanca, e o efeito de cada uma deixaria de ser legivel.
  *
- * <p>PONTO CEGO DECLARADO: <b>Ren ainda nao e incompativel com Zetsu</b>, pelo
- * mesmo motivo de Ten -- o portao de simetria recusa exclusao com tecnica que
- * nao existe, e Zetsu nasce na issue #88. A declaracao entra dos dois lados de
- * uma vez.
+ * <p>4. REN EXCLUI ZETSU, e a exclusao entrou dos dois lados na issue #88.
+ * Enquanto Zetsu nao existia isto era ponto cego declarado aqui: o portao de
+ * simetria do registro RECUSA exclusao apontando para tecnica inexistente, e
+ * por isso a declaracao teve de esperar a outra ponta.
  *
  * <p>PONTO CEGO DECLARADO: <b>a presenca de aura nao existe.</b> O cânone diz
  * que Ren torna o usuario sentido de longe, e nao ha camada de percepcao no
@@ -67,8 +67,7 @@ public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
 
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        // Vazio ate Zetsu existir. Ver o ponto cego no topo da classe.
-        return Set.of();
+        return Set.of(Zetsu.ID);
     }
 
     @Override

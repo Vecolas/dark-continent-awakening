@@ -106,6 +106,22 @@ public final class NenConfig {
                     "Precisa ser MAIOR que aura.tetoDeOutputEmRepouso, senao Ren nao levanta nada.")
             .defineInRange("tecnica.ren.tetoDeOutput", 1.0D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue ZETSU_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Zetsu consome por segundo. O MENOR das tres tecnicas.",
+                    "Pelo item 6 do ADR-010 nenhum estado sustentado se paga: Zetsu drena",
+                    "devagar, e nao de graca. E o repouso obvio sem ser gratuito.")
+            .defineInRange("tecnica.zetsu.custoPorSegundo", 1.2D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue ZETSU_MULTIPLICADOR_DE_REGENERACAO = BUILDER
+            .comment("Quanto Zetsu multiplica a regeneracao. O canone e explicito:",
+                    "Zetsu recupera melhor, e o estado de descanso.")
+            .defineInRange("tecnica.zetsu.multiplicadorDeRegeneracao", 3.0D, 0.0D, 10.0D);
+
+    private static final ModConfigSpec.DoubleValue ZETSU_TETO_DE_OUTPUT = BUILDER
+            .comment("Teto de Output com Zetsu ativo. Zero fecha os nos de aura: o jogador",
+                    "nao libera NADA, e e por isso que Zetsu exclui Ten e Ren.")
+            .defineInRange("tecnica.zetsu.tetoDeOutput", 0.0D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -143,6 +159,17 @@ public final class NenConfig {
 
     /** Teto de Output com Ren ativo. */
     public static double renTetoDeOutput() { return REN_TETO_DE_OUTPUT.get(); }
+
+    /** Custo de Zetsu por segundo. */
+    public static double zetsuCustoPorSegundo() { return ZETSU_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Multiplicador de regeneracao de Zetsu. */
+    public static double zetsuMultiplicadorDeRegeneracao() {
+        return ZETSU_MULTIPLICADOR_DE_REGENERACAO.get();
+    }
+
+    /** Teto de Output com Zetsu ativo. */
+    public static double zetsuTetoDeOutput() { return ZETSU_TETO_DE_OUTPUT.get(); }
 
     public static int pedidosPorSegundo() {
         return PEDIDOS_POR_SEGUNDO.get();

@@ -6,6 +6,7 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.List;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -32,7 +33,10 @@ public final class NenServerLifecycle {
                 new Ten(NenConfig::tenCustoPorSegundo,
                         NenConfig::tenMultiplicadorDeRegeneracao),
                 new Ren(NenConfig::renCustoPorSegundo,
-                        NenConfig::renTetoDeOutput))));
+                        NenConfig::renTetoDeOutput),
+                new Zetsu(NenConfig::zetsuCustoPorSegundo,
+                        NenConfig::zetsuMultiplicadorDeRegeneracao,
+                        NenConfig::zetsuTetoDeOutput))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a

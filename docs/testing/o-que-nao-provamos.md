@@ -162,6 +162,8 @@ O procedimento inteiro esta em
 | Reconexão real M2 usou novo processo | limpeza na mesma instância só coberta por teste de cache | ampliar QA manual |
 | `technique unlock` só valida namespace | não confirma registro da técnica, ainda inexistente | M4 |
 | Morte/dimensão de técnicas ativas não existe nesta fase | o teste atual cobre perfil/runtime, não efeitos de combate | M4/M5 |
+| Zetsu não expõe o jogador a nada | no cânone a defesa de aura some; não há dano de Nen (`nen/combat` só tem `package-info`), então hoje o único custo real de Zetsu é não liberar Output — ele é mais seguro do que deveria ser | M5 |
+| Limitador vs. levantador de teto só se encontram em teste | Zetsu (único limitador) exclui Ren (único levantador), então a ordem das duas passagens de `tetoDe` não é exercitada por nada em jogo; a prova é o GameTest `quemAbaixaVenceQuemLevanta`, com técnicas falsas que convivem | quando nascer uma técnica que combine com ambos |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em

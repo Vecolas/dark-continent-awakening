@@ -1,7 +1,10 @@
 package com.darkcontinent.nenfoundation.client.hud;
 
+import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.technique.Ken;
+import com.darkcontinent.nenfoundation.nen.technique.Ko;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
+import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.Map;
@@ -41,6 +44,31 @@ public final class AparenciaDeTecnica {
         CONTORNO,
         /** Anel grosso e fechado: muita aura, o corpo inteiro coberto. */
         MURALHA,
+        /**
+         * Um quarto do anel aceso e o resto apagado: a aura foi para um lado.
+         *
+         * <p>Gyo concentra numa regiao para PERCEBER, e o desenho conta as duas
+         * metades do trato: o pedaco aceso e onde a aura esta, e o apagado e o
+         * que ela deixou de cobrir.
+         */
+        SETOR,
+        /**
+         * Um miolo pequeno e uma ponta saindo ate a borda.
+         *
+         * <p>Shu e a unica que manda aura para FORA do corpo, sobre um objeto na
+         * mao. Nenhuma outra forma sai do circulo, e e assim que ela se separa
+         * das outras duas concentradoras de relance.
+         */
+        LANCA,
+        /**
+         * Um ponto so, e mais nada.
+         *
+         * <p>Ko poe quase tudo num lugar, e O VAZIO EM VOLTA E O DESENHO: com a
+         * aura toda num ponto, o resto do corpo esta nu. Uma forma que
+         * preenchesse o indicador mentiria sobre o risco -- e o risco e o que
+         * separa Ko de "Gyo com um numero maior".
+         */
+        PONTO,
         /** Para tecnica que este arquivo nao conhece. */
         NEUTRA
     }
@@ -49,11 +77,23 @@ public final class AparenciaDeTecnica {
     public record Aparencia(int cor, Forma forma) {
     }
 
+    // TODAS AS REGISTRADAS, e o portao cobra isso lendo o pacote de tecnicas --
+    // nao uma lista escrita aqui nem la. A versao anterior deste mapa tinha
+    // quatro entradas e o teste conferia TRES: Gyo, Shu e Ko cairam na forma
+    // neutra durante duas entregas, e Ken entrou no mapa sem prova nenhuma.
+    // Lista paralela nao fica errada, fica velha -- e velha e verde ao mesmo
+    // tempo.
     private static final Map<ResourceLocation, Aparencia> CONHECIDAS = Map.of(
             Ten.ID, new Aparencia(0xFF_4A_C8_F0, Forma.ANEL),
             Ren.ID, new Aparencia(0xFF_F0_8A_30, Forma.AUREOLA),
             Zetsu.ID, new Aparencia(0xFF_88_78_C8, Forma.CONTORNO),
-            Ken.ID, new Aparencia(0xFF_E8_D0_60, Forma.MURALHA));
+            Ken.ID, new Aparencia(0xFF_E8_D0_60, Forma.MURALHA),
+            Gyo.ID, new Aparencia(0xFF_60_E0_A8, Forma.SETOR),
+            Shu.ID, new Aparencia(0xFF_E8_78_B8, Forma.LANCA),
+            // VERMELHO DE PROPOSITO, e Ko e a unica. Ela e a tecnica de maior
+            // risco do material -- durante a janela o corpo esta quase nu -- e a
+            // cor de alerta esta reservada para ela.
+            Ko.ID, new Aparencia(0xFF_F0_48_48, Forma.PONTO));
 
     private AparenciaDeTecnica() {
     }

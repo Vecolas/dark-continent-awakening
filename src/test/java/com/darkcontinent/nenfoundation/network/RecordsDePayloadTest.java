@@ -162,8 +162,8 @@ class RecordsDePayloadTest {
         idaEVolta(AtivarTecnicaC2S.STREAM_CODEC,
                 new AtivarTecnicaC2S(id("ren")));
 
-        idaEVolta(AjustarOutputC2S.STREAM_CODEC,
-                new AjustarOutputC2S(+0.10F));
+        idaEVolta(AjustarOutputC2S.STREAM_CODEC, new AjustarOutputC2S(true));
+        idaEVolta(AjustarOutputC2S.STREAM_CODEC, new AjustarOutputC2S(false));
 
         idaEVolta(AtivarHabilidadeC2S.STREAM_CODEC,
                 new AtivarHabilidadeC2S(id("disparo_de_aura"), 3,

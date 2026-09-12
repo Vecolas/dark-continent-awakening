@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 6;
+    public static final int VERSION = 7;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -91,8 +91,9 @@ public final class NenProtocol {
                     List.of("tecnicaId"),
                     "o jogador apertou a tecla; o servidor decide se pode"),
             c2s("adjust_output_request",
-                    List.of("variacao"),
-                    "o jogador enviou a variacao (+/-); o servidor limita de 0 a 100%"),
+                    List.of("aumentar"),
+                    "intencao de subir ou descer UM passo; o tamanho do passo e do"
+                            + " servidor, e o cliente nao o escolhe"),
             c2s("deactivate_technique_request",
                     List.of("tecnicaId"),
                     "o servidor decide se o desligamento e legitimo"),

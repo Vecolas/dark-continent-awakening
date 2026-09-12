@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 6
+- **Versao do protocolo:** 7
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -36,7 +36,7 @@ primeiro a encontra-lo e quem estiver procurando.
 | id | Direcao | O que pode carregar |
 | --- | --- | --- |
 | `activate_technique_request` | C2S | id da tecnica |
-| `adjust_output_request` | C2S | variacao (float, ex: +0.10) |
+| `adjust_output_request` | C2S | aumentar (bool): a DIRECAO, e nada mais |
 | `deactivate_technique_request` | C2S | id da tecnica |
 | `activate_ability_request` | C2S | id da habilidade, slot, alvo/posicao **candidatos** |
 | `nen_profile_snapshot` | S2C | estado de leitura para a interface, so ao dono |
@@ -69,8 +69,19 @@ toda tecnica pode ser desligada a vontade.
 
 ### `adjust_output_request` (C2S)
 
-O jogador ajusta seu AOP via atalho (ex: aumentar em 10%). O servidor soma a
-variacao ao Output atual e limita o resultado entre 0.0 e 1.0.
+O jogador ajusta seu AOP via atalho. O payload carrega **so a direcao** --
+`true` para cima, `false` para baixo -- e o servidor aplica **um passo**, cujo
+tamanho vive no dominio (`AuraPool.PASSO_DE_OUTPUT`).
+
+> **Antes ele carregava um `float` livre**, e o servidor so limitava o resultado
+> entre 0 e 1. Um cliente modificado ia de zero a cem num pacote so, e nada
+> nisso parecia errado: o valor final ficava dentro da faixa, e nenhum portao
+> olhava para o caminho. "Aumente um passo" e intencao; "aumente 0,37" e o
+> cliente escolhendo o resultado (ADR-001).
+>
+> E o cliente mandava `0.10` enquanto o dominio dizia `0.05` -- duas fontes para
+> a mesma verdade, discordando havia meses. O botao que o jogador aperta andava
+> o dobro do que o resto do jogo achava, e nada acusava.
 
 ### `activate_ability_request` (C2S)
 

@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.gametest;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
+import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
 import com.darkcontinent.nenfoundation.network.payload.*;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
@@ -116,5 +117,54 @@ public final class NenRedeGameTest {
     private static String chaveDe(
             com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Recusa r) {
         return r == null ? null : r.chave();
+    }
+
+    /**
+     * O AJUSTE DE OUTPUT ANDA UM PASSO, e o cliente nao escolhe o tamanho.
+     *
+     * <p>ATE #71 O PAYLOAD CARREGAVA UM {@code float} LIVRE. O servidor limitava
+     * o RESULTADO entre 0 e 1 e mais nada -- entao um cliente modificado ia de
+     * zero a cem num pacote so, e o valor final ficava dentro da faixa. Nao
+     * havia nada errado para ver: nenhum portao olhava para o CAMINHO, so para
+     * o destino.
+     *
+     * <p>E o cliente mandava {@code 0.10} enquanto {@code AuraPool} dizia
+     * {@code 0.05}. Duas fontes para a mesma verdade, discordando havia meses:
+     * a tecla andava o dobro do que qualquer outra parte do jogo achava, e
+     * nenhum teste tinha como perceber, porque nenhum dos dois lados estava
+     * errado sozinho.
+     *
+     * <p>Este teste mede o PASSO, e nao a faixa. E o unico jeito de a diferenca
+     * aparecer.
+     */
+    @GameTest(template = "empty")
+    @PrefixGameTestTemplate(false)
+    public static void ajustarOutputAndaExatamenteUmPasso(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+        com.darkcontinent.nenfoundation.server.NenAwakeningService.despertar(jogador,
+                com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar.TREINO);
+        var estado = com.darkcontinent.nenfoundation.server.NenRuntimeService
+                .estadoDe(jogador);
+        final float passo = com.darkcontinent.nenfoundation.nen.aura.AuraPool.PASSO_DE_OUTPUT;
+
+        // No meio da faixa: perto do teto, o clamp esconderia o tamanho do passo.
+        estado.definirOutputSelecionado(0.50F);
+
+        helper.assertTrue(NenPedidoService.validar(jogador,
+                new AjustarOutputC2S(false)) == null, "o pedido de descer foi recusado");
+        float depoisDeDescer = estado.outputSelecionado();
+        helper.assertTrue(Math.abs(depoisDeDescer - (0.50F - passo)) < 1.0E-5F,
+                "descer moveu para " + depoisDeDescer + ", e um passo abaixo de"
+                        + " 0.50 e " + (0.50F - passo) + ". O tamanho do passo"
+                        + " deixou de ser do servidor.");
+
+        helper.assertTrue(NenPedidoService.validar(jogador,
+                new AjustarOutputC2S(true)) == null, "o pedido de subir foi recusado");
+        helper.assertTrue(Math.abs(estado.outputSelecionado() - 0.50F) < 1.0E-5F,
+                "subir depois de descer devia voltar a 0.50, e deu "
+                        + estado.outputSelecionado() + ": os dois sentidos nao"
+                        + " andam o mesmo tanto.");
+
+        helper.succeed();
     }
 }

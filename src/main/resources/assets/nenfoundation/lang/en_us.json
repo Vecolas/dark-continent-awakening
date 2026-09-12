@@ -51,6 +51,8 @@
   "nenfoundation.error.ja_tem_categoria": "This Nen category is already set and cannot be changed.",
   "nenfoundation.error.sem_categoria": "No Nen category has been determined yet.",
   "nenfoundation.divinacao.sem_nen": "The water does not react. Awaken your Nen first.",
+  "nenfoundation.error.ren_necessario": "Use Ren over the water to take the test.",
+  "nenfoundation.divinacao.agua_parada": "The water stays still. There is no aura over it.",
   "nenfoundation.divinacao.volume": "The water rises and overflows. Your category is %s.",
   "nenfoundation.divinacao.sabor": "The water turns sweet on your tongue. Your category is %s.",
   "nenfoundation.divinacao.cor": "The water shifts colour. Your category is %s.",

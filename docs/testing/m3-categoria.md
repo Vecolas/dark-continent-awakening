@@ -130,9 +130,10 @@ Escrito aqui porque a próxima pessoa vai ler a tabela acima e parar.
   particular, **se as seis reações são perceptivelmente distinguíveis** continua
   sem resposta: os portões provam que partícula, som e frase são *diferentes*,
   não que dão para distinguir olhando.
-- **O gatilho do ritual ainda não é Ren.** Ren é do M4. Hoje basta ter
-  despertado, o que torna o teste mais fácil do que deveria ser. Há um teste que
-  reprova quando a condição mudar.
+- **O gatilho do ritual ainda não é Ren.** *(Resolvido depois, na issue #90:
+  Ren chegou no M4, o teste que fixava a dívida reprovou como prometido, e a
+  condição passou a exigir Ren sobre o copo. Mantido aqui porque este documento
+  registra o que era verdade no gate do M3.)*
 - **O log do cliente do `Kurapika` não registra snapshot**, porque aquela
   worktree está com `dev.enabled = false`. A prova do escondido saiu do log do
   `Gon` — mesmo jogador, antes e depois da revelação, que é evidência melhor que

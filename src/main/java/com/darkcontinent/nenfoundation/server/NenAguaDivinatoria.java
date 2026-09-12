@@ -2,11 +2,15 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
+import com.darkcontinent.nenfoundation.nen.divination.RecusaDaAdivinhacao;
 import com.darkcontinent.nenfoundation.nen.divination.ResultadoDaAdivinhacao;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -49,12 +53,18 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  * {@link #montagemValida} justamente para poder ser trocada sem tocar no
  * resto.
  *
- * <p><b>PONTO CEGO DECLARADO, e ele e grande:</b> o cânone e a issue pedem que
- * o teste seja disparado por <b>Ren</b> sobre o copo. Ren nao existe: tecnicas
- * fundamentais sao o M4. O portao de hoje e "ter Nen desperto", que e o mais
- * proximo que existe. Quando Ren chegar, a condicao entra em
- * {@link #podeFazerOTeste} e nada mais aqui muda -- mas ate la <b>o teste e
- * mais facil do que deveria ser</b>.
+ * <p>5. O TESTE EXIGE REN, como o cânone pede. Isto era divida declarada: o PR
+ * #77 entregou o ritual com o portao em "ter Nen desperto" porque Ren nao
+ * existia, e disse isso em voz alta aqui e num teste que REPROVAVA quando a
+ * condicao mudasse. Ren chegou na #87, o teste reprovou, e a divida foi paga
+ * na #90.
+ *
+ * <p>A condicao mora inteira em {@link #recusaPara}, e foi por isso que ela
+ * nasceu isolada: acrescentar Ren nao virou cirurgia espalhada pelo ritual.
+ *
+ * <p>E as duas recusas sao DISTINGUIVEIS. "Nao despertou" e "despertou mas
+ * esta sem Ren" mandam o jogador para lugares diferentes; uma mensagem so
+ * daria o mesmo relato de bug para dois problemas que nao tem nada a ver.
  */
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class NenAguaDivinatoria {
@@ -111,24 +121,36 @@ public final class NenAguaDivinatoria {
     }
 
     /**
-     * Quem pode fazer o teste.
+     * Por que o ritual foi recusado -- ou vazio, quando ele pode acontecer.
      *
-     * <p>E AQUI QUE REN ENTRA NO M4, e em nenhum outro lugar. A condicao esta
-     * sozinha num metodo proprio para que acrescenta-la nao vire uma cirurgia
-     * espalhada pelo ritual.
+     * <p>DEVOLVE O MOTIVO, e nao um booleano, porque recusa sempre tem motivo.
+     * Com um `false` o chamador teria de re-deduzir o porque, e a deducao ficaria
+     * em dois lugares: aqui e la. Duas fontes para a mesma verdade divergem no
+     * dia em que uma terceira condicao entrar.
+     *
+     * <p>A ORDEM DAS PERGUNTAS IMPORTA. Quem nao despertou tambem nao tem Ren,
+     * e dizer a essa pessoa "ative Ren" e mandar ela para o lugar errado.
      */
-    static boolean podeFazerOTeste(PersistentNenData perfil) {
-        return perfil.awakened();
+    static Optional<RecusaDaAdivinhacao> recusaPara(PersistentNenData perfil,
+            Set<ResourceLocation> tecnicasAtivas) {
+        if (!perfil.awakened()) {
+            return Optional.of(RecusaDaAdivinhacao.NAO_DESPERTOU);
+        }
+        if (!tecnicasAtivas.contains(Ren.ID)) {
+            return Optional.of(RecusaDaAdivinhacao.SEM_REN);
+        }
+        return Optional.empty();
     }
 
+
     private static void fazerOTeste(ServerPlayer jogador, ServerLevel nivel, BlockPos posicao) {
-        if (!podeFazerOTeste(NenProfileService.ler(jogador))) {
+        Optional<RecusaDaAdivinhacao> recusa = recusaPara(NenProfileService.ler(jogador),
+                NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
+        if (recusa.isPresent()) {
             // Recusa com motivo. Sem isto o relato de bug e "cliquei e nao
             // aconteceu nada", que nao diz onde procurar.
-            jogador.sendSystemMessage(
-                    Component.translatable("nenfoundation.error.nao_desperto"));
-            jogador.sendSystemMessage(
-                    Component.translatable("nenfoundation.divinacao.sem_nen"));
+            jogador.sendSystemMessage(Component.translatable(recusa.get().chaveDaRegra()));
+            jogador.sendSystemMessage(Component.translatable(recusa.get().chaveDaAgua()));
             return;
         }
 

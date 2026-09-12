@@ -23,6 +23,36 @@ public final class ValidacaoDePedido {
         }
     }
 
+    /**
+     * Uma recusa, com a chave que o jogador vai LER.
+     *
+     * <p>ELA EXISTE PORQUE O MOTIVO ESTAVA SENDO JOGADO FORA. O servico de
+     * pedidos traduzia toda recusa de tecnica em {@code ESTADO_INVALIDO} e
+     * descartava o texto que a tecnica tinha escrito. Shu recusa mao vazia com
+     * {@code "nenfoundation.error.shu_sem_item"} -- a chave existe, o gametest
+     * passa, e o jogador de mao vazia le <i>"Seu estado atual nao permite esse
+     * pedido"</i>.
+     *
+     * <p>Isso e o princípio 8 quebrado por dentro: a recusa TEM motivo, e o
+     * motivo nao chega. Eu tinha classificado este buraco como latente quando
+     * o HUD foi entregue -- e ele deixou de ser latente no dia em que Shu
+     * nasceu, sem que ninguem voltasse aqui.
+     *
+     * @param chave a chave de traducao mostrada ao jogador
+     */
+    public record Recusa(String chave) {
+        public Recusa {
+            if (chave == null || chave.isBlank()) {
+                throw new IllegalArgumentException("recusa sem chave");
+            }
+        }
+
+        /** A recusa de um motivo padrao. */
+        public static Recusa de(Motivo motivo) {
+            return new Recusa(motivo.chave());
+        }
+    }
+
     public static Motivo validar(ResourceLocation id, boolean habilidade,
             boolean existe, boolean estadoValido, PersistentNenData perfil, RuntimeNenState runtime) {
         if (!estadoValido) return Motivo.ESTADO_INVALIDO;

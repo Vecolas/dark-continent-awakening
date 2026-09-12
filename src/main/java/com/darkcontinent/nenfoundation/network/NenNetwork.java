@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.network;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
+import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Recusa;
 import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
@@ -49,7 +50,7 @@ public final class NenNetwork {
     }
 
     public static void registrar(RegisterPayloadHandlersEvent evento,
-            BiFunction<ServerPlayer, CustomPacketPayload, Motivo> validar) {
+            BiFunction<ServerPlayer, CustomPacketPayload, Recusa> validar) {
         PayloadRegistrar registrar = evento.registrar(String.valueOf(NenProtocol.VERSION));
 
         registrar.playToClient(

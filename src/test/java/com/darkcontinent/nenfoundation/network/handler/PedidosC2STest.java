@@ -52,7 +52,7 @@ class PedidosC2STest {
     private void receber(CustomPacketPayload pedido) {
         PedidosC2S.receber(pedido, contexto, (jogador, valor) -> {
             fail("estado invalido nao pode alcancar dominio");
-            return ValidacaoDePedido.Motivo.ERRO_INTERNO;
+            return ValidacaoDePedido.Recusa.de(ValidacaoDePedido.Motivo.ERRO_INTERNO);
         }, 20);
     }
 

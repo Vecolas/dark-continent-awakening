@@ -68,7 +68,7 @@ public final class NenRedeGameTest {
         ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
         for (var pedido : List.of(new AtivarTecnicaC2S(ID), new DesativarTecnicaC2S(ID),
                 new AtivarHabilidadeC2S(ID, 0, OptionalInt.empty(), Optional.empty()))) {
-            helper.assertTrue(NenPedidoService.validar(jogador, pedido) == Motivo.NAO_DESPERTO,
+            helper.assertTrue(Motivo.NAO_DESPERTO.chave().equals(chaveDe(NenPedidoService.validar(jogador, pedido))),
                     "pedido passou para jogador nao desperto");
         }
         NenProfileService.atualizar(jogador, perfil -> {
@@ -76,14 +76,14 @@ public final class NenRedeGameTest {
             return new PersistentNenData(novo.schemaVersion(), true, novo.category(), false,
                     0, 0, 0, novo.techniqueProficiency(), novo.unlockedTechniques(), Set.of(ID), Set.of());
         });
-        helper.assertTrue(NenPedidoService.validar(jogador, new AtivarTecnicaC2S(ID)) == Motivo.ID_INEXISTENTE,
+        helper.assertTrue(Motivo.ID_INEXISTENTE.chave().equals(chaveDe(NenPedidoService.validar(jogador, new AtivarTecnicaC2S(ID)))),
                 "unlock de debug foi tratado como registro executavel");
-        helper.assertTrue(NenPedidoService.validar(jogador,
-                new AtivarHabilidadeC2S(ID, 0, OptionalInt.of(Integer.MAX_VALUE), Optional.empty()))
-                == Motivo.ALVO_INVALIDO, "alvo inexistente aceito");
-        helper.assertTrue(NenPedidoService.validar(jogador,
-                new AtivarHabilidadeC2S(ID, 0, OptionalInt.empty(), Optional.of(new Vec3(Double.NaN, 0, 0))))
-                == Motivo.ALVO_INVALIDO, "posicao NaN aceita");
+        helper.assertTrue(chaveDe(NenPedidoService.validar(jogador,
+                new AtivarHabilidadeC2S(ID, 0, OptionalInt.of(Integer.MAX_VALUE), Optional.empty())))
+                .equals(Motivo.ALVO_INVALIDO.chave()), "alvo inexistente aceito");
+        helper.assertTrue(chaveDe(NenPedidoService.validar(jogador,
+                new AtivarHabilidadeC2S(ID, 0, OptionalInt.empty(), Optional.of(new Vec3(Double.NaN, 0, 0)))))
+                .equals(Motivo.ALVO_INVALIDO.chave()), "posicao NaN aceita");
         helper.succeed();
     }
 
@@ -110,5 +110,11 @@ public final class NenRedeGameTest {
                 this.snapshots.add(snapshot);
             }
         }
+    }
+
+    /** A chave da recusa, ou nulo quando o pedido foi aceito. */
+    private static String chaveDe(
+            com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Recusa r) {
+        return r == null ? null : r.chave();
     }
 }

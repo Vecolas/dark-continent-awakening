@@ -1562,4 +1562,41 @@ public final class NenTecnicaGameTest {
 
         helper.succeed();
     }
+
+    // ------------------------------------------ a recusa chega ao jogador
+
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void aRecusaDaTecnicaChegaComAChaveDela(GameTestHelper helper) {
+        // FALSO VERDE EXATO, e ele viveu duas entregas.
+        //
+        // Shu recusa mao vazia com "nenfoundation.error.shu_sem_item" -- a
+        // chave existe, ha traducao nos dois idiomas, e havia gametest
+        // conferindo o Resultado. So que `NenPedidoService` traduzia TODA
+        // recusa de tecnica em ESTADO_INVALIDO e jogava o texto fora: o jogador
+        // de mao vazia lia "seu estado atual nao permite esse pedido", uma
+        // mensagem sobre outro problema.
+        //
+        // O gametest antigo media o Resultado; este mede o que SAI para a rede.
+        // A diferenca entre os dois e onde o defeito morava.
+        ServerPlayer jogador = jogadorDesperto(helper);
+        jogador.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,
+                net.minecraft.world.item.ItemStack.EMPTY);
+
+        comRegistro(comAsParceiras(new Shu(() -> 0.0D, () -> 0.30D)), () -> {
+            var recusa = com.darkcontinent.nenfoundation.server.NenPedidoService.validar(
+                    jogador,
+                    new com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S(Shu.ID));
+
+            exigir(recusa != null, "Shu foi aceita com a mao vazia");
+            exigir("nenfoundation.error.shu_sem_item".equals(recusa.chave()),
+                    "a recusa chegou com a chave '" + recusa.chave() + "'. A chave"
+                            + " da tecnica foi trocada por um motivo generico, e o"
+                            + " jogador le uma mensagem sobre outro problema --"
+                            + " recusa com motivo errado e pior que recusa sem"
+                            + " motivo, porque manda procurar no lugar errado.");
+        });
+
+        helper.succeed();
+    }
 }

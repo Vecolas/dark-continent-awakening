@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 3;
+    public static final int VERSION = 4;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -112,7 +112,12 @@ public final class NenProtocol {
                     "som, particula e animacao; nao altera nenhuma logica no cliente"),
             s2c("nen_error_feedback",
                     List.of("chaveDeTraducao"),
-                    "motivo legivel de uma recusa; nunca revela estado alheio")
+                    "motivo legivel de uma recusa; nunca revela estado alheio"),
+            s2c("aura_presence",
+                    List.of("entidadeId", "sinal"),
+                    "o UNICO payload sobre terceiros; so o que alguem ao lado"
+                            + " perceberia. Zetsu manda NENHUM, igual a quem nunca"
+                            + " despertou -- o segredo nao atravessa a rede")
     );
 
     /** Ids dos payloads que o CLIENTE pode enviar. Derivado da tabela. */

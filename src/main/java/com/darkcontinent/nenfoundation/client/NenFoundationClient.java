@@ -7,6 +7,9 @@ import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
+import com.darkcontinent.nenfoundation.api.SinalDeAura;
+import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
+import com.darkcontinent.nenfoundation.client.vfx.EstadoVisualDeTerceiro;
 import com.darkcontinent.nenfoundation.client.vfx.EmissorDeParticulasDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.ModoVisualDeTecnica;
 import com.darkcontinent.nenfoundation.client.vfx.SessaoDeVfxDeAura;
@@ -180,7 +183,45 @@ public final class NenFoundationClient {
                 .orElse(0xFFFFFFFF);
 
         this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao());
-        EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(),
-                NenClientConfig.densidadeDeParticulas());
+        double densidade = NenClientConfig.densidadeDeParticulas();
+        EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
+
+        this.tickDaAuraDosOutros(mc, densidade);
+    }
+
+    /**
+     * A aura de QUEM ESTA POR PERTO.
+     *
+     * <p>O cliente nao sabe -- e nao deve saber -- que tecnicas os outros
+     * ligaram. Ele recebe um sinal de tres valores ja filtrado pelo servidor,
+     * e quem esta em Zetsu chega como NENHUM, igual a quem nunca despertou.
+     *
+     * <p>SEM CONTROLADOR POR JOGADOR, de proposito. Guardar um interpolador
+     * para cada pessoa em volta cria estado por entidade que alguem precisa
+     * limpar quando ela sai do alcance -- e esse alguem sempre esquece um
+     * caminho. O estado visual dos outros e derivado do sinal, e some sozinho
+     * quando o sinal some.
+     */
+    private void tickDaAuraDosOutros(Minecraft mc, double densidade) {
+        for (var outro : mc.level.players()) {
+            if (outro == mc.player) {
+                continue;
+            }
+            var sinal = this.cache.presencaDe(outro.getId());
+            if (sinal == SinalDeAura.NENHUM) {
+                continue;
+            }
+
+            // AQUI O LOD FINALMENTE RECEBE DISTANCIA DE VERDADE. Para o proprio
+            // jogador ela e sempre zero, entao ate agora ele so tinha teste
+            // unitario -- o corte por distancia nunca mordia em jogo.
+            AuraRenderLod lod = AuraRenderLod.porDistancia(mc.player.distanceTo(outro));
+            if (lod == AuraRenderLod.HIDDEN) {
+                continue;
+            }
+
+            var estado = EstadoVisualDeTerceiro.de(sinal, lod);
+            EmissorDeParticulasDeAura.emitir(mc.level, outro, estado, densidade);
+        }
     }
 }

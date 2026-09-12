@@ -13,6 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.registration.HandlerThread;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
+import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -74,6 +75,12 @@ public final class NenNetwork {
                 FeedbackDeErroS2C.STREAM_CODEC,
                 (payload, contexto) -> contexto.enqueueWork(
                         () -> Recebedores.atual().aoReceberErro(payload)));
+
+        registrar.playToClient(
+                PresencaDeAuraS2C.TYPE,
+                PresencaDeAuraS2C.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> Recebedores.atual().aoReceberPresenca(payload)));
 
         PayloadRegistrar entrada = registrar.executesOn(HandlerThread.NETWORK);
         entrada.playToServer(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,

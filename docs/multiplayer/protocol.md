@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 3
+- **Versao do protocolo:** 4
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -43,6 +43,7 @@ primeiro a encontra-lo e quem estiver procurando.
 | `nen_runtime_delta` | S2C | aura, auraMaxima, outputPercent, cooldown e tecnica alterados |
 | `ability_fx_event` | S2C | som, particula, animacao |
 | `nen_error_feedback` | S2C | motivo legivel de uma recusa |
+| `aura_presence` | S2C | id da entidade e um sinal de tres valores; o UNICO payload sobre terceiros |
 
 Namespace de todos: `nenfoundation:`.
 
@@ -111,6 +112,43 @@ oito validacoes reprovou.
 
 E o motivo **nunca revela estado alheio**. "Alvo protegido por Ten" conta ao
 atacante algo que ele nao deveria saber.
+
+### `aura_presence` (S2C)
+
+**O unico payload deste mod que fala de TERCEIROS.** Todos os outros vao so ao
+dono do perfil; este vai a quem esta por perto.
+
+Ele carrega dois campos e nenhum a mais: o id da entidade e um sinal de tres
+valores — `NENHUM`, `TEN`, `REN`. Nao viaja aura atual, nem maxima, nem output,
+nem categoria, nem lista de tecnicas. O criterio nao e "o que seria util no
+cliente": e **o que alguem de pe ao lado perceberia**.
+
+> **Quem esta em Zetsu manda `NENHUM`, o mesmo byte de quem nunca despertou.**
+
+Isso e o desenho inteiro. Nao existe bandeira de "escondido" para um cliente
+modificado ler, porque o segredo **nao atravessa a rede** — em vez de
+atravessar e pedir discricao ao cliente.
+
+Existia uma `AuraVisibilityPolicy` no cliente com a assinatura
+`podeRenderizar(observadorDesperto, alvoEmZetsu, alvoUsaIn, observadorUsaGyo)`.
+Ela era a propria fuga que tentava impedir: para o cliente decidir nao desenhar
+alguem em Zetsu, o servidor teria de contar ao cliente que a pessoa esta em
+Zetsu. Funciona perfeitamente com cliente honesto, e so com ele. A decisao
+passou para `PresencaDeAura`, no servidor, e a classe do cliente foi removida.
+
+**Id de ENTIDADE, e nao UUID:** e o que a tela usa para achar quem desenhar, e
+ele morre com a sessao — que e o tempo de vida que este dado deve ter. Um UUID
+seria um identificador estavel de jogador viajando sem necessidade.
+
+**Enviado so na mudanca**, mais uma vez para quem comeca a rastrear o jogador
+(`PlayerEvent.StartTracking`). Sem essa segunda parte, quem chega perto de
+alguem que ja esta em Ren nao veria nada ate a outra pessoa alternar a tecnica.
+
+**Ponto cego declarado:** o envio usa `sendToPlayersTrackingEntity`, que manda o
+mesmo sinal para todos os rastreadores. Hoje basta, porque a unica regra de
+ocultacao depende so do alvo. Quando Gyo existir (#126), a decisao passa a
+depender de **quem olha**, e o envio vira um laco por observador — a forma do
+payload nao muda, so o roteamento.
 
 ---
 

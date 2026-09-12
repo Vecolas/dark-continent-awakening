@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.network.handler;
 
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
+import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import java.util.Objects;
@@ -42,6 +43,10 @@ public final class Recebedores {
 
         @Override
         public void aoReceberErro(FeedbackDeErroS2C payload) {
+        }
+
+        @Override
+        public void aoReceberPresenca(PresencaDeAuraS2C payload) {
         }
     };
 

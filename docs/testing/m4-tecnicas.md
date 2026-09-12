@@ -94,20 +94,35 @@ coluna de evidência com o que apareceu na tela ou no log — não com "ok".
 | A4 | Ligar Ren junto de Ten | os dois acesos; a aura cai **bem** mais rápido | |
 | A5 | Desligar os dois | os indicadores somem | |
 
-### B. Combinações inválidas, uma a uma
+### B. Combinações inválidas — automatizada
 
-A matriz é pequena o bastante para ser exaustiva. **Nenhuma linha pode ser
-pulada** — uma exclusão declarada pela metade passa numa ordem e falha na
-outra, e a ordem em que se testa costuma ser sempre a mesma.
+**Esta seção deixou de ser manual.** Ela foi escrita quando havia **três**
+técnicas e listava seis casos. Hoje são **sete**, e a matriz tem **42 pares
+ordenados** — pedir isso a mão é pedir que alguém pule uma linha, e a pulada é
+justamente a que ninguém testa de novo.
 
-| # | Ligar nesta ordem | Esperado | Evidência |
+`NenMatrizDeExclusaoGameTest.aMatrizInteiraNasDuasOrdens` percorre a matriz
+inteira, nas duas ordens, e **não tem lista escrita à mão**: ela sai do registro
+de produção. A oitava técnica entra nesta prova sozinha, no dia em que for
+registrada.
+
+| # | Passo | Esperado | Evidência |
 | --- | --- | --- | --- |
-| B1 | Ten → Zetsu | Ten **cai**, Zetsu fica | |
-| B2 | Zetsu → Ten | Zetsu **cai**, Ten fica | |
-| B3 | Ren → Zetsu | Ren **cai**, Zetsu fica | |
-| B4 | Zetsu → Ren | Zetsu **cai**, Ren fica | |
-| B5 | Ten + Ren → Zetsu | **as duas** caem | |
-| B6 | Ten → Ren | os dois ficam (convivem de propósito) | |
+| B1–B42 | todos os pares ordenados | quem é recusado cai; quem convive fica | ✅ **automatizado** — 42 pares |
+
+> **O que ela NÃO substitui:** ver a roda piscar e a técnica cair na tela. Uma
+> exclusão pode funcionar no servidor e não aparecer para quem está jogando.
+> Isso continua sendo olho humano, e virou a linha B-visual abaixo.
+
+| # | Passo | Esperado | Evidência |
+| --- | --- | --- | --- |
+| B-visual | ligar Ten, depois Zetsu, olhando o HUD | o indicador de Ten **some** na hora | |
+
+> A montagem do teste custou uma descoberta: a primeira execução reprovou
+> dizendo que *"Gyo e Shu não se recusam e mesmo assim não ficaram as duas
+> ligadas"*. Não era exclusão — era **Shu recusando mão vazia**, com o motivo
+> próprio dela. Uma técnica pode ter pré-condição, e um jogador de teste que não
+> a satisfaz faz a matriz acusar exclusão onde há recusa.
 
 ### C. Aura zero
 

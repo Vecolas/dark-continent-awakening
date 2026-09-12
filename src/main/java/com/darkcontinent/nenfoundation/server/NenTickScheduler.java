@@ -14,6 +14,9 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class NenTickScheduler {
 
+    private static final org.slf4j.Logger LOG =
+            com.mojang.logging.LogUtils.getLogger();
+
     private static final Despachante<ServerPlayer> CENTRAL = new Despachante<>();
 
     private NenTickScheduler() {
@@ -28,11 +31,33 @@ public final class NenTickScheduler {
         return CENTRAL.registrar(subsistema::serverTick);
     }
 
-    /** Executa uma vez por tick do servidor, depois do trabalho vanilla. */
+    /**
+     * Executa uma vez por tick do servidor, depois do trabalho vanilla.
+     *
+     * <p>UM JOGADOR QUEBRADO NAO DERRUBA O SERVIDOR. {@code estadoDe} lanca de
+     * proposito quando nao ha sessao -- ausencia de runtime e erro de
+     * integracao, e engolir isso em silencio esconderia o defeito. So que este
+     * laco roda dentro do tick do servidor: deixar a excecao subir mata o
+     * <b>loop inteiro</b>, e o que era um jogador sem sessao vira um crash de
+     * servidor para todo mundo que estava online.
+     *
+     * <p>Entao o erro continua alto -- vai para o log com o nome de quem
+     * falhou -- e os outros jogadores seguem tickando. Perder Nen para um e
+     * ruim; perder o mundo para todos e outra ordem de problema.
+     *
+     * <p>Descoberto escrevendo os gametests de ponto de saida: um jogador que
+     * continuava na lista depois de a sessao ser encerrada derrubou o servidor
+     * de teste com "Exception in server tick loop".
+     */
     @SubscribeEvent
     public static void aoFimDoTick(ServerTickEvent.Post evento) {
         for (ServerPlayer jogador : evento.getServer().getPlayerList().getPlayers()) {
-            CENTRAL.executar(jogador, NenRuntimeService.estadoDe(jogador));
+            try {
+                CENTRAL.executar(jogador, NenRuntimeService.estadoDe(jogador));
+            } catch (RuntimeException falha) {
+                LOG.error("Tick de Nen falhou para {}; os demais jogadores seguem.",
+                        jogador.getGameProfile().getName(), falha);
+            }
         }
     }
 

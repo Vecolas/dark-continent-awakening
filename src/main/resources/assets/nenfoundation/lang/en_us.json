@@ -80,5 +80,6 @@
   "nenfoundation.hud.sem_reserva": "No Nen reserve",
   "nenfoundation.error.aura_invalida": "Invalid aura amount.",
   "nenfoundation.error.aura_insuficiente": "Not enough aura.",
-  "nenfoundation.error.output_excedido": "Output limit reached for this tick."
+  "nenfoundation.error.output_excedido": "Output limit reached for this tick.",
+  "entity.nenfoundation.foxbear": "Foxbear"
 }

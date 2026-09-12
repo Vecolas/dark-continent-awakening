@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:leather",
+          "functions": [{
+            "function": "minecraft:set_count",
+            "count": { "min": 0.0, "max": 2.0 }
+          ]}
+        }
+      ],
+      "conditions": [{ "condition": "minecraft:killed_by_player" }]
+    }
+  ]
+}

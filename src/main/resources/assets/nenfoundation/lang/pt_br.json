@@ -80,5 +80,6 @@
   "nenfoundation.hud.sem_reserva": "Sem reserva de Nen",
   "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
-  "nenfoundation.error.output_excedido": "Teto de output atingido neste tick."
+  "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
+  "entity.nenfoundation.foxbear": "Urso-Raposa"
 }

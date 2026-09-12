@@ -171,8 +171,10 @@ public final class NenFoundationClient {
 
         while (NenKeybinds.AJUSTAR_OUTPUT.consumeClick()) {
             if (mc.player != null && mc.level != null && mc.screen == null) {
-                float variacao = Screen.hasShiftDown() ? -0.10F : +0.10F;
-                PacketDistributor.sendToServer(new AjustarOutputC2S(variacao));
+                // SO A DIRECAO. O tamanho do passo e do servidor -- ver o
+                // Javadoc de AjustarOutputC2S. Este era o ultimo ponto do mod
+                // em que o cliente escolhia um numero.
+                PacketDistributor.sendToServer(new AjustarOutputC2S(!Screen.hasShiftDown()));
             }
         }
     }

@@ -92,19 +92,21 @@ public final class NenPedidoService {
             // usa Math.min/Math.max, que propagam NaN em vez de segura-lo. O
             // resultado era NaN gravado no runtime e enviado no delta ao HUD --
             // sem excecao, sem log, e com a barra congelada para sempre.
-            if (!Float.isFinite(ajustar.variacao())) return Recusa.de(Motivo.PEDIDO_INVALIDO);
-
             RuntimeNenState estado = NenRuntimeService.estadoDe(jogador);
             // AJUSTA O SELECIONADO, nao o efetivo: o efetivo e derivado e nao
             // tem setter. Somar sobre o efetivo faria a escolha do jogador ser
             // silenciosamente rebaixada toda vez que o maximo estivesse abaixo.
             //
-            // PONTO CEGO: este caminho ainda soma uma VARIACAO ARBITRARIA do
-            // cliente, em vez de pedir um passo. O passo de 5 pontos ja existe
-            // no dominio (AuraPool.PASSO_DE_OUTPUT), mas trocar o formato do
-            // payload e a issue #71 -- que esta bloqueada por exigir ADR de
-            // descongelamento do protocolo (ADR-004).
-            estado.definirOutputSelecionado(estado.outputSelecionado() + ajustar.variacao());
+            // O PASSO E DO SERVIDOR. O payload traz "para cima" ou "para baixo"
+            // e mais nada; quem sabe de quanto e o dominio. Enquanto o cliente
+            // mandava a variacao, um cliente modificado ia de zero a cem num
+            // pacote so -- e o resultado ficava DENTRO da faixa, entao nada
+            // parecia errado.
+            if (ajustar.aumentar()) {
+                estado.aumentarOutput();
+            } else {
+                estado.diminuirOutput();
+            }
             NenSyncService.enviarDeltaSeAuraSuja(jogador);
             return null; // Sucesso, nao envia feedback de recusa
         } else {

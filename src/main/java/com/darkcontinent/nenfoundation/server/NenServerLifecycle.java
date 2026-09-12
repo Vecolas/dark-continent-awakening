@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
+import com.darkcontinent.nenfoundation.config.ConferenciaDeBalanceamento;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
@@ -29,6 +30,12 @@ public final class NenServerLifecycle {
         // confere a simetria das exclusoes e RECUSA um registro torto -- e
         // recusar na subida e o ponto: uma exclusao pela metade descoberta em
         // jogo ja e uma combinacao ilegal que alguem usou.
+        // OS NUMEROS QUE O JOGO CARREGOU, e nao os padroes do codigo. O portao
+        // do item 6 do ADR-010 le o codigo-fonte por regex; ele nunca viu o
+        // toml que este servidor abriu, e os dois divergem sozinhos -- o
+        // NeoForge nao sobrescreve valor existente quando o padrao muda.
+        ConferenciaDeBalanceamento.conferirConfigCarregada();
+
         NenTechniqueService.instalarTetoDeRepouso(NenConfig::tetoDeOutputEmRepouso);
         NenTechniqueService.instalar(RegistroDeTecnicas.selar(List.of(
                 new Ten(NenConfig::tenCustoPorSegundo,

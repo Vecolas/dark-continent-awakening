@@ -118,7 +118,19 @@ class TenTest {
         assertTrue(multZetsu > 1.0D,
                 "Zetsu nao recupera melhor; o canone e explicito em dizer que sim.");
 
-        // E ele ainda drena: o repouso e o MENOS caro, nao um ganho liquido.
+        // CONTRADICAO ABERTA, E DECLARADA. Esta linha exige que Zetsu tenha
+        // saldo POSITIVO -- ele recupera mais do que gasta -- e o item 6 do
+        // ADR-010 diz que nenhum estado sustentado se paga. As duas regras nao
+        // cabem juntas, e quem escreveu as duas fui eu.
+        //
+        // O desenho que resolveria: Zetsu e o estado de descanso, entao ele
+        // RECUPERA de proposito, e o preco dele nao e aura -- e ficar sem
+        // defesa de Nen. Essa defesa nao existe (#127), e por isso hoje Zetsu e
+        // um buff permanente sem desvantagem nenhuma.
+        //
+        // Qual regra cede e decisao conjunta, e esta na issue de balanceamento.
+        // Ate la esta assercao fica, dizendo o que o projeto faz HOJE em vez de
+        // fingir coerencia que ele nao tem.
         double saldo = regenBase * multZetsu - custoZetsu;
         assertTrue(saldo > 0.0D,
                 "Zetsu drena mais do que recupera, e ai ninguem descansa nele.");

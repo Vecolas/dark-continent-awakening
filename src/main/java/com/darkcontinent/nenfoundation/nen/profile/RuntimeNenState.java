@@ -102,7 +102,19 @@ public final class RuntimeNenState {
             throw new IllegalArgumentException(
                     "alocacao invalida (a soma precisa fechar em 1.0): " + nova);
         }
+        if (nova.equals(this.alocacao)) {
+            // SO MARCA QUANDO MUDA DE VERDADE. O recalculo roda a cada
+            // ativacao e a cada tick de mudanca; marcar sempre faria o delta
+            // sair por nada, e o custo apareceria como trafego que ninguem
+            // sabe explicar.
+            return;
+        }
         this.alocacao = nova;
+        // SEM ESTA LINHA A ALOCACAO E INVISIVEL. Ela existia, mudava, e nunca
+        // chegava ao cliente -- porque `marcarAlterado` e o que faz o delta
+        // sair, e todo derivado vizinho ja chamava menos este. O defeito nao
+        // dava erro: dava uma tecnica que nao aparece.
+        marcarAlterado();
     }
 
     public double multiplicadorDeRegeneracao() {

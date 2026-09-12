@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client;
 
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -43,7 +44,7 @@ class NenClientCacheTest {
     }
 
     private static DeltaDeRuntimeS2C deltaComAura(float aura) {
-        return new DeltaDeRuntimeS2C(aura, 100.0F, 1.0F, Set.of(), Map.of());
+        return new DeltaDeRuntimeS2C(aura, 100.0F, 1.0F, Set.of(), Map.of(), AlocacaoDeAura.uniforme());
     }
 
     @AfterEach

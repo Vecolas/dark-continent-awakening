@@ -26,6 +26,8 @@ public final class SessaoDeVfxDeAura {
     private AuraVisualMode ultimoModo = AuraVisualMode.OFF;
     private float ultimaIntensidade;
     private int ultimaCor;
+    private AuraDistribution ultimaDistribuicao;
+    private AuraDistribution distribuicaoDesteTick = AuraDistribution.uniforme();
     private boolean recebeuAlgumaVez;
 
     /** O estado interpolado deste tick. Nunca nulo. */
@@ -42,14 +44,28 @@ public final class SessaoDeVfxDeAura {
      * @param passo       quanto a transicao avanca neste tick, de 0 a 1
      */
     public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float passo) {
+        aoTick(ativas, intensidade, cor, passo, AuraDistribution.uniforme());
+    }
+
+    /**
+     * Idem, com a distribuicao que o SERVIDOR mandou.
+     *
+     * <p>Ela entra como argumento, e nao e buscada aqui: este objeto nao
+     * conhece cache nem rede, e e por isso que a regra dele da para provar sem
+     * subir o jogo.
+     */
+    public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float passo,
+            AuraDistribution distribuicao) {
+        this.distribuicaoDesteTick = distribuicao;
         AuraVisualMode modo = ModoVisualDeTecnica.de(ativas);
         float alvo = modo == AuraVisualMode.OFF ? 0.0F : sanear(intensidade);
 
         if (precisaReenviar(modo, alvo, cor)) {
-            this.controlador.receber(modo, alvo, AuraDistribution.uniforme(), cor, cor);
+            this.controlador.receber(modo, alvo, distribuicao, cor, cor);
             this.ultimoModo = modo;
             this.ultimaIntensidade = alvo;
             this.ultimaCor = cor;
+            this.ultimaDistribuicao = distribuicao;
             this.recebeuAlgumaVez = true;
         }
         this.controlador.avancar(sanear(passo));
@@ -68,6 +84,8 @@ public final class SessaoDeVfxDeAura {
         this.ultimoModo = AuraVisualMode.OFF;
         this.ultimaIntensidade = 0.0F;
         this.ultimaCor = 0;
+        this.ultimaDistribuicao = null;
+        this.distribuicaoDesteTick = AuraDistribution.uniforme();
         this.recebeuAlgumaVez = false;
     }
 
@@ -84,7 +102,17 @@ public final class SessaoDeVfxDeAura {
         }
         return modo != this.ultimoModo
                 || cor != this.ultimaCor
-                || Math.abs(intensidade - this.ultimaIntensidade) > 0.01F;
+                || Math.abs(intensidade - this.ultimaIntensidade) > 0.01F
+                // A DISTRIBUICAO TAMBEM CONTA COMO MUDANCA. Sem esta linha,
+                // ligar Gyo com Ten ja ativo nao reenviaria nada -- o modo
+                // continua TEN, a intensidade nao muda, e a aura ficaria
+                // espalhada na tela enquanto o servidor a concentrou.
+                || !distribuicaoIgual();
+    }
+
+    private boolean distribuicaoIgual() {
+        return this.ultimaDistribuicao != null
+                && this.ultimaDistribuicao.equals(this.distribuicaoDesteTick);
     }
 
     private static float sanear(float valor) {

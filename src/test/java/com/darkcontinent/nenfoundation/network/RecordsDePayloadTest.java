@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.network;
 
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -183,7 +184,7 @@ class RecordsDePayloadTest {
 
         idaEVolta(DeltaDeRuntimeS2C.STREAM_CODEC,
                 new DeltaDeRuntimeS2C(12.5F, 80.0F, 1.0F, Set.of(id("ren")),
-                        Map.of(id("disparo_de_aura"), 40)));
+                        Map.of(id("disparo_de_aura"), 40), AlocacaoDeAura.uniforme()));
 
         idaEVolta(FeedbackDeErroS2C.STREAM_CODEC,
                 new FeedbackDeErroS2C("nenfoundation.recusa.aura_insuficiente"));

@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -105,7 +105,7 @@ public final class NenProtocol {
                     "estado de leitura para a interface; enviado so ao dono do perfil"),
             s2c("nen_runtime_delta",
                     List.of("aura", "auraMaxima", "outputPercent",
-                            "tecnicasAtivas", "cooldowns"),
+                            "tecnicasAtivas", "cooldowns", "alocacao"),
                     "delta de runtime; o HUD interpola aura e output"),
             s2c("ability_fx_event",
                     List.of("habilidadeId", "posicao", "variante"),

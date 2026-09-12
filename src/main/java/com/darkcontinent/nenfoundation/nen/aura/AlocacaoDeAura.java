@@ -79,6 +79,34 @@ public final class AlocacaoDeAura {
         return new AlocacaoDeAura(Map.copyOf(mapa));
     }
 
+    /**
+     * Reconstroi uma alocacao a partir das fracoes, NA ORDEM DO ENUM.
+     *
+     * <p>DEVOLVE VAZIO em vez de lancar quando os numeros nao fecham. Ela existe
+     * para a leitura de rede, e pacote malformado nao pode derrubar a conexao
+     * do cliente -- quem chama decide o que fazer, e o padrao seguro e a
+     * alocacao de repouso.
+     *
+     * <p>RECUSA, E NAO NORMALIZA. Corrigir fracoes tortas aqui esconderia um
+     * emissor quebrado atras de numeros plausiveis, e o defeito apareceria
+     * meses depois como aura no lugar errado.
+     */
+    public static java.util.Optional<AlocacaoDeAura> deFracoes(float[] fracoes) {
+        RegiaoDoCorpo[] regioes = RegiaoDoCorpo.values();
+        if (fracoes == null || fracoes.length != regioes.length) {
+            return java.util.Optional.empty();
+        }
+        EnumMap<RegiaoDoCorpo, Float> mapa = new EnumMap<>(RegiaoDoCorpo.class);
+        for (int i = 0; i < regioes.length; i++) {
+            if (!Float.isFinite(fracoes[i]) || fracoes[i] < 0.0F) {
+                return java.util.Optional.empty();
+            }
+            mapa.put(regioes[i], fracoes[i]);
+        }
+        AlocacaoDeAura candidata = new AlocacaoDeAura(Map.copyOf(mapa));
+        return candidata.soma() ? java.util.Optional.of(candidata) : java.util.Optional.empty();
+    }
+
     /** Quanto da aura esta nesta regiao, de 0 a 1. */
     public float em(RegiaoDoCorpo regiao) {
         return this.fracoes.getOrDefault(regiao, 0.0F);

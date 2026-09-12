@@ -128,7 +128,11 @@ public final class NenSyncService {
                 // servidor nao usa.
                 estado.outputEfetivo(),
                 Set.copyOf(estado.tecnicasAtivas()),
-                Map.copyOf(estado.cooldowns()));
+                Map.copyOf(estado.cooldowns()),
+                // A ALOCACAO E IMUTAVEL, entao vai direto: nao ha copia
+                // defensiva a fazer, e uma copia daria a impressao falsa de
+                // que o objeto pode mudar debaixo de quem o recebeu.
+                estado.alocacao());
     }
 
     /**

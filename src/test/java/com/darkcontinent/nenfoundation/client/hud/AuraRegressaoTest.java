@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client.hud;
 
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import static org.junit.jupiter.api.Assertions.*;
 import com.darkcontinent.nenfoundation.client.NenClientCache;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
@@ -12,7 +13,7 @@ import org.junit.jupiter.api.Test;
 /** Regressoes de lag, clock, reconexao, maximo zero e delta malformado. */
 class AuraRegressaoTest {
     private static DeltaDeRuntimeS2C delta(float atual, float maxima) {
-        return new DeltaDeRuntimeS2C(atual, maxima, 1.0F, Set.of(), Map.of());
+        return new DeltaDeRuntimeS2C(atual, maxima, 1.0F, Set.of(), Map.of(), AlocacaoDeAura.uniforme());
     }
 
     @Test void fracaoDeQuadroERecargaDeConfigNaoAlteramDeltaBruto() {
@@ -34,8 +35,8 @@ class AuraRegressaoTest {
         cache.aoReceberDelta(delta(5, 10));
         for (var invalido : new DeltaDeRuntimeS2C[]{delta(Float.NaN, 10), delta(1, Float.POSITIVE_INFINITY),
                 delta(-1, 10), delta(11, 10), delta(0, -1),
-                new DeltaDeRuntimeS2C(1, 10, Float.NaN, Set.of(), Map.of()),
-                new DeltaDeRuntimeS2C(1, 10, 1.1F, Set.of(), Map.of())}) {
+                new DeltaDeRuntimeS2C(1, 10, Float.NaN, Set.of(), Map.of(), AlocacaoDeAura.uniforme()),
+                new DeltaDeRuntimeS2C(1, 10, 1.1F, Set.of(), Map.of(), AlocacaoDeAura.uniforme())}) {
             assertThrows(IllegalArgumentException.class, () -> cache.aoReceberDelta(invalido));
             assertEquals(5, cache.auraOuZero());
             assertEquals(1, cache.deltasRecebidos());

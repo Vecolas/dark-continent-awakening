@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.client.vfx;
 
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
+import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 
@@ -46,15 +47,26 @@ public final class EstadoVisualDeTerceiro {
         if (sinal == null || sinal == SinalDeAura.NENHUM || lod == AuraRenderLod.HIDDEN) {
             return AuraVisualState.desligado();
         }
+        // O SWITCH E EXAUSTIVO DE PROPOSITO: quando KEN entrou em SinalDeAura,
+        // o compilador reprovou este arquivo na hora. Um `default` teria
+        // engolido o caso novo e desenhado Ken como Ten, sem erro nenhum.
         AuraVisualMode modo = switch (sinal) {
             case TEN -> AuraVisualMode.TEN;
-            case REN -> AuraVisualMode.REN;
+            // KEN DESENHA COMO REN, e isso e escolha e nao preguica: os dois
+            // sao envelopes grandes de aura liberada, e o cliente nao tem
+            // preset proprio para Ken. O que os separa na tela e a COR, que
+            // vem de AparenciaDeTecnica.
+            case REN, KEN -> AuraVisualMode.REN;
             case NENHUM -> AuraVisualMode.OFF;
         };
         AuraVisualPreset preset = modo == AuraVisualMode.REN
                 ? AuraVisualPreset.renBasic()
                 : AuraVisualPreset.tenBasic();
-        int cor = AparenciaDeTecnica.de(modo == AuraVisualMode.REN ? Ren.ID : Ten.ID).cor();
+        int cor = AparenciaDeTecnica.de(switch (sinal) {
+            case KEN -> Ken.ID;
+            case REN -> Ren.ID;
+            default -> Ten.ID;
+        }).cor();
 
         return new AuraVisualState(modo, preset, intensidadePara(lod), 1.0F,
                 AuraDistribution.uniforme(), cor, cor);

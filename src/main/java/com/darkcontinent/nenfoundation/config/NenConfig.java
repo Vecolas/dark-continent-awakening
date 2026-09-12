@@ -154,6 +154,20 @@ public final class NenConfig {
                     "concentra o corpo inteiro num ponto.")
             .defineInRange("tecnica.shu.fracaoConcentrada", 0.30D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue KEN_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ken consome por segundo.",
+                    "MENOR que o de Ren, e maior que todo o resto. Ren e o pico -- a",
+                    "torneira aberta, cara e insustentavel. Ken e a versao que se",
+                    "aguenta, e por isso e ele que se treina para durar.",
+                    "Se este numero alcancar o de Ren, Ken vira Ren com outro nome.")
+            .defineInRange("tecnica.ken.custoPorSegundo", 6.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue KEN_TETO_DE_OUTPUT = BUILDER
+            .comment("Teto de Output com Ken ativo.",
+                    "ABAIXO do de Ren pelo mesmo motivo do custo: Ken troca pico por",
+                    "duracao. Acima do de repouso, senao a tecnica nao libera nada.")
+            .defineInRange("tecnica.ken.tetoDeOutput", 0.8D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -197,6 +211,12 @@ public final class NenConfig {
 
     /** Quanto da aura Gyo concentra na regiao escolhida. */
     public static double gyoFracaoConcentrada() { return GYO_FRACAO_CONCENTRADA.get(); }
+
+    /** Custo de Ken por segundo. */
+    public static double kenCustoPorSegundo() { return KEN_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Teto de Output com Ken ativo. */
+    public static double kenTetoDeOutput() { return KEN_TETO_DE_OUTPUT.get(); }
 
     /** Custo de Shu por segundo. */
     public static double shuCustoPorSegundo() { return SHU_CUSTO_POR_SEGUNDO.get(); }

@@ -79,7 +79,8 @@ class NenAwakeningServiceTest {
         // DESPERTAR LIBERA TEN E REN, e a tecnica que ja estava continua la.
         // Sem isto o jogador desperta sem tecnica nenhuma e a roda nasce vazia.
         // Nao e progressao: progressao e o M6, com requisito e treino.
-        assertEquals(Set.of(id("ten"), id("ren"), id("zetsu"), id("gyo"), id("shu")),
+        assertEquals(
+                Set.of(id("ten"), id("ren"), id("zetsu"), id("gyo"), id("shu"), id("ken")),
                 depois.unlockedTechniques());
         assertEquals(Set.of(id("disparo_de_aura")), depois.unlockedAbilities());
         assertTrue(depois.temMarco(id("outro_marco")),

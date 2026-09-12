@@ -192,70 +192,99 @@ class TenTest {
                         + " foi aprovada.");
     }
 
-    // --------------------------- item 6 do ADR-010: o saldo e NEGATIVO
+    // ------------------- item 6 do ADR-010: quem LIBERA aura e que paga
 
+    /**
+     * A ESCADA DE RECUPERACAO, e ela vale mais que qualquer sinal isolado.
+     *
+     * <p>ESTE TESTE SUBSTITUIU DOIS QUE DIZIAM O CONTRARIO. Eles exigiam que
+     * Ten tivesse saldo NEGATIVO, pela leitura de que "nenhum estado sustentado
+     * se paga" valia para todos. O responsavel decidiu em 2026-09-12 que a
+     * regra vale para os estados que <b>liberam</b> aura -- e o canone e claro:
+     *
+     * <ul>
+     *   <li>Zetsu nao gasta nada e recupera muito; o preco e ficar sem defesa;
+     *   <li>Ten retem e recupera pouco; o preco e nao liberar acima do repouso;
+     *   <li>Ren libera, e e esse que paga em aura.
+     * </ul>
+     *
+     * <p>Guardar a ORDEM, e nao cada sinal separado, e o que impede a proxima
+     * sessao de balanceamento de achatar os tres em coisas parecidas: girar um
+     * botao sem olhar os outros quebra a escada, e a escada e o que da
+     * significado a escolha entre os estados.
+     */
     @Test
-    @DisplayName("com os numeros DISTRIBUIDOS, Ten drena: ele nao vira estado permanente")
-    void tenTemSaldoNegativo() {
-        // ESTE E O PORTAO DA CONDICAO QUE O RESPONSAVEL IMPOS.
-        //
-        // Se a regeneracao ganha superar o custo de manutencao, Ten passa a se
-        // pagar e vira o estado obviamente sempre-ligado -- e o jogo perde a
-        // escolha. Isso NAO da erro: da um jogo pior, devagar.
-        //
-        // Os numeros saem da config DISTRIBUIDA, lidos do fonte, e nao de
-        // constantes repetidas aqui: constante repetida no teste vira a segunda
-        // fonte da mesma verdade, e o teste passaria a aprovar a si mesmo.
+    @DisplayName("Zetsu recupera mais que parado, que recupera mais que Ten, que recupera mais que Ren")
+    void aEscadaDeRecuperacao() {
         double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
-        double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
-        double multTen = valorDeConfig("tecnica.ten.multiplicadorDeRegeneracao");
         double teto = valorDeConfig("aura.multiplicadorMaximoDeRegeneracao");
 
-        double multiplicadorEfetivo = Math.min(multTen, teto);
+        double parado = regenBase;
+        double comTen = saldo(regenBase, teto, "ten");
+        double comZetsu = saldo(regenBase, teto, "zetsu");
+        double comRen = regenBase - valorDeConfig("tecnica.ren.custoPorSegundo");
 
-        // O SALDO E ABSOLUTO, e nao relativo a regeneracao base.
-        //
-        // A primeira versao deste portao comparava o GANHO SOBRE A BASE com o
-        // custo -- e aprovava numeros em que a aura ainda SUBIA com Ten ligado,
-        // so que mais devagar. Quem abriu em jogo viu exatamente isso: "nao
-        // pareceu consumir nada". Era falso verde: o teste media uma coisa e o
-        // ADR dizia outra.
-        //
-        // O que a reserva faz com Ten ligado e: + regeneracao total - custo.
-        double regeneracaoComTen = regenBase * multiplicadorEfetivo;
-        double saldoPorSegundo = regeneracaoComTen - custoTen;
+        assertTrue(comZetsu > parado,
+                "Zetsu (" + comZetsu + "/s) nao recupera mais que ficar parado ("
+                        + parado + "/s). Ele e O estado de descanso do canone; se"
+                        + " parado for melhor, ninguem usa Zetsu para nada.");
+        assertTrue(parado > comTen,
+                "Ten (" + comTen + "/s) recupera tanto quanto ou mais que ficar"
+                        + " parado (" + parado + "/s). Ten protege, e a protecao"
+                        + " tem de custar alguma coisa -- se ele so melhora tudo,"
+                        + " vira o estado sempre-ligado sem escolha nenhuma.");
+        assertTrue(comTen > 0.0D,
+                "Ten (" + comTen + "/s) drena a reserva. A decisao de 2026-09-12"
+                        + " e que ele RECUPERA pouco mantendo a protecao.");
+        assertTrue(comRen < 0.0D,
+                "Ren (" + comRen + "/s) nao gasta aura. Ele e o unico dos tres que"
+                        + " LIBERA, e por isso e o unico a quem o item 6 do"
+                        + " ADR-010 se aplica.");
+    }
 
-        assertTrue(saldoPorSegundo < 0.0D,
-                "Com os numeros distribuidos a aura NAO CAI com Ten ligado:"
-                        + " regeneracao de " + regeneracaoComTen + "/s contra custo de "
-                        + custoTen + "/s, saldo " + saldoPorSegundo + "/s. Pelo item 6"
-                        + " do ADR-010 usar Nen gasta, e nenhum estado sustentado"
-                        + " se paga.");
+    /**
+     * A protecao de Ten custa, e da para dizer quanto.
+     *
+     * <p>Se um dia Ten recuperar igual a ficar parado, a escolha some sem
+     * quebrar nada: o jogador liga Ten e nunca mais desliga, porque nao ha
+     * motivo. O numero exato e de balanceamento; existir uma diferenca, nao.
+     */
+    @Test
+    @DisplayName("a protecao de Ten tem um preco visivel na recuperacao")
+    void aProtecaoDeTenCusta() {
+        double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
+        double teto = valorDeConfig("aura.multiplicadorMaximoDeRegeneracao");
+
+        double perdido = regenBase - saldo(regenBase, teto, "ten");
+        assertTrue(perdido > 0.0D,
+                "Ten nao abre mao de nada na recuperacao; a protecao sai de graca.");
     }
 
     @Test
-    @DisplayName("a retencao de Ten existe: ele drena menos do que custa")
+    @DisplayName("o multiplicador de Ten existe: sem ele a manutencao nao retem nada")
     void tenRetemAlgumaCoisa() {
+        double multTen = valorDeConfig("tecnica.ten.multiplicadorDeRegeneracao");
+        assertTrue(multTen > 1.0D,
+                "Ten nao melhora a regeneracao em nada. A retencao e o efeito"
+                        + " dele; sem ela, Ten cobra aura e nao faz nada -- que"
+                        + " era justamente o desenho recusado.");
+
         double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
         double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
-        double multTen = valorDeConfig("tecnica.ten.multiplicadorDeRegeneracao");
+        assertTrue(custoTen > 0.0D,
+                "Ten ficou de graca. Manter aura em volta do corpo custa, mesmo"
+                        + " que menos do que a retencao devolve.");
+        assertTrue(custoTen < regenBase * multTen,
+                "o custo de Ten (" + custoTen + "/s) alcancou a regeneracao que"
+                        + " ele proporciona (" + (regenBase * multTen) + "/s), e"
+                        + " ai ele drena em vez de recuperar.");
+    }
 
-        assertTrue(multTen > 1.0D,
-                "Ten nao melhora a regeneracao em nada. A retencao e o unico"
-                        + " efeito que ele tem hoje; sem ela, Ten cobra aura e"
-                        + " nao faz nada -- que era justamente o desenho recusado.");
-
-        // A retencao aparece na DIFERENCA entre o que Ten custaria sem ela e o
-        // que ele custa de fato. Sem a retencao a reserva cairia `custo -
-        // regenBase`; com ela, cai menos.
-        double drenoSemRetencao = custoTen - regenBase;
-        double drenoComRetencao = custoTen - regenBase * multTen;
-
-        assertTrue(drenoComRetencao > 0.0D,
-                "com os numeros atuais Ten nao drena; ver o teste do saldo");
-        assertTrue(drenoComRetencao < drenoSemRetencao,
-                "A retencao nao esta reduzindo nada: dreno de " + drenoComRetencao
-                        + "/s contra " + drenoSemRetencao + "/s sem ela.");
+    /** O saldo por segundo de um estado, com o teto do multiplicador aplicado. */
+    private static double saldo(double regenBase, double teto, String tecnica) {
+        double mult = Math.min(valorDeConfig(
+                "tecnica." + tecnica + ".multiplicadorDeRegeneracao"), teto);
+        return regenBase * mult - valorDeConfig("tecnica." + tecnica + ".custoPorSegundo");
     }
 
     /**

@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:great_stamp_biomes",
+  "spawners": [
+    {
+      "type": "nenfoundation:great_stamp",
+      "weight": 8,
+      "minCount": 2,
+      "maxCount": 4
+    }
+  ]
+}

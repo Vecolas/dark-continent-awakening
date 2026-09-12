@@ -84,5 +84,6 @@
   "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
-  "entity.nenfoundation.foxbear": "Urso-Raposa"
+  "entity.nenfoundation.foxbear": "Urso-Raposa",
+  "entity.nenfoundation.great_stamp": "Great Stamp"
 }

@@ -5,8 +5,10 @@ import com.darkcontinent.nenfoundation.enemy.api.EnemyFaction;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
+import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPoint;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
+import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
@@ -20,17 +22,45 @@ public final class HunterExamProfiles {
     private HunterExamProfiles() { }
 
     public static EnemyDefinition greatStamp() {
+        // maxLight 15: great stamp e MobCategory.CREATURE e nasce em manada. Exigir
+        // escuridao faria a manada simplesmente nunca nascer -- e isso nao da erro
+        // nenhum, aparece como um bioma vazio que ninguem consegue explicar.
         return new EnemyDefinition(metadata("great_stamp", ThreatTier.HUNTER, true, true),
                 new EnemyAttributes(70, 0.23F, 11, 7, 28, 0.55F),
-                spawn("#nenfoundation:great_stamp_biomes", 0, 10, true, false, 4));
+                spawn("#nenfoundation:great_stamp_biomes", 0, 15, true, false, 4));
     }
 
+    /**
+     * Telegrafo de 18 ticks, corrida de 20, recuperacao de 24.
+     *
+     * <p>A JANELA ACTIVE NAO E LIVRE: ela e o que decide quantos blocos a carga
+     * percorre (activeTicks x velocidade base x multiplicador). Com os 6 ticks
+     * originais a corrida cobria ~3,2 blocos e a faixa de disparo comecava em 4 --
+     * o great stamp investia e parava ANTES do alvo, sempre, sem erro nenhum no
+     * log. Quem mede isso e {@code GreatStampPerfilTest}.</p>
+     */
     public static AttackDefinition greatStampCharge() {
-        return new AttackDefinition("charge", 18, 6, 24, 16, 1.8F, true, false, true);
+        return new AttackDefinition("charge", 18, 20, 24, 16, 1.8F, true, false, true);
+    }
+
+    /**
+     * Faixa de disparo, espera entre cargas, velocidade e atordoamento da carga.
+     *
+     * <p>A distancia maxima esta amarrada a janela ACTIVE de
+     * {@link #greatStampCharge()}: disparar de mais longe do que a corrida
+     * alcanca produz uma investida que nunca chega.</p>
+     */
+    public static ChargeRules greatStampChargeRules() {
+        return new ChargeRules(4.0D, 10.0D, 60, 2.35D, 40);
     }
 
     public static WeakPointRegistry greatStampWeakPoints() {
         return new WeakPointRegistry(Map.of("forehead", new WeakPoint("forehead", "head", 4.0F, true)));
+    }
+
+    /** Geometria que define a testa: acima de 62% da caixa e dentro do cone frontal. */
+    public static WeakPointResolver greatStampWeakPoint() {
+        return new WeakPointResolver("forehead", "body", 0.62D, 0.5D);
     }
 
     public static EnemyDefinition frogInWaiting() {

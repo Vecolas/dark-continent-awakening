@@ -168,6 +168,10 @@ O procedimento inteiro esta em
 | Aura de terceiros nunca foi vista com dois clientes | o canal `aura_presence` existe e tem gametest com dois jogadores server-side, mas que o pacote vire desenho na tela do outro só a QA com dois clientes responde | gate do M4 (#91) |
 | O sinal é o mesmo para todos os observadores | `aura_presence` não filtra por quem olha, porque a única regra de ocultação hoje depende só do alvo (Zetsu). Com Gyo (#126) a decisão passa a depender do observador e o envio vira um laço por observador — a forma do payload não muda | #126 |
 | `AuraImpactState` (ripple de Ten) não tem quem o dispare | não há dano de Nen; `nen/combat/` tem só o `package-info` | #103, bloqueada por #127 |
+| A carga do Great Stamp nunca rodou com o jogo de pé | `ChargeRules` e `WeakPointResolver` são puros e testados; o que liga os dois ao mundo — janela ACTIVE movendo o corpo, colisão com parede atordoando, `hurt` medindo a testa — só `runGameTestServer` ou teste manual respondem | gametest de inimigos |
+| Ninguém viu o Great Stamp na tela | a geometria é emprestada do hoglin e o telégrafo de cabeça baixa lê a fase sincronizada; que a pose leia como "vai investir" só `runClient` à mão responde | QA manual dos inimigos |
+| A manada nunca nasceu num mundo | o biome modifier e a tag de bioma existem e o placement lê a faixa de luz do perfil, mas nenhum mundo foi gerado para conferir que o spawn natural acontece | QA manual dos inimigos |
+| O multiplicador da testa não tem prova de lado único | o teste garante que resolver e catálogo não divergem, mas que nenhum OUTRO ponto do mod multiplique o mesmo dano é hoje só disciplina, não portão | quando nascer dano de Nen (M5) |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em

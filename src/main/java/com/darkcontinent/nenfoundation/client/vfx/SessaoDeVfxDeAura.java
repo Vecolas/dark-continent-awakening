@@ -41,10 +41,10 @@ public final class SessaoDeVfxDeAura {
      * @param ativas      tecnicas que o SERVIDOR confirmou como ligadas
      * @param intensidade de 0 a 1; vem do output efetivo, e nao da aura atual
      * @param cor         a cor da tecnica dominante, decidida por quem chama
-     * @param passo       quanto a transicao avanca neste tick, de 0 a 1
+     * @param escala      multiplicador de duracao; 1.0 e o tempo de projeto
      */
-    public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float passo) {
-        aoTick(ativas, intensidade, cor, passo, AuraDistribution.uniforme());
+    public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float escala) {
+        aoTick(ativas, intensidade, cor, escala, AuraDistribution.uniforme());
     }
 
     /**
@@ -54,7 +54,7 @@ public final class SessaoDeVfxDeAura {
      * conhece cache nem rede, e e por isso que a regra dele da para provar sem
      * subir o jogo.
      */
-    public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float passo,
+    public void aoTick(Set<ResourceLocation> ativas, float intensidade, int cor, float escala,
             AuraDistribution distribuicao) {
         this.distribuicaoDesteTick = distribuicao;
         AuraVisualMode modo = ModoVisualDeTecnica.de(ativas);
@@ -68,7 +68,7 @@ public final class SessaoDeVfxDeAura {
             this.ultimaDistribuicao = distribuicao;
             this.recebeuAlgumaVez = true;
         }
-        this.controlador.avancar(sanear(passo));
+        this.controlador.avancar(escalaSanea(escala));
     }
 
     /**
@@ -113,6 +113,20 @@ public final class SessaoDeVfxDeAura {
     private boolean distribuicaoIgual() {
         return this.ultimaDistribuicao != null
                 && this.ultimaDistribuicao.equals(this.distribuicaoDesteTick);
+    }
+
+    /**
+     * A escala nunca pode ser zero nem negativa.
+     *
+     * <p>Escala zero congelaria a aura no primeiro quadro da animacao -- e o
+     * sintoma seria "a transicao nao funciona", que e um dos piores relatos de
+     * bug que existem, porque nao ha erro para procurar.
+     */
+    private static float escalaSanea(float valor) {
+        if (!Float.isFinite(valor) || valor <= 0.0F) {
+            return 1.0F;
+        }
+        return valor;
     }
 
     private static float sanear(float valor) {

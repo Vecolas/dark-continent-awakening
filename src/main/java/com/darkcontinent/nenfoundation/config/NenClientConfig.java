@@ -31,11 +31,17 @@ public final class NenClientConfig {
                     "valendo no servidor; o que some e o desenho.")
             .defineInRange("vfx.densidadeDeParticulas", 1.0D, 0.0D, 2.0D);
 
-    private static final ModConfigSpec.IntValue TICKS_DE_TRANSICAO = BUILDER
-            .comment("Em quantos ticks a aura vai de um estado ao outro.",
-                    "Vinte ticks e um segundo. Abaixo de uns cinco a troca fica",
-                    "seca demais para ser lida como transicao.")
-            .defineInRange("vfx.ticksDeTransicao", 12, 1, 200);
+    private static final ModConfigSpec.DoubleValue ESCALA_DE_TRANSICAO = BUILDER
+            .comment("Multiplicador da duracao das transicoes de aura.",
+                    "1.0 e o tempo de projeto: ligar Ten leva ~350 ms, subir para",
+                    "Ren ~900 ms, e suprimir com Zetsu ~300 ms. Acima de 1 tudo fica",
+                    "mais lento; abaixo, mais seco.",
+                    "",
+                    "ELE SUBSTITUIU `vfx.ticksDeTransicao`, que dava um numero unico",
+                    "para todas as trocas -- e com ele ligar Ten e explodir em Ren",
+                    "levavam exatamente o mesmo tempo. A duracao de cada troca agora",
+                    "mora em AuraTransicao; aqui fica so o gosto de quem joga.")
+            .defineInRange("vfx.escalaDeTransicao", 1.0D, 0.1D, 5.0D);
 
     private static final ModConfigSpec.EnumValue<
             com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality> QUALIDADE = BUILDER
@@ -70,13 +76,13 @@ public final class NenClientConfig {
     }
 
     /**
-     * Quanto a transicao avanca por tick, de 0 a 1.
+     * O multiplicador de duracao escolhido por este cliente.
      *
-     * <p>Devolve o PASSO, e nao a duracao, porque e isso que o controlador
-     * consome. Fazer a divisao no ponto de uso espalharia a mesma conta por
-     * todo chamador novo.
+     * <p>DEVOLVE A ESCALA, e nao o passo. Quem sabe quanto uma transicao dura e
+     * {@code AuraTransicao} -- cada troca tem o proprio tempo. Devolver um passo
+     * daqui recriaria a fonte unica que este PR acabou de eliminar.
      */
-    public static float passoDeTransicao() {
-        return 1.0F / TICKS_DE_TRANSICAO.get();
+    public static float escalaDeTransicao() {
+        return ESCALA_DE_TRANSICAO.get().floatValue();
     }
 }

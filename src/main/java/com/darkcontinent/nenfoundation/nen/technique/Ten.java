@@ -37,11 +37,10 @@ import net.minecraft.server.level.ServerPlayer;
  * aura e o ciclo de vida, via {@link ConsomeAura} -- assim "aura zero encerra a
  * tecnica" e garantia de um lugar so, e nao promessa repetida em cada tecnica.
  *
- * <p>PONTO CEGO DECLARADO: <b>Ten ainda nao e incompativel com Zetsu.</b> Ele
- * deveria ser, e o cânone e claro. Zetsu nasce na issue #88, e o portao de
- * simetria do registro RECUSA declarar exclusao com uma tecnica que nao existe
- * -- entao a declaracao entra dos dois lados de uma vez, quando Zetsu chegar.
- * O portao garante que ela nao possa entrar pela metade.
+ * <p>5. TEN EXCLUI ZETSU, e a exclusao entrou dos dois lados na issue #88.
+ * Enquanto Zetsu nao existia isto era ponto cego declarado aqui: o portao de
+ * simetria do registro RECUSA declarar exclusao com uma tecnica que nao existe,
+ * e foi ele quem garantiu que ela nao entrasse pela metade.
  *
  * <p>PONTO CEGO DECLARADO: <b>Ten nao defende de nada.</b> A defesa passiva
  * contra aura hostil, que a issue #86 pedia, nao tem em que se apoiar: nao ha
@@ -76,8 +75,7 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
 
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        // Vazio ate Zetsu existir. Ver o ponto cego no topo da classe.
-        return Set.of();
+        return Set.of(Zetsu.ID);
     }
 
     @Override

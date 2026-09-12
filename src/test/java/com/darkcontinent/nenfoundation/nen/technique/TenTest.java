@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.technique;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
@@ -63,14 +64,64 @@ class TenTest {
     }
 
     @Test
-    @DisplayName("Ten nao declara incompatibilidade com tecnica que nao existe")
-    void semExclusaoOrfa() {
-        // Ten DEVERIA excluir Zetsu, e vai excluir. Mas declarar isso antes de
-        // Zetsu existir reprova o selamento do registro -- de proposito: a
-        // exclusao entra dos dois lados de uma vez, ou nao entra.
-        assertTrue(ten(1.0D, 1.0D).incompativeisCom().isEmpty(),
-                "Ten declarou exclusao com uma tecnica que ainda nao existe; o"
-                        + " registro nao vai selar.");
+    @DisplayName("Ten, Ren e Zetsu se excluem DOS DOIS LADOS")
+    void exclusaoComZetsuESimetrica() {
+        // ESTE TESTE ERA O OPOSTO ATE A ISSUE #88.
+        //
+        // Enquanto Zetsu nao existia, ele exigia que Ten NAO declarasse
+        // exclusao -- porque o selamento do registro recusa apontar para
+        // tecnica inexistente. Era ponto cego declarado nos javadocs de Ten e
+        // de Ren, e a exclusao so podia entrar quando as duas pontas
+        // existissem. Agora entrou, e inteira.
+        Ten ten = ten(1.0D, 1.0D);
+        Ren ren = new Ren(() -> 1.0D, () -> 1.0D);
+        Zetsu zetsu = new Zetsu(() -> 1.0D, () -> 1.0D, () -> 0.0D);
+
+        assertTrue(ten.incompativeisCom().contains(Zetsu.ID), "Ten nao recusa Zetsu");
+        assertTrue(ren.incompativeisCom().contains(Zetsu.ID), "Ren nao recusa Zetsu");
+        assertTrue(zetsu.incompativeisCom().contains(Ten.ID),
+                "Zetsu nao recusa Ten -- exclusao pela metade nao da erro, ela"
+                        + " deixa a combinacao ilegal funcionar numa das ordens.");
+        assertTrue(zetsu.incompativeisCom().contains(Ren.ID), "Zetsu nao recusa Ren");
+
+        // E Ten e Ren CONVIVEM: no canone Ren se apoia em Ten.
+        assertFalse(ten.incompativeisCom().contains(Ren.ID),
+                "Ten passou a excluir Ren; eles convivem de proposito.");
+    }
+
+    @Test
+    @DisplayName("Zetsu fecha o Output, e Ren o abre")
+    void zetsuFechaOQueRenAbre() {
+        double tetoDeZetsu = valorDeConfig("tecnica.zetsu.tetoDeOutput");
+        double tetoDeRen = valorDeConfig("tecnica.ren.tetoDeOutput");
+        double repouso = valorDeConfig("aura.tetoDeOutputEmRepouso");
+
+        assertTrue(tetoDeZetsu < repouso,
+                "Zetsu nao fecha nada: teto " + tetoDeZetsu + " contra repouso "
+                        + repouso + ". Sem isso ele vira invisibilidade de graca.");
+        assertTrue(tetoDeRen > repouso, "Ren precisa abrir o que Zetsu fecha");
+    }
+
+    @Test
+    @DisplayName("Zetsu e o estado mais barato, e ainda assim custa")
+    void zetsuEBaratoMasNaoGratuito() {
+        double custoZetsu = valorDeConfig("tecnica.zetsu.custoPorSegundo");
+        double custoTen = valorDeConfig("tecnica.ten.custoPorSegundo");
+        double regenBase = valorDeConfig("aura.regeneracaoPorSegundo");
+        double multZetsu = valorDeConfig("tecnica.zetsu.multiplicadorDeRegeneracao");
+
+        assertTrue(custoZetsu < custoTen,
+                "Zetsu devia ser mais barato que Ten: " + custoZetsu + "/s contra "
+                        + custoTen + "/s. E o estado de descanso.");
+        assertTrue(custoZetsu > 0.0D,
+                "Zetsu de graca contraria o item 6 do ADR-010: usar Nen gasta.");
+        assertTrue(multZetsu > 1.0D,
+                "Zetsu nao recupera melhor; o canone e explicito em dizer que sim.");
+
+        // E ele ainda drena: o repouso e o MENOS caro, nao um ganho liquido.
+        double saldo = regenBase * multZetsu - custoZetsu;
+        assertTrue(saldo > 0.0D,
+                "Zetsu drena mais do que recupera, e ai ninguem descansa nele.");
     }
 
     // ------------------------------------- item 5 do ADR-010: o teto morde

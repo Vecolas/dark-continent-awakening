@@ -5,6 +5,7 @@ import java.util.function.DoubleSupplier;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import com.darkcontinent.nenfoundation.nen.technique.ConsomeAura;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
+import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
@@ -328,6 +329,20 @@ public final class NenTechniqueService {
             NenTechnique tecnica = registro.porId(id).orElse(null);
             if (tecnica instanceof ModificaTetoDeOutput modificador) {
                 teto = Math.max(teto, modificador.tetoDeOutput());
+            }
+        }
+
+        // OS LIMITADORES VEM DEPOIS, E VENCEM. Um Zetsu que nao vencesse Ren
+        // seria uma supressao que nao suprime. Hoje os dois se excluem, entao o
+        // defeito ficaria invisivel ate alguem criar a terceira tecnica que
+        // combina com ambos -- e apareceria como "Zetsu as vezes nao funciona".
+        //
+        // Entre varios limitadores vale o MENOR: limitar e restringir, e duas
+        // restricoes nao se cancelam.
+        for (ResourceLocation id : ativas) {
+            NenTechnique tecnica = registro.porId(id).orElse(null);
+            if (tecnica instanceof LimitaTetoDeOutput limitador) {
+                teto = Math.min(teto, limitador.tetoMaximoPermitido());
             }
         }
         return teto;

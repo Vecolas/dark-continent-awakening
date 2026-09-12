@@ -88,6 +88,18 @@ public final class TecnicasAtivasRenderer {
         }
     }
 
+    /** Um quarto de volta, em radianos: o tamanho do setor de Gyo. */
+    private static final double QUARTO = Math.PI / 2.0D;
+
+    /**
+     * A abertura da ponta de Shu.
+     *
+     * <p>NAO E MAIS ESTREITA QUE ISTO de proposito: o indicador tem nove pixels,
+     * e um setor de poucos graus nesse raio nao chega a um pixel de largura --
+     * ele some, e a forma vira a de Ko.
+     */
+    private static final double PONTA = Math.PI / 3.5D;
+
     private static void desenharForma(GuiGraphics g, float cx, float cy, float raio,
             AparenciaDeTecnica.Aparencia aparencia) {
         switch (aparencia.forma()) {
@@ -109,6 +121,21 @@ public final class TecnicasAtivasRenderer {
             // sem parecer mais brilhante.
             case MURALHA -> DesenhoDaRoda.anel(g, cx, cy, raio - 3.0F, raio,
                     aparencia.cor());
+            // Setor: um quarto do anel aceso. O apagado nao e sobra -- e a
+            // parte do corpo que a concentracao descobriu.
+            case SETOR -> DesenhoDaRoda.setorDeAnel(g, cx, cy, raio - 3.0F, raio,
+                    -QUARTO / 2.0D, QUARTO / 2.0D, aparencia.cor());
+            // Lanca: miolo pequeno e uma ponta ATE A BORDA. E a unica forma que
+            // sai do circulo, porque Shu e a unica que manda aura para fora do
+            // corpo.
+            case LANCA -> {
+                DesenhoDaRoda.disco(g, cx, cy, raio - 4.0F, aparencia.cor());
+                DesenhoDaRoda.setorDeAnel(g, cx, cy, raio - 3.5F, raio,
+                        -PONTA / 2.0D, PONTA / 2.0D, aparencia.cor());
+            }
+            // Ponto: so o miolo. O VAZIO EM VOLTA E O DESENHO -- com a aura toda
+            // num lugar, o resto do corpo esta descoberto.
+            case PONTO -> DesenhoDaRoda.disco(g, cx, cy, raio - 3.5F, aparencia.cor());
             // Neutra: um disco cheio. Nao tenta significar nada, porque este
             // arquivo nao sabe o que a tecnica faz.
             case NEUTRA -> DesenhoDaRoda.disco(g, cx, cy, raio - 1.5F, aparencia.cor());

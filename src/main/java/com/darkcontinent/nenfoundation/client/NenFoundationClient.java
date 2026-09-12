@@ -12,6 +12,7 @@ import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
 import com.darkcontinent.nenfoundation.client.vfx.render.AuraRenderRegistro;
+import com.darkcontinent.nenfoundation.client.vfx.shader.AuraShaders;
 import com.darkcontinent.nenfoundation.client.vfx.EstadoVisualDeTerceiro;
 import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import com.darkcontinent.nenfoundation.client.vfx.EmissorDeParticulasDeAura;
@@ -95,6 +96,7 @@ public final class NenFoundationClient {
         modEventBus.addListener(EnemyRenderers::registrar);
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
+        modEventBus.addListener(AuraShaders::registrar);
 
         // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
         // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a

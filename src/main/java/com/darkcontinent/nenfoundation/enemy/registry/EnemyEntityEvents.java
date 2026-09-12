@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +23,7 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.GREAT_STAMP.get(), GreatStampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FROG_IN_WAITING.get(), FrogInWaitingEntity.createAttributes().build());
         event.put(EnemyEntityTypes.MAN_FACED_APE.get(), ManFacedApeEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.SPIDER_EAGLE.get(), SpiderEagleEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -48,6 +50,18 @@ public final class EnemyEntityEvents {
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // A ave VOA, e mesmo assim nasce no chao: o ninho e o lugar dela, e ela nasce
+        // POUSADA nele. Registrar um placement de ar aqui faria a ave aparecer
+        // pairando sobre o canyon e ancorar o ninho no vazio -- e o ninho no ar nao
+        // da erro nenhum, so faz a coleira medir a partir de um ponto que ninguem
+        // consegue alcancar. Chao solido continua valendo, e a faixa de luz e a do
+        // perfil, lida e nao repetida.
+        event.register(EnemyEntityTypes.SPIDER_EAGLE.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

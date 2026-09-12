@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -34,6 +35,14 @@ public final class EnemyEntityTypes {
             TYPES.register("man_faced_ape",
                     () -> EntityType.Builder.of(ManFacedApeEntity::new, MobCategory.CREATURE)
                             .sized(0.9F, 1.95F).build(NenFoundation.id("man_faced_ape").toString()));
+
+    // Caixa de ave grande: larga e baixa (1.2 x 0.9). A envergadura mora no modelo,
+    // nao na hitbox -- uma caixa do tamanho das asas faria a ave raspar em cada
+    // parede do canyon e transformaria o mergulho numa colisao constante.
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiderEagleEntity>> SPIDER_EAGLE =
+            TYPES.register("spider_eagle",
+                    () -> EntityType.Builder.of(SpiderEagleEntity::new, MobCategory.CREATURE)
+                            .sized(1.2F, 0.9F).build(NenFoundation.id("spider_eagle").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

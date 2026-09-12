@@ -6,6 +6,7 @@ import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
 import com.darkcontinent.nenfoundation.enemy.ai.AmbushRules;
 import com.darkcontinent.nenfoundation.enemy.ai.DisguiseRules;
+import com.darkcontinent.nenfoundation.enemy.ai.NestGuardRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
@@ -175,6 +176,65 @@ public final class HunterExamProfiles {
     }
 
     /**
+     * HP 28, dano 6, velocidade 0.35, armadura 2 -- corpo LEVE e rapido.
+     *
+     * <p>territorial=true e social=false: a spider eagle e o primeiro mob do
+     * repositorio em que "territorio" e literal -- ela defende um LUGAR (o
+     * ninho), nao um raio ao redor do proprio corpo. E ela nasce sozinha: um
+     * ninho e de um casal, nao de um bando, e o limite de 2 por grupo existe
+     * para o canyon nao virar revoada.</p>
+     *
+     * <p>maxLight 15: ela nasce POUSADA no alto, de dia, que e quando alguem
+     * escala o canyon e chega perto do ninho. Exigir escuridao faria o mob
+     * nunca existir na pratica -- e isso nao da erro nenhum, aparece como um
+     * canyon vazio que ninguem consegue explicar.</p>
+     *
+     * <p>followRange 32 e maior que o raio de aviso DE PROPOSITO: a ave precisa
+     * enxergar o intruso antes de ele entrar na zona avisada, ou o aviso
+     * comecaria tarde demais para servir de aviso.</p>
+     */
+    public static EnemyDefinition spiderEagle() {
+        return new EnemyDefinition(metadata("spider_eagle", ThreatTier.HUNTER, true, false),
+                new EnemyAttributes(28, 0.35F, 6, 2, 32, 0.0F),
+                spawn("#nenfoundation:canyon_nest_biomes", 0, 15, true, false, 2));
+    }
+
+    /**
+     * Mergulho de 14 ticks de subida, 6 de descida e 18 de volta ao alto.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: ele e lido de {@link #spiderEagle()},
+     * porque o mergulho e o ataque da ave -- o mesmo ATTACK_DAMAGE que o
+     * atributo publica. Repetir o 6 aqui criaria duas fontes para a mesma
+     * verdade: girar o atributo numa sessao de balanceamento mudaria o dano em
+     * jogo e nao mudaria este numero, e a divergencia so apareceria como uma
+     * representacao que promete um dano diferente do que o jogador leva.</p>
+     *
+     * <p>O WINDUP E O AVISO VISUAL: 14 ticks de subida sao o que o jogador ve
+     * antes da descida. A janela ACTIVE e curta porque ela e a queda em si -- e
+     * ela decide quantos blocos o mergulho percorre, entao encurtar aqui sem
+     * olhar o raio de bote produz uma ave que mergulha e para no ar.</p>
+     */
+    public static AttackDefinition spiderEagleDive() {
+        return new AttackDefinition("dive", 14, 6, 18,
+                spiderEagle().attributes().attackDamage(), 0.9F, true, false, true);
+    }
+
+    /**
+     * Avisa a 16 blocos do ninho, bota a 6, larga a perseguicao a 28 e exige
+     * 30 ticks de aviso antes do bote.
+     *
+     * <p>Os numeros se leem juntos: o intruso ve a ave subir e encarar a 16
+     * blocos e tem um segundo e meio DENTRO do raio de bote antes do primeiro
+     * mergulho -- tempo de sobra para recuar, que e a resposta que o mob
+     * ensina. A coleira de 28 e quase o dobro do aviso DE PROPOSITO: ela existe
+     * para parar a ave que se empolgou atras de quem ja estava recuando, nao
+     * para encurtar o alcance dela dentro da propria zona.</p>
+     */
+    public static NestGuardRules spiderEagleNest() {
+        return new NestGuardRules(16.0D, 6.0D, 28.0D, 30);
+    }
+
+    /**
      * Os ids que ESTE repositorio ja publica como entidade registrada.
      *
      * <p>ACRESCENTE O MOB AQUI NO MESMO PR QUE REGISTRA O ENTITYTYPE DELE. O
@@ -192,7 +252,8 @@ public final class HunterExamProfiles {
         return Map.of(
                 "great_stamp", greatStamp(),
                 "frog_in_waiting", frogInWaiting(),
-                "man_faced_ape", manFacedApe());
+                "man_faced_ape", manFacedApe(),
+                "spider_eagle", spiderEagle());
     }
 
     public static EnemyDefinition foxbear() {

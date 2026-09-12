@@ -1,5 +1,5 @@
 /**
- * Renderizacao de efeitos de Nen.
+ * Renderizacao client-only: efeitos de Nen e entidades autorais.
  *
  * <p>Nasce no M4. Owner: Dev B.
  */

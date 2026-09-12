@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
+import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
@@ -74,6 +75,7 @@ public final class NenFoundationClient {
         Recebedores.registrar(this.cache);
 
         modEventBus.addListener(NenKeybinds::registrar);
+        modEventBus.addListener(EnemyRenderers::registrar);
 
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);

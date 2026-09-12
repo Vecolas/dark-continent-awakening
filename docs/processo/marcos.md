@@ -203,11 +203,11 @@ Gate conferido item a item:
 
 **Duas dívidas saem do M3 declaradas, e nenhuma delas é silenciosa:**
 
-**1. O gatilho da Water Divination ainda não é Ren.** O cânone e a issue #61
-pedem Ren sobre o copo; Ren é deste marco seguinte. Hoje basta ter despertado,
-o que torna o teste **mais fácil do que deveria ser**. A condição está isolada
-em `NenAguaDivinatoria.podeFazerOTeste`, e há um teste que **reprova quando ela
-mudar** — quem implementar Ren é obrigado a passar por lá.
+**1. ~~O gatilho da Water Divination ainda não é Ren.~~ PAGA na issue #90.**
+Ren chegou no M4, o teste que fixava a dívida reprovou como prometido, e a
+condição passou a exigir Ren sobre o copo — com recusa própria para quem está
+desperto e sem Ren, distinta da de quem nunca despertou. A condição continua
+isolada, agora em `NenAguaDivinatoria.recusaPara`.
 
 **2. Nada abaixa o máximo de Output ainda.** O modelo selecionado/máximo/efetivo
 existe e é testado, mas o `min` nunca morde em produção porque nenhum código

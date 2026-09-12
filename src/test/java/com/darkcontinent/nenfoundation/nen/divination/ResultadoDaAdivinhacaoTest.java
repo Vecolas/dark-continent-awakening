@@ -102,7 +102,12 @@ class ResultadoDaAdivinhacaoTest {
     @DisplayName("toda frase existe nos dois idiomas, e nenhuma sobra")
     void traducoesCasam() {
         Set<String> esperadas = new LinkedHashSet<>();
-        esperadas.add("nenfoundation.divinacao.sem_nen");
+        // DERIVADAS, e nao escritas a mao. A lista manual existiu e reprovou
+        // a primeira recusa nova chamando-a de orfa: o portao acusou uma
+        // duplicacao de VERDADE como se fosse uma chave sobrando.
+        for (RecusaDaAdivinhacao recusa : RecusaDaAdivinhacao.values()) {
+            esperadas.add(recusa.chaveDaAgua());
+        }
         for (ResultadoDaAdivinhacao resultado : ResultadoDaAdivinhacao.values()) {
             esperadas.add(resultado.chaveDeTraducao());
             esperadas.add(resultado.chaveDeRepeticao());

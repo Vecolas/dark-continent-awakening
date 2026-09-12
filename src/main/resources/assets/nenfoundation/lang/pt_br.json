@@ -51,6 +51,8 @@
   "nenfoundation.error.ja_tem_categoria": "Esta categoria de Nen ja esta definida e nao pode ser trocada.",
   "nenfoundation.error.sem_categoria": "Nenhuma categoria de Nen foi determinada ainda.",
   "nenfoundation.divinacao.sem_nen": "A agua nao reage. Desperte o seu Nen antes.",
+  "nenfoundation.error.ren_necessario": "Ative Ren sobre a agua para fazer o teste.",
+  "nenfoundation.divinacao.agua_parada": "A agua fica parada. Falta aura sobre ela.",
   "nenfoundation.divinacao.volume": "A agua sobe e transborda. Sua categoria e %s.",
   "nenfoundation.divinacao.sabor": "A agua fica doce na lingua. Sua categoria e %s.",
   "nenfoundation.divinacao.cor": "A agua muda de cor. Sua categoria e %s.",

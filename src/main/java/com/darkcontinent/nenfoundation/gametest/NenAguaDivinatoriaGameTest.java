@@ -10,6 +10,9 @@ import com.darkcontinent.nenfoundation.nen.progression.Marcos;
 import com.darkcontinent.nenfoundation.server.NenAguaDivinatoria;
 import com.darkcontinent.nenfoundation.server.NenAwakeningService;
 import com.darkcontinent.nenfoundation.server.NenCategoryService;
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
+import com.darkcontinent.nenfoundation.server.NenRuntimeService;
+import com.darkcontinent.nenfoundation.server.NenTechniqueService;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -120,11 +123,29 @@ public final class NenAguaDivinatoriaGameTest {
         helper.succeed();
     }
 
+    /**
+     * Um jogador pronto para o ritual: desperto E com Ren sobre a agua.
+     *
+     * <p>DESDE A ISSUE #90 NAO BASTA DESPERTAR. Quando Ren entrou na condicao,
+     * dois gametests deste arquivo passaram a reprovar -- e um TERCEIRO passou
+     * a aprovar sem exercitar nada: `refazerNaoResorteiaNada` comparava a
+     * categoria antes e depois, e com o ritual recusado ela e a mesma nos dois
+     * momentos. Verde vazio e pior que vermelho.
+     */
+    private static ServerPlayer prontoParaORitual(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+        NenTechniqueService.ativar(jogador, Ren.ID);
+        exigir(NenRuntimeService.estadoDe(jogador).tecnicasAtivas().contains(Ren.ID),
+                "Ren nao ligou, e sem ele o ritual e recusado -- todo teste daqui"
+                        + " para baixo mediria a recusa, e nao o ritual.");
+        return jogador;
+    }
+
     @GameTest(template = TEMPLATE)
     @PrefixGameTestTemplate(false)
     public static void oTesteRevelaPelaApi(GameTestHelper helper) {
-        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
-        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+        ServerPlayer jogador = prontoParaORitual(helper);
         BlockPos copo = montarOTeste(helper, jogador);
 
         List<NenCategory> reveladas = new ArrayList<>();
@@ -158,12 +179,19 @@ public final class NenAguaDivinatoriaGameTest {
     @GameTest(template = TEMPLATE)
     @PrefixGameTestTemplate(false)
     public static void refazerNaoResorteiaNada(GameTestHelper helper) {
-        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
-        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+        ServerPlayer jogador = prontoParaORitual(helper);
         BlockPos copo = montarOTeste(helper, jogador);
 
         clicar(jogador, copo);
         NenCategory primeira = NenProfileService.ler(jogador).category();
+
+        // SEM ISTO O TESTE APROVA A VAZIO. Se o primeiro clique for recusado,
+        // "a categoria nao mudou" e verdade por nada ter acontecido -- que foi
+        // exatamente o que aconteceu quando Ren entrou na condicao.
+        exigir(primeira.eReal(),
+                "o primeiro clique nao sorteou nada; veio " + primeira
+                        + ". Daqui para baixo o teste nao estaria medindo"
+                        + " refazer: estaria medindo recusa.");
 
         List<String> reanunciadas = new ArrayList<>();
         comListener(CategoriaReveladaEvent.class,
@@ -265,9 +293,8 @@ public final class NenAguaDivinatoriaGameTest {
      */
     @GameTest(template = TEMPLATE)
     @PrefixGameTestTemplate(false)
-    public static void oTesteRevelaACategoriaQueJaExISTIA(GameTestHelper helper) {
-        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
-        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+    public static void oTesteRevelaACategoriaQueJaExistia(GameTestHelper helper) {
+        ServerPlayer jogador = prontoParaORitual(helper);
         NenCategoryService.atribuir(jogador, NenCategory.SPECIALIZATION);
 
         BlockPos copo = montarOTeste(helper, jogador);
@@ -278,6 +305,44 @@ public final class NenAguaDivinatoriaGameTest {
                 "O ritual sorteou por cima de uma categoria que ja existia; veio "
                         + perfil.category());
         exigir(perfil.categoryRevealed(), "o ritual nao revelou a categoria existente.");
+
+        helper.succeed();
+    }
+
+    /**
+     * Desperto, mas sem Ren: a agua nao reage -- e o jogador le POR QUE.
+     *
+     * <p>Esta e a divida da issue #90 paga do lado de fora. O teste unitario
+     * cobre a condicao; so aqui da para ver que o clique de verdade nao
+     * escreveu perfil nenhum.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void despertoSemRenNaoFazOTeste(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+        NenAwakeningService.despertar(jogador, OrigemDoDespertar.TREINO);
+        BlockPos copo = montarOTeste(helper, jogador);
+
+        exigir(!NenRuntimeService.estadoDe(jogador).tecnicasAtivas().contains(Ren.ID),
+                "Ren ja estava ativo; o cenario deste teste nao existe.");
+
+        clicar(jogador, copo);
+
+        PersistentNenData perfil = NenProfileService.ler(jogador);
+        exigir(!perfil.category().eReal(),
+                "O ritual rodou sem Ren e sorteou " + perfil.category()
+                        + ". O cânone pede Ren sobre o copo, e a condicao mora"
+                        + " inteira em recusaPara.");
+        exigir(!perfil.categoryRevealed(),
+                "o ritual revelou categoria sem Ren.");
+
+        // E COM REN O MESMO CLIQUE FUNCIONA. Sem esta metade, o teste passaria
+        // igual se o ritual estivesse quebrado por qualquer outro motivo.
+        NenTechniqueService.ativar(jogador, Ren.ID);
+        clicar(jogador, copo);
+        exigir(NenProfileService.ler(jogador).category().eReal(),
+                "com Ren ativo o mesmo clique continuou sem funcionar; a recusa"
+                        + " nao era por falta de Ren.");
 
         helper.succeed();
     }

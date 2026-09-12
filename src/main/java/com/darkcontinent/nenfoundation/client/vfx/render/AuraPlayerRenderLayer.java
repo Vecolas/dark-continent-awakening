@@ -1,0 +1,156 @@
+package com.darkcontinent.nenfoundation.client.vfx.render;
+
+import com.darkcontinent.nenfoundation.client.vfx.AuraBodyRegion;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
+import com.darkcontinent.nenfoundation.client.vfx.CorDaAura;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraPlayerModel;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellOpacity;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.EnumMap;
+import java.util.Map;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+
+/**
+ * A aura desenhada por cima do jogador, seguindo a pose dele.
+ *
+ * <p>POR QUE UMA LAYER, E NAO UM RENDERER PARALELO. A layer roda dentro do
+ * {@code PlayerRenderer}, entao yaw, pitch, agachar, nadar, atacar, correr e a
+ * rotacao da cabeca chegam PRONTOS. Um renderer paralelo teria de reimplementar
+ * a pose, e divergiria dela na primeira animacao nova -- inclusive nas que
+ * outros mods adicionam.
+ *
+ * <p>A POSE E COPIADA, E SO. {@code HumanoidModel.copyPropertiesTo} ja copia as
+ * ROTACOES de cada parte do modelo do jogador -- {@code head.copyFrom(...)},
+ * {@code body.copyFrom(...)} e os quatro membros --, e nao apenas os flags.
+ *
+ * <p>CHAMAR {@code setupAnim} DEPOIS SERIA UM ERRO, e um erro silencioso:
+ * ele DESCARTARIA a pose final que acabou de ser copiada para recalcular uma
+ * aproximacao a partir dos parametros crus. A pose do pai ja inclui o que o
+ * renderer, as outras layers e outros mods fizeram com ela; recalcular joga
+ * tudo isso fora e a aura passa a divergir do corpo em casos especificos --
+ * montado, dormindo, com pose de arma de outro mod. E a divergencia nao aparece
+ * como erro: aparece como aura levemente fora do lugar.
+ *
+ * <p>E o mesmo caminho que {@code HumanoidArmorLayer} usa: copia, e desenha.
+ *
+ * <p>DESENHA PARTE POR PARTE, e nao o modelo inteiro de uma vez. E o que
+ * permite multiplicar a intensidade por REGIAO -- e e o que torna Gyo, Ko e Ryu
+ * uma mudanca de numero em vez de um renderer novo (ADR-014, ADR-015).
+ *
+ * <p>ATENCAO A VERSAO: 1.21.1 e ANTERIOR ao {@code EntityRenderState}, que
+ * chegou em 1.21.2. Exemplo de renderer publicado depois disso nao serve aqui.
+ */
+public final class AuraPlayerRenderLayer
+        extends RenderLayer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
+
+    /** Alpha abaixo do qual nem vale montar a geometria. */
+    private static final float ALPHA_MINIMO = 0.002F;
+
+    private final Map<AuraShellPass, AuraPlayerModel> modelos =
+            new EnumMap<>(AuraShellPass.class);
+
+    public AuraPlayerRenderLayer(
+            RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> pai,
+            EntityModelSet modelos, boolean slim) {
+        super(pai);
+        for (AuraShellPass passe : AuraShellPass.values()) {
+            this.modelos.put(passe,
+                    new AuraPlayerModel(modelos.bakeLayer(AuraModelLayers.de(passe, slim)), slim));
+        }
+    }
+
+    @Override
+    public void render(PoseStack pilha, MultiBufferSource buffers, int luzEmpacotada,
+            AbstractClientPlayer jogador, float balancoDosMembros, float amplitudeDoBalanco,
+            float parcial, float idadeEmTicks, float guinadaDaCabeca, float inclinacaoDaCabeca) {
+
+        AuraVisualState estado = AuraVisualSystem.estadoDe(jogador);
+        if (!estado.enabled()) {
+            // CUSTO ZERO, e nao custo pequeno: sem aura, nada e montado,
+            // nada e alocado e nenhum buffer e pedido.
+            return;
+        }
+        // JOGADOR INVISIVEL NAO GANHA CONTORNO. Sem esta linha, a pocao de
+        // invisibilidade passaria a REVELAR quem esta em Ten -- o oposto do que
+        // ela faz, e uma informacao que o observador nao deveria ter.
+        if (jogador.isInvisible() || jogador.isSpectator()) {
+            return;
+        }
+
+        AuraShellOpacity opacidade = opacidadeDe(estado);
+        VertexConsumer vertices = buffers.getBuffer(AuraRenderTypes.shell());
+
+        for (AuraShellPass passe : AuraShellPass.values()) {
+            float alphaDoPasse = opacidade.alphaDe(passe) * estado.intensity();
+            if (alphaDoPasse < ALPHA_MINIMO) {
+                continue;
+            }
+            AuraPlayerModel modelo = this.modelos.get(passe);
+            // COPIA A POSE FINAL. Ver o javadoc: `setupAnim` aqui DESCARTARIA
+            // o que acabou de ser copiado.
+            this.getParentModel().copyPropertiesTo(modelo);
+            desenharPorRegiao(modelo, pilha, vertices, luzEmpacotada, estado, alphaDoPasse);
+        }
+    }
+
+    /**
+     * A opacidade do modo ativo.
+     *
+     * <p>REN E TEN MAIS DENSO, e nao outro efeito -- e no AV0 essa diferenca
+     * existe SO no alpha. A espessura maior de Ren mora no perfil, mas as
+     * malhas sao construidas uma vez, no registro, com a geometria de Ten.
+     * <b>Limitacao declarada do spike:</b> no AV0, Ren e mais forte, e nao mais
+     * espesso. A shell propria de Ren e o AV4.
+     */
+    static AuraShellOpacity opacidadeDe(AuraVisualState estado) {
+        return switch (estado.mode()) {
+            case REN -> AuraShellOpacity.ren();
+            case TEN, CUSTOM -> AuraShellOpacity.ten();
+            // ZETSU e OFF nao chegam aqui -- `enabled()` ja barrou --, mas a
+            // ausencia e a informacao, e ela precisa estar escrita no switch e
+            // nao depender de uma guarda la em cima.
+            case ZETSU, OFF -> AuraShellOpacity.zero();
+        };
+    }
+
+    /**
+     * Desenha as seis partes, cada uma com a intensidade da SUA regiao.
+     *
+     * <p>A distribuicao vem do servidor (ADR-014) e ja chega como projecao. Em
+     * repouso todas valem o mesmo e o resultado e uma aura uniforme; com Gyo,
+     * uma regiao acende e as outras recuam, sem nenhum codigo novo.
+     */
+    private static void desenharPorRegiao(AuraPlayerModel modelo, PoseStack pilha,
+            VertexConsumer vertices, int luz, AuraVisualState estado, float alphaDoPasse) {
+        for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
+            float alpha = alphaDoPasse * estado.distribution().intensidade(regiao);
+            if (alpha < ALPHA_MINIMO) {
+                continue;
+            }
+            parteDe(modelo, regiao).render(pilha, vertices, luz, OverlayTexture.NO_OVERLAY,
+                    CorDaAura.comAlpha(estado.primaryColor(), alpha));
+        }
+    }
+
+    private static ModelPart parteDe(AuraPlayerModel modelo, AuraBodyRegion regiao) {
+        return switch (regiao) {
+            case HEAD -> modelo.head;
+            case TORSO -> modelo.body;
+            case LEFT_ARM -> modelo.leftArm;
+            case RIGHT_ARM -> modelo.rightArm;
+            case LEFT_LEG -> modelo.leftLeg;
+            case RIGHT_LEG -> modelo.rightLeg;
+        };
+    }
+
+}

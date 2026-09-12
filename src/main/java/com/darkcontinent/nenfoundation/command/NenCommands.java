@@ -2,6 +2,10 @@ package com.darkcontinent.nenfoundation.command;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
+import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
+import com.darkcontinent.nenfoundation.server.NenPresencaService;
+import com.darkcontinent.nenfoundation.server.NenRuntimeService;
+import java.util.List;
 import com.darkcontinent.nenfoundation.server.NenProfileService;
 import com.darkcontinent.nenfoundation.server.NenAuraService;
 import com.darkcontinent.nenfoundation.config.NenConfig;
@@ -239,7 +243,52 @@ public final class NenCommands {
         for (String linha : RelatorioDePerfil.dump(alvo.getGameProfile().getName(), perfil)) {
             ctx.getSource().sendSuccess(() -> Component.literal(linha), false);
         }
+        for (String linha : linhasDeRuntime(alvo)) {
+            ctx.getSource().sendSuccess(() -> Component.literal(linha), false);
+        }
         return 1;
+    }
+
+    /**
+     * O RUNTIME, que o perfil persistente nao conhece.
+     *
+     * <p>ESTAS LINHAS EXISTEM POR UM BURACO ENCONTRADO NO TESTE MANUAL. O
+     * roteiro do gate do M4 manda conferir, depois de morrer ou trocar de
+     * dimensao, se o TETO DE OUTPUT voltou ao de repouso -- e avisa que um teto
+     * elevado sobrevivente nao da erro nenhum: o jogador so passa a liberar
+     * acima do limite dele, para sempre.
+     *
+     * <p>So que o roteiro mandava medir "com /nen dump ou o overlay de debug",
+     * e NENHUM DOS DOIS mostrava o teto. O delta enviado ao cliente nem carrega
+     * esse campo. A instrucao existia e era impossivel de seguir.
+     *
+     * <p>Vem do servidor de proposito: o teto e derivado e autoritativo, e o
+     * cliente nao tem como saber o valor certo para comparar.
+     */
+    /** As mesmas linhas, para o gametest conferir sem despachar um comando. */
+    public static List<String> linhasDeRuntimeParaTeste(ServerPlayer alvo) {
+        return linhasDeRuntime(alvo);
+    }
+
+    private static List<String> linhasDeRuntime(ServerPlayer alvo) {
+        RuntimeNenState estado;
+        try {
+            estado = NenRuntimeService.estadoDe(alvo);
+        } catch (IllegalStateException semSessao) {
+            return List.of("  runtime: sem sessao");
+        }
+        return List.of(
+                String.format(Locale.ROOT, "  aura: %.1f / %.1f",
+                        estado.auraAtual(), estado.auraMaxima()),
+                String.format(Locale.ROOT,
+                        "  output: selecionado=%.2f  teto=%.2f  efetivo=%.2f",
+                        estado.outputSelecionado(), estado.outputMaximo(),
+                        estado.outputEfetivo()),
+                String.format(Locale.ROOT, "  regeneracao: x%.2f",
+                        estado.multiplicadorDeRegeneracao()),
+                "  tecnicas ativas: " + (estado.tecnicasAtivas().isEmpty()
+                        ? "nenhuma" : estado.tecnicasAtivas()),
+                "  presenca para os outros: " + NenPresencaService.sinalDe(alvo));
     }
 
     private static int mudarTecnica(

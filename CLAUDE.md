@@ -71,9 +71,11 @@ atualiza** — e a discrepancia e relatada, nao corrigida em silencio.
 2. **Persistente e runtime sao coisas separadas.** Progresso sobrevive a morte,
    logout e restart; aura atual nao sobrevive a nada.
    ([ADR-002](docs/adr/ADR-002-persistente-e-runtime.md))
-3. **Toda integracao e opcional.** O JAR inicia em cliente e em servidor
-   dedicado com NeoForge e mais nada.
-   ([ADR-003](docs/adr/ADR-003-integracoes-opcionais.md))
+3. **Toda integracao de pack e opcional.** O JAR exige apenas NeoForge e a
+   biblioteca de animacao GeckoLib; quests, scripts, combate e demais mods do
+   pack continuam adapters opcionais.
+   ([ADR-003](docs/adr/ADR-003-integracoes-opcionais.md),
+   [ADR-012](docs/adr/ADR-012-geckolib-obrigatorio.md))
 4. **Numero e dado; regra de seguranca e Java.** Custo, cooldown, afinidade e
    requisito saem para config e datapack. Validacao de alvo, alcance, linha de
    visao e ciclo de vida ficam em Java.

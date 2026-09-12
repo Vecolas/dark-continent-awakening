@@ -10,6 +10,7 @@ import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.technique.Ken;
+import com.darkcontinent.nenfoundation.nen.technique.Ko;
 import com.darkcontinent.nenfoundation.nen.technique.Shu;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.LinkedHashSet;
@@ -132,7 +133,8 @@ public final class NenAwakeningService {
                 && antes.conheceTecnica(Zetsu.ID)
                 && antes.conheceTecnica(Gyo.ID)
                 && antes.conheceTecnica(Shu.ID)
-                && antes.conheceTecnica(Ken.ID)) {
+                && antes.conheceTecnica(Ken.ID)
+                && antes.conheceTecnica(Ko.ID)) {
             return antes;
         }
         Set<ResourceLocation> marcos = new LinkedHashSet<>(antes.progressionFlags());
@@ -162,6 +164,7 @@ public final class NenAwakeningService {
         // motivo de Shu: sem progressao (M6), so existiria por comando de
         // operador. Divida declarada.
         tecnicas.add(Ken.ID);
+        tecnicas.add(Ko.ID);
 
         return new PersistentNenData(
                 antes.schemaVersion(),

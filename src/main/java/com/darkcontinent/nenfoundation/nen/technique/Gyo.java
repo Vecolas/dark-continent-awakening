@@ -64,7 +64,7 @@ public final class Gyo implements NenTechnique, RedistribuiAura, ConsomeAura {
 
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Zetsu.ID);
+        return Set.of(Zetsu.ID, Ko.ID);
     }
 
     @Override

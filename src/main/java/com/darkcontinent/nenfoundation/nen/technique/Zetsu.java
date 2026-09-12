@@ -81,7 +81,7 @@ public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
      */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Ten.ID, Ren.ID, Gyo.ID, Shu.ID, Ken.ID);
+        return Set.of(Ten.ID, Ren.ID, Gyo.ID, Shu.ID, Ken.ID, Ko.ID);
     }
 
     @Override

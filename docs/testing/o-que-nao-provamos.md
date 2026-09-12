@@ -169,6 +169,7 @@ O procedimento inteiro esta em
 | A alocação por região não foi vista em jogo | ela agora viaja no delta e move as partículas pela altura do corpo, mas que Gyo na cabeça pareça Gyo na cabeça só olhando responde | gate do M4 (#91) |
 | A aura não foi sentida em jogo | Ten, Ken e Zetsu mudam o dano recebido e há gametest pelo barramento, mas se o combate ficou trivial ou injusto **nenhum teste percebe** — só jogar percebe | gate do M4 (#91) |
 | Os braços não defendem nada | a faixa atingida sai da altura da fonte do dano, e não há como saber que alguém bloqueou com o braço. A aura neles é só ofensiva (Shu, Ko) até existir um sistema de bloqueio, que o vanilla não dá | #213 || O sinal é o mesmo para todos os observadores | `aura_presence` não filtra por quem olha, porque a única regra de ocultação hoje depende só do alvo (Zetsu). Com Gyo (#126) a decisão passa a depender do observador e o envio vira um laço por observador — a forma do payload não muda | #126 |
+| Ko nunca foi usado num golpe real | o prazo, a concentração e a exposição têm gametest, mas acertar *dentro* da janela de um segundo é coisa que só jogando se sabe se é possível | gate do M4 (#91) |
 | `AuraImpactState` (ripple de Ten) não tem quem o dispare | não há dano de Nen; `nen/combat/` tem só o `package-info` | #103, bloqueada por #127 |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync

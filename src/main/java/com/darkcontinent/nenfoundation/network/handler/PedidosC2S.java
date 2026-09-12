@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.network.handler;
 
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
+import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Recusa;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +53,7 @@ public final class PedidosC2S {
     }
 
     public static void receber(CustomPacketPayload pedido, IPayloadContext contexto,
-            BiFunction<ServerPlayer, CustomPacketPayload, Motivo> validar) {
+            BiFunction<ServerPlayer, CustomPacketPayload, Recusa> validar) {
         try {
             receber(pedido, contexto, validar, NenConfig.pedidosPorSegundo());
         } catch (RuntimeException erro) {
@@ -61,7 +62,7 @@ public final class PedidosC2S {
     }
 
     static void receber(CustomPacketPayload pedido, IPayloadContext contexto,
-            BiFunction<ServerPlayer, CustomPacketPayload, Motivo> validar, int cota) {
+            BiFunction<ServerPlayer, CustomPacketPayload, Recusa> validar, int cota) {
         LimiteDePedidos limite = SESSOES.get(contexto.connection());
         if (limite == null) {
             recusar(contexto, Motivo.ESTADO_INVALIDO);
@@ -88,7 +89,7 @@ public final class PedidosC2S {
                         recusar(contexto, Motivo.ESTADO_INVALIDO);
                         return;
                     }
-                    Motivo rejeicao = validar.apply(jogador, pedido);
+                    Recusa rejeicao = validar.apply(jogador, pedido);
                     if (rejeicao != null) recusar(contexto, rejeicao);
                 } catch (RuntimeException erro) {
                     falhar(contexto, erro);
@@ -104,9 +105,21 @@ public final class PedidosC2S {
     }
 
     private static void recusar(IPayloadContext contexto, Motivo motivo) {
+        recusar(contexto, Recusa.de(motivo));
+    }
+
+    /**
+     * Recusa com a chave que a origem escreveu.
+     *
+     * <p>A CHAVE VEM DE QUEM RECUSOU, e nao e reconstruida aqui. Traduzir toda
+     * recusa num motivo generico joga fora o texto que a tecnica escolheu -- e
+     * o jogador de mao vazia passa a ler "seu estado atual nao permite esse
+     * pedido", que nao diz onde esta o problema.
+     */
+    private static void recusar(IPayloadContext contexto, Recusa recusa) {
         if (!contexto.connection().isConnected()) return;
         try {
-            contexto.reply(new FeedbackDeErroS2C(motivo.chave()));
+            contexto.reply(new FeedbackDeErroS2C(recusa.chave()));
         } catch (RuntimeException erro) {
             LOG.error("Falha ao enviar recusa C2S.", erro);
             contexto.disconnect(Component.translatable(Motivo.ERRO_INTERNO.chave()));

@@ -107,10 +107,19 @@ conseguem medir, e arte não trava IA.
 | Inimigo | O que empresta | Comportamento próprio |
 | --- | --- | --- |
 | Foxbear | geometria do urso-polar (textura já é autoral) | territorial, em jogo |
-| Great Stamp | geometria e textura do hoglin | carga, testa, manada |
+| Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
 | Frog-In-Waiting | geometria e textura do sapo | emboscada, agarrão |
 | Man-faced Ape | geometria e textura de aldeão e piglin | disfarce, bando |
 | Spider Eagle | geometria e textura do phantom | ninho, mergulho, coleira |
 
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
+
+O Great Stamp saiu da dívida **visual**, mas ainda não é DONE pela ficha acima:
+faltam **sons próprios**. Hoje ele é silencioso — não empresta som de vanilla,
+simplesmente não tem. Isso não reprova nenhum portão, e é justamente por isso
+que está escrito aqui e em `o-que-nao-provamos.md`.
+
+A coerência do que ele ganhou é cobrada por `CoerenciaDeGeckoLibTest`, que
+descobre os mobs no disco: quem ganhar um `.geo.json` entra na varredura sem
+que ninguém precise lembrar.

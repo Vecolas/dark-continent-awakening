@@ -37,6 +37,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * Great stamp: a ameaca e a carga telegrafada, e a resposta do jogador e
@@ -46,8 +54,13 @@ import net.minecraft.world.phys.Vec3;
  * machuca e qual regiao o jogador acertou -- roda no servidor. O campo
  * sincronizado carrega apenas a FASE do ataque, para o cliente conseguir
  * desenhar a cabeca baixa e a corrida. O cliente nunca informa acerto.</p>
+ *
+ * <p>CORPO PROPRIO (ADR-017). Ate aqui o great stamp vestia geometria e textura
+ * do hoglin vanilla. Agora ele e um {@link GeoEntity}: modelo, esqueleto,
+ * animacoes e textura sao autorais, e o andaime saiu. O comportamento nao mudou
+ * uma linha -- carga, testa e manada sao os mesmos que os gametests medem.</p>
  */
-public final class GreatStampEntity extends BaseHxHMob {
+public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     /** Fase do ataque; o unico estado de combate que o cliente precisa conhecer. */
     private static final EntityDataAccessor<Integer> FASE_DE_ATAQUE =
             SynchedEntityData.defineId(GreatStampEntity.class, EntityDataSerializers.INT);
@@ -71,6 +84,33 @@ public final class GreatStampEntity extends BaseHxHMob {
     private static final double ALCANCE_DO_TRACO = 8.0D;
     /** Folga da caixa de colisao usada para achar quem esta no caminho da carga. */
     private static final double FOLGA_DA_CARGA = 0.35D;
+
+    // ------------------------------------------------------------- animacao
+    // Os nomes abaixo sao um CONTRATO com great_stamp.animation.json. Errar um
+    // deles nao da erro: o GeckoLib simplesmente nao acha o clipe e deixa o osso
+    // parado. E o tipo de falha que so aparece na tela de quem joga.
+    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.great_stamp.idle");
+    private static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.great_stamp.walk");
+    private static final RawAnimation RUN = RawAnimation.begin().thenLoop("animation.great_stamp.run");
+    private static final RawAnimation WINDUP = RawAnimation.begin().thenLoop("animation.great_stamp.windup");
+    private static final RawAnimation CHARGE = RawAnimation.begin().thenLoop("animation.great_stamp.charge");
+    private static final RawAnimation STAGGER = RawAnimation.begin().thenLoop("animation.great_stamp.stagger");
+
+    /** Nome do unico controller; quem registrar um segundo clipe reusa esta constante. */
+    private static final String CONTROLLER_DO_CORPO = "corpo";
+    /** Ticks de mistura entre um clipe e o proximo -- o suficiente para nao ter salto. */
+    private static final int TRANSICAO_EM_TICKS = 5;
+    /**
+     * Deslocamento horizontal por tick acima do qual o clipe passa de walk para run.
+     *
+     * <p>NAO e botao de balanceamento e por isso nao vai para config: e o ponto de
+     * troca entre duas animacoes, medido em blocos/tick. O passeio do stamp anda a
+     * 0.8x e a perseguicao a 1.0x da MOVEMENT_SPEED; o limiar fica entre os dois.</p>
+     */
+    private static final double LIMIAR_DE_CORRIDA = 0.13D;
+
+    /** Cache por INSTANCIA. Um cache estatico faria a manada inteira compartilhar um clipe. */
+    private final AnimatableInstanceCache cacheDeAnimacao = GeckoLibUtil.createInstanceCache(this);
 
     // Estado de carga: DA INSTANCIA. Guardar isto na Goal faria todos os stamps do
     // mundo compartilharem a mesma carga -- a Goal e uma por entidade, mas a classe
@@ -181,6 +221,60 @@ public final class GreatStampEntity extends BaseHxHMob {
         if (!level().isClientSide) encerrarCarga();
         super.remove(reason);
     }
+
+    // ------------------------------------------------------------- animacao
+
+    /**
+     * O CLIENTE NAO DECIDE NADA. Ele le a fase que o servidor ja publica em
+     * {@link #faseDeAtaque()} e escolhe o clipe correspondente -- nao existe aqui
+     * nenhum timer, nenhuma heuristica de "parece que vai carregar" e nenhuma
+     * copia da regra de combate. Se a animacao e a hitbox discordarem, quem esta
+     * errado e o arquivo de animacao, nunca o servidor.
+     *
+     * <p>Ordem de precedencia, da mais especifica para a menos: telegrafo, corrida,
+     * atordoamento, locomocao, ocio. O telegrafo vem primeiro de proposito -- e a
+     * unica leitura que o jogador tem para saber que precisa desviar.</p>
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<GreatStampEntity>(this, CONTROLLER_DO_CORPO,
+                TRANSICAO_EM_TICKS, this::clipeDoCorpo));
+    }
+
+    private PlayState clipeDoCorpo(AnimationState<GreatStampEntity> estado) {
+        AttackPhase fase = faseDeAtaque();
+        if (fase == AttackPhase.WINDUP) return estado.setAndContinue(WINDUP);
+        if (fase == AttackPhase.ACTIVE) return estado.setAndContinue(CHARGE);
+        // PONTO CEGO DECLARADO: combatState() e campo de servidor, nao SynchedEntityData.
+        // No cliente ele le IDLE sempre, entao este ramo NAO dispara em jogo hoje. Ele
+        // fica escrito porque a regra e esta, e passa a valer no dia em que o estado de
+        // combate for sincronizado -- sem isso, a proxima pessoa reescreveria a regra.
+        if (combatState() == EnemyCombatState.STAGGERED) return estado.setAndContinue(STAGGER);
+        if (estado.isMoving()) {
+            return estado.setAndContinue(velocidadeHorizontal() >= LIMIAR_DE_CORRIDA ? RUN : WALK);
+        }
+        return estado.setAndContinue(IDLE);
+    }
+
+    /**
+     * Blocos andados no ultimo tick, medidos por posicao.
+     *
+     * <p>Nao usa {@code getDeltaMovement()}: no cliente o delta de uma entidade
+     * remota so e escrito quando chega um pacote de velocidade, entao ele fica
+     * zerado na maior parte dos ticks e o stamp andaria sempre no clipe de walk.
+     * {@code xo}/{@code zo} sao atualizados todo tick nos DOIS lados.</p>
+     */
+    private double velocidadeHorizontal() {
+        double dx = getX() - this.xo;
+        double dz = getZ() - this.zo;
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return cacheDeAnimacao; }
+
+    @Override
+    public double getTick(Object entidade) { return this.tickCount; }
 
     // ---------------------------------------------------------------- carga
 

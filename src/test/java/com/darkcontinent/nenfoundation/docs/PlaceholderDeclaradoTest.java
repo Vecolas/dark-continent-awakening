@@ -71,8 +71,10 @@ class PlaceholderDeclaradoTest {
     private static final Set<String> VESTINDO_VANILLA_AINDA = Set.of(
             "FoxbearModel.java",
             "FoxbearRenderer.java",
-            "GreatStampModel.java",
-            "GreatStampRenderer.java",
+            // GreatStampModel.java e GreatStampRenderer.java sairam daqui no PR que deu ao
+            // great stamp modelo, esqueleto, animacoes, textura e renderer proprios
+            // (ADR-017). Nao reponha os nomes: a lista e a divida, e divida paga que
+            // continua escrita manda a proxima pessoa refazer o trabalho.
             "FrogInWaitingModel.java",
             "FrogInWaitingRenderer.java",
             "ManFacedApeModel.java",

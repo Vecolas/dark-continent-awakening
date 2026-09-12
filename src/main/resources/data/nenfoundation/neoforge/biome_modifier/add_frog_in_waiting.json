@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:swamp_predator_biomes",
+  "spawners": [
+    {
+      "type": "nenfoundation:frog_in_waiting",
+      "weight": 6,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

@@ -8,5 +8,9 @@ public final class EnemyRenderers {
     private EnemyRenderers() { }
     public static void registrar(EntityRenderersEvent.RegisterRenderers evento) {
         evento.registerEntityRenderer(EnemyEntityTypes.FOXBEAR.get(), FoxbearRenderer::new);
+        evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes.GREAT_STAMP.get(), GreatStampRenderer::new);
+        evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes.FROG_IN_WAITING.get(), FrogInWaitingRenderer::new);
+        evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity.registeredType(), ManFacedApeRenderer::new);
+        evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity.registeredType(), SpiderEagleRenderer::new);
     }
 }

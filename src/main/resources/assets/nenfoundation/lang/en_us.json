@@ -86,5 +86,9 @@
   "nenfoundation.error.aura_invalida": "Invalid aura amount.",
   "nenfoundation.error.aura_insuficiente": "Not enough aura.",
   "nenfoundation.error.output_excedido": "Output limit reached for this tick.",
-  "entity.nenfoundation.foxbear": "Foxbear"
+  "entity.nenfoundation.foxbear": "Foxbear",
+  "entity.nenfoundation.frog_in_waiting": "Frog-In-Waiting",
+  "entity.nenfoundation.great_stamp": "Great Stamp",
+  "entity.nenfoundation.man_faced_ape": "Man-faced Ape",
+  "entity.nenfoundation.spider_eagle": "Spider Eagle"
 }

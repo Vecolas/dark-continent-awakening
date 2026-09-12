@@ -57,6 +57,9 @@ Rodar antes de começar; se algum destes falhar, a QA manual não deve começar.
 | Logout/morte/dimensão desligam tudo | `logoutDesligaTudoPeloEventoDeVerdade`, `morteDesligaTudoEDevolveOTeto`, `trocarDeDimensaoDesligaTudoEDevolveOTeto` | que o jogador **veja** os indicadores sumirem |
 | Toda combinação inválida, nas duas ordens | `aMatrizInteiraNasDuasOrdens` — 42 pares, tirados do registro de produção | que a roda pisque e a técnica caia na tela |
 | A recusa chega com o motivo **dela** | `aRecusaDaTecnicaChegaComAChaveDela` | que a mensagem certa apareça no lugar certo |
+| A aura do atacante soma ao golpe | `renFazOGolpeDoerMais`, `AtaqueDeNenTest` | se o combate ficou bom ou trivial — só jogando |
+| Concentrar longe do punho custa golpe | `concentrarLongeDoPunhoCustaGolpe` | se o jogador percebe a troca sem medir |
+| Entre duas reforçadoras vale **a maior** | `entreDuasReforcadorasValeAMaior` | nada em jogo exercita isto: nenhum par coexiste hoje |
 | Cada técnica tem cor e forma próprias | `AparenciaDeTecnicaTest`, lendo o pacote de técnicas | que elas se separem **de relance**, com nove pixels |
 
 > **A dívida que morava aqui foi paga, e vale dizer como.** Este quadro
@@ -257,6 +260,33 @@ desenho — **Zetsu não vazar** — só podia ser provada aqui.
 | --- | --- | --- |
 | Dev A | Zetsu e Gyo | |
 | Dev B | Ten e Ren | |
+
+---
+
+## A ordem dos modificadores, escrita fora do código
+
+O `package-info` de `nen/combat` exige **uma** ordem documentada, num lugar só.
+Ela estava em Javadoc e em lugar nenhum mais — e documento que só existe dentro
+do código não é consultado por quem está decidindo se um modificador novo cabe.
+
+**Primeiro o ataque de quem bate, depois a defesa de quem apanha**, tudo dentro
+de `NenDanoService.aoReceberDano`, com um único `setAmount` no fim.
+
+> **Hoje essa ordem não muda número nenhum, e isso está escrito de propósito.**
+> Os dois lados são multiplicativos — `× (1 + reforço)` e `× (1 − redução)` — e
+> multiplicação comuta. A mutação que inverte as duas chamadas passa por todos
+> os gametests, e passou: a justificativa que estava no Javadoc (*"invertida,
+> um Ko atravessaria um Ken"*) **era falsa**, e só a mutação mostrou isso.
+>
+> A ordem continua, por outro motivo: o primeiro modificador que **não** for
+> multiplicativo — um dano fixo somado, um piso, um golpe que ignora aura —
+> deixa de comutar no dia em que entrar. Ter o lugar definido antes disso é o
+> que impede a pergunta "onde isto entra?" de ser respondida por acaso.
+
+Dentro de cada lado, entre técnicas ativas **vale a maior, nunca a soma** —
+tanto para proteção quanto para reforço. Somar faz duas técnicas modestas
+entregarem um número que nenhuma das duas promete, e ele é plausível demais
+para alguém notar sem medir.
 
 ---
 

@@ -278,6 +278,7 @@ revelar. E so essa metade que #126 ainda descreve.
 | Gyo | metade entregue: concentra por regiao (ADR-014). A percepcao continua fora (#126) |
 | Shu, Ken, Ko | entregues (#162) |
 | A camada de dano: a aura segura golpe | entregue (#127) |
+| Modificadores defensivos **e ofensivos**, com uma ordem documentada | entregue: a aura do atacante soma ao golpe, e a ordem esta em [m4-tecnicas.md](../testing/m4-tecnicas.md) |
 | Ativacao por roda / menu radial | entregue (#102, #106) |
 | Tecnicas ativas visiveis no HUD, por forma e cor | entregue (#129) |
 | A Water Divination passa a exigir Ren | entregue (#128) |

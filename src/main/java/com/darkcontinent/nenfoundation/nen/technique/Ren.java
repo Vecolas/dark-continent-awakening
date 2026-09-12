@@ -44,7 +44,8 @@ import net.minecraft.server.level.ServerPlayer;
  * projeto -- En e In sao pos-MVP, e Gyo e a #88. Quando existir, ela se prende
  * aqui.
  */
-public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAura {
+public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAura,
+        ReforcaGolpe {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ren");
@@ -53,11 +54,14 @@ public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
 
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier teto;
+    private final DoubleSupplier reforco;
 
     /** Recebe FONTES de numero, e nao numeros. Ver o construtor de {@link Ten}. */
-    public Ren(DoubleSupplier custoPorSegundo, DoubleSupplier teto) {
+    public Ren(DoubleSupplier custoPorSegundo, DoubleSupplier teto,
+            DoubleSupplier reforco) {
         this.custoPorSegundo = custoPorSegundo;
         this.teto = teto;
+        this.reforco = reforco;
     }
 
     @Override
@@ -112,5 +116,10 @@ public final class Ren implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
     public void onDeactivate(ServerPlayer jogador, NenContext ctx, StopReason motivo) {
         // Nada a limpar: o teto e DERIVADO do conjunto de tecnicas ativas, e o
         // servico recalcula ao desligar.
+    }
+
+    @Override
+    public double reforcoBase() {
+        return this.reforco.getAsDouble();
     }
 }

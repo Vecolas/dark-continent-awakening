@@ -44,7 +44,8 @@ import net.minecraft.server.level.ServerPlayer;
  * O que Ken entrega hoje e teto, dreno e uma presenca propria para quem olha.
  * Isso e pouco, e esta escrito aqui em vez de descoberto depois.
  */
-public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAura, ProtegeComAura {
+public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAura,
+        ProtegeComAura, ReforcaGolpe {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ken");
@@ -54,12 +55,15 @@ public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier teto;
     private final DoubleSupplier protecao;
+    private final DoubleSupplier reforco;
 
     /** Recebe FONTES de numero, e nao numeros. Ver o construtor de {@link Ten}. */
-    public Ken(DoubleSupplier custoPorSegundo, DoubleSupplier teto, DoubleSupplier protecao) {
+    public Ken(DoubleSupplier custoPorSegundo, DoubleSupplier teto,
+            DoubleSupplier protecao, DoubleSupplier reforco) {
         this.custoPorSegundo = custoPorSegundo;
         this.teto = teto;
         this.protecao = protecao;
+        this.reforco = reforco;
     }
 
     @Override
@@ -127,5 +131,10 @@ public final class Ken implements NenTechnique, ModificaTetoDeOutput, ConsomeAur
     @Override
     public double protecaoBase() {
         return this.protecao.getAsDouble();
+    }
+
+    @Override
+    public double reforcoBase() {
+        return this.reforco.getAsDouble();
     }
 }

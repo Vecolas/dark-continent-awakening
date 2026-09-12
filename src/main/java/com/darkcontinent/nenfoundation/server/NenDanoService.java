@@ -2,21 +2,25 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.config.NenConfig;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.combat.AtaqueDeNen;
 import com.darkcontinent.nenfoundation.nen.combat.DefesaDeNen;
 import com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
 import com.darkcontinent.nenfoundation.nen.technique.ProtegeComAura;
+import com.darkcontinent.nenfoundation.nen.technique.ReforcaGolpe;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /**
- * O UNICO lugar onde a aura reduz dano.
+ * O UNICO lugar onde a aura mexe em dano -- nos dois sentidos.
  *
  * <p>O {@code package-info} de {@code nen.combat} abre com a regra que este
  * arquivo existe para cumprir: <i>existe UMA ordem documentada de aplicacao de
@@ -43,25 +47,89 @@ public final class NenDanoService {
     private NenDanoService() {
     }
 
+    /**
+     * A ORDEM, escrita uma vez e num lugar so: <b>primeiro o ataque, depois a
+     * defesa.</b>
+     *
+     * <p>E HOJE ELA NAO MUDA NUMERO NENHUM, e isso precisa estar escrito. Os
+     * dois lados sao multiplicativos -- {@code x (1 + reforco)} e
+     * {@code x (1 - reducao)} -- e multiplicacao comuta: inverter as duas
+     * chamadas da exatamente o mesmo dano. Eu escrevi aqui, na primeira versao,
+     * que invertida "um Ko atravessaria um Ken", alimentei a mutacao que
+     * inverte as chamadas, e ela passou pelos 120 gametests. A justificativa
+     * estava errada; a ordem continua, e por outro motivo.
+     *
+     * <p>O MOTIVO REAL: o primeiro modificador que NAO for multiplicativo --
+     * um dano fixo somado, um piso, um dano que ignora aura -- deixa de comutar
+     * no dia em que entrar, e ai a ordem passa a decidir o numero em silencio.
+     * Ter o lugar definido antes disso e o que impede a pergunta "onde isto
+     * entra?" de ser respondida por acaso, no meio de outra tarefa.
+     *
+     * <p>UM `setAmount` SO, no fim. Os dois lados sao calculados sobre valores
+     * locais e o evento e escrito uma vez. Isto e o erro numero 5 do CLAUDE.md
+     * tratado na raiz: nao basta haver um handler se dentro dele o dano for
+     * remexido em dois lugares que podem se cruzar depois.
+     */
     @SubscribeEvent
     public static void aoReceberDano(LivingIncomingDamageEvent evento) {
-        if (!(evento.getEntity() instanceof ServerPlayer jogador)) {
-            return;
-        }
         float dano = evento.getAmount();
         if (!(dano > 0.0F)) {
             return;
         }
 
-        RuntimeNenState estado;
-        try {
-            estado = NenRuntimeService.estadoDe(jogador);
-        } catch (IllegalStateException semSessao) {
-            // Jogador sem runtime nao tem aura para segurar nada. Acontece
-            // entre entrar na lista e a sessao comecar, e nao e erro.
-            return;
-        }
+        float depoisDoAtaque = comReforcoDeQuemBateu(dano, evento.getSource());
+        float depoisDaDefesa = comDefesaDeQuemApanhou(depoisDoAtaque, evento);
 
+        if (depoisDaDefesa != dano) {
+            evento.setAmount(depoisDaDefesa);
+        }
+    }
+
+    /**
+     * O lado ofensivo.
+     *
+     * <p>QUEM BATE PODE NAO SER QUEM APANHA TER PERFIL: um jogador em Ren
+     * batendo num zumbi tem de bater mais forte, e o zumbi nao tem aura
+     * nenhuma. Por isso este lado olha para o ATACANTE e nao para a vitima --
+     * e por isso o handler nao pode mais desistir cedo quando a vitima nao e
+     * jogador, como ele fazia enquanto so existia defesa.
+     *
+     * <p>O BRACO DOMINANTE E A REGIAO QUE CONTA. Quem bate, bate com o braco.
+     * Um jogador concentrado na cabeca -- que e o padrao de Gyo -- perde golpe,
+     * e essa e a troca que a concentracao sempre prometeu sem nunca cobrar.
+     */
+    private static float comReforcoDeQuemBateu(float dano, DamageSource fonte) {
+        if (fonte == null) {
+            return dano;
+        }
+        Entity atacante = fonte.getEntity();
+        if (!(atacante instanceof ServerPlayer jogador)) {
+            return dano;
+        }
+        RuntimeNenState estado = estadoOuNulo(jogador);
+        if (estado == null) {
+            return dano;
+        }
+        RegiaoDoCorpo braco = NenGyoService.focoDe(jogador).bracoPrincipal();
+        float reforco = AtaqueDeNen.reforco(
+                reforcoDe(estado.tecnicasAtivas()),
+                estado.alocacao(),
+                braco,
+                NenConfig.tetoDeReforcoDeDano());
+
+        return reforco <= 0.0F ? dano : AtaqueDeNen.danoDepoisDoReforco(dano, reforco);
+    }
+
+    /** O lado defensivo, que ja existia. */
+    private static float comDefesaDeQuemApanhou(float dano,
+            LivingIncomingDamageEvent evento) {
+        if (!(evento.getEntity() instanceof ServerPlayer jogador)) {
+            return dano;
+        }
+        RuntimeNenState estado = estadoOuNulo(jogador);
+        if (estado == null) {
+            return dano;
+        }
         FaixaDoCorpo faixa = faixaAtingida(jogador, evento.getSource());
         float reducao = DefesaDeNen.reducao(
                 protecaoDe(estado.tecnicasAtivas()),
@@ -69,10 +137,38 @@ public final class NenDanoService {
                 faixa,
                 NenConfig.tetoDeReducaoDeDano());
 
-        if (reducao <= 0.0F) {
-            return;
+        return reducao <= 0.0F ? dano : DefesaDeNen.danoDepoisDaAura(dano, reducao);
+    }
+
+    /**
+     * O runtime do jogador, ou nulo.
+     *
+     * <p>Jogador sem sessao acontece entre entrar na lista e a sessao comecar,
+     * e nao e erro -- ele so nao tem aura para segurar nem para somar.
+     */
+    private static RuntimeNenState estadoOuNulo(ServerPlayer jogador) {
+        try {
+            return NenRuntimeService.estadoDe(jogador);
+        } catch (IllegalStateException semSessao) {
+            return null;
         }
-        evento.setAmount(DefesaDeNen.danoDepoisDaAura(dano, reducao));
+    }
+
+    /**
+     * O reforco das tecnicas ativas.
+     *
+     * <p>VALE A MAIOR, e nao a soma, pelo mesmo motivo da protecao: somar faria
+     * duas tecnicas modestas darem um golpe que nenhuma das duas promete.
+     */
+    public static double reforcoDe(Set<ResourceLocation> ativas) {
+        double maior = 0.0D;
+        for (ResourceLocation id : ativas) {
+            NenTechnique tecnica = NenTechniqueService.registro().porId(id).orElse(null);
+            if (tecnica instanceof ReforcaGolpe reforcadora) {
+                maior = Math.max(maior, reforcadora.reforcoBase());
+            }
+        }
+        return maior;
     }
 
     /**

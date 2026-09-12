@@ -189,6 +189,52 @@ public final class NenConfig {
                     "Se ele nao for claramente maior que o de Ten, Ken vira um Ten caro.")
             .defineInRange("tecnica.ken.protecaoBase", 0.75D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue TETO_DE_REFORCO_DE_DANO = BUILDER
+            .comment("Quanto a aura pode somar ao golpe, no maximo.",
+                    "E O ESPELHO DO TETO DE REDUCAO, e existe pelo mesmo motivo.",
+                    "La o numero proibido e 1.0, que e imortalidade; aqui nao ha um",
+                    "valor magico -- por isso o limite e escolha de design, e nao um",
+                    "botao que alguem gira sem saber o que esta girando.",
+                    "1.5 quer dizer: no maximo dois golpes e meio num.",
+                    "Ha um teto ABSOLUTO no codigo acima deste.")
+            .defineInRange("combate.tetoDeReforcoDeDano", 1.5D, 0.0D, 3.0D);
+
+    private static final ModConfigSpec.DoubleValue TEN_REFORCO_BASE = BUILDER
+            .comment("Quanto Ten soma ao golpe com a aura espalhada por igual.",
+                    "Quase nada, de proposito: Ten e o estado OCIOSO. Se ele reforcar",
+                    "bem, ninguem nunca precisa de Ren -- e Ren e a tecnica que o",
+                    "canone descreve como o aumento de poder de ataque.")
+            .defineInRange("tecnica.ten.reforcoBase", 0.05D, 0.0D, 3.0D);
+
+    private static final ModConfigSpec.DoubleValue REN_REFORCO_BASE = BUILDER
+            .comment("Quanto Ren soma ao golpe com a aura espalhada por igual.",
+                    "O DE REFERENCIA. No canone, Ren e liberar aura em volume e e ele",
+                    "que aumenta o poder de ataque. Ate hoje Ren so levantava o teto de",
+                    "Output e cobrava aura: a metade ofensiva dele nao existia.")
+            .defineInRange("tecnica.ren.reforcoBase", 0.25D, 0.0D, 3.0D);
+
+    private static final ModConfigSpec.DoubleValue KEN_REFORCO_BASE = BUILDER
+            .comment("Quanto Ken soma ao golpe com a aura espalhada por igual.",
+                    "MENOR que o de Ren, e isso e a troca: Ken sustenta Ten e Ren ao",
+                    "mesmo tempo pelo corpo inteiro. Quem cobre tudo nao concentra em",
+                    "nada -- se Ken reforcar tanto quanto Ren, Ren vira inutil.")
+            .defineInRange("tecnica.ken.reforcoBase", 0.15D, 0.0D, 3.0D);
+
+    private static final ModConfigSpec.DoubleValue SHU_REFORCO_BASE = BUILDER
+            .comment("Quanto Shu soma ao golpe com a aura espalhada por igual.",
+                    "Shu estende a aura ao ITEM na mao, entao o reforco dela e do golpe",
+                    "com arma. O numero e modesto porque Shu ja concentra no braco, e a",
+                    "concentracao multiplica: o valor final vem da conta, nao daqui.")
+            .defineInRange("tecnica.shu.reforcoBase", 0.10D, 0.0D, 3.0D);
+
+    private static final ModConfigSpec.DoubleValue KO_REFORCO_BASE = BUILDER
+            .comment("Quanto Ko soma ao golpe com a aura espalhada por igual.",
+                    "PARECE BAIXO E NAO E: Ko poe quase toda a aura numa regiao so, e a",
+                    "concentracao multiplica este numero por varias vezes. Girar este",
+                    "botao para cima e a maneira mais rapida de tornar o combate",
+                    "trivial -- meca antes.")
+            .defineInRange("tecnica.ko.reforcoBase", 0.25D, 0.0D, 3.0D);
+
     private static final ModConfigSpec.DoubleValue KO_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Ko consome por segundo. O MAIOR de todas.",
                     "Ko e um golpe, nao um estado: ele custa muito por pouco tempo.")
@@ -259,6 +305,24 @@ public final class NenConfig {
 
     /** Quanto Ken protege com a aura espalhada por igual. */
     public static double kenProtecaoBase() { return KEN_PROTECAO_BASE.get(); }
+
+    /** Quanto a aura pode somar ao golpe, no maximo. */
+    public static double tetoDeReforcoDeDano() { return TETO_DE_REFORCO_DE_DANO.get(); }
+
+    /** Quanto Ten soma ao golpe com a aura espalhada por igual. */
+    public static double tenReforcoBase() { return TEN_REFORCO_BASE.get(); }
+
+    /** Quanto Ren soma ao golpe com a aura espalhada por igual. */
+    public static double renReforcoBase() { return REN_REFORCO_BASE.get(); }
+
+    /** Quanto Ken soma ao golpe com a aura espalhada por igual. */
+    public static double kenReforcoBase() { return KEN_REFORCO_BASE.get(); }
+
+    /** Quanto Shu soma ao golpe com a aura espalhada por igual. */
+    public static double shuReforcoBase() { return SHU_REFORCO_BASE.get(); }
+
+    /** Quanto Ko soma ao golpe com a aura espalhada por igual. */
+    public static double koReforcoBase() { return KO_REFORCO_BASE.get(); }
 
     /** Custo de Ko por segundo. */
     public static double koCustoPorSegundo() { return KO_CUSTO_POR_SEGUNDO.get(); }

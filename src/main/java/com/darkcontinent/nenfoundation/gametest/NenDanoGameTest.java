@@ -2,7 +2,9 @@ package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.api.event.OrigemDoDespertar;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import com.darkcontinent.nenfoundation.nen.technique.Ken;
+import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import com.darkcontinent.nenfoundation.server.NenAwakeningService;
@@ -160,5 +162,194 @@ public final class NenDanoGameTest {
                 "um jogador sem Nen ficou com " + sofrido + " de um golpe de 8.");
 
         helper.succeed();
+    }
+
+    // ------------------------------------------------- o lado ofensivo
+
+    /**
+     * Quanto dano o jogador CAUSA, pelo evento.
+     *
+     * <p>A vitima e um mob sem Nen nenhum, e isso e o cenario: quem bate tem
+     * aura, quem apanha nao. Enquanto so existia defesa, o handler desistia
+     * cedo quando a vitima nao era jogador -- e foi essa saida antecipada que
+     * precisou cair para o lado ofensivo existir.
+     */
+    private static float danoCausado(ServerPlayer jogador, GameTestHelper helper,
+            float quantidade) {
+        net.minecraft.world.entity.LivingEntity alvo =
+                helper.spawn(net.minecraft.world.entity.EntityType.ZOMBIE,
+                        net.minecraft.core.BlockPos.ZERO);
+        LivingIncomingDamageEvent evento = new LivingIncomingDamageEvent(alvo,
+                new net.neoforged.neoforge.common.damagesource.DamageContainer(
+                        jogador.damageSources().playerAttack(jogador), quantidade));
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(evento);
+        alvo.discard();
+        return evento.getAmount();
+    }
+
+    /**
+     * Ren faz o golpe doer mais -- e esta era a metade que faltava.
+     *
+     * <p>NO CANONE REN E O AUMENTO DE PODER DE ATAQUE. Ate esta entrega, Ren
+     * levantava o teto de Output e cobrava aura, e mais nada: a issue
+     * guarda-chuva do M4 pedia "modificadores defensivos <b>e ofensivos</b>", e
+     * so a metade defensiva existia. O sintoma era silencioso -- ninguem
+     * reclama de um golpe que nao ficou mais forte, porque nao ha com o que
+     * comparar.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void renFazOGolpeDoerMais(GameTestHelper helper) {
+        ServerPlayer jogador = desperto(helper);
+
+        float semNada = danoCausado(jogador, helper, 6.0F);
+        NenTechniqueService.ativar(jogador, Ren.ID);
+        float comRen = danoCausado(jogador, helper, 6.0F);
+
+        exigir(comRen > semNada,
+                "Ren nao somou nada ao golpe: " + comRen + " contra " + semNada
+                        + ". A aura do atacante nao chegou ao dano -- ou o"
+                        + " handler nao olha para quem bate, ou olhou e o"
+                        + " reforco saiu zero.");
+
+        helper.succeed();
+    }
+
+    /**
+     * Concentrar longe do punho CUSTA golpe.
+     *
+     * <p>ESTA E A TROCA INTEIRA, e ela e o que separa concentracao de bonus. Um
+     * jogador em Gyo com a aura na cabeca bate MENOS do que um jogador em
+     * repouso com a mesma tecnica -- porque o punho ficou quase vazio.
+     *
+     * <p>Sem este teste, um reforco que ignorasse a alocacao passaria pelo teste
+     * acima sem reprovar: Ren sozinho ja daria o numero maior. O defeito so
+     * aparece quando se pergunta ONDE a aura estava.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void concentrarLongeDoPunhoCustaGolpe(GameTestHelper helper) {
+        ServerPlayer jogador = desperto(helper);
+        NenTechniqueService.ativar(jogador, Ren.ID);
+
+        float comAuraEspalhada = danoCausado(jogador, helper, 6.0F);
+
+        // A aura toda na cabeca, sem mexer em tecnica nenhuma: so a alocacao.
+        NenRuntimeService.estadoDe(jogador).definirAlocacao(
+                com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura
+                        .concentrando(RegiaoDoCorpo.CABECA, 0.90F));
+        float comAuraNaCabeca = danoCausado(jogador, helper, 6.0F);
+
+        exigir(comAuraNaCabeca < comAuraEspalhada,
+                "concentrar na cabeca nao custou golpe: " + comAuraNaCabeca
+                        + " contra " + comAuraEspalhada + " com a aura espalhada."
+                        + " O reforco esta ignorando ONDE a aura esta, e com isso"
+                        + " concentrar vira bonus sem preco -- Ko passaria a ser"
+                        + " vantagem pura, sem o risco que o justifica.");
+
+        helper.succeed();
+    }
+
+    /**
+     * Em Zetsu o golpe vale o que valeria sem Nen nenhum.
+     *
+     * <p>Zetsu ja tirava a defesa; faltava tirar o ataque. Um Zetsu que ainda
+     * reforcasse o golpe seria furtividade com bonus -- exatamente o desenho
+     * que a issue de Zetsu foi escrita para impedir.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void zetsuBateComoQuemNaoTemNen(GameTestHelper helper) {
+        ServerPlayer jogador = desperto(helper);
+
+        float semNada = danoCausado(jogador, helper, 6.0F);
+        NenTechniqueService.ativar(jogador, Zetsu.ID);
+        float comZetsu = danoCausado(jogador, helper, 6.0F);
+
+        exigir(comZetsu == semNada,
+                "com Zetsu o golpe deu " + comZetsu + " e sem aura nenhuma deu "
+                        + semNada + ". Zetsu tem de custar os dois lados.");
+
+        helper.succeed();
+    }
+
+    /**
+     * Com duas reforcadoras ligadas, vale A MAIOR -- e nao a soma.
+     *
+     * <p>ELE PRECISOU DE TECNICAS FALSAS, e o motivo vale registrar: a mutacao
+     * que troca {@code Math.max} por {@code +=} passou pelos 120 gametests sem
+     * reprovar um. Em producao nunca ha duas reforcadoras ativas ao mesmo tempo
+     * -- Zetsu exclui todas, Ken exclui Ten e Ren, Ko exclui Gyo -- e com UMA
+     * so, somar e pegar a maior dao o mesmo numero.
+     *
+     * <p>E exatamente o que aconteceu com a protecao quando ela nasceu. Um
+     * defeito invisivel em jogo precisa de um cenario que o jogo ainda nao
+     * produz; o cenario aqui sao duas tecnicas modestas que CONVIVEM.
+     *
+     * <p>Por que a regra e essa: somar faz duas tecnicas modestas darem um
+     * golpe que nenhuma das duas promete, e ninguem nota -- o numero final e
+     * plausivel.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void entreDuasReforcadorasValeAMaior(GameTestHelper helper) {
+        ServerPlayer jogador = desperto(helper);
+        Reforcadora fraca = new Reforcadora("fraca", 0.20D);
+        Reforcadora forte = new Reforcadora("forte", 0.50D);
+
+        NenTecnicaGameTest.comRegistro(java.util.List.of(fraca, forte), () -> {
+            NenTechniqueService.ativar(jogador, fraca.id());
+            NenTechniqueService.ativar(jogador, forte.id());
+            exigir(NenRuntimeService.estadoDe(jogador).tecnicasAtivas().size() == 2,
+                    "as duas tinham de ficar ligadas; sem isso o teste mede uma"
+                            + " tecnica so e a soma nunca aparece.");
+
+            double reforco = com.darkcontinent.nenfoundation.server.NenDanoService
+                    .reforcoDe(NenRuntimeService.estadoDe(jogador).tecnicasAtivas());
+
+            exigir(Math.abs(reforco - 0.50D) < 1.0E-6D,
+                    "com 0.20 e 0.50 ligadas o reforco deu " + reforco
+                            + ". Somar da 0.70 -- um golpe que nenhuma das duas"
+                            + " promete, e plausivel demais para alguem notar"
+                            + " sem medir.");
+        });
+
+        helper.succeed();
+    }
+
+    /** Reforcadora minima que nao exclui ninguem: existe para poder CONVIVER. */
+    private static final class Reforcadora implements
+            com.darkcontinent.nenfoundation.nen.technique.NenTechnique,
+            com.darkcontinent.nenfoundation.nen.technique.ReforcaGolpe {
+
+        private final net.minecraft.resources.ResourceLocation id;
+        private final double reforco;
+
+        Reforcadora(String nome, double reforco) {
+            this.id = net.minecraft.resources.ResourceLocation
+                    .fromNamespaceAndPath(NenFoundation.MOD_ID, "teste_" + nome);
+            this.reforco = reforco;
+        }
+
+        @Override public net.minecraft.resources.ResourceLocation id() { return this.id; }
+        @Override public java.util.Set<net.minecraft.resources.ResourceLocation>
+                incompativeisCom() { return java.util.Set.of(); }
+        @Override public double reforcoBase() { return this.reforco; }
+
+        @Override
+        public com.darkcontinent.nenfoundation.nen.technique.TechniqueActivationResult
+                canActivate(ServerPlayer j,
+                        com.darkcontinent.nenfoundation.nen.technique.NenContext c) {
+            return com.darkcontinent.nenfoundation.nen.technique
+                    .TechniqueActivationResult.aceito();
+        }
+
+        @Override public void onActivate(ServerPlayer j,
+                com.darkcontinent.nenfoundation.nen.technique.NenContext c) { }
+        @Override public void serverTick(ServerPlayer j,
+                com.darkcontinent.nenfoundation.nen.technique.NenContext c) { }
+        @Override public void onDeactivate(ServerPlayer j,
+                com.darkcontinent.nenfoundation.nen.technique.NenContext c,
+                com.darkcontinent.nenfoundation.nen.technique.StopReason m) { }
     }
 }

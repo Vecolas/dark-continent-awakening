@@ -6,6 +6,12 @@ import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
+import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
+import com.darkcontinent.nenfoundation.client.vfx.EmissorDeParticulasDeAura;
+import com.darkcontinent.nenfoundation.client.vfx.ModoVisualDeTecnica;
+import com.darkcontinent.nenfoundation.client.vfx.SessaoDeVfxDeAura;
+import com.darkcontinent.nenfoundation.config.NenClientConfig;
+import net.neoforged.fml.config.ModConfig;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
@@ -61,6 +67,7 @@ public final class NenFoundationClient {
     private final OverlayDeDebug overlay;
     private final OverlayDeAura auraHud;
     private int errosExibidos;
+    private final SessaoDeVfxDeAura vfx;
     private long ticksDaSessao;
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
@@ -71,8 +78,11 @@ public final class NenFoundationClient {
                 NenConfig::interpolacaoDeAura, NenConfig::interpolacaoDeOutput);
         this.overlay = new OverlayDeDebug(this.cache);
         this.auraHud = new OverlayDeAura(this.cache);
+        this.vfx = new SessaoDeVfxDeAura();
 
         Recebedores.registrar(this.cache);
+
+        modContainer.registerConfig(ModConfig.Type.CLIENT, NenClientConfig.SPEC);
 
         modEventBus.addListener(NenKeybinds::registrar);
         modEventBus.addListener(EnemyRenderers::registrar);
@@ -95,6 +105,11 @@ public final class NenFoundationClient {
      */
     private void aoSairDoServidor(ClientPlayerNetworkEvent.LoggingOut evento) {
         this.cache.limpar();
+        // QUEM LIGA, DESLIGA, e no MESMO ponto de saida que ja existia. Sem
+        // esta linha a aura do mundo anterior continuaria desenhada ate o
+        // primeiro delta do servidor novo chegar -- e, se ele nunca chegar
+        // porque o jogador nao despertou la, para sempre.
+        this.vfx.limpar();
         this.errosExibidos = 0;
         this.ticksDaSessao = 0;
     }
@@ -116,6 +131,7 @@ public final class NenFoundationClient {
                     .displayClientMessage(net.minecraft.network.chat.Component.translatable(chave), true));
             this.errosExibidos = this.cache.errosRecebidos();
         }
+        this.tickDaAura(mc);
         while (NenKeybinds.OVERLAY_DE_DEBUG.consumeClick()) {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
@@ -137,5 +153,34 @@ public final class NenFoundationClient {
                 PacketDistributor.sendToServer(new AjustarOutputC2S(variacao));
             }
         }
+    }
+
+    /**
+     * Um tick da aura visual do jogador LOCAL.
+     *
+     * <p>SO O JOGADOR LOCAL, e isso e limite de dado e nao escolha de escopo: o
+     * servidor manda o delta de runtime apenas ao dono do perfil, por decisao
+     * de privacidade declarada em {@code NenSyncService}. O cliente nao tem
+     * como saber que tecnica o jogador do lado esta usando -- e nem deveria,
+     * enquanto In e Zetsu existirem. Ver o relato da issue #99.
+     *
+     * <p>A INTENSIDADE VEM DO OUTPUT, e nao da aura atual. Aura e combustivel;
+     * output e o quanto esta sendo liberado. Ligar o brilho a aura faria a aura
+     * caindo APAGAR o efeito justamente enquanto o jogador esta gastando.
+     */
+    private void tickDaAura(Minecraft mc) {
+        if (mc.level == null || mc.player == null || mc.isPaused()) {
+            return;
+        }
+        var delta = this.cache.delta();
+        var ativas = delta.map(d -> d.tecnicasAtivas()).orElse(java.util.Set.of());
+        float output = delta.map(d -> d.outputPercent()).orElse(0.0F);
+        int cor = ModoVisualDeTecnica.dominante(ativas)
+                .map(id -> AparenciaDeTecnica.de(id).cor())
+                .orElse(0xFFFFFFFF);
+
+        this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao());
+        EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(),
+                NenClientConfig.densidadeDeParticulas());
     }
 }

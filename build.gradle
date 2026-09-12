@@ -201,6 +201,50 @@ tasks.named('test', Test).configure {
     }
 }
 
+// ---------------------------------------------------------------- instancia
+//
+// OS MODS DE QUE O JAR PRECISA EM RUNTIME, copiados para um lugar previsivel.
+//
+// POR QUE ISTO EXISTE. O ADR-012 tornou o GeckoLib dependencia OBRIGATORIA, e
+// no ambiente de dev isso passa despercebido: `runServer`, `runClient` e
+// `runGameTestServer` recebem a biblioteca do proprio Gradle, entao build e
+// gametests ficam verdes.
+//
+// A instancia de teste manual nao tem Gradle. Ela le a pasta `mods`, e la so
+// havia o `nenfoundation-*.jar` -- entao o servidor dedicado recusou o boot com
+// "Missing or unsupported mandatory dependencies: geckolib". Verde em todos os
+// portoes, e o jogo nao abre.
+//
+// O FILTRO E "TEM `neoforge.mods.toml` DENTRO", e nao uma lista de nomes. Uma
+// lista teria de ser lembrada a cada dependencia nova -- e ninguem lembra, pelo
+// mesmo motivo que este defeito existiu. Assim, todo mod que virar dependencia
+// obrigatoria e instalado sozinho.
+tasks.register('bibliotecasDaInstancia', Copy) {
+    description = 'Copia para build/ os mods que a instancia de teste precisa ter em mods/.'
+    group = 'nen'
+
+    from {
+        configurations.runtimeClasspath.filter { arquivo ->
+            // O NeoForge e o Minecraft ja estao instalados na instancia;
+            // copia-los para `mods` faria o carregador achar duas copias.
+            if (!arquivo.name.endsWith('.jar')
+                    || arquivo.name.startsWith('neoforge-')
+                    || arquivo.name.startsWith('client-')
+                    || arquivo.name.startsWith('server-')) {
+                return false
+            }
+            try {
+                new java.util.zip.ZipFile(arquivo).withCloseable { zip ->
+                    zip.getEntry('META-INF/neoforge.mods.toml') != null
+                }
+            } catch (Exception ignorado) {
+                false
+            }
+        }
+    }
+    into layout.buildDirectory.dir('bibliotecas-da-instancia')
+}
+
 tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
             minecraft_version      : minecraft_version,

@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.client.screen;
 
 import com.darkcontinent.nenfoundation.client.NenClientCache;
+import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;
@@ -52,7 +53,6 @@ public final class RodaDeNen extends Screen {
     private static final int COR_FUNDO = 0xC0_04_0A_10;
     private static final int COR_FATIA = 0x80_0E_1C_24;
     private static final int COR_FATIA_APONTADA = 0xC0_10_54_60;
-    private static final int COR_ATIVA = 0xFF_3A_E8_D0;
     private static final int COR_TEXTO = 0xFF_D8_F4_FF;
     private static final int COR_TEXTO_APAGADO = 0xFF_6A_8A_96;
     private static final int COR_MIOLO = 0xD0_02_08_0C;
@@ -185,15 +185,22 @@ public final class RodaDeNen extends Screen {
             DesenhoDaRoda.setorDeAnel(g, cx, cy,
                     (float) RAIO_INTERNO, (float) RAIO_EXTERNO, de, ate, cor);
 
+            // A COR DA TECNICA VEM DE `AparenciaDeTecnica`, e nao daqui. O
+            // indicador da HUD pinta Ren de laranja; se esta tela pintasse de
+            // outra cor, as duas discordariam sobre a mesma coisa e so quem
+            // olhasse as duas ao mesmo tempo notaria.
+            int corDaTecnica = AparenciaDeTecnica.de(id).cor();
+
             if (ativa) {
                 // Uma faixa fina na borda externa marca a tecnica ligada.
                 DesenhoDaRoda.setorDeAnel(g, cx, cy,
-                        (float) (RAIO_EXTERNO - 4.0D), (float) RAIO_EXTERNO, de, ate, COR_ATIVA);
+                        (float) (RAIO_EXTERNO - 4.0D), (float) RAIO_EXTERNO, de, ate,
+                        corDaTecnica);
             }
 
             int x = cx + (int) Math.round(Math.sin(centro) * RAIO_DO_ROTULO);
             int y = cy - (int) Math.round(Math.cos(centro) * RAIO_DO_ROTULO);
-            centralizado(g, nomeDe(id), x, y - 4, ativa ? COR_ATIVA : COR_TEXTO);
+            centralizado(g, nomeDe(id), x, y - 4, ativa ? corDaTecnica : COR_TEXTO);
         }
     }
 

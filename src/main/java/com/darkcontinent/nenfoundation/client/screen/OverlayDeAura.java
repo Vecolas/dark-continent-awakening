@@ -9,6 +9,7 @@ import com.darkcontinent.nenfoundation.client.hud.component.AuraPoolBarRenderer;
 import com.darkcontinent.nenfoundation.client.hud.component.HudTextureRenderer;
 import com.darkcontinent.nenfoundation.client.hud.component.NenTypeBadgeRenderer;
 import com.darkcontinent.nenfoundation.client.hud.component.PlayerHeadRenderer;
+import com.darkcontinent.nenfoundation.client.hud.component.TecnicasAtivasRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -22,6 +23,7 @@ public final class OverlayDeAura {
     private final HudTextureRenderer texturas = new HudTextureRenderer();
     private final PlayerHeadRenderer retrato = new PlayerHeadRenderer();
     private final NenTypeBadgeRenderer badge = new NenTypeBadgeRenderer();
+    private final TecnicasAtivasRenderer tecnicas = new TecnicasAtivasRenderer();
 
     public OverlayDeAura(NenClientCache cache) {
         this.cache = cache;
@@ -49,11 +51,30 @@ public final class OverlayDeAura {
         this.aura.desenharTexto(g, layout.barraDeAura(), layout.valorDeAura(), aura);
         this.output.desenharTexto(g, layout.barraDeOutput(), layout.valorDeOutput(), aura);
         this.badge.desenhar(g, layout.badge());
+        this.tecnicas.desenhar(g, layout.tecnicasAtivas(), tecnicasAtivas());
         if (aura.exausto() || aura.maxima() == 0) {
             g.drawString(mc.font, Component.translatable(aura.exausto()
                     ? "nenfoundation.hud.aura_exausta" : "nenfoundation.hud.sem_reserva"),
                     layout.barraDeAura().x(), layout.barraDeAura().y() + 9,
                     aura.exausto() ? 0xFFFF7777 : 0xFFAAAAAA, true);
         }
+    }
+
+    /**
+     * As tecnicas ligadas, em ordem ESTAVEL.
+     *
+     * <p>O delta traz um conjunto, e conjunto nao tem ordem. Desenhar na ordem
+     * de iteracao faria a fila embaralhar entre ticks sem nada ter mudado -- o
+     * jogador veria os indicadores trocando de lugar sozinhos, e nao daria para
+     * olhar de relance. Ordenar por id e arbitrario e, principalmente, igual
+     * toda vez.
+     */
+    private java.util.List<net.minecraft.resources.ResourceLocation> tecnicasAtivas() {
+        return this.cache.delta()
+                .map(d -> d.tecnicasAtivas().stream()
+                        .sorted(java.util.Comparator.comparing(
+                                net.minecraft.resources.ResourceLocation::toString))
+                        .toList())
+                .orElse(java.util.List.of());
     }
 }

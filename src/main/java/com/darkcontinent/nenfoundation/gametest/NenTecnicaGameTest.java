@@ -713,6 +713,13 @@ public final class NenTecnicaGameTest {
     private static final class Cobradora implements NenTechnique, ConsomeAura {
         private final ResourceLocation id;
         private final double custoPorSegundo;
+        /**
+         * POR QUE ELA GUARDA O MOTIVO: a versao anterior descartava o
+         * argumento de {@code onDeactivate}, e com isso NENHUM teste do mod
+         * olhava para o {@link StopReason}. Trocar {@code OUT_OF_AURA} por
+         * {@code PLAYER_REQUEST} no servico deixava a suite inteira verde.
+         */
+        private final java.util.List<StopReason> motivos = new java.util.ArrayList<>();
 
         Cobradora(String nome, double custoPorSegundo) {
             this.id = idDeTeste(nome);
@@ -730,7 +737,57 @@ public final class NenTecnicaGameTest {
 
         @Override public void onActivate(ServerPlayer j, NenContext c) { }
         @Override public void serverTick(ServerPlayer j, NenContext c) { }
-        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) { }
+        @Override public void onDeactivate(ServerPlayer j, NenContext c, StopReason m) {
+            this.motivos.add(m);
+        }
+    }
+
+    /**
+     * Aura zero encerra COM O MOTIVO CERTO, e nao so encerra.
+     *
+     * <p>ESTE ERA UM FALSO VERDE DECLARADO NO ROTEIRO. A linha C2 do gate do M4
+     * dizia "automatizado -- mesmo teste", apontando para
+     * {@code tenCaiQuandoAAuraAcaba}. Aquele teste prova que a tecnica CAI; o
+     * motivo com que ela cai nunca foi olhado por ninguem. {@code OUT_OF_AURA}
+     * existia so em codigo de producao.
+     *
+     * <p>O MOTIVO NAO E DETALHE INTERNO: ele e o que decide a mensagem que o
+     * jogador le e o que uma habilidade futura vai consultar para saber se deve
+     * religar sozinha. Um desligamento por falta de aura anunciado como
+     * "o jogador pediu" manda todo mundo procurar no lugar errado -- a mesma
+     * familia de defeito da recusa com chave generica.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void auraZeroEncerraComOUT_OF_AURA(GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        Cobradora cara = new Cobradora("cara", 1000.0D);
+
+        comRegistro(List.of(cara), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(100.0D);
+            estado.definirAuraAtual(100.0D);
+
+            NenTechniqueService.ativar(jogador, cara.id());
+            exigir(estado.tecnicasAtivas().contains(cara.id()),
+                    "a tecnica nao ligou; o teste mediria o vazio.");
+
+            // Sem aura nenhuma, o proximo tick nao tem como pagar.
+            estado.definirAuraAtual(0.0D);
+            NenTechniqueService.tick(jogador, estado);
+
+            exigir(!estado.tecnicasAtivas().contains(cara.id()),
+                    "a tecnica sobreviveu sem aura; nao ha desligamento para"
+                            + " conferir o motivo.");
+            exigir(cara.motivos.equals(List.of(StopReason.OUT_OF_AURA)),
+                    "a tecnica caiu com " + cara.motivos + ", e nao com"
+                            + " [OUT_OF_AURA]. Ela caiu pela razao certa e"
+                            + " ANUNCIOU outra -- o jogador leria a mensagem de"
+                            + " um problema que nao teve, e quem consultar o"
+                            + " motivo depois decide errado.");
+        });
+
+        helper.succeed();
     }
 
     // ------------------------------------------------------------ Ren (#87)
@@ -1595,6 +1652,61 @@ public final class NenTecnicaGameTest {
                             + " jogador le uma mensagem sobre outro problema --"
                             + " recusa com motivo errado e pior que recusa sem"
                             + " motivo, porque manda procurar no lugar errado.");
+        });
+
+        helper.succeed();
+    }
+
+    /**
+     * A CLASSE {@code Gyo} DE VERDADE, e nao um duble parecido com ela.
+     *
+     * <p>POR QUE ESTE TESTE PRECISOU EXISTIR. Toda a prova de alocacao deste
+     * arquivo roda sobre {@code Concentradora}, um duble que recebe regiao e
+     * fracao prontas no construtor. Ele prova que o SERVICO redistribui -- e
+     * nao prova nada sobre Gyo: trocar {@code foco.regiaoEscolhida()} por uma
+     * regiao fixa dentro de {@code Gyo.java}, ou ignorar a fracao da config,
+     * passava pelos 116 gametests sem reprovar um.
+     *
+     * <p>As duas coisas que so a classe real pode errar sao exatamente estas:
+     * <b>concentrar onde o jogador escolheu</b> e <b>concentrar o quanto a
+     * config manda</b>. Uma regiao fixa poria a aura na cabeca de quem pediu a
+     * perna, e o sintoma em jogo seria "Gyo nao faz nada" -- porque a defesa
+     * melhoraria no lugar errado.
+     */
+    @GameTest(template = TEMPLATE)
+    @PrefixGameTestTemplate(false)
+    public static void gyoConcentraOndeOJogadorEscolheuEQuantoAConfigManda(
+            GameTestHelper helper) {
+        ServerPlayer jogador = jogadorDesperto(helper);
+        final float fracao = 0.62F;
+        Gyo gyo = new Gyo(() -> 0.0D, () -> fracao);
+
+        // UMA REGIAO QUE NAO E O PADRAO. Com a CABECA, um Gyo que ignorasse a
+        // escolha daria o mesmo resultado e o teste passaria sem tocar no
+        // defeito -- o padrao e justamente a cabeca.
+        com.darkcontinent.nenfoundation.server.NenGyoService.escolher(
+                jogador, RegiaoDoCorpo.PERNA_ESQUERDA);
+
+        comRegistro(comAsParceiras(gyo), () -> {
+            var estado = NenRuntimeService.estadoDe(jogador);
+            estado.definirAuraMaxima(1000.0D);
+            estado.definirAuraAtual(1000.0D);
+
+            NenTechniqueService.ativar(jogador, Gyo.ID);
+            exigir(estado.tecnicasAtivas().contains(Gyo.ID),
+                    "Gyo nao ligou; o teste mediria o vazio.");
+
+            var alocacao = estado.alocacao();
+            exigir(Math.abs(alocacao.em(RegiaoDoCorpo.PERNA_ESQUERDA) - fracao) < 1.0E-4F,
+                    "Gyo concentrou " + alocacao.em(RegiaoDoCorpo.PERNA_ESQUERDA)
+                            + " na perna escolhida, e a config pediu " + fracao
+                            + ". Ou ele ignorou a escolha do jogador, ou ignorou"
+                            + " o numero da config -- e nenhuma das duas da erro:"
+                            + " a aura so vai parar no lugar errado.");
+            exigir(alocacao.em(RegiaoDoCorpo.CABECA) < fracao,
+                    "sobrou mais aura na CABECA (" + alocacao.em(RegiaoDoCorpo.CABECA)
+                            + ") do que na regiao escolhida. Gyo esta"
+                            + " concentrando na regiao PADRAO e nao na pedida.");
         });
 
         helper.succeed();

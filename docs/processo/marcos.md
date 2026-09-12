@@ -253,26 +253,36 @@ todas as combinacoes invalidas; definir `StopReason` e as mensagens de UX.
 - Aura zero encerra tecnica corretamente.
 - Morte e logout nao deixam estado fantasma.
 
-### Estado — 2026-09-11
+### Estado — 2026-09-12
 
-**Sao tres tecnicas, e nao quatro.** Ten (#86), Ren (#87) e Zetsu (#125) estao
-entregues. **Gyo nao foi implementado**, e o motivo esta em #126: as duas
-metades dele — concentrar aura numa regiao e perceber o que esta escondido —
-nao tem substrato. Nao ha modelo de alocacao de aura, nao ha camada de
-percepcao, e `nen/combat/` tem so o `package-info`. Escrever Gyo hoje
-produziria uma tecnica que custa aura e nao faz nada observavel.
+**Sao sete tecnicas.** Ten (#86), Ren (#87), Zetsu (#125), Gyo, Shu, Ken e Ko
+estao registradas em producao e exercitadas em `runGameTestServer`.
+
+O texto anterior desta secao dizia que **Gyo nao foi implementado** e que
+`nen/combat/` tem so o `package-info`. Os dois bloqueios cairam em 2026-09-12:
+a alocacao de aura por regiao ganhou modelo proprio e ADR
+([ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md)), e a camada de dano
+nasceu em `nen/combat/` com um unico handler de entrada. **Fica registrado que
+este paragrafo ficou falso por um dia inteiro sem que nada acusasse** — e o
+codigo ganha do texto por regra, nao por sorte.
+
+**Uma metade de Gyo continua fora:** perceber aura fraca e aura escondida.
+Nao ha camada de percepcao e nao ha In, entao nao existe nada escondido para
+revelar. E so essa metade que #126 ainda descreve.
 
 | Entrega | Estado |
 | --- | --- |
 | Ciclo de vida de `NenTechnique`, exclusao, interrupcao | entregue (#85) |
 | Ten, Ren | entregues (#86, #87) |
 | Zetsu, e a regra de quem ABAIXA o teto de Output | entregue (#125) |
-| Gyo | **fora**, com bloqueios nomeados (#126) |
+| Gyo | metade entregue: concentra por regiao (ADR-014). A percepcao continua fora (#126) |
+| Shu, Ken, Ko | entregues (#162) |
+| A camada de dano: a aura segura golpe | entregue (#127) |
 | Ativacao por roda / menu radial | entregue (#102, #106) |
 | Tecnicas ativas visiveis no HUD, por forma e cor | entregue (#129) |
 | A Water Divination passa a exigir Ren | entregue (#128) |
 | Icone por tecnica e FX distinto | **fora do M4, e agora por decisao e nao por falta de tempo**: o FX de aura virou a trilha propria AV0–AV8 ([ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md)) |
-| A vulnerabilidade de Zetsu ao dano de Nen | **fora**, bloqueada em `nen/combat` (#127) |
+| A vulnerabilidade de Zetsu ao dano de Nen | entregue (#127): com Zetsu, o golpe dói o mesmo que sem aura nenhuma |
 | Gate executado em servidor dedicado | **pendente**: roteiro em [m4-tecnicas.md](../testing/m4-tecnicas.md), execucao manual exige dois clientes |
 
 **O M4 NAO ESTA FECHADO.** O que falta nao e codigo: e a execucao do gate com

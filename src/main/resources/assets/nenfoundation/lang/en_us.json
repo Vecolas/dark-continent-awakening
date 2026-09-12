@@ -50,6 +50,7 @@
   "nenfoundation.ficha.habilidades_total": "Unlocked abilities",
   "nenfoundation.ficha.marcos_total": "Progression milestones",
   "key.nenfoundation.overlay_de_debug": "Technical overlay (debug)",
+  "key.nenfoundation.ajustar_output": "Adjust Aura Output (hold Shift to lower)",
   "nenfoundation.error.limite": "Too many Nen requests. Please wait a moment.",
   "nenfoundation.error.estado_invalido": "Your current state does not allow this request.",
   "nenfoundation.error.nao_desperto": "You have not awakened Nen yet.",

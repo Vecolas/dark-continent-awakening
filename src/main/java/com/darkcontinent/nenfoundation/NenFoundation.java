@@ -6,6 +6,8 @@ import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
 import com.darkcontinent.nenfoundation.server.NenTickScheduler;
+import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityEvents;
+import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -58,6 +60,9 @@ public final class NenFoundation {
         modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
+        EnemyEntityTypes.register(modEventBus);
+        modEventBus.addListener(EnemyEntityEvents::attributes);
+        modEventBus.addListener(EnemyEntityEvents::spawnPlacements);
 
         modEventBus.addListener((RegisterPayloadHandlersEvent evento) ->
                 NenNetwork.registrar(evento, NenPedidoService::validar));

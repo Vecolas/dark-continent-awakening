@@ -205,7 +205,7 @@ function Comando-Atualizar {
     $java = Resolver-Java
     $env:JAVA_HOME = Split-Path -Parent (Split-Path -Parent $java)
 
-    & $Gradlew build --console=plain
+    & $Gradlew build bibliotecasDaInstancia --console=plain
     if ($LASTEXITCODE -ne 0) {
         throw ("o build falhou; o JAR nao foi trocado. Para entrar no jogo assim" +
             " mesmo, com a versao ja instalada: .\scripts\instancia.ps1 servidor -SemAtualizar")
@@ -228,6 +228,51 @@ function Comando-Atualizar {
 
     Copy-Item -LiteralPath $jar.FullName -Destination $mods -Force
     Escrever "   instalado: $($jar.Name)"
+
+    Instalar-Bibliotecas $mods
+}
+
+# Instala os mods de que o JAR PRECISA para carregar.
+#
+# POR QUE ISTO EXISTE. O ADR-012 tornou o GeckoLib dependencia obrigatoria. No
+# ambiente de dev isso passa despercebido -- `runServer`, `runClient` e
+# `runGameTestServer` recebem a biblioteca do proprio Gradle, entao build e
+# gametests ficam verdes.
+#
+# Esta instancia nao tem Gradle: ela le a pasta `mods`, e la so havia o
+# nenfoundation. O servidor dedicado recusou o boot com
+# "Missing or unsupported mandatory dependencies: geckolib", com TODOS os
+# portoes verdes. O defeito nao estava no mod: estava aqui.
+#
+# A LISTA VEM DO GRADLE, e nao daqui. A tarefa `bibliotecasDaInstancia` acha
+# sozinha todo jar que seja mod de verdade; manter um nome escrito neste script
+# significaria lembrar de edita-lo a cada dependencia nova -- e ninguem lembra,
+# pelo mesmo motivo que este defeito existiu.
+function Instalar-Bibliotecas($mods) {
+    $origem = Join-Path $Raiz 'build/bibliotecas-da-instancia'
+    if (-not (Test-Path $origem)) {
+        Aviso "build/bibliotecas-da-instancia nao existe; nenhuma biblioteca instalada."
+        return
+    }
+
+    Get-ChildItem -Path $origem -Filter '*.jar' -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            $destino = Join-Path $mods $_.Name
+            # Duas versoes do mesmo mod na pasta fazem o NeoForge recusar o
+            # boot, e apos um bump os nomes sao diferentes -- sobrescrever nao
+            # bastaria. O prefixo ate o primeiro digito identifica a familia.
+            $familia = ($_.BaseName -split '-\d')[0]
+            Get-ChildItem -Path $mods -Filter "$familia*.jar" -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -ne $_.Name -or $_.FullName -ne $destino } |
+                ForEach-Object {
+                    if ($_.FullName -ne $destino) {
+                        Escrever "   removendo biblioteca antiga: $($_.Name)"
+                        Remove-Item -LiteralPath $_.FullName -Force
+                    }
+                }
+            Copy-Item -LiteralPath $_.FullName -Destination $mods -Force
+            Escrever "   biblioteca: $($_.Name)"
+        }
 }
 
 function Comando-Servidor {

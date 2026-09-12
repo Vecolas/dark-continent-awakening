@@ -93,6 +93,40 @@ class CoerenciaDeGeckoLibTest {
     // ------------------------------------------------------------------ casos
 
     @Test
+    @DisplayName("quem decide se o clipe repete e o arquivo de animacao, nao o codigo")
+    void oLoopMoraNoArquivoDeAnimacao() {
+        // POR QUE ESTA REGRA EXISTE, com o caso que a criou: o arquivo do frog declarava
+        // emerge como hold_on_last_frame e bite como false, e o codigo pedia os dois com
+        // thenLoop(...). No GeckoLib o RawAnimation carrega o LoopType e ELE VENCE o
+        // arquivo -- entao o telegrafo reiniciava em vez de segurar a pose, e o artista
+        // que abrisse o .animation.json leria uma coisa que o jogo nao faz. Nada disso
+        // levanta excecao; e duas fontes para a mesma verdade, decididas em silencio.
+        //
+        // Animation.LoopType.DEFAULT delega para Animation.loopType() do clipe carregado
+        // -- conferido no bytecode do proprio GeckoLib 4.8.3, nao suposto.
+        List<String> atalhos = List.of(".thenLoop(", ".thenPlay(", ".thenPlayAndHold(",
+                ".thenPlayXTimes(");
+        Set<String> violacoes = new LinkedHashSet<>();
+        for (Path java : Repo.varrer("src/main/java", ".java")) {
+            String caminho = Repo.raiz().relativize(java).toString().replace('\\', '/');
+            String texto = Repo.texto(caminho);
+            if (!CLIPE_NO_CODIGO.matcher(texto).find()) {
+                continue;
+            }
+            for (String atalho : atalhos) {
+                if (texto.contains(atalho)) {
+                    violacoes.add(caminho + " -> " + atalho);
+                }
+            }
+        }
+        assertTrue(violacoes.isEmpty(),
+                "Estes pontos cravam o tipo de repeticao no CODIGO: " + violacoes
+                        + ". Use then(nome, Animation.LoopType.DEFAULT) e deixe o"
+                        + " .animation.json mandar -- senao o arquivo diz uma coisa, o jogo faz"
+                        + " outra, e quem for corrigir a animacao vai mexer no lugar errado.");
+    }
+
+    @Test
     @DisplayName("todo modelo proprio tem animacoes, e toda animacao tem modelo")
     void modeloEAnimacaoAndamEmPar() {
         Set<String> comModelo = mobsComModelo();

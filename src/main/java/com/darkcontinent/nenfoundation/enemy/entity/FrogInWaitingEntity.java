@@ -36,6 +36,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.Animation;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * Frog-in-waiting: o emboscador enterrado. A ameaca e o chao que se abre, e a
@@ -57,8 +66,14 @@ import net.minecraft.world.phys.Vec3;
  * pulsa e quando solta -- roda no servidor. Os dois campos sincronizados
  * carregam apenas ENTERRADO e a FASE do ataque, que e o que o cliente precisa
  * para desenhar terra, emerge e mastigada. O cliente nunca informa acerto.</p>
+ *
+ * <p>CORPO PROPRIO (ADR-017). Ate aqui o sapo vestia geometria e textura do sapo
+ * vanilla. Agora ele e um {@link GeoEntity}: modelo, esqueleto, animacoes e
+ * textura sao autorais, e o andaime saiu. O comportamento nao mudou uma linha --
+ * emboscada, agarrao, recusa de desmontagem e soltura sao os mesmos que os
+ * quatro gametests medem.</p>
  */
-public final class FrogInWaitingEntity extends BaseHxHMob {
+public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
     /** Enterrado ou nao; o cliente precisa saber para nao desenhar o sapo inteiro. */
     private static final EntityDataAccessor<Boolean> ENTERRADO =
             SynchedEntityData.defineId(FrogInWaitingEntity.class, EntityDataSerializers.BOOLEAN);
@@ -90,6 +105,31 @@ public final class FrogInWaitingEntity extends BaseHxHMob {
      * nao veria que escapou.</p>
      */
     private static final int TICKS_DE_RETIRADA = 40;
+
+    // ------------------------------------------------------------- animacao
+    // Os nomes abaixo sao um CONTRATO com frog_in_waiting.animation.json. Errar um
+    // deles nao da erro: o GeckoLib simplesmente nao acha o clipe e deixa o osso
+    // parado. E o tipo de falha que so aparece na tela de quem joga.
+    private static final RawAnimation BURROWED = RawAnimation.begin().then("animation.frog_in_waiting.burrowed", Animation.LoopType.DEFAULT);
+    private static final RawAnimation EMERGE = RawAnimation.begin().then("animation.frog_in_waiting.emerge", Animation.LoopType.DEFAULT);
+    private static final RawAnimation BITE = RawAnimation.begin().then("animation.frog_in_waiting.bite", Animation.LoopType.DEFAULT);
+    private static final RawAnimation DIGEST = RawAnimation.begin().then("animation.frog_in_waiting.digest", Animation.LoopType.DEFAULT);
+    private static final RawAnimation IDLE = RawAnimation.begin().then("animation.frog_in_waiting.idle", Animation.LoopType.DEFAULT);
+    private static final RawAnimation WALK = RawAnimation.begin().then("animation.frog_in_waiting.walk", Animation.LoopType.DEFAULT);
+
+    /** Nome do unico controller; quem registrar um segundo clipe reusa esta constante. */
+    private static final String CONTROLLER_DO_CORPO = "corpo";
+    /**
+     * Ticks de mistura entre um clipe e o proximo.
+     *
+     * <p>Quatro, e nao cinco: o emerge dura 10 ticks e a mordida dura 4. Uma
+     * transicao mais longa do que a fase que ela atravessa comeria a mordida
+     * inteira em mistura, e o jogador engolido nunca veria a boca fechar.</p>
+     */
+    private static final int TRANSICAO_EM_TICKS = 4;
+
+    /** Cache por INSTANCIA. Um cache estatico faria todos os sapos compartilharem um clipe. */
+    private final AnimatableInstanceCache cacheDeAnimacao = GeckoLibUtil.createInstanceCache(this);
 
     // Estado DA INSTANCIA. Guardar qualquer um destes numa Goal (ou num static)
     // faria todos os sapos do mundo compartilharem a mesma vitima -- a Goal e uma
@@ -461,6 +501,48 @@ public final class FrogInWaitingEntity extends BaseHxHMob {
     private void publicarFase(AttackPhase fase) {
         this.entityData.set(FASE_DE_ATAQUE, fase.ordinal());
     }
+
+    // ------------------------------------------------------------- animacao
+
+    /**
+     * O CLIENTE NAO DECIDE NADA. Ele le o que o servidor ja publica --
+     * {@link #estaEnterrado()} e {@link #faseDeAtaque()}, os dois vindos do
+     * SynchedEntityData -- e escolhe o clipe correspondente. Nao existe aqui
+     * nenhum timer, nenhuma heuristica de "parece que vai botar" e nenhuma copia
+     * da regra de emboscada. Se a animacao e a hitbox discordarem, quem esta
+     * errado e o arquivo de animacao, nunca o servidor.
+     *
+     * <p>Ordem de precedencia, da mais especifica para a menos: toca, telegrafo,
+     * mordida, digestao, locomocao, ocio. A toca vem primeiro porque enterrado o
+     * sapo nao tem corpo visivel para andar nem para ficar ocioso.</p>
+     *
+     * <p>A DIGESTAO E LIDA PELA FASE, e nao por {@link #estaAgarrando()}. Aquele
+     * metodo le {@code vitimaAgarrada}, um campo de SERVIDOR: no cliente ele
+     * responde {@code false} sempre, e usa-lo aqui faria a digestao nunca tocar
+     * para quem estiver assistindo -- sem erro nenhum no log. A fase RECOVERY e
+     * publicada justamente enquanto o sapo digere.</p>
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<FrogInWaitingEntity>(this, CONTROLLER_DO_CORPO,
+                TRANSICAO_EM_TICKS, this::clipeDoCorpo));
+    }
+
+    private PlayState clipeDoCorpo(AnimationState<FrogInWaitingEntity> estado) {
+        if (estaEnterrado()) return estado.setAndContinue(BURROWED);
+        AttackPhase fase = faseDeAtaque();
+        if (fase == AttackPhase.WINDUP) return estado.setAndContinue(EMERGE);
+        if (fase == AttackPhase.ACTIVE) return estado.setAndContinue(BITE);
+        if (fase == AttackPhase.RECOVERY) return estado.setAndContinue(DIGEST);
+        if (estado.isMoving()) return estado.setAndContinue(WALK);
+        return estado.setAndContinue(IDLE);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return cacheDeAnimacao; }
+
+    @Override
+    public double getTick(Object entidade) { return this.tickCount; }
 
     // -------------------------------------------------------------- carona
 

@@ -1,44 +1,35 @@
 package com.darkcontinent.nenfoundation.client.render;
 
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
- * Renderer do frog-in-waiting com geometria e UVs EMPRESTADOS do sapo vanilla.
+ * Renderer AUTORAL do frog-in-waiting -- o andaime saiu (ADR-017).
  *
- * <p>A textura precisa acompanhar a camada: os UVs bakeados sao os do sapo, entao
- * apontar para qualquer outra imagem produz um mob manchado. Entre as tres
- * variantes vanilla, a temperada e a da selva do Exame Hunter. Quando a arte
- * autoral chegar, camada e textura trocam JUNTAS, e a {@link #ESCALA_EMPRESTADA}
- * deixa de existir porque o modelo proprio ja nascera no tamanho da hitbox.</p>
+ * <p>Aqui nao ha mais {@code ModelLayers}, nem textura vanilla, nem
+ * {@code scale()} de correcao. Os tres existiam pelo mesmo motivo: o corpo era
+ * emprestado do sapo vanilla e nao cabia na hitbox. O modelo proprio ja nasce no
+ * tamanho de {@code sized(1.4F, 1.0F)}, com o piso das patas em y=0, entao a
+ * unica correcao que sobrava deixa de ser necessaria -- e escala emprestada que
+ * sobrevive a troca de modelo nao da erro, da um bicho com o tamanho errado.</p>
  *
- * <p>TODO: PLACEHOLDER -- camada e textura do SAPO vanilla. Sai quando houver geo, animation e textura autorais do frog-in-waiting.
- * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
+ * <p>SUMIU TAMBEM O TRUQUE DE ESCONDER PARTES ENQUANTO ENTERRADO. Afundar o sapo
+ * na terra agora e o clipe {@code burrowed}, e so ele. Duas maneiras de esconder
+ * o mesmo sapo -- uma no renderer, outra na animacao -- divergiriam na primeira
+ * correcao, e a divergencia apareceria como meio sapo dentro do chao, sem erro
+ * nenhum no log.</p>
+ *
+ * <p>Quem escolhe o clipe e a entidade, lendo o enterrado e a fase que o servidor
+ * publica; este renderer so desenha. Ver
+ * {@code FrogInWaitingEntity#registerControllers}.</p>
  */
-public final class FrogInWaitingRenderer extends MobRenderer<FrogInWaitingEntity, FrogInWaitingModel> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.withDefaultNamespace("textures/entity/frog/temperate_frog.png");
-
-    /**
-     * A hitbox e sized(1.4F, 1.0F) e o sapo vanilla e sized(0.5F, 0.5F): sem
-     * ampliar, o modelo boia perdido dentro da propria caixa e o jogador nao tem
-     * como julgar o alcance do bote. O fator segue a ALTURA (1.0 / 0.5), porque
-     * um modelo mais baixo que a hitbox engana menos do que um mais alto.
-     */
-    private static final float ESCALA_EMPRESTADA = 2.0F;
+public final class FrogInWaitingRenderer extends GeoEntityRenderer<FrogInWaitingEntity> {
+    /** Metade da largura da hitbox (1.4F): a sombra acompanha o corpo, nao o modelo. */
+    private static final float RAIO_DA_SOMBRA = 0.7F;
 
     public FrogInWaitingRenderer(EntityRendererProvider.Context context) {
-        super(context, new FrogInWaitingModel(context.bakeLayer(ModelLayers.FROG)), 0.7F);
+        super(context, new FrogInWaitingGeoModel());
+        this.shadowRadius = RAIO_DA_SOMBRA;
     }
-
-    @Override
-    protected void scale(FrogInWaitingEntity entity, PoseStack poseStack, float partialTickTime) {
-        poseStack.scale(ESCALA_EMPRESTADA, ESCALA_EMPRESTADA, ESCALA_EMPRESTADA);
-    }
-
-    @Override public ResourceLocation getTextureLocation(FrogInWaitingEntity entity) { return TEXTURE; }
 }

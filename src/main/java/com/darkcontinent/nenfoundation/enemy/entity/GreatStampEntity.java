@@ -40,6 +40,7 @@ import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.Animation;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.animation.PlayState;
@@ -89,12 +90,12 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     // Os nomes abaixo sao um CONTRATO com great_stamp.animation.json. Errar um
     // deles nao da erro: o GeckoLib simplesmente nao acha o clipe e deixa o osso
     // parado. E o tipo de falha que so aparece na tela de quem joga.
-    private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.great_stamp.idle");
-    private static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.great_stamp.walk");
-    private static final RawAnimation RUN = RawAnimation.begin().thenLoop("animation.great_stamp.run");
-    private static final RawAnimation WINDUP = RawAnimation.begin().thenLoop("animation.great_stamp.windup");
-    private static final RawAnimation CHARGE = RawAnimation.begin().thenLoop("animation.great_stamp.charge");
-    private static final RawAnimation STAGGER = RawAnimation.begin().thenLoop("animation.great_stamp.stagger");
+    private static final RawAnimation IDLE = RawAnimation.begin().then("animation.great_stamp.idle", Animation.LoopType.DEFAULT);
+    private static final RawAnimation WALK = RawAnimation.begin().then("animation.great_stamp.walk", Animation.LoopType.DEFAULT);
+    private static final RawAnimation RUN = RawAnimation.begin().then("animation.great_stamp.run", Animation.LoopType.DEFAULT);
+    private static final RawAnimation WINDUP = RawAnimation.begin().then("animation.great_stamp.windup", Animation.LoopType.DEFAULT);
+    private static final RawAnimation CHARGE = RawAnimation.begin().then("animation.great_stamp.charge", Animation.LoopType.DEFAULT);
+    private static final RawAnimation STAGGER = RawAnimation.begin().then("animation.great_stamp.stagger", Animation.LoopType.DEFAULT);
 
     /** Nome do unico controller; quem registrar um segundo clipe reusa esta constante. */
     private static final String CONTROLLER_DO_CORPO = "corpo";

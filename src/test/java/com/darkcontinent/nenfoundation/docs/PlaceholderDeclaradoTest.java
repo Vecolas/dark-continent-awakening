@@ -73,10 +73,9 @@ class PlaceholderDeclaradoTest {
             "FoxbearRenderer.java",
             // GreatStampModel.java e GreatStampRenderer.java sairam daqui no PR que deu ao
             // great stamp modelo, esqueleto, animacoes, textura e renderer proprios
-            // (ADR-017). Nao reponha os nomes: a lista e a divida, e divida paga que
-            // continua escrita manda a proxima pessoa refazer o trabalho.
-            "FrogInWaitingModel.java",
-            "FrogInWaitingRenderer.java",
+            // (ADR-017). FrogInWaitingModel.java e FrogInWaitingRenderer.java sairam no PR
+            // seguinte, pelo mesmo motivo. Nao reponha os nomes: a lista e a divida, e
+            // divida paga que continua escrita manda a proxima pessoa refazer o trabalho.
             "ManFacedApeModel.java",
             "ManFacedApeRenderer.java",
             "SpiderEagleModel.java",

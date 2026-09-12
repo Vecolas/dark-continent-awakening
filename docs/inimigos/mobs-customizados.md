@@ -108,16 +108,20 @@ conseguem medir, e arte não trava IA.
 | --- | --- | --- |
 | Foxbear | geometria do urso-polar (textura já é autoral) | territorial, em jogo |
 | Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
-| Frog-In-Waiting | geometria e textura do sapo | emboscada, agarrão |
+| Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
 | Man-faced Ape | geometria e textura de aldeão e piglin | disfarce, bando |
 | Spider Eagle | geometria e textura do phantom | ninho, mergulho, coleira |
 
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
-O Great Stamp saiu da dívida **visual**, mas ainda não é DONE pela ficha acima:
-faltam **sons próprios**. Hoje ele é silencioso — não empresta som de vanilla,
-simplesmente não tem. Isso não reprova nenhum portão, e é justamente por isso
+O Great Stamp e o Frog-In-Waiting saíram da dívida **visual**, mas nenhum dos
+dois é DONE pela ficha acima: faltam **sons próprios**. Eles são silenciosos —
+não emprestam som de vanilla, simplesmente não emitem. E isso hoje está
+**bloqueado por ferramenta**, não por esforço: o Minecraft só toca `.ogg`
+Vorbis e esta máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav`
+renomeado carregaria mudo, que é o falso verde que este projeto passa o dia
+evitando. Isso não reprova nenhum portão, e é justamente por isso
 que está escrito aqui e em `o-que-nao-provamos.md`.
 
 A coerência do que ele ganhou é cobrada por `CoerenciaDeGeckoLibTest`, que

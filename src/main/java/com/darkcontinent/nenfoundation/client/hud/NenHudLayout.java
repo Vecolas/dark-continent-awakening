@@ -14,7 +14,8 @@ public record NenHudLayout(
         Retangulo barraDeAura,
         Retangulo barraDeOutput,
         Retangulo valorDeAura,
-        Retangulo valorDeOutput) {
+        Retangulo valorDeOutput,
+        Retangulo tecnicasAtivas) {
 
     public static final int MARGEM = 8;
     public static final int LARGURA_DA_MOLDURA = 250;
@@ -31,7 +32,12 @@ public record NenHudLayout(
                 area(51, 22, 144, 8, escala),
                 area(51, 41, 144, 8, escala),
                 area(197, 22, 38, 9, escala),
-                area(209, 41, 26, 9, escala));
+                area(209, 41, 26, 9, escala),
+                // ABAIXO DA MOLDURA, e nao dentro dela: a moldura ja esta cheia,
+                // e a fila cresce para a direita conforme o jogador liga mais
+                // tecnicas. Dentro, ela colidiria com a barra de output no
+                // primeiro indicador extra.
+                area(10, 55, 72, 9, escala));
     }
 
     private static Retangulo area(int x, int y, int largura, int altura, float escala) {

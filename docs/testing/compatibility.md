@@ -43,6 +43,42 @@ Cada mod da lista aprovada roda estes tres, no minimo:
 
 ---
 
+## A matriz de renderizacao (trilha AV)
+
+O visual da aura tem shader e pos-processamento **proprios**
+([ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md),
+[ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md)), e isso cria uma
+superficie de incompatibilidade que os mods de gameplay nao tem.
+
+A regra que vale acima de qualquer linha desta tabela:
+
+> **Efeito visual nunca crasha o jogo.** Falha de shader, de framebuffer ou de
+> pipeline cai para o nivel mais simples e registra uma linha no log.
+
+E o compromisso de identidade:
+
+> **O nucleo do efeito — shell mais ribbons — funciona sem nenhum
+> pos-processamento.** Bloom e melhoria. Se a aura so fica boa com bloom ligado,
+> o AV1 e o AV2 nao fecharam.
+
+| Ambiente | O que se espera | Gate |
+| --- | --- | --- |
+| renderer vanilla, sem shader pack | **referencia**; tudo funciona | AV1 |
+| Embeddium (ou equivalente Sodium) | tudo funciona | AV5 |
+| Iris/Oculus **sem** pack carregado | tudo funciona | AV5 |
+| Iris/Oculus **com** pack carregado | detectar; cair para `FAST`; **documentar a combinacao**, nao prometer paridade | AV5 |
+| mod de luz dinamica | melhora se existir; **nunca e requisito** | AV8 |
+
+Dois testes que nao sao de mod nenhum, e que falham em silencio quando
+esquecidos:
+
+| Teste | Sintoma quando falta |
+| --- | --- |
+| `F3+T` (recarga de recurso) com a aura ligada | shader velho fica, ou o efeito some sem erro |
+| redimensionar a janela varias vezes | framebuffer nao recriado: tela preta, ou memoria subindo devagar |
+
+---
+
 ## O gate do Epic Fight
 
 Epic Fight so entra no pack se passar em **todos** os itens abaixo. Ver

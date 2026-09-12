@@ -111,6 +111,7 @@ Na primeira vez que rodar cada um, aceite a EULA do Minecraft criando
 | escrever uma técnica | [`docs/api/techniques.md`](docs/api/techniques.md) |
 | escrever uma habilidade | [`docs/api/abilities.md`](docs/api/abilities.md) |
 | entender o protocolo de rede | [`docs/multiplayer/protocol.md`](docs/multiplayer/protocol.md) |
+| **fazer a aura parecer aura** | [`docs/vfx/LEIA-ME.md`](docs/vfx/LEIA-ME.md) |
 | **saber o que o verde não prova** | [`docs/testing/o-que-nao-provamos.md`](docs/testing/o-que-nao-provamos.md) |
 | as regras gerais de engenharia | [`disciplina-de-engenharia/`](disciplina-de-engenharia/) |
 

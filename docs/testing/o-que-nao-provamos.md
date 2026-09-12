@@ -169,6 +169,26 @@ O procedimento inteiro esta em
 | O sinal é o mesmo para todos os observadores | `aura_presence` não filtra por quem olha, porque a única regra de ocultação hoje depende só do alvo (Zetsu). Com Gyo (#126) a decisão passa a depender do observador e o envio vira um laço por observador — a forma do payload não muda | #126 |
 | `AuraImpactState` (ripple de Ten) não tem quem o dispare | não há dano de Nen; `nen/combat/` tem só o `package-info` | #103, bloqueada por #127 |
 
+## O que a trilha AV não vai provar, e já se sabe disso
+
+Aberto junto do [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md), antes
+de a primeira linha ser escrita — e não depois de o gate fechar. O roteiro do
+que **é** verificável está em [`av-aura-visual.md`](av-aura-visual.md).
+
+| Limite | Por que ele existe | Quando some |
+| --- | --- | --- |
+| **Aparência não vira verde** | render não é unit-testável; o que se prova sem tela é transição, LOD, visibilidade, seed e orçamento. O resto é captura comparada, por gente olhando | nunca; o método é a captura arquivada |
+| Captura é imagem parada | *jitter*, cintilação e engasgo aparecem em movimento e somem numa imagem estática | quando houver vídeo curto no protocolo |
+| Uma GPU só | todo número de performance desta trilha foi medido numa máquina | quando a segunda pessoa medir na dela |
+| Quatro ambientes de renderização, e existem dezenas | vanilla, Embeddium, Iris sem pack e Iris com pack cobrem o comum, não o real | nunca por completo; a matriz cresce por relato |
+| Skins de teste não são skins de jogador | transparência, overlay completo e desenhos fora do padrão vão achar casos que Steve e Alex não acham | por relato de jogador |
+| `EmissorDeParticulasDeAura` ainda é o efeito que se vê | a shell nova não desenha nada até o AV0, e a nuvem antiga só vira acabamento no AV3 — **entre os dois o jogo mostra os dois** | AV3 |
+| `AuraVisualPreset` tem campos que ninguém lê | `shellScale` e `edgeIntensity` existem desde o M4 sem renderer; são config órfã dentro do código | AV1, quando o perfil de datapack os substituir |
+| Duas tabelas de LOD | `AuraRenderLod` corta em 8/20/40; a arquitetura define cinco níveis em 12/24/48/72 | AV3, quando forem reconciliadas |
+| `AuraDistribution` ainda tem construtor próprio | é a divergência declarada do [ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md): duas distribuições no repositório até a projeção ser ligada | quando o delta carregar o campo |
+| "Não vaza por parede" é teste de olho | o gate do AV5 é uma captura com o jogador atrás de um bloco; um vazamento de poucos pixels em ângulo raro passa | sem previsão |
+| Bloom `FAST` e `HIGH` são duas fontes do mesmo halo | vão divergir com o tempo; a trava é captura de comparação arquivada, e não um portão | sem previsão |
+
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em
 [qa-matrix.md](qa-matrix.md) e [m2-aura-sync.md](m2-aura-sync.md);

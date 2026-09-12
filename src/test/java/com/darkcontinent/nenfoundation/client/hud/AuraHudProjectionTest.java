@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client.hud;
 
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,7 @@ class AuraHudProjectionTest {
         assertFalse(ausente.disponivel());
         assertFalse(ausente.exausto());
 
-        cache.aoReceberDelta(new DeltaDeRuntimeS2C(0.0F, 100.0F, 1.0F, Set.of(), Map.of()));
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(0.0F, 100.0F, 1.0F, Set.of(), Map.of(), AlocacaoDeAura.uniforme()));
         AuraHudProjection exausto = AuraHudProjection.de(cache);
         assertTrue(exausto.disponivel());
         assertTrue(exausto.exausto());
@@ -29,7 +30,7 @@ class AuraHudProjectionTest {
     @Test
     void fracaoFicaEntreZeroEUm() {
         NenClientCache cache = new NenClientCache(() -> 0L, () -> false);
-        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of()));
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of(), AlocacaoDeAura.uniforme()));
         assertEquals(1.0F, AuraHudProjection.de(cache).fracao());
     }
 
@@ -37,9 +38,9 @@ class AuraHudProjectionTest {
     void outputVisualAnimaSemAlterarValorConfirmado() {
         long[] tick = {0L};
         NenClientCache cache = new NenClientCache(() -> tick[0], () -> false, () -> 5, () -> 2);
-        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 0.5F, Set.of(), Map.of()));
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 0.5F, Set.of(), Map.of(), AlocacaoDeAura.uniforme()));
         tick[0] = 1;
-        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of()));
+        cache.aoReceberDelta(new DeltaDeRuntimeS2C(100.0F, 100.0F, 1.0F, Set.of(), Map.of(), AlocacaoDeAura.uniforme()));
         tick[0] = 2;
 
         AuraHudProjection projecao = AuraHudProjection.de(cache);

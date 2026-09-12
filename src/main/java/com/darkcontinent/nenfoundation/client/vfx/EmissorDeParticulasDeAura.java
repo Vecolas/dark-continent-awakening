@@ -86,13 +86,65 @@ public final class EmissorDeParticulasDeAura {
             double raio = RAIO_HORIZONTAL * (0.75D + aleatorio.nextDouble() * 0.35D);
             double x = jogador.getX() + Math.cos(angulo) * raio;
             double z = jogador.getZ() + Math.sin(angulo) * raio;
-            double y = jogador.getY() + aleatorio.nextDouble() * ALTURA;
+            // A ALTURA SAI DA ALOCACAO, e nao de um sorteio uniforme. E o que
+            // faz Gyo na cabeca parecer Gyo na cabeca: a aura adensa onde o
+            // servidor disse que ela esta.
+            double y = jogador.getY()
+                    + alturaSorteada(estado.distribution(), aleatorio.nextFloat())
+                    + (aleatorio.nextDouble() - 0.5D) * 0.25D;
 
             // VELOCIDADE PARA CIMA, E CURTA. Aura sobe junto do corpo; deriva
             // lateral com rastro longo vira fumaca, que a issue #100 proibe com
             // todas as letras.
             nivel.addParticle(poeira, x, y, z, 0.0D, 0.02D + aleatorio.nextDouble() * 0.03D, 0.0D);
         }
+    }
+
+    /**
+     * Sorteia uma altura no corpo, com peso pela alocacao.
+     *
+     * <p>SORTEIO POR PESO, e nao a regiao mais concentrada. Pegar so o maior
+     * faria a aura sumir do resto do corpo de uma vez -- e a alocacao nunca e
+     * tudo num lugar so, nem em Ko. O peso preserva a proporcao: concentrar 45%
+     * na cabeca poe quase metade das particulas la, e o resto continua
+     * aparecendo.
+     *
+     * <p>PURO E TESTAVEL: o sorteio entra como argumento, e nao como chamada a
+     * um gerador escondido.
+     *
+     * @param sorteio de 0 (inclusive) a 1 (exclusive)
+     * @return altura em blocos a partir dos pes
+     */
+    static double alturaSorteada(AuraDistribution distribuicao, float sorteio) {
+        float acumulado = 0.0F;
+        for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
+            acumulado += distribuicao.intensidade(regiao) / totalDe(distribuicao);
+            if (sorteio < acumulado) {
+                return alturaDe(regiao);
+            }
+        }
+        return alturaDe(AuraBodyRegion.TORSO);
+    }
+
+    private static float totalDe(AuraDistribution distribuicao) {
+        float total = 0.0F;
+        for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
+            total += distribuicao.intensidade(regiao);
+        }
+        // TOTAL ZERO ACONTECE: e a distribuicao de Zetsu. Dividir por ele daria
+        // NaN, e NaN numa coordenada de particula nao lanca -- ela so nao
+        // aparece, em lugar nenhum, para sempre.
+        return total > 0.0F ? total : 1.0F;
+    }
+
+    /** Onde cada regiao fica, em blocos a partir dos pes de um jogador de pe. */
+    private static double alturaDe(AuraBodyRegion regiao) {
+        return switch (regiao) {
+            case HEAD -> 1.60D;
+            case TORSO -> 1.10D;
+            case LEFT_ARM, RIGHT_ARM -> 1.20D;
+            case LEFT_LEG, RIGHT_LEG -> 0.45D;
+        };
     }
 
     /** Um ARGB de inteiro para o vetor de cor que a poeira vanilla espera. */

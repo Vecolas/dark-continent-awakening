@@ -10,6 +10,7 @@ import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.client.vfx.EstadoVisualDeTerceiro;
+import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import com.darkcontinent.nenfoundation.client.vfx.EmissorDeParticulasDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.ModoVisualDeTecnica;
 import com.darkcontinent.nenfoundation.client.vfx.SessaoDeVfxDeAura;
@@ -182,7 +183,12 @@ public final class NenFoundationClient {
                 .map(id -> AparenciaDeTecnica.de(id).cor())
                 .orElse(0xFFFFFFFF);
 
-        this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao());
+        // A DISTRIBUICAO VEM DO DELTA, e nao de um palpite do cliente: ela e
+        // derivada no servidor a partir das tecnicas ativas (ADR-014).
+        var distribuicao = delta
+                .map(d -> AuraDistribution.daAlocacao(d.alocacao()))
+                .orElseGet(AuraDistribution::uniforme);
+        this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao(), distribuicao);
         double densidade = NenClientConfig.densidadeDeParticulas();
         EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
 

@@ -1,5 +1,7 @@
 package com.darkcontinent.nenfoundation.network.payload;
 
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import io.netty.buffer.ByteBuf;
 import java.util.Arrays;
@@ -37,6 +39,43 @@ import net.minecraft.world.phys.Vec3;
  * silencio.
  */
 public final class CodecsDePayload {
+
+    /**
+     * A alocacao de aura pelas seis regioes do corpo.
+     *
+     * <p>UM COMPONENTE SO, e nao seis. O {@code StreamCodec.composite} para no
+     * sexto par, e o delta de runtime ja usa cinco -- seis floats soltos
+     * estourariam o limite e obrigariam a partir o payload em dois. Empacotar
+     * aqui gasta o ultimo slot com a alocacao inteira, que e o que ela e.
+     *
+     * <p>A ORDEM E A DO ENUM, e ela e contrato: reordenar {@code RegiaoDoCorpo}
+     * trocaria braco por perna em todo cliente conectado, sem erro nenhum.
+     *
+     * <p>A LEITURA E DEFENSIVA. Um pacote malformado devolve a alocacao
+     * uniforme em vez de lancar: excecao na thread de rede do cliente derruba a
+     * conexao, e o padrao seguro aqui e "a aura esta espalhada", que e o estado
+     * de repouso.
+     */
+    public static final StreamCodec<ByteBuf, AlocacaoDeAura> ALOCACAO =
+            new StreamCodec<>() {
+                @Override
+                public AlocacaoDeAura decode(ByteBuf buffer) {
+                    RegiaoDoCorpo[] regioes = RegiaoDoCorpo.values();
+                    float[] fracoes = new float[regioes.length];
+                    for (int i = 0; i < regioes.length; i++) {
+                        fracoes[i] = buffer.readFloat();
+                    }
+                    return AlocacaoDeAura.deFracoes(fracoes)
+                            .orElseGet(AlocacaoDeAura::uniforme);
+                }
+
+                @Override
+                public void encode(ByteBuf buffer, AlocacaoDeAura alocacao) {
+                    for (RegiaoDoCorpo regiao : RegiaoDoCorpo.values()) {
+                        buffer.writeFloat(alocacao.em(regiao));
+                    }
+                }
+            };
 
     private CodecsDePayload() {
     }

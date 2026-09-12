@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 4
+- **Versao do protocolo:** 5
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -40,7 +40,7 @@ primeiro a encontra-lo e quem estiver procurando.
 | `deactivate_technique_request` | C2S | id da tecnica |
 | `activate_ability_request` | C2S | id da habilidade, slot, alvo/posicao **candidatos** |
 | `nen_profile_snapshot` | S2C | estado de leitura para a interface, so ao dono |
-| `nen_runtime_delta` | S2C | aura, auraMaxima, outputPercent, cooldown e tecnica alterados |
+| `nen_runtime_delta` | S2C | aura, auraMaxima, outputPercent, cooldown, tecnica alterados e a alocacao pelas seis regioes |
 | `ability_fx_event` | S2C | som, particula, animacao |
 | `nen_error_feedback` | S2C | motivo legivel de uma recusa |
 | `aura_presence` | S2C | id da entidade e um sinal de tres valores; o UNICO payload sobre terceiros |
@@ -112,6 +112,28 @@ oito validacoes reprovou.
 
 E o motivo **nunca revela estado alheio**. "Alvo protegido por Ten" conta ao
 atacante algo que ele nao deveria saber.
+
+### `nen_runtime_delta` — a alocacao (v5)
+
+O delta passou a carregar **onde a aura esta pelo corpo**: seis fracoes, uma por
+regiao, na ordem de `RegiaoDoCorpo`.
+
+**Um componente so, e nao seis campos.** O `StreamCodec.composite` do NeoForge
+para no sexto par, e este payload ja usava cinco. Empacotar a alocacao inteira
+num componente gasta o ultimo slot com ela — e quem quiser o setimo campo vai
+ter de partir o payload em dois. Esta escrito aqui para ser encontrado antes,
+e nao descoberto por um erro de compilacao.
+
+**A ordem das regioes e contrato.** Reordenar o enum trocaria braco por perna
+em todo cliente conectado, sem erro nenhum em lugar nenhum.
+
+**A leitura e defensiva:** fracoes que nao fecham em 1.0 viram a alocacao
+uniforme, que e o estado de repouso. Excecao na thread de rede do cliente
+derruba a conexao, e um pacote torto nao vale isso.
+
+> **O cliente RECEBE e nao decide** (ADR-014, item 5). A alocacao e derivada no
+> servidor a partir das tecnicas ativas; `client/vfx/AuraDistribution` e
+> projecao do que chegou.
 
 ### `aura_presence` (S2C)
 

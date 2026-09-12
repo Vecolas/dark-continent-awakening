@@ -15,6 +15,9 @@ import net.minecraft.resources.ResourceLocation;
  * variantes vanilla, a temperada e a da selva do Exame Hunter. Quando a arte
  * autoral chegar, camada e textura trocam JUNTAS, e a {@link #ESCALA_EMPRESTADA}
  * deixa de existir porque o modelo proprio ja nascera no tamanho da hitbox.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- camada e textura do SAPO vanilla. Sai quando houver geo, animation e textura autorais do frog-in-waiting.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class FrogInWaitingRenderer extends MobRenderer<FrogInWaitingEntity, FrogInWaitingModel> {
     private static final ResourceLocation TEXTURE =

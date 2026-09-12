@@ -28,6 +28,9 @@ import net.minecraft.client.model.geom.ModelPart;
  * campo tocado aqui e reescrito a cada quadro, sem ramo que deixe de escrever:
  * quem esconde, mostra. Um sapo que emerge invisivel e o pior relato de bug que
  * existe — o jogador morre sem ver o que o matou.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- geometria do SAPO vanilla (ModelLayers.FROG). Sai quando o modelo GeckoLib proprio do frog-in-waiting existir.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class FrogInWaitingModel extends EntityModel<FrogInWaitingEntity> {
     /** Pose de descanso: o sapo vanilla nasce com a cabeca nivelada. */

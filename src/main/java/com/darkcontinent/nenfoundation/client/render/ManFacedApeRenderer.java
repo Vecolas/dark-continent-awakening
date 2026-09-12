@@ -23,6 +23,9 @@ import net.minecraft.resources.ResourceLocation;
  * o deixaria tambem mais ALTO, e ai a silhueta mentiria sobre o alcance do
  * golpe. Quando a arte autoral chegar, camada, textura e tamanho nascem juntos
  * e nada disto precisa de fator.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- camadas e texturas do ALDEAO e do PIGLIN vanilla. Sai quando houver geo, animation e texturas autorais das duas formas.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class ManFacedApeRenderer extends MobRenderer<ManFacedApeEntity, ManFacedApeModel> {
     /**

@@ -35,6 +35,9 @@ import net.minecraft.resources.ResourceLocation;
  * <p>A camada de olhos brilhantes do phantom ({@code PhantomEyesLayer}) fica de
  * FORA de proposito: ela e um overlay emissivo que le como horror noturno, e
  * este mob nao caca ninguem -- ele defende um lugar, de dia, e avisa antes.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- camada e textura do PHANTOM vanilla. Sai quando houver geo, animation e textura autorais da spider eagle.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class SpiderEagleRenderer extends MobRenderer<SpiderEagleEntity, SpiderEagleModel> {
     /**

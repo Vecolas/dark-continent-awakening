@@ -21,6 +21,9 @@ import net.minecraft.resources.ResourceLocation;
  * variante {@code emprestado.png}, pintada na UV desta camada, com a fonte em
  * {@code art-source/enemies/foxbear/emprestado.py}. Ela MORRE no dia em que o
  * modelo GeckoLib chegar; quem sobrevive e {@code foxbear.png}.
+ *
+ * <p>TODO: PLACEHOLDER -- a camada do URSO-POLAR vanilla; a textura ja e autoral. Sai quando houver renderer GeoModel proprio, com dimensoes e sons do foxbear.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class FoxbearRenderer extends MobRenderer<FoxbearEntity, FoxbearModel> {
     private static final ResourceLocation TEXTURE =

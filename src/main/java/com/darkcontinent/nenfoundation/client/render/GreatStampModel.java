@@ -19,6 +19,9 @@ import net.minecraft.util.Mth;
  *
  * <p>Este modelo nao decide nada: ele le {@link GreatStampEntity#faseDeAtaque()},
  * que vem do SynchedEntityData. O cliente representa, o servidor decide.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- geometria do HOGLIN vanilla (ModelLayers.HOGLIN). Sai quando o modelo GeckoLib proprio do great stamp existir.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class GreatStampModel extends EntityModel<GreatStampEntity> {
     /** Pose de descanso do hoglin vanilla (focinho baixo, pastando). */

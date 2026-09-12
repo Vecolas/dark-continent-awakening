@@ -14,6 +14,9 @@ import net.minecraft.resources.ResourceLocation;
  * entao apontar para qualquer outra imagem produz um mob manchado. Quando a arte
  * autoral chegar, camada e textura trocam JUNTAS, e o {@link #scale} deixa de
  * existir porque o modelo proprio ja nascera no tamanho da hitbox.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- camada e textura do HOGLIN vanilla. Sai quando houver geo, animation e textura autorais do great stamp.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class GreatStampRenderer extends MobRenderer<GreatStampEntity, GreatStampModel> {
     private static final ResourceLocation TEXTURE =

@@ -34,6 +34,9 @@ import net.minecraft.util.Mth;
  * ramo que deixe de escrever: quem esconde, mostra. Um macaco revelado que
  * deixasse a raiz do disfarce ligada faria o proximo macaco disfarcado nascer
  * com duas cabecas.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- geometria do ALDEAO e do PIGLIN vanilla (ModelLayers.VILLAGER e PIGLIN). Sai quando houver dois modelos GeckoLib proprios -- o disfarce humano e a forma revelada.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class ManFacedApeModel extends EntityModel<ManFacedApeEntity> {
     private static final float RADIANOS_POR_GRAU = (float) (Math.PI / 180.0);

@@ -30,6 +30,7 @@ acusa o que nunca entrou nela.
 | [ADR-014](ADR-014-alocacao-de-aura-por-regiao.md) | A aura tem regioes, e elas sao autoritativas | mais um derivado para limpar; mais bytes por delta; duas distribuicoes no repo ate a projecao ser ligada; a soma 1.0 e invariante e nao botao de balanceamento |
 | [ADR-015](ADR-015-aura-e-geometria-e-shader.md) | A aura e geometria e shader; particula e acabamento | uma trilha inteira (AV0-AV8) so de visual; shader custom quebra entre versoes; overdraw vira requisito de gate; o efeito barato que ja desenhava sai de cena antes de o novo entrar |
 | [ADR-016](ADR-016-pos-processamento-proprio-da-aura.md) | O brilho da aura e pos-processamento proprio, opcional e com fallback | render target vaza em resize e em reload; duas maneiras de produzir o mesmo halo; incompatibilidade provavel com shader pack, detectada e documentada em vez de prometida |
+| [ADR-017](ADR-017-mob-vanilla-e-andaime-nao-entrega.md) | Mob vanilla e andaime: empresta durante a obra, sai antes da entrega | arte entra na linha critica; cinco mobs que funcionam passam a contar como NAO entregues; a divida nasce com cinco linhas; nenhum portao prova qualidade visual, entao a verificacao final continua humana |
 
 ## Como escrever um ADR
 

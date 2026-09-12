@@ -11,6 +11,9 @@ import net.minecraft.client.model.geom.ModelPart;
  *
  * <p>A camada e a do urso-polar, portanto os UVs pertencem a textura do urso
  * e nao a um atlas de vaca ou a uma imagem autoral sem contrato de UV.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- geometria do URSO-POLAR vanilla (ModelLayers.POLAR_BEAR). Sai quando o modelo GeckoLib proprio do foxbear existir -- geo, animation e skeleton.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class FoxbearModel extends EntityModel<FoxbearEntity> {
     private final ModelPart root;

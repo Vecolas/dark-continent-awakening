@@ -43,6 +43,9 @@ import net.minecraft.util.Mth;
  * direita {@code -v}), exatamente como o PhantomModel vanilla faz, entao o
  * movimento e simetrico com qualquer um dos dois sinais. O que NAO se resolve
  * fora da tela e se a asa recolhida dobra para cima ou para baixo.</p>
+ *
+ * <p>TODO: PLACEHOLDER -- geometria do PHANTOM vanilla (ModelLayers.PHANTOM). Sai quando o modelo GeckoLib proprio da spider eagle existir.
+ * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
  */
 public final class SpiderEagleModel extends EntityModel<SpiderEagleEntity> {
     private static final float RADIANOS_POR_GRAU = (float) (Math.PI / 180.0);

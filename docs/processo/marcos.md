@@ -283,13 +283,33 @@ revelar. E so essa metade que #126 ainda descreve.
 | Tecnicas ativas visiveis no HUD, por forma e cor | entregue (#129) |
 | A Water Divination passa a exigir Ren | entregue (#128) |
 | Icone por tecnica e FX distinto | **fora do M4, e agora por decisao e nao por falta de tempo**: o FX de aura virou a trilha propria AV0–AV8 ([ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md)) |
-| A vulnerabilidade de Zetsu ao dano de Nen | entregue (#127): com Zetsu, o golpe dói o mesmo que sem aura nenhuma |
+| A vulnerabilidade de Zetsu ao dano de Nen | entregue (#127): com Zetsu, o golpe dói o mesmo que sem aura nenhuma — e desde #246 ele também bate como quem não tem Nen |
+| Ajuste de Output por **intenção**, sem o cliente escolher o número | entregue (#71): o payload passou a carregar só a direção; protocolo 6 → 7 pelo procedimento do [ADR-011](../adr/ADR-011-descongelamento-do-protocolo.md) |
 | Gate executado em servidor dedicado | **pendente**: roteiro em [m4-tecnicas.md](../testing/m4-tecnicas.md), execucao manual exige dois clientes |
 
-**O M4 NAO ESTA FECHADO.** O que falta nao e codigo: e a execucao do gate com
-dois clientes reais, que esta maquina so aguenta com memoria livre suficiente
-(ver [qa-matrix.md](../testing/qa-matrix.md)). Nao deduzir entrega a partir de
-build verde.
+**O M4 NAO ESTA FECHADO, E O QUE FALTA NAO E CODIGO.** Falta a execucao do
+gate com dois clientes reais, que esta maquina so aguenta com memoria livre
+suficiente (ver [qa-matrix.md](../testing/qa-matrix.md)), e a revisao cruzada.
+Nao deduzir entrega a partir de build verde.
+
+**As issues do M4 foram conferidas item a item contra o codigo em 2026-09-12**,
+e nao contra a memoria. #12 e #88 fecharam; #89 e #126 tiveram o escopo
+reduzido ao que sobrou de verdade; #91 continua aberta e e o gate. A conferencia
+achou quatro coisas que nenhum verde acusava:
+
+1. **Nenhum teste olhava para o `StopReason`.** `OUT_OF_AURA` existia so em
+   codigo de producao -- e este documento e o roteiro davam o item por provado.
+2. **`key.nenfoundation.ajustar_output` nao existia em nenhum dos dois
+   idiomas**, e nao havia portao nenhum sobre nomes de tecnica nem de tecla.
+3. **A classe `Gyo` nao tinha um teste so.** Toda a prova de alocacao rodava
+   sobre um duble; fixar a regiao dentro dela passava pelos 116 gametests.
+4. **O modificador OFENSIVO nao existia.** Ren, que no canone e o aumento de
+   poder de ataque, so levantava o teto de Output -- e o sintoma era silencioso,
+   porque ninguem reclama de um golpe que nao ficou mais forte.
+
+As quatro foram consertadas (#242, #246). O que elas tem em comum e o que vale
+levar para o M5: **o defeito nao estava no que o codigo fazia, e sim no que
+nenhuma regua media.**
 
 ### O FX de aura saiu do M4 (2026-09-12)
 

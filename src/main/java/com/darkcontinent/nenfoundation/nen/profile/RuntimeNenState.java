@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.profile;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,6 +45,18 @@ public final class RuntimeNenState {
      */
     private double multiplicadorDeRegeneracao = 1.0D;
 
+    /**
+     * Onde a aura esta, pelo corpo.
+     *
+     * <p>DERIVADO, como o teto e o multiplicador. Nenhuma tecnica escreve aqui
+     * de fora: o servico recalcula a partir do conjunto de ativas, e por isso
+     * nao ha ponto de saida que possa esquecer de limpar. Ver o ADR-014.
+     *
+     * <p>Comeca UNIFORME, e isso e um estado definido e nao ausencia de estado:
+     * quem nao esta concentrando nada tem a aura espalhada por igual.
+     */
+    private AlocacaoDeAura alocacao = AlocacaoDeAura.uniforme();
+
     public RuntimeNenState() {
         this.aura = new AuraPool();
     }
@@ -71,6 +84,27 @@ public final class RuntimeNenState {
 
     /** O que o jogador escolheu liberar. */
     /** O multiplicador de regeneracao em vigor. Ver ADR-010. */
+    /** Onde a aura esta distribuida agora. Nunca nula. */
+    public AlocacaoDeAura alocacao() {
+        return this.alocacao;
+    }
+
+    /**
+     * Troca a alocacao.
+     *
+     * <p>RECUSA UMA ALOCACAO QUE NAO FECHA. A soma ser 1.0 e a invariante que
+     * da risco as tecnicas -- sem ela, concentrar num lugar deixaria de tirar
+     * de outro, e Gyo viraria bonus em vez de escolha. Aceitar aqui e descobrir
+     * o problema tres camadas adiante, como um numero estranho na tela.
+     */
+    public void definirAlocacao(AlocacaoDeAura nova) {
+        if (nova == null || !nova.soma()) {
+            throw new IllegalArgumentException(
+                    "alocacao invalida (a soma precisa fechar em 1.0): " + nova);
+        }
+        this.alocacao = nova;
+    }
+
     public double multiplicadorDeRegeneracao() {
         return this.multiplicadorDeRegeneracao;
     }

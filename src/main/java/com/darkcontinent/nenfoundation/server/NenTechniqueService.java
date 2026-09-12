@@ -8,6 +8,9 @@ import com.darkcontinent.nenfoundation.nen.technique.ModificaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.LimitaTetoDeOutput;
 import com.darkcontinent.nenfoundation.nen.technique.ModificaRegeneracao;
 import com.darkcontinent.nenfoundation.nen.technique.NenContext;
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
+import com.darkcontinent.nenfoundation.nen.technique.RedistribuiAura;
 import com.darkcontinent.nenfoundation.nen.technique.NenTechnique;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.StopReason;
@@ -162,7 +165,7 @@ public final class NenTechniqueService {
         }
 
         estado.ativarTecnica(id);
-        recalcularRegeneracao(estado);
+        recalcularRegeneracao(jogador, estado);
         rodarComProtecao(id, "onActivate", () -> tecnica.onActivate(jogador, ctx));
 
         return new Resultado(Ativacao.ATIVOU, Optional.empty(), conflitos);
@@ -187,7 +190,7 @@ public final class NenTechniqueService {
         // se a tecnica lancar ali dentro, o multiplicador ja voltou ao que as
         // tecnicas restantes pedem. Recalcular depois deixaria a regeneracao
         // acelerada de uma tecnica que ja parou -- e isso nao da erro nenhum.
-        recalcularRegeneracao(estado);
+        recalcularRegeneracao(jogador, estado);
 
         // A GRAVACAO VEM ANTES do onDeactivate, e nao depois: se a tecnica
         // lancar ali dentro, o estado ja esta limpo e ela nao volta a ser
@@ -357,16 +360,67 @@ public final class NenTechniqueService {
      * quem esta em Ren -- e so voltaria ao normal depois de ligar e desligar
      * alguma tecnica.
      */
-    public static void recalcularDerivados(RuntimeNenState estado) {
+    /**
+     * Recalcula os derivados, com o foco de aura deste jogador.
+     *
+     * <p>O FOCO E ARGUMENTO, e nao um valor buscado la dentro. A primeira
+     * versao disto passava a regiao por {@code ThreadLocal} para nao mexer na
+     * assinatura -- era o argumento certo escondido, e qualquer recalculo fora
+     * da janela leria o padrao em silencio.
+     */
+    public static void recalcularDerivados(RuntimeNenState estado, RegiaoDoCorpo foco) {
         RegistroDeTecnicas atual = registro;
         estado.definirMultiplicadorDeRegeneracao(
                 multiplicadorDe(atual, estado.tecnicasAtivas()));
         estado.definirOutputMaximo(
                 tetoDe(atual, estado.tecnicasAtivas(), (float) tetoDeRepouso.getAsDouble()));
+        estado.definirAlocacao(alocacaoDe(atual, estado.tecnicasAtivas(), foco));
     }
 
-    private static void recalcularRegeneracao(RuntimeNenState estado) {
-        recalcularDerivados(estado);
+    /**
+     * Onde a aura fica, dado o conjunto de tecnicas ativas.
+     *
+     * <p>VALE A MAIS CONCENTRADA, e nao a soma nem a media.
+     *
+     * <p>Somar estouraria a invariante de 1.0 na primeira combinacao de duas
+     * tecnicas. A media seria pior de um jeito mais sutil: Ko com Ken viraria
+     * uma concentracao morna -- nem a defesa do corpo inteiro, nem o punho
+     * devastador -- que e exatamente o oposto do que as duas tecnicas fazem. A
+     * intencao mais extrema vence, porque foi a ultima escolha do jogador.
+     *
+     * <p>SEM NENHUMA ATIVA, e uniforme: quem nao concentra nada tem a aura
+     * espalhada. Estado definido, e nao ausencia de estado.
+     */
+    static AlocacaoDeAura alocacaoDe(RegistroDeTecnicas registro,
+            Set<ResourceLocation> ativas, RegiaoDoCorpo foco) {
+        AlocacaoDeAura escolhida = AlocacaoDeAura.uniforme();
+        float maiorConcentracao = escolhida.em(escolhida.maisConcentrada());
+
+        for (ResourceLocation id : ativas) {
+            NenTechnique tecnica = registro.porId(id).orElse(null);
+            if (!(tecnica instanceof RedistribuiAura redistribui)) {
+                continue;
+            }
+            AlocacaoDeAura candidata = redistribui.alocacaoDesejada(foco);
+            if (candidata == null || !candidata.soma()) {
+                // TECNICA MAL ESCRITA NAO DERRUBA O RECALCULO. Uma alocacao
+                // torta aqui viraria excecao dentro do tick, e o erro numero 3
+                // da lista do CLAUDE.md ensina onde isso termina.
+                LOG.error("A tecnica {} devolveu alocacao invalida: {}. Ignorada.",
+                        id, candidata);
+                continue;
+            }
+            float concentracao = candidata.em(candidata.maisConcentrada());
+            if (concentracao > maiorConcentracao) {
+                maiorConcentracao = concentracao;
+                escolhida = candidata;
+            }
+        }
+        return escolhida;
+    }
+
+    private static void recalcularRegeneracao(ServerPlayer jogador, RuntimeNenState estado) {
+        recalcularDerivados(estado, NenGyoService.regiaoDe(jogador));
     }
 
     /**

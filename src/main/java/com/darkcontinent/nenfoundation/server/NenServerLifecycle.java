@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.nen.technique.RegistroDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.List;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -44,7 +45,12 @@ public final class NenServerLifecycle {
                         NenConfig::renTetoDeOutput),
                 new Zetsu(NenConfig::zetsuCustoPorSegundo,
                         NenConfig::zetsuMultiplicadorDeRegeneracao,
-                        NenConfig::zetsuTetoDeOutput))));
+                        NenConfig::zetsuTetoDeOutput),
+                // A REGIAO NAO ENTRA NO CONSTRUTOR: ela e escolha de CADA
+                // jogador e chega como argumento no recalculo. A implementacao
+                // e compartilhada por todo o servidor.
+                new Gyo(NenConfig::gyoCustoPorSegundo,
+                        NenConfig::gyoFracaoConcentrada))));
 
         if (registroDeAura == null) registroDeAura = NenTickScheduler.registrar(NenAuraService::tick);
         // AURA PRIMEIRO, TECNICA DEPOIS, e a ordem importa: a tecnica gasta a
@@ -84,6 +90,7 @@ public final class NenServerLifecycle {
             registroDePresenca = null;
         }
         NenPresencaService.limpar();
+        NenGyoService.limparTudo();
         NenRuntimeService.encerrarTodasAsSessoes();
         PedidosC2S.limpar();
         NenSyncService.limparMetricas();

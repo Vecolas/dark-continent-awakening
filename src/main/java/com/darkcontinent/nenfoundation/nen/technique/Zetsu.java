@@ -63,16 +63,21 @@ public final class Zetsu implements NenTechnique, LimitaTetoDeOutput,
     }
 
     /**
-     * Zetsu nao coexiste com Ten nem com Ren.
+     * Zetsu nao coexiste com nada que libere aura.
      *
-     * <p>A DECLARACAO ENTROU DOS DOIS LADOS DE UMA VEZ, e o portao de simetria
+     * <p>A DECLARACAO ENTRA DOS DOIS LADOS DE UMA VEZ, e o portao de simetria
      * do registro e quem garante isso: ate Zetsu existir, Ten e Ren nao podiam
      * declarar exclusao com ele -- o selamento RECUSA apontar para tecnica que
-     * nao existe. Foi ponto cego declarado nos dois arquivos, e morre aqui.
+     * nao existe. Foi ponto cego declarado nos dois arquivos, e morreu aqui.
+     *
+     * <p>GYO ENTROU DEPOIS, e o portao cobrou na hora: Gyo declarou Zetsu, esta
+     * lista nao declarou Gyo, e o servidor RECUSOU SUBIR com
+     * "exclusao pela metade". Nao foi teste que pegou -- foi o selamento,
+     * que acontece antes de qualquer jogador existir.
      */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Ten.ID, Ren.ID);
+        return Set.of(Ten.ID, Ren.ID, Gyo.ID);
     }
 
     @Override

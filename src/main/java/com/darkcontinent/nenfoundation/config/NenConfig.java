@@ -126,6 +126,21 @@ public final class NenConfig {
                     "nao libera NADA, e e por isso que Zetsu exclui Ten e Ren.")
             .defineInRange("tecnica.zetsu.tetoDeOutput", 0.0D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue GYO_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Gyo consome por segundo.",
+                    "Gyo LIBERA aura -- ele e aplicacao de Ren -- entao pelo ADR-013 o",
+                    "saldo dele tem de ser negativo. Menor que o de Ren: concentrar",
+                    "custa menos que abrir a torneira toda.")
+            .defineInRange("tecnica.gyo.custoPorSegundo", 4.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue GYO_FRACAO_CONCENTRADA = BUILDER
+            .comment("Quanto da aura total Gyo concentra na regiao escolhida, de 0 a 1.",
+                    "O resto e dividido entre as outras cinco regioes -- e essa e a",
+                    "troca: concentrar num lugar TIRA de outro.",
+                    "0.45 e perto do exemplo do documento-fonte (47% num braco).",
+                    "Ko, quando existir, usa a mesma conta com um numero perto de 1.")
+            .defineInRange("tecnica.gyo.fracaoConcentrada", 0.45D, 0.0D, 1.0D);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -163,6 +178,12 @@ public final class NenConfig {
 
     /** Teto de Output com Ren ativo. */
     public static double renTetoDeOutput() { return REN_TETO_DE_OUTPUT.get(); }
+
+    /** Custo de Gyo por segundo. */
+    public static double gyoCustoPorSegundo() { return GYO_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Quanto da aura Gyo concentra na regiao escolhida. */
+    public static double gyoFracaoConcentrada() { return GYO_FRACAO_CONCENTRADA.get(); }
 
     /** Custo de Zetsu por segundo. */
     public static double zetsuCustoPorSegundo() { return ZETSU_CUSTO_POR_SEGUNDO.get(); }

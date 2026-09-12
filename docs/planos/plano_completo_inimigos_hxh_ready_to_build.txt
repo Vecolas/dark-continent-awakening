@@ -1,0 +1,4865 @@
+HUNTER × HUNTER MODPACK — PLANO READY-TO-BUILD DO SISTEMA DE INIMIGOS
+NeoForge 1.21.1
+Documento de arquitetura, conteúdo, IA, arte, animação, spawn, progressão,
+Formigas Quimera, integração com Nen, testes e divisão de trabalho.
+
+Versão do documento: 1.0
+Objetivo: transformar inimigos em um pilar de progressão do modpack, e não apenas
+em “usuários de Nen com estatísticas diferentes”.
+
+================================================================================
+0. DECISÃO DE DESIGN
+================================================================================
+
+O sistema de inimigos NÃO deve ser construído como:
+
+    Mob A = corre + bate
+    Mob B = corre + bate mais forte
+    Mob C = usuário de Nen com mais HP
+
+Hunter × Hunter apresenta um mundo em que sobreviver depende repetidamente de:
+
+- observação;
+- conhecimento;
+- leitura de comportamento;
+- identificação de fraquezas;
+- controle de Nen;
+- escolha correta de técnica;
+- preparação;
+- ambiente;
+- inteligência;
+- diferença real entre espécies.
+
+A estrutura do mod deve refletir isso.
+
+REGRA PRINCIPAL:
+
+    CADA INIMIGO IMPORTANTE PRECISA TER UMA “IDEIA DE GAMEPLAY”.
+
+Exemplos canônicos:
+
+Great Stamp
+    ameaça = carga rápida;
+    resposta = descobrir e atingir a região vulnerável da testa.
+
+Frog-In-Waiting
+    ameaça = emboscada;
+    resposta = perceber terreno/sinais antes de passar sobre ele.
+
+Man-faced Ape
+    ameaça = engano;
+    resposta = reconhecer inconsistências antes da emboscada.
+
+Melanin Lizard
+    ameaça = força/tamanho;
+    resposta = descobrir qual das manchas esconde o ponto extremamente vulnerável.
+
+Hyper Puffball
+    ameaça = velocidade;
+    resposta = observar o padrão de movimento em vez de tentar vencê-lo em força.
+
+Radio Rat
+    ameaça = chamariz controlado;
+    resposta = descobrir o verdadeiro corpo e, no futuro, usar Gyo.
+
+Bubble Horse
+    ameaça = fuga;
+    resposta = interação correta com estados de Nen.
+
+Chimera Ants
+    ameaça = espécie adaptativa, organizada, biologicamente diversa e posteriormente
+              capaz de adquirir Nen.
+
+Assim, “inimigo” será uma categoria ampla:
+
+- fauna territorial;
+- predadores;
+- criaturas de emboscada;
+- Magical Beasts;
+- criaturas inteligentes;
+- monstros de Greed Island;
+- humanos comuns;
+- criminosos;
+- usuários de Nen;
+- Formigas Quimera;
+- bosses;
+- encounters de puzzle;
+- criaturas que não precisam ser mortas.
+
+================================================================================
+1. OBJETIVOS DE PRODUÇÃO
+================================================================================
+
+O sistema deve ser capaz de suportar:
+
+1. Mobs simples.
+2. Mobs com estados comportamentais.
+3. Mobs com pontos fracos corporais.
+4. Mobs capazes de fugir.
+5. Mobs territoriais.
+6. Mobs sociais.
+7. Mobs que caçam em grupo.
+8. Emboscadores.
+9. Voadores.
+10. Aquáticos.
+11. Transformações.
+12. Múltiplas formas.
+13. Equipamentos visuais.
+14. Habilidades naturais.
+15. Habilidades de Nen.
+16. Aura e técnicas fundamentais.
+17. IA de esquadrão.
+18. Facções.
+19. Spawns condicionais.
+20. Estruturas/ninhos associados.
+21. Chefes persistentes.
+22. Variantes visuais.
+23. Diferentes esqueletos.
+24. Animações acionadas por combate.
+25. Loot.
+26. Progressão.
+27. Captura/observação em vez de morte.
+28. Bestiário.
+29. Configuração via datapack quando possível.
+30. Integração multiplayer autoritativa no servidor.
+
+================================================================================
+2. O QUE É CANÔNICO E O QUE É EXTENSÃO DO MOD
+================================================================================
+
+Criar três níveis internos de fidelidade.
+
+CANON_EXACT
+-----------
+Criatura, comportamento e gimmick mostrados diretamente na obra.
+
+Exemplos:
+
+- Foxbear;
+- Master of the Swamp;
+- Kiriko;
+- Man-faced Ape;
+- Frog-In-Waiting;
+- Great Stamp;
+- Spider Eagle;
+- Cyclops;
+- Bubble Horse;
+- Radio Rat;
+- King White Stag Beetle;
+- Melanin Lizard;
+- Hyper Puffball;
+- Wolf Pack;
+- Chimera Ants conhecidas.
+
+CANON_DERIVED
+-------------
+Comportamento não mostrado literalmente, mas derivado diretamente de regra canônica.
+
+Exemplo:
+
+Uma Formiga Quimera original com:
+    genes de cervo + louva-a-deus + humano.
+
+Isso é compatível com a phagogenesis, mas o indivíduo específico não aparece na obra.
+
+ORIGINAL_COMPATIBLE
+-------------------
+Criatura ou inimigo criado para o mod, respeitando o tom e regras do mundo.
+
+Exemplo:
+
+Um predador original de uma floresta HxH.
+
+REGRA:
+Todo design document de mob deve declarar:
+
+    canonLevel = CANON_EXACT | CANON_DERIVED | ORIGINAL_COMPATIBLE
+
+Nunca apresentar conteúdo ORIGINAL_COMPATIBLE como fato canônico.
+
+================================================================================
+3. FONTES CANÔNICAS QUE NORTEIAM O BESTIÁRIO
+================================================================================
+
+Hunter Exam / primeiros capítulos
+---------------------------------
+
+A obra apresenta fauna perigosa já antes do Nen se tornar o sistema central.
+
+Exemplos pesquisados:
+
+Foxbear
+    grande predador territorial híbrido de raposa e urso.
+
+Master of the Swamp
+    peixe gigantesco de Whale Island.
+
+Kiriko
+    Magical Beast capaz de mudar de forma.
+
+Man-faced Ape
+    primata carnívoro capaz de se disfarçar e imitar humanos.
+
+Milsy Wetlands
+    região explicitamente cheia de animais perigosos que usam truques para capturar
+    humanos.
+
+Frog-In-Waiting
+    grande sapo carnívoro que se enterra e engole quem pisa sobre sua posição.
+
+Great Stamp
+    porco gigantesco extremamente agressivo e veloz, com ponto fraco na testa.
+
+Spider Eagle
+    espécie voadora que cria ninhos com teias em um cânion.
+
+Greed Island
+-------------
+
+O bestiário conhecido inclui:
+
+- Cyclops;
+- Bubble Horse;
+- Radio Rat;
+- King White Stag Beetle;
+- Melanin Lizard;
+- Wolf Pack;
+- Hyper Puffball;
+- criaturas menores e unnamed monsters.
+
+Esses monstros são particularmente importantes porque muitos deles foram construídos
+na própria obra como “problemas a resolver” em vez de simples testes de dano.
+
+Chimera Ants
+------------
+
+A espécie utiliza phagogenesis:
+a Rainha transmite características de criaturas ingeridas à descendência.
+
+Hierarquia observada:
+
+Rainha
+    ↓
+Construction Ants
+    ↓
+Peons / Drudges
+    ↓
+Officers
+    ↓
+Squadron Leaders
+    ↓
+Royal Guards
+    ↓
+King
+
+A Rainha de NGL passou a gerar indivíduos progressivamente mais complexos ao consumir
+animais e depois humanos.
+
+Os indivíduos com genes humanos demonstram:
+
+- identidade;
+- personalidade;
+- grande variedade morfológica;
+- capacidades físicas distintas;
+- potencial para Nen.
+
+Isso torna Chimera Ants ideais para a maior família sistêmica de inimigos do mod.
+
+================================================================================
+4. DIREÇÃO GERAL DE PROGRESSÃO
+================================================================================
+
+Não usar apenas nível numérico.
+
+A progressão de inimigos deve ocorrer em quatro eixos:
+
+A. PODER
+    dano;
+    vida;
+    velocidade;
+    defesa;
+    Nen.
+
+B. COMPLEXIDADE
+    mais estados;
+    combos;
+    leitura;
+    condições;
+    sinergias.
+
+C. CONHECIMENTO
+    descobrir ponto fraco;
+    usar Gyo;
+    trocar Ten/Zetsu;
+    aprender padrão.
+
+D. ORGANIZAÇÃO
+    solitário;
+    grupo;
+    pack;
+    squad;
+    colony;
+    boss encounter.
+
+================================================================================
+5. CAMADAS DE PROGRESSÃO PROPOSTAS
+================================================================================
+
+TIER 0 — FAUNA DO MUNDO
+-----------------------
+
+Propósito:
+mostrar imediatamente que o universo não é Minecraft vanilla.
+
+Conteúdo:
+
+- Foxbear;
+- animais menores;
+- Master of the Swamp como encontro especial.
+
+Nen necessário:
+não.
+
+TIER 1 — HUNTER-LEVEL DANGERS
+-----------------------------
+
+Conteúdo:
+
+- Frog-In-Waiting;
+- Man-faced Ape;
+- Great Stamp;
+- Spider Eagle;
+- predadores regionais.
+
+Nen:
+não obrigatório.
+
+Objetivo:
+ensinar observação e combate mecânico.
+
+TIER 2 — SPECIALIZED / MAGICAL CREATURES
+----------------------------------------
+
+Conteúdo:
+
+- Kiriko;
+- criaturas originais compatíveis;
+- encontros que exigem leitura, captura ou sobrevivência.
+
+TIER 3 — GREED ISLAND RULE ENEMIES
+----------------------------------
+
+Conteúdo:
+
+- Cyclops;
+- Bubble Horse;
+- Radio Rat;
+- Melanin Lizard;
+- Hyper Puffball;
+- Wolf Pack;
+- King White Stag Beetle.
+
+Nen:
+começa a ser diretamente exigido em alguns encounters.
+
+TIER 4 — EARLY CHIMERA COLONY
+-----------------------------
+
+Conteúdo:
+
+- Construction Ants;
+- Peons;
+- animais híbridos;
+- scouts;
+- gatherers.
+
+TIER 5 — HUMANIZED CHIMERA ANTS
+-------------------------------
+
+Conteúdo:
+
+- Officers;
+- squad units;
+- specialists físicos;
+- indivíduos inteligentes.
+
+Nen:
+alguns começam sem Nen;
+outros podem despertá-lo.
+
+TIER 6 — SQUADRON LEADERS / STRONG NEN USERS
+---------------------------------------------
+
+Conteúdo:
+
+- elite Chimera Ants;
+- usuários humanos importantes;
+- minibosses.
+
+TIER 7 — COLONY APEX
+--------------------
+
+Conteúdo:
+
+- Queen encounter;
+- Royal Guard-class templates;
+- King-class event.
+
+IMPORTANTE:
+Meruem, Pitou, Pouf e Youpi não devem aparecer como mobs aleatórios.
+
+Se forem implementados:
+usar encounters roteirizados/canônicos ou conteúdo opcional específico.
+
+Uma colônia gerada pelo mod pode produzir indivíduos equivalentes em posição
+hierárquica, mas não deve chamar qualquer Guard de “Pitou” sem estar implementando
+o personagem.
+
+================================================================================
+6. STACK TÉCNICO RECOMENDADO
+================================================================================
+
+Minecraft:
+    1.21.1
+
+Loader:
+    NeoForge 1.21.1
+
+Java:
+    Java 21
+
+Modelagem:
+    Blockbench
+
+Animação:
+    GeckoLib 4.x compatível com 1.21.1.
+
+No momento da pesquisa, a documentação do GeckoLib lista 1.21.1 com GeckoLib 4.8.3
+e suporte ativo/com documentação.
+
+Por que GeckoLib
+----------------
+
+O projeto exige:
+
+- modelos não humanoides;
+- múltiplos ossos;
+- animações complexas;
+- ataques com telegraph;
+- transformações;
+- criaturas quadrúpedes;
+- insetoides;
+- voadoras;
+- bosses;
+- keyframes;
+- eventos sincronizados visualmente.
+
+Isso ultrapassa rapidamente a conveniência do pipeline vanilla simples.
+
+GeckoLib fornece:
+
+- modelos Geo;
+- AnimationControllers;
+- animações concorrentes;
+- keyframes;
+- partículas/som ligados a animações;
+- render layers;
+- ferramentas maduras no Blockbench.
+
+IMPORTANTE:
+Gameplay continua server-side.
+
+A animação NÃO decide se um hit acertou.
+Ela representa visualmente uma ação decidida pelo servidor.
+
+================================================================================
+7. ESTRUTURA DE PACOTES JAVA
+================================================================================
+
+Sugestão:
+
+com.<modid>.enemy
+│
+├── registry/
+│   ├── ModEntityTypes.java
+│   ├── ModEntityAttributes.java
+│   └── EnemyRegistries.java
+│
+├── api/
+│   ├── HxHEnemy.java
+│   ├── WeakPointOwner.java
+│   ├── FactionMember.java
+│   ├── NenCapableMob.java
+│   ├── TransformableMob.java
+│   └── EncounterParticipant.java
+│
+├── base/
+│   ├── BaseHxHMob.java
+│   ├── BaseHxHMonster.java
+│   ├── BaseHxHAnimal.java
+│   ├── BaseMagicalBeast.java
+│   ├── BaseNenMob.java
+│   └── BaseChimeraAnt.java
+│
+├── ai/
+│   ├── brain/
+│   │   ├── EnemyBrain.java
+│   │   ├── CombatState.java
+│   │   ├── AwarenessState.java
+│   │   └── TacticalContext.java
+│   │
+│   ├── goal/
+│   │   ├── WarnIntruderGoal.java
+│   │   ├── ChargeAttackGoal.java
+│   │   ├── AmbushGoal.java
+│   │   ├── StalkGoal.java
+│   │   ├── RetreatGoal.java
+│   │   ├── PackAttackGoal.java
+│   │   ├── GuardNestGoal.java
+│   │   ├── HuntPreyGoal.java
+│   │   └── ReturnHomeGoal.java
+│   │
+│   ├── sensor/
+│   │   ├── ThreatSensor.java
+│   │   ├── SoundSensor.java
+│   │   ├── AuraSensor.java
+│   │   └── WeakTargetSensor.java
+│   │
+│   └── squad/
+│       ├── SquadController.java
+│       ├── SquadRole.java
+│       └── SharedTargetState.java
+│
+├── combat/
+│   ├── EnemyAttack.java
+│   ├── AttackTimeline.java
+│   ├── AttackPhase.java
+│   ├── HitboxSpec.java
+│   ├── WeakPoint.java
+│   ├── WeakPointRegistry.java
+│   ├── DamageProfile.java
+│   └── CrowdControlProfile.java
+│
+├── faction/
+│   ├── EnemyFaction.java
+│   ├── FactionRelations.java
+│   └── FactionService.java
+│
+├── spawn/
+│   ├── EnemySpawnRules.java
+│   ├── SpawnContext.java
+│   ├── EncounterSpawner.java
+│   ├── RegionalSpawnController.java
+│   └── ChimeraColonySpawner.java
+│
+├── progression/
+│   ├── ThreatTier.java
+│   ├── EnemyScalingPolicy.java
+│   ├── BestiaryProgress.java
+│   └── EncounterRewardService.java
+│
+├── chimera/
+│   ├── ChimeraRank.java
+│   ├── ChimeraGenome.java
+│   ├── ChimeraMorphology.java
+│   ├── ChimeraTrait.java
+│   ├── ChimeraColony.java
+│   ├── ChimeraColonySavedData.java
+│   ├── ChimeraQueenEntity.java
+│   └── ChimeraMutationService.java
+│
+├── entity/
+│   ├── hunterexam/
+│   ├── greed/
+│   ├── chimera/
+│   ├── human/
+│   └── boss/
+│
+└── data/
+    ├── EnemyDefinition.java
+    ├── EnemyDefinitionLoader.java
+    ├── AttackDefinition.java
+    └── EnemyVisualDefinition.java
+
+
+CLIENT:
+
+com.<modid>.client.enemy
+│
+├── renderer/
+├── model/
+├── animation/
+├── layer/
+├── particle/
+└── debug/
+
+================================================================================
+8. CLASSE BASE
+================================================================================
+
+BaseHxHMob
+
+Responsabilidades:
+
+- referência ao EnemyDefinition;
+- faction;
+- threat tier;
+- estado comportamental;
+- home position;
+- combat cooldowns;
+- animation state id;
+- weak points;
+- persistência mínima;
+- integração com targeting;
+- integração com Nen quando aplicável.
+
+NÃO colocar tudo em uma classe monolítica.
+
+Exemplo conceitual:
+
+BaseHxHMob
+    ├── MovementComponent
+    ├── CombatController
+    ├── AwarenessController
+    ├── WeakPointController
+    ├── FactionComponent
+    └── AnimationSyncState
+
+BaseNenMob extends BaseHxHMob
+    └── NenState / AuraState
+
+BaseChimeraAnt extends BaseNenMob
+    ├── rank
+    ├── genome
+    ├── colonyId
+    └── squadId
+
+Nem toda Chimera Ant precisa possuir Nen ativo.
+
+O componente pode existir em estado locked/dormant.
+
+================================================================================
+9. ENEMY DEFINITION — DATA DRIVEN
+================================================================================
+
+Criar definições de inimigos em JSON/datapack para reduzir hardcode.
+
+Exemplo conceitual:
+
+data/<modid>/enemies/great_stamp.json
+
+{
+  "id": "<modid>:great_stamp",
+  "canonLevel": "CANON_EXACT",
+  "faction": "WILDLIFE",
+  "threatTier": 1,
+
+  "attributes": {
+    "maxHealth": 52,
+    "movementSpeed": 0.27,
+    "attackDamage": 8,
+    "armor": 3,
+    "followRange": 28,
+    "knockbackResistance": 0.55
+  },
+
+  "behavior": {
+    "brain": "great_stamp",
+    "territorial": true,
+    "groupAggro": true
+  },
+
+  "weakPoints": [
+    {
+      "id": "forehead",
+      "multiplier": 4.0
+    }
+  ],
+
+  "visual": {
+    "model": "<modid>:great_stamp",
+    "textureSet": "great_stamp/default"
+  }
+}
+
+IMPORTANTE:
+EntityType continua registrado normalmente.
+
+Data driven deve controlar:
+
+- balanceamento;
+- variantes;
+- ataques;
+- loot;
+- spawn;
+- visual sets quando possível.
+
+Não tentar data-drive tudo na primeira versão.
+
+================================================================================
+10. SISTEMA DE ATRIBUTOS
+================================================================================
+
+Usar atributos vanilla onde fazem sentido:
+
+MAX_HEALTH
+MOVEMENT_SPEED
+ATTACK_DAMAGE
+ARMOR
+ARMOR_TOUGHNESS
+FOLLOW_RANGE
+KNOCKBACK_RESISTANCE
+
+Criar atributos customizados apenas quando reutilização justificar:
+
+<modid>:awareness
+<modid>:turn_speed
+<modid>:stagger_resistance
+<modid>:aura_sensitivity
+
+Evitar:
+
+100 atributos customizados por criatura.
+
+================================================================================
+11. THREAT TIER
+================================================================================
+
+Criar enum:
+
+PASSIVE
+LOW
+HUNTER
+DANGEROUS
+ELITE
+SQUADRON
+BOSS
+APEX
+
+ThreatTier NÃO é level.
+
+Serve para:
+
+- spawn;
+- UI;
+- reward;
+- encounter director;
+- estimativa de ameaça.
+
+================================================================================
+12. IA — MODELO HÍBRIDO
+================================================================================
+
+Usar:
+
+Minecraft GoalSelector
++
+EnemyBrain state machine.
+
+Por quê?
+
+Goals são excelentes para tarefas locais:
+
+- mover;
+- olhar;
+- atacar;
+- fugir;
+- retornar;
+- nadar.
+
+Mas HxH exige estados mais explícitos.
+
+EnemyBrain controla intenção de alto nível:
+
+IDLE
+ROAM
+SUSPICIOUS
+INVESTIGATE
+WARN
+STALK
+AMBUSH
+ENGAGE
+REPOSITION
+RETREAT
+FLEE
+FEED
+GUARD
+RETURN_HOME
+SPECIAL
+SCRIPTED
+
+Goals executam a intenção.
+
+================================================================================
+13. AWARENESS
+================================================================================
+
+Cada inimigo deve possuir:
+
+visionRange
+visionAngle
+hearingRange
+memoryTicks
+
+Opcional:
+
+auraDetectionRange
+
+Percepção não deve ser:
+
+    if player distance < 32 -> attack
+
+Exemplo Foxbear:
+
+vê jogador longe:
+    observa.
+
+jogador sai:
+    não ataca.
+
+jogador aproxima território:
+    WARN.
+
+jogador continua:
+    ENGAGE.
+
+jogador recua:
+    não persegue eternamente.
+
+================================================================================
+14. TELEGRAPH
+================================================================================
+
+Todo ataque perigoso precisa possuir telegraph legível.
+
+AttackTimeline:
+
+WINDUP
+ACTIVE
+RECOVERY
+
+Exemplo Great Stamp:
+
+WINDUP:
+    18 ticks
+    abaixa cabeça
+    arranha chão
+    som
+
+ACTIVE:
+    charge
+
+RECOVERY:
+    24 ticks
+    vulnerável
+
+Isso permite skill do jogador.
+
+Não criar ataques:
+    “entidade estava parada e instantaneamente causou 20 dano”.
+
+================================================================================
+15. HITBOXES
+================================================================================
+
+Separar:
+
+visual model
+physics body
+attack hitboxes
+weak point hitboxes
+
+Um Great Stamp pode ter:
+
+BODY:
+    colisão normal.
+
+HEAD:
+    attack collision.
+
+FOREHEAD:
+    weak point.
+
+A detecção de weak point deve ocorrer server-side.
+
+Não confiar no cliente dizendo:
+
+    "acertei a testa".
+
+================================================================================
+16. SISTEMA DE WEAK POINT
+================================================================================
+
+Interface:
+
+WeakPointOwner
+
+WeakPoint:
+
+id
+bone/region
+localBounds
+damageMultiplier
+allowedDamageTypes
+enabledPredicate
+feedbackType
+
+Exemplos:
+
+Great Stamp:
+    forehead
+    x4
+
+Cyclops:
+    eye
+    stun/defeat trigger
+
+Melanin Lizard:
+    hiddenMole
+    huge vulnerability
+
+Chimera:
+    não padronizar.
+    algumas podem ter carapaça/pontos naturais.
+
+================================================================================
+17. FORMAS / TRANSFORMAÇÕES
+================================================================================
+
+TransformableMob
+
+FormState:
+
+BASE
+ENRAGED
+ARMORED
+WOUNDED
+TRANSFORMED
+SPECIAL
+
+Transformação pode alterar:
+
+- modelo;
+- textura;
+- hitbox;
+- attributes;
+- ataques;
+- AI;
+- Nen output.
+
+Exemplo futuro:
+Zazan-like transformation.
+
+IMPORTANTE:
+não apenas trocar textura.
+
+Se anatomia muda:
+modelo e colisão devem acompanhar.
+
+================================================================================
+18. FACTIONS
+================================================================================
+
+EnemyFaction:
+
+WILDLIFE
+MAGICAL_BEAST
+HUNTER_ASSOCIATION
+CIVILIAN
+CRIMINAL
+MAFIA
+GREED_ISLAND_MONSTER
+CHIMERA_ANT
+CHIMERA_ANT_REBEL
+CUSTOM
+
+FactionRelations:
+
+ALLY
+NEUTRAL
+PREY
+HOSTILE
+
+Exemplo:
+
+Foxbear:
+    wildlife vs wildlife = neutral
+    wildlife vs player = neutral/territorial
+
+Chimera colony:
+    same colony = ally
+    human = prey/hostile
+
+Meleoron-like rebel:
+    relation diferente.
+
+================================================================================
+19. IA EM GRUPO
+================================================================================
+
+Pack / Squad não deve ser apenas:
+
+“todos escolhem o mesmo target”.
+
+Criar:
+
+SquadController
+
+Roles:
+
+LEADER
+FRONTLINER
+FLANKER
+RANGED
+SUPPORT
+SCOUT
+
+Shared state:
+
+targetUUID
+lastKnownPosition
+engagementStart
+retreatSignal
+leaderUUID
+
+Wolf Pack:
+
+leader alive:
+    lobos coordenam flank.
+
+leader dead:
+    comportamento muda.
+
+Chimera squad:
+
+leader:
+    seleciona target e direção.
+
+officers:
+    papéis específicos.
+
+peons:
+    atacam / cercam / carregam alimento.
+
+================================================================================
+20. PATHFINDING
+================================================================================
+
+Criar locomotion profiles:
+
+GROUND
+QUADRUPED
+CLIMBING
+FLYING
+BURROW
+AQUATIC
+AMPHIBIOUS
+
+Não tentar fazer cada mob reimplementar navegação.
+
+Basear classes em tipos adequados do Minecraft ou criar navigation custom apenas
+onde necessário.
+
+================================================================================
+21. ART PIPELINE
+================================================================================
+
+Ferramenta:
+Blockbench.
+
+Formato recomendado:
+GeckoLib Animated Model.
+
+Para cada mob criar:
+
+<entity>.bbmodel
+<entity>.geo.json
+<entity>.animation.json
+textures/entity/<entity>/default.png
+
+Opcional:
+
+variant_01.png
+variant_02.png
+eyes.png
+emissive.png
+wounded.png
+
+================================================================================
+22. PADRÃO DE ESCALA VISUAL
+================================================================================
+
+O objetivo é preservar leitura Minecraft sem transformar os inimigos em modelos
+hiperdetalhados incompatíveis.
+
+Regras:
+
+- silhueta forte;
+- anatomia reconhecível;
+- detalhes grandes;
+- evitar microdetalhe inútil;
+- proporções de HxH > realismo;
+- texturas desenhadas;
+- não tentar PBR obrigatório.
+
+Resoluções iniciais:
+
+criatura pequena:
+    32x32 ou 64x64
+
+média:
+    64x64
+
+grande:
+    64x64 / 128x128
+
+boss:
+    128x128 quando necessário.
+
+================================================================================
+23. BONE NAMING
+================================================================================
+
+Convenção:
+
+root
+body
+chest
+head
+jaw
+
+arm_left
+arm_right
+forearm_left
+forearm_right
+
+leg_left
+leg_right
+
+tail
+wing_left
+wing_right
+
+attack_origin
+mouth_origin
+projectile_origin
+weakpoint_<name>
+
+Para quadrúpedes:
+
+leg_front_left
+leg_front_right
+leg_back_left
+leg_back_right
+
+Usar nomes consistentes.
+
+Isso permite código reutilizável.
+
+================================================================================
+24. ANIMATION CONTRACT
+================================================================================
+
+Todo mob terrestre de combate deve tentar fornecer:
+
+idle
+walk
+run
+hurt
+death
+
+Quando aplicável:
+
+attack_primary
+attack_secondary
+attack_special
+warn
+stun
+eat
+sleep
+burrow
+emerge
+takeoff
+fly
+land
+transform
+
+================================================================================
+25. ANIMATION CONTROLLERS
+================================================================================
+
+Separar controllers:
+
+LOCOMOTION
+COMBAT
+OVERLAY
+
+LOCOMOTION:
+idle/walk/run/fly.
+
+COMBAT:
+attacks.
+
+OVERLAY:
+roar, hurt, aura, transformation etc.
+
+Não criar uma animação gigantesca contendo tudo.
+
+================================================================================
+26. KEYFRAMES
+================================================================================
+
+Usar keyframes para:
+
+- sons;
+- partículas;
+- passos;
+- impacto visual;
+- roar;
+- ground dust.
+
+Mas o momento do dano deve ser validado pelo servidor.
+
+Exemplo:
+
+attack animation mostra hit no tick 12.
+
+Servidor:
+AttackTimeline ACTIVE = ticks 12–15.
+
+Cliente:
+keyframe tick 12 -> som/swing particle.
+
+================================================================================
+27. SKINS / TEXTURAS
+================================================================================
+
+Cada criatura precisa de guia de materiais.
+
+Exemplo Great Stamp:
+
+Material:
+    pele grossa.
+
+Paleta:
+    rosa/cinza conforme direção artística escolhida;
+    focinho destacado;
+    região da testa discretamente legível.
+
+NÃO:
+pintar o ponto fraco como um alvo vermelho.
+
+Jogador deve descobri-lo.
+
+================================================================================
+28. VARIANTES
+================================================================================
+
+Variantes devem ter propósito.
+
+Tipos:
+
+COSMETIC
+REGIONAL
+AGE
+SEX
+RANK
+GENETIC
+NEN_AWAKENED
+
+Exemplo Foxbear:
+
+adult
+cub
+
+Exemplo Chimera:
+
+morphology + rank + texture.
+
+Não registrar EntityType separado para cada recolor.
+
+================================================================================
+29. SPAWN — NEOFORGE
+================================================================================
+
+Usar Biome Modifiers para adicionar spawns quando apropriado.
+
+NeoForge 1.21.1 suporta:
+
+neoforge:add_spawns
+
+com:
+
+biome/tag
+entity type
+weight
+minCount
+maxCount
+
+Também registrar SpawnPlacement via:
+
+RegisterSpawnPlacementsEvent.
+
+Isso evita mobs surgindo:
+
+- no ar;
+- dentro de líquidos incorretamente;
+- em locais incompatíveis.
+
+================================================================================
+30. REGIONALIZAÇÃO
+================================================================================
+
+Não distribuir todos os mobs pelo Overworld inteiro.
+
+Criar tags:
+
+#<modid>:foxbear_biomes
+#<modid>:great_stamp_biomes
+#<modid>:swamp_predator_biomes
+#<modid>:chimera_ant_biomes
+
+Melhor ainda:
+
+usar estruturas/regiões específicas para encontros canônicos.
+
+================================================================================
+31. SPAWN NATURAL VS ENCOUNTER
+================================================================================
+
+NATURAL SPAWN
+-------------
+Foxbear
+fauna comum
+alguns predadores.
+
+ENCOUNTER SPAWN
+---------------
+Great Stamp herd
+Man-faced Ape trap
+Frog-In-Waiting nest area
+Spider Eagle nest
+Greed Island monsters.
+
+STRUCTURE SPAWN
+---------------
+Chimera Ant nest.
+Queen.
+Squadron Leader.
+
+SCRIPTED
+--------
+Royal Guard-class.
+King-class.
+personagens canônicos.
+
+================================================================================
+32. PERSISTÊNCIA
+================================================================================
+
+Não tornar tudo persistent.
+
+Persistent:
+
+boss;
+squad leader de encounter;
+Queen;
+colony-linked elite;
+named encounter.
+
+Despawn normal:
+
+fauna simples;
+peons longe da colony;
+ambient creatures.
+
+================================================================================
+33. PERFORMANCE BUDGET
+================================================================================
+
+Objetivo:
+
+inimigos precisam funcionar em multiplayer.
+
+Evitar:
+
+- raycast complexo a cada tick;
+- scan de entidades num raio de 64 todo tick;
+- path recalc contínuo;
+- partículas server-side;
+- NBT enorme por peon.
+
+Intervals:
+
+simple senses:
+    5–10 ticks.
+
+expensive environment scan:
+    20–40 ticks.
+
+squad update:
+    10–20 ticks.
+
+colony strategic update:
+    segundos, não ticks.
+
+================================================================================
+34. BESTIÁRIO DO JOGADOR
+================================================================================
+
+Criar futuramente:
+
+Hunter Bestiary.
+
+Entrada desbloqueada por:
+
+OBSERVED
+FOUGHT
+DEFEATED
+STUDIED
+
+Exemplo:
+
+Great Stamp
+
+Observed:
+    "Um enorme porco agressivo."
+
+Fought:
+    "Sua carga é extremamente poderosa."
+
+Studied:
+    "A região frontal acima do focinho é vulnerável."
+
+Isso encaixa muito bem no papel de Hunter.
+
+Não revelar tudo automaticamente.
+
+================================================================================
+35. MOB 01 — FOXBEAR
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+fauna territorial inicial.
+
+Não deve ser hostil por padrão.
+
+Estados:
+
+ROAM
+FORAGE
+REST
+WARN
+ENGAGE
+RETURN_HOME
+
+Trigger:
+
+player entra no território.
+
+WARN:
+- encara;
+- vocaliza;
+- postura;
+- não ataca imediatamente.
+
+Se player recua:
+RETURN_HOME.
+
+Se player avança:
+ENGAGE.
+
+Ataques:
+
+Swipe
+    melee arc.
+
+Bite
+    curto.
+
+Charge
+    apenas curta distância intermediária.
+
+Comportamento especial:
+
+fêmea/adulto próximo de cub:
+    aggressionThreshold muito menor.
+
+Modelo:
+
+quadrúpede robusto.
+Cabeça de raposa + corpo de urso.
+
+Animações:
+
+idle
+walk
+run
+warn
+swipe
+bite
+hurt
+death
+sniff
+
+Stats protótipo:
+
+HP 44
+damage 6
+speed 0.25
+armor 2
+
+Loot:
+
+mínimo.
+Evitar transformar Foxbear em fazenda obrigatória.
+
+Progressão:
+
+ensina território sem Nen.
+
+================================================================================
+36. MOB 02 — MASTER OF THE SWAMP
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+rare environmental encounter / capture challenge.
+
+Não tratar como zumbi aquático.
+
+Comportamento:
+
+AQUATIC_ROAM
+INVESTIGATE_BAIT
+BITE
+DIVE
+THRASH
+ESCAPE
+
+Mecânica principal:
+pesca/captura.
+
+Combate é secundário.
+
+Modelo:
+
+peixe enorme;
+dentes;
+múltiplas pernas/crustacean-like.
+
+Animações:
+
+swim
+turn
+bite
+thrash
+caught
+escape
+
+Spawn:
+
+um por região/estrutura adequada.
+
+Persistência:
+sim durante encounter.
+
+Reward:
+
+bestiary;
+achievement;
+quest progress.
+
+================================================================================
+37. MOB 03 — MAN-FACED APE
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+deception ambusher.
+
+Mecânica central:
+disfarce.
+
+Estados:
+
+DISGUISED
+OBSERVE
+LURE
+REVEAL
+AMBUSH
+FLEE
+
+Disfarce:
+
+Não começar copiando skin completa de jogadores arbitrários.
+
+MVP:
+usar um conjunto de aparências humanas pré-feitas.
+
+Futuro:
+sistema de disguise mais avançado.
+
+Pistas:
+
+- movimentos ligeiramente estranhos;
+- frase/contexto inconsistente;
+- olhos/pose;
+- comportamento.
+
+Se jogador aproxima:
+reveal + pack ambush.
+
+Stats:
+
+HP 24
+damage 4
+speed 0.29
+
+Fraqueza:
+corpo relativamente frágil.
+
+Força:
+engano e números.
+
+================================================================================
+38. MOB 04 — FROG-IN-WAITING
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+emboscador ambiental.
+
+Estados:
+
+BURROWED
+WAIT
+EMERGE
+SWALLOW
+DIGEST
+RETREAT
+
+Spawn:
+áreas pantanosas.
+
+Quando enterrado:
+
+- não mostrar mob inteiro;
+- pequena perturbação do solo;
+- talvez olhos/contorno mínimo em proximidade.
+
+Trigger:
+entidade pisa na zona.
+
+Ataque:
+emerge + swallow.
+
+Swallow:
+
+não matar instantaneamente.
+
+Criar estado:
+GRABBED.
+
+Jogador possui janela para:
+
+- atacar;
+- escapar;
+- ally ajudar.
+
+Stats:
+
+HP 50
+damage burst 10
+move speed fora da terra 0.12
+
+Animações:
+
+burrow
+burrow_idle
+emerge
+mouth_open
+swallow
+chew
+hurt
+death
+
+IMPORTANTE:
+é o “sapo gigante” ideal para o primeiro pacote de criaturas.
+
+================================================================================
+39. MOB 05 — GREAT STAMP
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+brute com weak point.
+
+Estados:
+
+IDLE
+GROUP_ROAM
+AGGRO
+WINDUP_CHARGE
+CHARGE
+STUNNED
+RECOVER
+
+Attack 1:
+Charge.
+
+Telegraph:
+abaixa corpo/cabeça.
+
+Charge:
+alta velocidade;
+knockback forte.
+
+Colisão com parede:
+stun.
+
+Weak point:
+forehead.
+
+Normal body:
+alta resistência.
+
+Forehead:
+multiplicador grande.
+
+Stats protótipo:
+
+HP 70
+armor 7
+damage 11
+chargeDamage 16
+speed normal 0.23
+charge speed ~0.55
+
+Weak point multiplier:
+3.5–4.5.
+
+Spawn:
+herds pequenas.
+
+Não spawnar 10 ao redor de base de jogador.
+
+================================================================================
+40. MOB 06 — SPIDER EAGLE
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+aerial/nest hazard.
+
+Ecologia:
+
+ninhos em regiões altas/cânions.
+
+Estados:
+
+NEST
+PATROL
+WARNING_FLIGHT
+DIVE_ATTACK
+WEB_ACTION
+RETURN_TO_NEST
+
+Objetivo do encounter:
+ovos.
+
+Jogador pode:
+roubar ovos sem matar.
+
+Ataques:
+
+dive;
+claw;
+web disruption.
+
+Model:
+ave + elementos aracnídeos.
+
+Animações:
+
+perch
+takeoff
+fly
+glide
+dive
+claw
+web
+land
+
+================================================================================
+41. MOB 07 — KIRIKO
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+Magical Beast inteligente / shapeshifter.
+
+IMPORTANTE:
+não deve ser tratado como inimigo comum.
+
+Usos:
+
+- quest;
+- teste;
+- engano;
+- transporte;
+- encounter social;
+- combate apenas em certas condições.
+
+Sistema exigido:
+DisguiseComponent.
+
+Forms:
+TRUE_FORM
+HUMAN_FORM_x
+
+Animação:
+transform.
+
+IA:
+inteligente;
+não aggro aleatório.
+
+Isso estabelece desde cedo:
+“Magical Beast ≠ monster”.
+
+================================================================================
+42. MOB 08 — CYCLOPS (GREED ISLAND)
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+grupo melee com puzzle.
+
+Comportamento:
+territorial;
+anda em grupos;
+armas pesadas.
+
+Weak point:
+olho.
+
+States:
+
+PATROL
+GROUP_ALERT
+CHASE
+HEAVY_ATTACK
+STAGGER
+DOWN
+
+Attack:
+club swing.
+
+Eye hit:
+grande stagger / condition de derrota.
+
+Não exigir HP sponge.
+
+Stats:
+
+HP 85
+armor 5
+damage 12
+speed 0.22
+
+Eye:
+x5 ou instant stagger + damage.
+
+================================================================================
+43. MOB 09 — MELANIN LIZARD
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+observation boss-lite.
+
+Grande.
+Perseguidor.
+
+Mecânica:
+uma mancha é vulnerável.
+
+Problema:
+como impedir brute force?
+
+Solução:
+
+- 12–20 manchas visuais;
+- apenas uma weak point;
+- lizard tenta manter weak point longe do player;
+- comportamento denuncia a região protegida.
+
+Ao acertar:
+stun forte / colapso.
+
+Gyo futuro:
+pode facilitar leitura, mas não deve simplesmente marcar em vermelho.
+
+Attacks:
+
+body slam;
+bite;
+tail sweep;
+pin.
+
+================================================================================
+44. MOB 10 — HYPER PUFFBALL
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+pattern recognition / capture.
+
+Não é boss de dano.
+
+Movement:
+
+sequência pseudo-determinística.
+
+Exemplo:
+
+N
+NE
+S
+W
+NW
+...
+
+Cada encounter cria pattern seed.
+
+Jogador aprende.
+
+Quando intercepta corretamente:
+capture.
+
+Se tentar perseguir:
+quase impossível.
+
+Ataque:
+baixo dano/knockback irritante.
+
+Objetivo:
+treinar leitura.
+
+================================================================================
+45. MOB 11 — RADIO RAT
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+introduzir percepção de Nen / Gyo.
+
+Mecânica:
+rato tímido escondido controla um chamariz/armadura.
+
+Sem Gyo:
+jogador naturalmente tende a lutar contra o decoy.
+
+Com Gyo:
+linha/assinatura de aura pode denunciar controlador.
+
+Estados do rato:
+
+HIDE
+CONTROL_DECOY
+RELOCATE
+PANIC
+FAINT
+
+Decoy:
+
+PATROL
+BLOCK_PATH
+ATTACK
+PROTECT_CONTROLLER
+
+MVP:
+um ArmorEntity controlado.
+
+Futuro:
+objetos diversos.
+
+================================================================================
+46. MOB 12 — BUBBLE HORSE
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+Nen-state puzzle.
+
+Comportamento:
+fuga.
+
+Mecânica:
+bolhas/ruído;
+captura baseada em alternância de Ten e Zetsu.
+
+Não transformar em “cavalo que cospe projétil”.
+
+Objetivo:
+validar domínio de técnicas básicas.
+
+States:
+
+GRAZE
+ALERT
+BUBBLE
+FLEE
+CALM
+CAPTURED
+
+================================================================================
+47. MOB 13 — KING WHITE STAG BEETLE
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+rare acquisition / ecology.
+
+Não hostil.
+
+Habitat:
+árvore especial.
+
+Mecânica:
+força aplicada na árvore pode derrubá-lo.
+
+Sistema útil:
+world interaction encounter.
+
+Ajuda a quebrar ideia de que progressão = matar.
+
+================================================================================
+48. MOB 14 — WOLF PACK
+================================================================================
+
+Canon:
+CANON_EXACT.
+
+Papel:
+pack combat.
+
+Componentes:
+
+WolfPackLeader
+WolfPackMember
+
+Enquanto líder vivo:
+
+- coordenação;
+- flank;
+- respawn/reinforcement conforme regra do encounter;
+- moral alta.
+
+Líder derrotado:
+pack perde organização.
+
+Gyo:
+pode ser usado para observar diferentes padrões de aura/ataque.
+
+IA:
+
+leader:
+    maintain distance / command.
+
+2 flankers:
+    laterais.
+
+front:
+    pressão.
+
+================================================================================
+49. CHIMERA ANTS — PRINCÍPIO CENTRAL
+================================================================================
+
+As Formigas Quimera NÃO devem ser implementadas como um único mob com skins.
+
+Elas precisam ser um sistema.
+
+Pilares:
+
+COLONY
+RANK
+GENOME
+MORPHOLOGY
+ROLE
+PERSONALITY
+NEN_STATE
+
+================================================================================
+50. PHAGOGENESIS NO GAMEPLAY
+================================================================================
+
+A obra estabelece que a Rainha transmite características de criaturas ingeridas para
+a descendência.
+
+Implementação:
+
+ChimeraColony possui:
+
+ConsumedGenePool
+
+Exemplo:
+
+{
+  HUMAN: 25,
+  WOLF: 12,
+  BAT: 8,
+  SPIDER: 6,
+  BOAR: 4
+}
+
+Ao gerar nova ninhada:
+
+MutationService escolhe traits ponderados.
+
+Porém:
+
+NÃO gerar geometria arbitrária procedural em runtime.
+
+Isso seria:
+
+- caro;
+- difícil de animar;
+- visualmente ruim;
+- difícil de testar.
+
+Usar CURATED MORPHOLOGY SETS.
+
+================================================================================
+51. CHIMERA GENOME
+================================================================================
+
+ChimeraGenome:
+
+primarySpecies
+secondarySpecies
+humanInfluence
+
+traits:
+    WINGS
+    CLAWS
+    VENOM
+    WEB
+    ARMOR_PLATE
+    LEAP
+    NIGHT_VISION
+    AQUATIC
+    EXTRA_ARMS
+    TAIL
+    SPEED
+    STRENGTH
+
+NenPotential:
+    float
+
+Intelligence:
+    float
+
+Individuality:
+    float
+
+================================================================================
+52. CURATED CHIMERA BODY ARCHETYPES
+================================================================================
+
+Criar inicialmente:
+
+CHIMERA_BIPED
+CHIMERA_QUADRUPED
+CHIMERA_INSECTOID
+CHIMERA_WINGED
+CHIMERA_HEAVY
+CHIMERA_MULTIARM
+
+Cada archetype possui:
+
+- skeleton;
+- animation set;
+- compatible parts.
+
+================================================================================
+53. PARTES MODULARES
+================================================================================
+
+Exemplo biped:
+
+head:
+    human
+    rabbit
+    wolf
+    beetle
+    bird
+
+arms:
+    humanoid
+    claw
+    feather
+    mantis
+    plated
+
+back:
+    none
+    wings
+    shell
+
+tail:
+    none
+    scorpion
+    mammal
+    insect
+
+IMPORTANTE:
+nem toda combinação precisa existir.
+
+Definir compatibility table.
+
+================================================================================
+54. CHIMERA TEXTURES
+================================================================================
+
+Evitar um model texture por combinação completa.
+
+Usar:
+
+base texture sets
++
+GeoLayers / bone texture variants quando viável.
+
+Entretanto:
+não sacrificar estabilidade por hiper-modularidade.
+
+MVP:
+10–15 variantes autorais pré-montadas.
+
+Depois:
+modularidade.
+
+================================================================================
+55. CHIMERA RANKS
+================================================================================
+
+CONSTRUCTION
+PEON
+DRUDGE
+OFFICER
+SQUADRON_LEADER
+ROYAL_GUARD
+KING
+
+Cada rank controla:
+
+- stat budget;
+- allowed traits;
+- brain complexity;
+- persistence;
+- Nen probability;
+- squad authority.
+
+================================================================================
+56. CONSTRUCTION ANTS
+================================================================================
+
+Papel:
+não combatente / defensivo.
+
+Tarefas:
+
+- construir nest visualmente;
+- carregar material;
+- fugir;
+- chamar soldados.
+
+Não precisam editar milhares de blocos livremente.
+
+Recomendação:
+
+nest expansion via structure pieces predefinidas.
+
+Evita:
+griefing e performance ruim.
+
+================================================================================
+57. PEONS / DRUDGES
+================================================================================
+
+Papel:
+massa da colônia.
+
+Comportamentos:
+
+- hunt;
+- carry food;
+- patrol;
+- escort;
+- defend.
+
+Complexidade baixa.
+
+Permitir grupos.
+
+Não dar Hatsu a cada peon.
+
+================================================================================
+58. OFFICERS
+================================================================================
+
+Primeiro rank realmente especializado.
+
+Cada Officer deve possuir:
+
+ROLE.
+
+Exemplos:
+
+BRUTE
+SCOUT
+AMBUSHER
+RANGED
+VENOM
+WEBBER
+FLYER
+TRACKER
+
+Pode liderar peons.
+
+Alguns podem desenvolver Nen.
+
+================================================================================
+59. SQUADRON LEADERS
+================================================================================
+
+Devem funcionar como minibosses sistêmicos.
+
+Características:
+
+- personalidade;
+- nome/epíteto gerado opcionalmente;
+- forte individualidade;
+- squad próprio;
+- Nen muito provável;
+- habilidade ou gimmick própria;
+- persistência.
+
+Não criar 30 clones.
+
+Começar com 3 templates.
+
+================================================================================
+60. ROYAL GUARD / KING
+================================================================================
+
+Não fazer como spawn normal.
+
+São eventos de progressão.
+
+ROYAL_GUARD:
+boss tier.
+
+KING:
+world-event / raid-level.
+
+Esses encontros precisam de:
+
+- arena;
+- scripts;
+- fases;
+- narrativa;
+- multiplayer scaling.
+
+Postergar para depois do core.
+
+================================================================================
+61. NEN NAS FORMIGAS
+================================================================================
+
+NenState:
+
+DORMANT
+AWAKENED
+TRAINED
+HATSU_DEVELOPED
+
+Peons:
+na maioria sem Nen.
+
+Officer:
+chance contextual.
+
+Squadron Leader:
+alta chance.
+
+Royal Guard:
+Nen integrado ao nascimento/encounter em conteúdo avançado.
+
+IMPORTANTE:
+não usar uma porcentagem fixa como “regra canônica”.
+
+É balanceamento do mod.
+
+================================================================================
+62. DESPERTAR DE NEN EM CHIMERA
+================================================================================
+
+A obra mostra Chimera Ants adquirindo controle de Nen de maneira muito rápida em
+certos casos.
+
+Para gameplay:
+
+evento:
+
+    entity survives nenImpactAboveThreshold
+
+pode:
+    increase NenAwakeningProgress.
+
+Não fazer:
+qualquer soco de Nen desbloquear instantaneamente.
+
+Progress:
+
+0–100.
+
+Factors:
+rank
+humanInfluence
+NenPotential
+attackerOutput
+
+Ao atingir threshold:
+AWAKENED.
+
+Isso permite que o jogador piore uma ameaça ao falhar em finalizá-la.
+
+Excelente identidade HxH.
+
+================================================================================
+63. CHIMERA COLONY
+================================================================================
+
+Não usar apenas mobs independentes.
+
+Criar:
+
+ChimeraColonySavedData.
+
+Campos:
+
+colonyId
+queenUUID
+nestCenter
+stage
+foodScore
+genePool
+membersByRank
+alertLevel
+knownThreats
+nenAwakenedCount
+
+================================================================================
+64. COLONY STAGES
+================================================================================
+
+STAGE_0_FOUNDED
+    Queen + poucos soldados.
+
+STAGE_1_NEST
+    construction ants.
+
+STAGE_2_HUNTING
+    peons capturam presas.
+
+STAGE_3_HUMAN_INFLUENCE
+    maior inteligência.
+
+STAGE_4_NEN_AWARE
+    Nen começa a aparecer.
+
+STAGE_5_MATURE
+    Squadron Leaders.
+
+STAGE_6_APEX
+    conteúdo de Royal Guard/King se habilitado.
+
+================================================================================
+65. FOOD SCORE
+================================================================================
+
+Colony ganha foodScore quando unidades retornam com presas.
+
+Não precisa transportar cadáver físico sempre.
+
+Server records:
+
+preyTier
+speciesTag
+amount
+
+Isso alimenta:
+
+- crescimento;
+- gene pool;
+- new spawn budget.
+
+================================================================================
+66. HUNTING PARTIES
+================================================================================
+
+Criar ChimeraHuntingParty.
+
+Composição:
+
+1 officer
+3–8 peons
+
+Objetivo:
+sair do nest,
+buscar alvos,
+retornar.
+
+Se officer morre:
+peons podem:
+retreat
+panic
+continue
+dependendo de personality.
+
+================================================================================
+67. COLONY ALERT
+================================================================================
+
+AlertLevel:
+
+0 CALM
+1 AWARE
+2 HOSTILE
+3 HUNTING_PLAYER
+4 LOCKDOWN
+
+Player mata vários ants perto do nest:
+alert sobe.
+
+Consequência:
+
+- mais scouts;
+- guards;
+- ambushes;
+- leader response.
+
+Isso gera mundo reativo.
+
+================================================================================
+68. BOSS DESIGN — QUEEN
+================================================================================
+
+Queen não deve ser apenas saco de HP.
+
+Fase 1:
+defesa do ninho.
+
+Player luta contra guards enquanto tenta alcançar chamber.
+
+Fase 2:
+Queen cria pressão / ataques físicos.
+
+Fase 3:
+reinforcements limitados.
+
+Objetivo alternativo possível:
+interromper crescimento antes de boss completo.
+
+================================================================================
+69. HUMAN ENEMIES
+================================================================================
+
+Também necessários para variedade.
+
+Archetypes:
+
+BANDIT
+POACHER
+MAFIA_GUNMAN
+MARTIAL_ARTIST
+NEN_ROOKIE
+NEN_FIGHTER
+SPECIALIST_ENCOUNTER
+
+Humanos comuns:
+não dar aura artificialmente.
+
+Armas:
+facas;
+bastões;
+armas de fogo onde contexto fizer sentido.
+
+================================================================================
+70. USUÁRIOS DE NEN HUMANOS
+================================================================================
+
+Eles devem usar a mesma fundação Nen do jogador.
+
+NÃO:
+
+EnemyNenDamageBonus = +200%.
+
+SIM:
+
+AuraPool
+Output
+Ten
+Ren
+Zetsu
+Gyo
+Hatsu
+
+Isso garante coerência.
+
+================================================================================
+71. NEN AI
+================================================================================
+
+Nen AI precisa decidir:
+
+if threat low:
+    Ten.
+
+if attack burst:
+    Ren/Ryu.
+
+if hide:
+    Zetsu.
+
+if suspect hidden aura:
+    Gyo.
+
+if special ability:
+    Hatsu.
+
+Não usar tudo aleatoriamente.
+
+Criar TacticalNenController.
+
+================================================================================
+72. AI PERSONALITY
+================================================================================
+
+Adicionar profile:
+
+AGGRESSIVE
+CAUTIOUS
+PREDATORY
+COWARDLY
+ARROGANT
+DISCIPLINED
+CURIOUS
+
+Isso influencia:
+
+engagement range;
+retreat threshold;
+combo selection;
+target priority.
+
+Cheetu-like:
+ARROGANT + SPEED.
+
+Pike-like:
+LOYAL/SIMPLE.
+
+Não copiar exatamente personagens sem intenção.
+
+================================================================================
+73. ATAQUES — DATA MODEL
+================================================================================
+
+AttackDefinition:
+
+id
+range
+cooldown
+windupTicks
+activeTicks
+recoveryTicks
+damage
+knockback
+movementLock
+turningAllowed
+conditions
+animation
+sound
+effects
+hitboxes
+
+================================================================================
+74. ATTACK SELECTION
+================================================================================
+
+Score-based.
+
+Cada attack:
+
+score(context).
+
+Exemplo:
+
+BITE:
+high score if distance < 2.
+
+CHARGE:
+high if 5–15 blocks and line clear.
+
+TAIL_SWEEP:
+high if multiple players nearby.
+
+FLEE:
+not attack but action if health low.
+
+Evita sequence aleatória burra.
+
+================================================================================
+75. COOLDOWN
+================================================================================
+
+Não usar um global cooldown para tudo.
+
+Attack cooldown categories:
+
+PRIMARY
+MOBILITY
+SPECIAL
+CONTROL
+
+Isso permite combos.
+
+================================================================================
+76. STAGGER
+================================================================================
+
+Criar StaggerSystem.
+
+staggerMeter:
+0..threshold.
+
+Ataque pesado:
+aumenta.
+
+weakpoint:
+aumenta muito.
+
+Ao quebrar:
+STUNNED.
+
+Boss:
+resistência alta.
+
+Isso dá feedback sem exigir knockback vanilla.
+
+================================================================================
+77. STATUS
+================================================================================
+
+Utilizar MobEffects ou estados customizados para:
+
+POISONED
+WEBBED
+CRIPPLED
+MARKED
+FRIGHTENED
+
+Evitar CC infinito.
+
+Boss possui resistance scaling.
+
+================================================================================
+78. DEATH
+================================================================================
+
+Não remover instantaneamente visualmente antes da animação.
+
+Fluxo:
+
+server sets DYING
+disable combat
+play death animation
+after duration -> remove/drop
+
+Cuidado:
+loot não deve duplicar.
+
+Server authority.
+
+================================================================================
+79. LOOT DESIGN
+================================================================================
+
+Fauna:
+materiais naturais.
+
+Great Stamp:
+meat/material, se desejado.
+
+Chimera:
+materiais específicos com parcimônia.
+
+Não fazer:
+todo inimigo soltar “Nen Crystal”.
+
+Nen é energia pessoal, não minério genérico.
+
+================================================================================
+80. REWARDS NÃO-MATERIAIS
+================================================================================
+
+Bestiary knowledge.
+Hunter reputation.
+Quest progress.
+Research points.
+Access.
+Card acquisition em Greed Island.
+
+================================================================================
+81. GREED ISLAND CARDS
+================================================================================
+
+Para criaturas de Greed Island:
+
+defeat/capture condition
+    ↓
+card conversion
+
+Não usar drop aleatório de carta.
+
+Cada mob define:
+
+CardConversionCondition.
+
+Cyclops:
+eye weakness.
+
+Hyper Puffball:
+capture.
+
+Bubble Horse:
+correct Nen interaction.
+
+================================================================================
+82. SPAWN DE GREED ISLAND
+================================================================================
+
+Se Greed Island for dimensão/área própria:
+
+usar spawns restritos à região.
+
+Não permitir:
+Bubble Horse no Overworld comum.
+
+================================================================================
+83. AUDIO
+================================================================================
+
+Cada creature set deve possuir:
+
+ambient
+alert
+attack
+hurt
+death
+
+Boss:
+phase cues.
+
+Telegraph de áudio é importante.
+
+================================================================================
+84. PARTICLES
+================================================================================
+
+Partículas são feedback.
+
+Não devem ocultar animação.
+
+Examples:
+
+ground dust para charge;
+web strands;
+spit;
+aura para Nen.
+
+Chimera natural:
+não dar aura visual sem Nen.
+
+================================================================================
+85. NEN AURA EM INIMIGOS
+================================================================================
+
+Reutilizar o sistema visual de aura planejado para jogadores.
+
+AuraRenderer deve aceitar LivingEntity/NenOwner quando possível.
+
+Assim:
+
+player Ten
+human enemy Ten
+Chimera Ant Ten
+
+compartilham fundação.
+
+Evitar implementar aura duas vezes.
+
+================================================================================
+86. FORMAS CORPORAIS E AURA
+================================================================================
+
+Aura shell de Chimera deve acompanhar skeleton/model.
+
+Não usar shell humanoide genérico sobre criatura insetoide.
+
+Criar AuraGeometryAdapter por model family.
+
+================================================================================
+87. DIREÇÃO VISUAL — HUNTER EXAM
+================================================================================
+
+Fauna deve parecer:
+
+- estranha;
+- plausível dentro do mundo;
+- colorida o suficiente;
+- biologicamente reconhecível.
+
+Não transformar tudo em horror.
+
+HxH mistura:
+fofo
+absurdo
+ameaçador
+cômico
+letal.
+
+================================================================================
+88. DIREÇÃO VISUAL — CHIMERA ANT
+================================================================================
+
+Regra:
+
+animal traits
++
+insect traits
++
+human traits progressivamente.
+
+Primeiras gerações:
+mais bestiais.
+
+Human-influenced:
+mais humanoides e individualizadas.
+
+Ranks altos:
+silhueta única.
+
+================================================================================
+89. CHIMERA MODEL BUDGET
+================================================================================
+
+MVP:
+
+3 peon bodies
+3 officer bodies
+3 squad leader bodies
+1 construction body
+
+= 10 base models.
+
+Cada um:
+2–4 texture variants.
+
+Resultado:
+variedade suficiente sem explodir produção.
+
+================================================================================
+90. PRIMEIRO PACOTE DE CHIMERA
+================================================================================
+
+PEON A — CRAB HEAVY
+-------------------
+
+Traits:
+armor;
+pinch.
+
+Role:
+frontliner.
+
+PEON B — BAT SCOUT
+------------------
+
+Traits:
+flight;
+hearing.
+
+Role:
+scout.
+
+PEON C — WOLF RUNNER
+--------------------
+
+Traits:
+speed;
+smell.
+
+Role:
+hunter.
+
+OFFICER A — SPIDER
+------------------
+
+Traits:
+web;
+climb.
+
+Inspirado biologicamente em indivíduos da obra,
+mas pode ser CANON_DERIVED se não copiar Pike.
+
+OFFICER B — MOSQUITO
+--------------------
+
+Traits:
+flight;
+venom.
+
+OFFICER C — MULTIARM CENTIPEDE
+------------------------------
+
+Traits:
+multi-hit;
+poison.
+
+SQUAD LEADER A — CHEETAH
+------------------------
+
+speed gimmick.
+
+SQUAD LEADER B — SCORPION
+-------------------------
+
+transform / control gimmick.
+
+SQUAD LEADER C — BIRD/BEAST COMMANDER
+-------------------------------------
+
+ranged/air squad.
+
+================================================================================
+91. NÃO FAZER PROCEDURAL TOTAL NO MVP
+================================================================================
+
+Evitar:
+
+runtime model generation.
+runtime skeletal generation.
+arbitrary bone counts.
+
+Isso transformaria o projeto em engine de geração de criaturas.
+
+Usar procedural apenas em:
+
+- seleção de template;
+- textura;
+- traits;
+- stats;
+- behavior;
+- Nen potential.
+
+================================================================================
+92. ENVIRONMENTAL SIGNALS
+================================================================================
+
+Inimigos precisam deixar pistas.
+
+Foxbear:
+marcas em árvores.
+
+Frog:
+solo deformado.
+
+Spider Eagle:
+teias.
+
+Chimera:
+carcaças;
+trilhas;
+scout;
+estruturas.
+
+Hunter fantasy:
+ler o mundo.
+
+================================================================================
+93. ENCOUNTER DIRECTOR
+================================================================================
+
+EncounterSpawner:
+
+input:
+player count
+progression
+region
+time
+active encounters
+
+output:
+encounter template.
+
+Não usar para natural wildlife simples.
+
+Usar para:
+packs,
+Great Stamp herd,
+Chimera hunting party.
+
+================================================================================
+94. MULTIPLAYER SCALING
+================================================================================
+
+Não escalar apenas HP.
+
+2 players:
+
++ pequena health increase;
++ maior chance de multi-target patterns.
+
+4 players:
+
++ reinforcements;
++ wider area attacks;
++ coordinated squad.
+
+Evitar:
+boss com 4x HP apenas.
+
+================================================================================
+95. SERVER AUTHORITY
+================================================================================
+
+Servidor decide:
+
+target;
+state;
+attack;
+hit;
+damage;
+weakpoint;
+Nen;
+loot;
+transformation.
+
+Cliente decide:
+
+animation interpolation;
+particles;
+sounds locais;
+cosmetic layers.
+
+================================================================================
+96. SYNC
+================================================================================
+
+SyncedEntityData:
+
+small frequently-needed values:
+
+combatState
+formState
+variantId
+animationActionId
+Nen visual flags
+
+Spawn data:
+static genome/morphology data quando necessário.
+
+Não sincronizar JSON inteiro.
+
+================================================================================
+97. SAVE
+================================================================================
+
+Persistir apenas quando necessário.
+
+Chimera elite:
+
+rank
+genomeId
+colonyId
+form
+Nen state
+name/identity
+
+Peon comum:
+mínimo.
+
+================================================================================
+98. DEBUG COMMANDS
+================================================================================
+
+Adicionar:
+
+/hxh enemy spawn <id>
+/hxh enemy state <state>
+/hxh enemy ai freeze
+/hxh enemy ai debug
+/hxh enemy hitboxes
+/hxh enemy weakpoints
+/hxh enemy animation <name>
+/hxh enemy colony info
+/hxh enemy colony alert <0-4>
+/hxh enemy nen awaken
+
+Essencial para produção.
+
+================================================================================
+99. DEBUG RENDER
+================================================================================
+
+Modo dev:
+
+green:
+body hitbox
+
+red:
+attack hitbox
+
+yellow:
+weak point
+
+blue:
+vision
+
+purple:
+aura detection
+
+line:
+current target.
+
+================================================================================
+100. TEST HARNESS
+================================================================================
+
+Criar test arena/dev dimension.
+
+Boxes:
+
+MOVEMENT
+MELEE
+RANGED
+WEAKPOINT
+MULTIPLAYER
+NEN
+PACK
+FLYING
+
+Com spawn buttons/commands.
+
+================================================================================
+101. TESTES UNITÁRIOS
+================================================================================
+
+Testar lógica pura:
+
+attack score;
+weak point multiplier;
+faction relation;
+genome selection;
+colony stage;
+Nen unlock;
+loot conditions.
+
+================================================================================
+102. GAME TESTS
+================================================================================
+
+NeoForge GameTests para:
+
+spawn conditions;
+mob acquires target;
+weak point;
+charge wall stun;
+pack leader death;
+colony progression;
+persistence.
+
+================================================================================
+103. TESTE DEDICATED SERVER
+================================================================================
+
+Obrigatório.
+
+Problemas comuns:
+
+client class loaded server-side.
+renderer referenced em common.
+GeckoLib/client event registration errado.
+
+CI deve iniciar:
+runGameTestServer quando aplicável.
+
+================================================================================
+104. PERFORMANCE TEST
+================================================================================
+
+Cenário A:
+50 wildlife.
+
+B:
+30 chimera peons.
+
+C:
+5 squads.
+
+D:
+1 boss + 20 adds.
+
+Medir MSPT.
+
+Objetivo:
+não degradar servidor por IA ociosa.
+
+================================================================================
+105. CONTENT ROADMAP
+================================================================================
+
+PHASE A — ENEMY FOUNDATION
+--------------------------
+
+Entrega:
+
+BaseHxHMob
+registries
+factions
+threat tiers
+EnemyBrain
+attack timeline
+animation pipeline
+debug.
+
+Sem isso:
+não começar 20 mobs.
+
+PHASE B — FIRST VERTICAL SLICE
+------------------------------
+
+Great Stamp.
+
+Por quê?
+
+Testa:
+
+- custom model;
+- animation;
+- AI;
+- telegraph;
+- charge;
+- weak point;
+- herd;
+- loot;
+- spawn.
+
+Se Great Stamp estiver bom:
+a fundação está provada.
+
+PHASE C — BEHAVIOR VARIETY
+--------------------------
+
+Frog-In-Waiting
+Foxbear
+Man-faced Ape
+
+Testam:
+
+ambush
+territory
+disguise
+
+PHASE D — GREED RULES
+---------------------
+
+Cyclops
+Melanin Lizard
+Hyper Puffball
+Radio Rat
+
+Testam:
+
+weak points
+pattern
+Gyo
+controller/decoy
+
+PHASE E — CHIMERA FOUNDATION
+----------------------------
+
+BaseChimeraAnt
+rank
+genome
+colony
+3 peons
+1 officer
+
+PHASE F — CHIMERA ORGANIZATION
+------------------------------
+
+squad
+nest
+construction
+hunting parties
+
+PHASE G — NEN CHIMERA
+---------------------
+
+awakening
+Ten/Ren
+Hatsu templates
+
+PHASE H — BOSSES
+----------------
+
+Squadron leaders
+Queen
+
+PHASE I — ADVANCED
+------------------
+
+Royal Guard/King-class
+late-game.
+
+================================================================================
+106. MVP RECOMENDADO
+================================================================================
+
+O primeiro MVP de inimigos deve conter 8 entidades:
+
+1. Foxbear
+2. Frog-In-Waiting
+3. Great Stamp
+4. Cyclops
+5. Hyper Puffball
+6. Chimera Peon — Heavy
+7. Chimera Peon — Scout
+8. Chimera Officer — Webber
+
+Por quê?
+
+Testa quase todos os sistemas fundamentais.
+
+================================================================================
+107. MVP+1
+================================================================================
+
+Adicionar:
+
+9. Man-faced Ape
+10. Melanin Lizard
+11. Radio Rat
+12. Chimera Squadron Leader
+
+================================================================================
+108. CRITÉRIO DE “READY TO BUILD” POR MOB
+================================================================================
+
+Antes de codar um mob, criar ficha:
+
+ID
+canonLevel
+source
+role
+threatTier
+faction
+spawn
+despawn
+size
+hitbox
+attributes
+states
+senses
+targets
+attacks
+weakpoints
+special mechanic
+loot
+model
+bones
+textures
+animations
+sounds
+particles
+Nen
+network fields
+save fields
+tests
+
+Nenhum mob entra em sprint sem essa ficha.
+
+================================================================================
+109. TEMPLATE DE FICHA
+================================================================================
+
+ENTITY ID:
+DISPLAY NAME:
+
+CANON LEVEL:
+SOURCE:
+
+ROLE:
+FACTION:
+THREAT:
+
+SPAWN:
+BIOMES:
+GROUP SIZE:
+LIGHT:
+TIME:
+STRUCTURE:
+
+DIMENSIONS:
+
+ATTRIBUTES:
+
+AI STATES:
+
+TARGET RULES:
+
+ATTACK 1:
+ATTACK 2:
+SPECIAL:
+
+WEAK POINT:
+
+NEN:
+
+MODEL:
+TEXTURE:
+VARIANTS:
+
+ANIMATIONS:
+
+AUDIO:
+
+LOOT:
+
+BESTIARY:
+
+NETWORK:
+
+PERSISTENCE:
+
+TEST CASES:
+
+================================================================================
+110. DIVISÃO PARA DUAS PESSOAS
+================================================================================
+
+DESENVOLVEDOR A — SYSTEMS
+-------------------------
+
+Ownership:
+
+enemy/base
+enemy/ai
+enemy/combat
+enemy/faction
+enemy/spawn
+chimera colony
+
+Tasks:
+
+- registry;
+- entity base;
+- AI;
+- hit detection;
+- weak point;
+- spawn;
+- multiplayer;
+- tests.
+
+DESENVOLVEDOR B — CONTENT/VISUAL
+--------------------------------
+
+Ownership:
+
+client/enemy
+models
+animations
+textures
+mob-specific definitions
+
+Tasks:
+
+- Blockbench;
+- GeckoLib;
+- texture;
+- animation;
+- visual integration;
+- mob content.
+
+Mas:
+
+cada feature branch inclui integração dos dois lados via interface acordada.
+
+================================================================================
+111. CONTRATO ENTRE OS DOIS
+================================================================================
+
+Antes de desenvolver entidade:
+
+A define:
+Enemy API.
+
+B recebe:
+entity id
+states
+animation ids
+bones
+attack events
+
+Não editar simultaneamente:
+
+ModEntityTypes.java
+central animation registry
+shared base class
+
+sem coordenação.
+
+================================================================================
+112. BRANCHES
+================================================================================
+
+feature/enemy-foundation
+feature/great-stamp
+feature/frog-in-waiting
+feature/foxbear
+feature/greed-cyclops
+feature/chimera-core
+feature/chimera-colony
+
+Short-lived branches.
+
+PR obrigatório.
+
+================================================================================
+113. ASSET REVIEW
+================================================================================
+
+Toda criatura passa por:
+
+SILHOUETTE REVIEW
+    reconhecível?
+
+SCALE REVIEW
+    tamanho correto?
+
+ANIMATION REVIEW
+    ataques legíveis?
+
+TEXTURE REVIEW
+    encaixa Minecraft?
+
+GAMEPLAY REVIEW
+    gimmick funciona?
+
+PERFORMANCE REVIEW.
+
+================================================================================
+114. ANIMATION TIMING SHEET
+================================================================================
+
+Para cada ataque:
+
+name
+length
+windup
+active start
+active end
+recovery
+root movement
+sound frames
+particle frames
+
+Exemplo:
+
+great_stamp_charge_start
+
+length:
+0.9s
+
+0.00–0.45:
+windup.
+
+0.45:
+launch.
+
+0.45–0.90:
+transition run.
+
+================================================================================
+115. ROOT MOTION
+================================================================================
+
+Não depender do root motion visual para mover mob.
+
+Minecraft server controla posição.
+
+Animação acompanha.
+
+Isso evita desync.
+
+================================================================================
+116. MODELOS GRANDES
+================================================================================
+
+Great Stamp, Melanin Lizard, Queen:
+
+AABB precisa representar corpo.
+
+Mas:
+não usar hitbox única enorme para weak points.
+
+WeakPoint controller complementa.
+
+================================================================================
+117. FLYING MOBS
+================================================================================
+
+Spider Eagle / bat Chimera.
+
+Necessário:
+
+flying navigation;
+altitude preferences;
+perch state;
+dive path.
+
+Não apenas Ghast AI copiada.
+
+================================================================================
+118. BURROW
+================================================================================
+
+Frog-In-Waiting.
+
+Não destruir terreno permanentemente.
+
+Burrow é estado visual/lógico.
+
+Entity:
+noPhysics parcial quando enterrando?
+cuidado.
+
+Melhor:
+posição fixa + invisible body variant + emerge.
+
+================================================================================
+119. DISGUISE
+================================================================================
+
+Man-faced Ape / Kiriko.
+
+Criar:
+
+DisguiseComponent
+
+fields:
+
+active
+profileId
+revealProgress
+
+Renderer escolhe model.
+
+Server continua sabendo entidade real.
+
+================================================================================
+120. CHIMERA TRANSFORMATION / GROWTH
+================================================================================
+
+Não fazer peon literalmente evoluir para Squadron Leader automaticamente.
+
+Rank = função/nascimento.
+
+O que pode evoluir:
+
+Nen;
+stats;
+individual behavior;
+Hatsu.
+
+Colony produz ranks maiores com progressão.
+
+================================================================================
+121. HATSU TEMPLATE PARA NPCS
+================================================================================
+
+Não gerar habilidade procedural completamente.
+
+Criar Hatsu archetypes:
+
+MELEE_ENHANCEMENT
+PROJECTILE_EMISSION
+BINDING_MANIPULATION
+MATERIAL_TRANSMUTATION
+CONJURED_TOOL
+SPECIAL_SCRIPTED
+
+Depois customizar.
+
+================================================================================
+122. HATSU E PERSONALIDADE
+================================================================================
+
+HxH valoriza habilidade individual.
+
+Squadron Leaders e humanos importantes:
+
+Hatsu precisa ter:
+regra;
+força;
+fraqueza;
+condição quando relevante.
+
+Não:
+“fireball but purple”.
+
+================================================================================
+123. BOSS PHILOSOPHY
+================================================================================
+
+Boss precisa testar algo aprendido.
+
+Great Stamp:
+weak point.
+
+Squad Leader:
+Nen combat.
+
+Queen:
+colony mechanics.
+
+Royal Guard-class:
+advanced Nen.
+
+King-class:
+end-game mastery / encounter.
+
+================================================================================
+124. NO RANDOM APEX SPAWNS
+================================================================================
+
+Nunca:
+
+“Você saiu da base e um Royal Guard spawnou porque light level = 0.”
+
+Apex entities exigem event/structure.
+
+================================================================================
+125. DIFFICULTY
+================================================================================
+
+Config:
+
+ENEMY_STAT_SCALE
+ENEMY_SPAWN_SCALE
+CHIMERA_COLONY_GROWTH
+BOSS_MULTIPLAYER_SCALE
+
+Não permitir config quebrar lore logic.
+
+================================================================================
+126. MOB GRIEFING
+================================================================================
+
+Default:
+baixo.
+
+Great Stamp:
+pode quebrar apenas foliage/fragile blocks se habilitado.
+
+Chimera nest:
+structure generation controlada.
+
+Não destruir construções inteiras de players aleatoriamente.
+
+================================================================================
+127. PLAYER BASE PROTECTION
+================================================================================
+
+Natural wildlife:
+não spawnar em áreas altamente ocupadas pelo jogador quando possível.
+
+Colony event:
+warn.
+
+Não gerar Queen embaixo da casa sem contexto.
+
+================================================================================
+128. WORLD EVENT — CHIMERA COLONY
+================================================================================
+
+Fluxo futuro:
+
+1. Queen event inicia.
+2. pistas aparecem.
+3. small ant sightings.
+4. nest discovered.
+5. hunting escalates.
+6. human-influenced ants.
+7. Nen awareness.
+8. Squadron leaders.
+9. Queen/King progression.
+
+Player pode intervir em qualquer etapa.
+
+Isso é muito mais HxH que simplesmente adicionar formigas ao spawn pool.
+
+================================================================================
+129. CHIMERA FAILURE/SUCCESS
+================================================================================
+
+Se player elimina Queen cedo:
+colony para de crescer.
+
+Sobreviventes:
+podem dispersar.
+
+Se player ignora:
+colony avança.
+
+Isso cria consequência real.
+
+================================================================================
+130. NEST
+================================================================================
+
+Gerar com structure pieces.
+
+Zones:
+
+entrance
+food storage
+soldier chamber
+officer chamber
+queen chamber
+nursery
+construction tunnel
+
+Não precisa copiar exatamente NGL.
+
+Pode ser CANON_DERIVED.
+
+================================================================================
+131. NEST AI
+================================================================================
+
+Dentro do nest:
+
+guards têm home radius.
+
+Hunting mobs:
+podem sair.
+
+Queen:
+não vagueia.
+
+Construction:
+rotas internas.
+
+================================================================================
+132. SCOUT SYSTEM
+================================================================================
+
+Scout encontra player:
+
+registra lastKnownPlayerPosition no colony.
+
+Se retorna:
+alert.
+
+Se morto:
+colony não recebe automaticamente informação.
+
+Isso cria stealth emergente.
+
+================================================================================
+133. ZETSU E INIMIGOS
+================================================================================
+
+Zetsu do jogador deve futuramente reduzir aura detection.
+
+Mas:
+
+não apagar visão normal.
+
+Predadores com cheiro:
+ainda detectam.
+
+Isso impede Zetsu virar invisibilidade universal.
+
+================================================================================
+134. IN
+================================================================================
+
+In afeta Nen visibility,
+não corpo físico.
+
+Radio Rat:
+excelente tutorial indireto de percepção.
+
+================================================================================
+135. GYO
+================================================================================
+
+Gyo pode oferecer:
+
+- aura trace;
+- hidden Nen;
+- clue boost.
+
+Não deve:
+mostrar todos weakpoints naturais automaticamente.
+
+Great Stamp weakness é anatomia, não Nen.
+
+================================================================================
+136. EN
+================================================================================
+
+Inimigos avançados podem usar En para detection.
+
+AI:
+
+if player enters En:
+target awareness rises.
+
+Excelente late game.
+
+================================================================================
+137. KEN / RYU
+================================================================================
+
+Nen enemies:
+
+Ken:
+defensive stance.
+
+Ryu:
+dynamic offense/defense.
+
+Visual integration:
+body aura distribution.
+
+================================================================================
+138. CREATURES NÃO-HOSTIS
+================================================================================
+
+Importante incluir:
+
+King White Stag Beetle;
+ambient magical fauna;
+rare creatures.
+
+Hunter world precisa parecer ecossistema,
+não dungeon infinita.
+
+================================================================================
+139. CAPTURE SYSTEM
+================================================================================
+
+Algumas criaturas:
+
+defeatCondition != KILL.
+
+CaptureResult.
+
+Examples:
+
+Hyper Puffball
+Bubble Horse
+rare fauna
+
+Isso pode alimentar:
+
+bestiary
+quest
+Greed Island card.
+
+================================================================================
+140. ETHOLOGY
+================================================================================
+
+Fauna deve fazer algo quando jogador não está olhando.
+
+Foxbear:
+forage.
+
+Spider Eagle:
+perch.
+
+Great Stamp:
+rooting/graze.
+
+Chimera:
+patrol/carry.
+
+Isso melhora mundo enormemente.
+
+================================================================================
+141. AMBIENT ANIMATIONS
+================================================================================
+
+Criar 1–3 por creature.
+
+Exemplo:
+
+Great Stamp:
+sniff
+dig_ground
+
+Foxbear:
+scratch
+sniff
+
+Chimera:
+look
+clean_claw
+
+Não precisam rodar frequentemente.
+
+================================================================================
+142. DAMAGE FEEDBACK
+================================================================================
+
+hurt animation curta.
+
+Avoid full animation reset:
+não cancelar attack sempre por pequeno dano.
+
+Criar interrupt rules.
+
+================================================================================
+143. INTERRUPTIBILITY
+================================================================================
+
+AttackDefinition:
+
+interruptibleWindup
+interruptibleActive
+interruptibleRecovery
+
+Heavy enemies:
+menos interrupção.
+
+================================================================================
+144. AGGRO
+================================================================================
+
+ThreatTable opcional para bosses/squads.
+
+damage;
+proximity;
+healing/support;
+special taunt.
+
+Mobs simples:
+nearest valid target.
+
+================================================================================
+145. RETREAT
+================================================================================
+
+Nem todo inimigo luta até morrer.
+
+Wildlife:
+retreat.
+
+Man-faced Ape:
+flee if trap fails.
+
+Chimera:
+depends personality/rank.
+
+================================================================================
+146. MORALE
+================================================================================
+
+Pack:
+leader death -> morale loss.
+
+Peons:
+officer death -> chance retreat.
+
+Squad Leader:
+may not retreat.
+
+================================================================================
+147. SOUND SENSOR
+================================================================================
+
+Ambushers/creatures podem reagir a:
+
+sprint;
+attack;
+projectile;
+block break.
+
+Não tentar interceptar cada som do jogo.
+
+Criar explicit events relevantes.
+
+================================================================================
+148. SMELL/TRACKING
+================================================================================
+
+Foxbear/Chimera wolf:
+simple last-known-position tracking.
+
+Não simular cheiro volumétrico.
+
+================================================================================
+149. WEATHER / TIME
+================================================================================
+
+Algumas variantes podem responder a:
+
+night
+rain
+
+Mas não inventar comportamento canônico desnecessário.
+
+Use só quando melhora jogo.
+
+================================================================================
+150. COMPATIBILIDADE COM OUTROS MODS
+================================================================================
+
+Não hardcode apenas vanilla biomes.
+
+Usar biome tags.
+
+Loot via tags.
+
+Entity classification tags:
+
+#<modid>:chimera_prey
+#<modid>:chimera_ignored
+#<modid>:nen_users
+
+Isso permite integração.
+
+================================================================================
+151. DATA PACK EXTENSIBILITY
+================================================================================
+
+Desejável:
+
+enemy stats;
+spawn;
+loot;
+encounter templates.
+
+Não expor AI arbitrária via JSON inicialmente.
+
+================================================================================
+152. RESOURCE PACK EXTENSIBILITY
+================================================================================
+
+Texturas substituíveis normalmente.
+
+Models GeckoLib via resource assets.
+
+Documentar paths.
+
+================================================================================
+153. FOLDER DE ASSETS
+================================================================================
+
+assets/<modid>/
+├── geckolib/
+│   ├── models/entity/
+│   │   ├── hunter_exam/
+│   │   ├── greed_island/
+│   │   └── chimera/
+│   └── animations/entity/
+│       ├── hunter_exam/
+│       ├── greed_island/
+│       └── chimera/
+│
+├── textures/entity/
+│   ├── hunter_exam/
+│   ├── greed_island/
+│   └── chimera/
+│
+└── sounds/
+
+================================================================================
+154. SOURCE FILES
+================================================================================
+
+Não commitar só export.
+
+Commit:
+
+.bbmodel
+.png source
+.geo.json
+.animation.json
+
+Assim os dois podem editar.
+
+================================================================================
+155. GIT LFS
+================================================================================
+
+Se assets crescerem muito:
+
+avaliar Git LFS.
+
+Mas:
+PNG e bbmodel iniciais talvez não justifiquem.
+
+Monitorar repo size.
+
+================================================================================
+156. DEFINITION OF DONE — NOVO MOB
+================================================================================
+
+[ ] ficha aprovada
+[ ] EntityType
+[ ] attributes
+[ ] spawn rule
+[ ] AI
+[ ] attacks
+[ ] weakpoint se houver
+[ ] model
+[ ] texture
+[ ] animations
+[ ] renderer
+[ ] sound
+[ ] loot
+[ ] multiplayer
+[ ] bestiary
+[ ] GameTest
+[ ] performance test
+[ ] dedicated server
+[ ] no crash sem client classes
+[ ] documentation
+
+================================================================================
+157. DEFINITION OF DONE — CHIMERA VARIANT
+================================================================================
+
+[ ] rank
+[ ] morphology
+[ ] trait
+[ ] role
+[ ] colony integration
+[ ] squad integration
+[ ] model
+[ ] variant
+[ ] animation
+[ ] Nen potential
+[ ] loot
+[ ] tests
+
+================================================================================
+158. PRIMEIRA SPRINT — FOUNDATION
+================================================================================
+
+DEV A
+
+Task A1
+ModEntityTypes.
+
+Task A2
+BaseHxHMob.
+
+Task A3
+EnemyBrain.
+
+Task A4
+AttackTimeline.
+
+Task A5
+WeakPoint.
+
+Task A6
+debug commands.
+
+DEV B
+
+Task B1
+GeckoLib dependency.
+
+Task B2
+asset folder standard.
+
+Task B3
+test dummy model.
+
+Task B4
+animation contract.
+
+Task B5
+debug renderer.
+
+Exit:
+Dummy mob spawns,
+walks,
+attacks,
+plays animation,
+server validates hit.
+
+================================================================================
+159. SEGUNDA SPRINT — GREAT STAMP
+================================================================================
+
+DEV A
+
+charge AI
+collision
+weak point
+herd.
+
+DEV B
+
+model
+texture
+idle
+walk
+run
+windup
+charge
+stun
+death.
+
+Exit:
+
+Great Stamp completo.
+
+================================================================================
+160. TERCEIRA SPRINT — FROG + FOXBEAR
+================================================================================
+
+Frog testa:
+ambush.
+
+Foxbear:
+territory.
+
+Exit:
+3 comportamentos drasticamente diferentes.
+
+================================================================================
+161. QUARTA SPRINT — GREED
+================================================================================
+
+Cyclops
+Hyper Puffball
+
+Depois:
+Melanin Lizard
+Radio Rat.
+
+================================================================================
+162. QUINTA SPRINT — CHIMERA CORE
+================================================================================
+
+Colony data.
+BaseChimeraAnt.
+3 peons.
+1 officer.
+
+================================================================================
+163. SEXTA SPRINT — CHIMERA WORLD
+================================================================================
+
+Nest.
+Hunting parties.
+Gene pool.
+Alert.
+
+================================================================================
+164. SÉTIMA SPRINT — CHIMERA NEN
+================================================================================
+
+Nen awakening.
+Aura.
+Ten/Ren.
+Hatsu template.
+
+================================================================================
+165. FUTURO — DARK CONTINENT
+================================================================================
+
+NÃO implementar agora como fauna comum.
+
+A obra trata o Dark Continent como escala radicalmente diferente.
+
+Cinco ameaças conhecidas incluem entidades/fenômenos como:
+
+- Brion;
+- Ai;
+- Hellbell;
+- Pap;
+- Zobae.
+
+Esses não devem ser simplesmente:
+
+“mobs tier 10”.
+
+Se usados:
+cada um precisa de sistema próprio.
+
+Deixar para expansão pós-MVP.
+
+================================================================================
+166. ERROS A EVITAR
+================================================================================
+
+1. Todo mob usa MeleeAttackGoal.
+2. Todo mob recebe 200 HP.
+3. Toda criatura dropa item necessário.
+4. Toda Chimera Ant usa Nen.
+5. Toda Chimera Ant é humanoide.
+6. Royal Guards spawn natural.
+7. Hitboxes dependem do cliente.
+8. Animação define dano.
+9. Cada ataque envia packet por tick.
+10. AI escaneia mundo todo tick.
+11. GeckoLib classes client em common.
+12. Nen duplicado em sistema separado para mobs.
+13. Weakpoint marcado como target vermelho.
+14. Wildlife persegue jogador por centenas de blocos.
+15. Todas criaturas são hostis.
+16. Todos encounters terminam em morte.
+17. Conteúdo original apresentado como canônico.
+18. Formigas totalmente procedurais antes do core funcionar.
+
+================================================================================
+167. CHECKLIST DE FIDELIDADE HxH
+================================================================================
+
+Para cada inimigo perguntar:
+
+[ ] Existe uma lógica além de HP?
+[ ] Observar ajuda?
+[ ] O mundo informa seu comportamento?
+[ ] A criatura possui ecologia?
+[ ] Nen, se existir, obedece às mesmas regras?
+[ ] Poder não substitui completamente estratégia?
+[ ] O jogador pode aprender?
+[ ] O design não contradiz cânone conhecido?
+
+================================================================================
+168. CHECKLIST DE ARTE
+================================================================================
+
+[ ] silhueta reconhecível
+[ ] proporção correta
+[ ] pivots corretos
+[ ] bone names corretos
+[ ] texture sem bleeding
+[ ] attack telegraph claro
+[ ] death animation
+[ ] hurt feedback
+[ ] shadow radius
+[ ] eye height
+[ ] AABB compatível
+[ ] first/third person effects quando relevante
+
+================================================================================
+169. CHECKLIST DE IA
+================================================================================
+
+[ ] idle
+[ ] detection
+[ ] target
+[ ] lose target
+[ ] home
+[ ] attack selection
+[ ] cooldown
+[ ] path fail
+[ ] water
+[ ] cliff
+[ ] multiplayer target
+[ ] retreat
+[ ] death
+[ ] unload/reload
+
+================================================================================
+170. CHECKLIST CHIMERA
+================================================================================
+
+[ ] colonyId
+[ ] rank
+[ ] squad
+[ ] gene template
+[ ] morphology
+[ ] personality
+[ ] Nen state
+[ ] alert contribution
+[ ] home nest
+[ ] save
+[ ] despawn rule
+
+================================================================================
+171. CRITÉRIO FINAL DE QUALIDADE
+================================================================================
+
+O sistema está correto quando um jogador encontra cinco inimigos diferentes e precisa
+pensar cinco coisas diferentes.
+
+Exemplo:
+
+Foxbear:
+    “não invadir território.”
+
+Frog:
+    “olhar onde piso.”
+
+Great Stamp:
+    “desviar e acertar a testa.”
+
+Radio Rat:
+    “o inimigo que vejo talvez seja chamariz.”
+
+Chimera squad:
+    “quem é o líder e qual papel cada um está cumprindo?”
+
+Isso é a diferença entre:
+
+“um mod com mobs de HxH”
+
+e:
+
+“um mundo que funciona como Hunter × Hunter”.
+
+================================================================================
+172. FONTES DE PESQUISA — UNIVERSO / BESTIÁRIO
+================================================================================
+
+Hunterpedia — Bestiary
+https://hunterxhunter.fandom.com/wiki/Bestiary
+
+Hunterpedia — 287th Hunter Exam
+https://hunterxhunter.fandom.com/wiki/287th_Hunter_Exam
+
+Hunterpedia — Foxbear
+https://hunterxhunter.fandom.com/wiki/Foxbear
+
+Hunterpedia — Master of the Swamp
+https://hunterxhunter.fandom.com/wiki/Master_of_the_Swamp
+
+Hunterpedia — Kiriko
+https://hunterxhunter.fandom.com/wiki/Kiriko
+
+Hunterpedia — Man-faced Ape
+https://hunterxhunter.fandom.com/wiki/Man-faced_Ape
+
+Hunterpedia — Frog-In-Waiting
+https://hunterxhunter.fandom.com/wiki/Frog-In-Waiting
+
+Hunterpedia — Great Stamp
+https://hunterxhunter.fandom.com/wiki/Great_Stamp
+
+Hunterpedia — Spider Eagle
+https://hunterxhunter.fandom.com/wiki/Spider_Eagle
+
+Hunterpedia — Greed Island
+https://hunterxhunter.fandom.com/wiki/Greed_Island
+
+Hunterpedia — Cyclops
+https://hunterxhunter.fandom.com/wiki/Cyclops
+
+Hunterpedia — Bubble Horse
+https://hunterxhunter.fandom.com/wiki/Bubble_Horse
+
+Hunterpedia — Radio Rat
+https://hunterxhunter.fandom.com/wiki/Radio_Rat_(G.I_card)
+
+Hunterpedia — King White Stag Beetle
+https://hunterxhunter.fandom.com/wiki/King_White_Stag_Beetle
+
+Hunterpedia — Melanin Lizard
+https://hunterxhunter.fandom.com/wiki/Melanin_Lizard
+
+Hunterpedia — Hyper Puffball
+https://hunterxhunter.fandom.com/wiki/Hyper_Puffball
+
+Hunterpedia — Wolf Pack
+https://hunterxhunter.fandom.com/wiki/Wolf_Pack
+
+Hunterpedia — Chimera Ants
+https://hunterxhunter.fandom.com/wiki/Chimera_Ants
+
+Hunterpedia — Chimera Ant Queen
+https://hunterxhunter.fandom.com/wiki/Chimera_Ant_Queen
+
+Hunterpedia — Squadron Leaders
+https://hunterxhunter.fandom.com/wiki/Squadron_Leaders
+
+Hunterpedia — Royal Guards
+https://hunterxhunter.fandom.com/wiki/Royal_Guards
+
+Hunterpedia — Rammot
+https://hunterxhunter.fandom.com/wiki/Rammot
+
+Hunterpedia — Pike
+https://hunterxhunter.fandom.com/wiki/Pike
+
+Hunterpedia — Cheetu
+https://hunterxhunter.fandom.com/wiki/Cheetu
+
+Hunterpedia — Zazan
+https://hunterxhunter.fandom.com/wiki/Zazan
+
+Hunterpedia — Dark Continent
+https://hunterxhunter.fandom.com/wiki/Dark_Continent
+
+Observação:
+Hunterpedia é uma fonte comunitária/secundária. As páginas utilizadas apontam para
+capítulos/episódios correspondentes; para decisões críticas de cânone, verificar o
+mangá original indicado nas referências da página antes de consolidar conteúdo final.
+
+================================================================================
+173. FONTES TÉCNICAS
+================================================================================
+
+NeoForge 1.21.1 — Biome Modifiers / Add Spawns
+https://docs.neoforged.net/docs/1.21.1/worldgen/biomemodifier/
+
+A documentação confirma:
+- spawners por biome/tag;
+- weight;
+- minCount;
+- maxCount;
+- necessidade de RegisterSpawnPlacementsEvent para entidades novas.
+
+NeoForge 1.21.1 — Entity networking
+https://docs.neoforged.net/docs/1.21.1/networking/entities/
+
+Útil para:
+- spawn data;
+- sincronização de entidades.
+
+NeoForge 1.21.1 — Events
+https://docs.neoforged.net/docs/1.21.1/concepts/events/
+
+GeckoLib Wiki — Version Support
+https://wiki.geckolib.com/docs/geckolib4/
+
+Na consulta realizada:
+Minecraft 1.21.1 aparece com GeckoLib 4.8.3.
+
+GeckoLib GitHub
+https://github.com/bernie-g/geckolib
+
+GeckoLib Example Mods
+https://github.com/bernie-g/geckolib-examples
+
+GeckoLib / Blockbench:
+usar o plugin GeckoLib Animated Model para modelos e animações.
+
+================================================================================
+174. PRÓXIMO PASSO RECOMENDADO
+================================================================================
+
+Não começar pelas Formigas Quimera.
+
+Implementar primeiro:
+
+FOUNDATION
+    ↓
+GREAT STAMP
+    ↓
+FROG-IN-WAITING
+    ↓
+FOXBEAR
+    ↓
+CYCLOPS/HYPER PUFFBALL
+    ↓
+CHIMERA CORE
+
+Por quê?
+
+Great Stamp testa quase toda a pipeline tradicional.
+
+Frog testa estado ambiental.
+
+Foxbear testa AI territorial.
+
+Greed Island testa encounters de regra.
+
+Somente então a equipe terá ferramentas maduras para construir a maior peça:
+
+CHIMERA ANT COLONY.
+
+================================================================================
+175. PRIMEIRA META DE PRODUÇÃO
+================================================================================
+
+Objetivo técnico:
+
+Um Great Stamp deve estar completamente jogável com:
+
+- spawn;
+- model;
+- texture;
+- animation;
+- AI;
+- herd;
+- charge;
+- telegraph;
+- weakpoint;
+- wall stun;
+- loot;
+- bestiary;
+- multiplayer;
+- GameTest;
+- dedicated server.
+
+Quando isso estiver concluído,
+usar o Great Stamp como referência/padrão interno para todos os mobs seguintes.
+
+================================================================================
+FIM
+================================================================================

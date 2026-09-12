@@ -28,6 +28,8 @@ acusa o que nunca entrou nela.
 | [ADR-012](ADR-012-geckolib-obrigatorio.md) | GeckoLib e biblioteca obrigatoria do pipeline de entidades | aceita |
 | [ADR-013](ADR-013-saldo-so-para-quem-libera-aura.md) | O saldo negativo vale para quem LIBERA aura | Zetsu e Ten ficam mais baratos do que deveriam ate a camada de dano existir (#127); "quem libera" nao e um campo, e desenho |
 | [ADR-014](ADR-014-alocacao-de-aura-por-regiao.md) | A aura tem regioes, e elas sao autoritativas | mais um derivado para limpar; mais bytes por delta; duas distribuicoes no repo ate a projecao ser ligada; a soma 1.0 e invariante e nao botao de balanceamento |
+| [ADR-015](ADR-015-aura-e-geometria-e-shader.md) | A aura e geometria e shader; particula e acabamento | uma trilha inteira (AV0-AV8) so de visual; shader custom quebra entre versoes; overdraw vira requisito de gate; o efeito barato que ja desenhava sai de cena antes de o novo entrar |
+| [ADR-016](ADR-016-pos-processamento-proprio-da-aura.md) | O brilho da aura e pos-processamento proprio, opcional e com fallback | render target vaza em resize e em reload; duas maneiras de produzir o mesmo halo; incompatibilidade provavel com shader pack, detectada e documentada em vez de prometida |
 
 ## Como escrever um ADR
 

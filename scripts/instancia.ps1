@@ -503,6 +503,38 @@ function Comando-Servidor {
     }
 }
 
+function Limpar-JarQueSombreiaOCliente {
+    # O CLIENTE DE DESENVOLVIMENTO COMPILA O MOD; um JAR na pasta `mods/` dele
+    # NAO e redundante -- ele GANHA, e em silencio.
+    #
+    # O sintoma nao se parece com a causa. O servidor conhece uma entidade que
+    # o cliente nao conhece, e o jogo recusa a conexao com:
+    #
+    #   The server send registries with unknown keys:
+    #   ResourceKey[minecraft:entity_type / nenfoundation:<algo>]
+    #
+    # Parece dessincronizacao de protocolo, ou mod faltando no servidor. E o
+    # log do cliente nao ajuda: ele imprime "Nen Foundation registrado" com a
+    # versao e o protocolo certos -- do JAR VELHO.
+    #
+    # Foi assim que um JAR de uma hora antes deixou o cliente sem o Master of
+    # the Swamp enquanto o servidor ja o tinha.
+    #
+    # APAGA EM VEZ DE RECUSAR, pelo mesmo motivo que `atualizar` apaga as
+    # versoes antigas em `mods/` do servidor: e artefato de build, refeito a
+    # qualquer momento, e nao dado de ninguem. Mas apaga EM VOZ ALTA.
+    $mods = Join-Path $Cliente 'mods'
+    if (-not (Test-Path -LiteralPath $mods)) { return }
+
+    Get-ChildItem -Path $mods -Filter 'nenfoundation-*.jar' -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            Aviso "removendo $($_.Name) de instancia\cliente\mods\ ($($_.LastWriteTime))."
+            Aviso "   O cliente de desenvolvimento COMPILA o mod: um JAR ali ganha do"
+            Aviso "   codigo, e voce testaria a versao dele sem nada avisar."
+            Remove-Item -LiteralPath $_.FullName -Force
+        }
+}
+
 function Comando-Cliente {
     Titulo "Subindo um cliente de teste"
     Aviso "E o cliente de desenvolvimento (gradlew runClient), nao um instalado por launcher:"
@@ -514,6 +546,7 @@ function Comando-Cliente {
     $env:JAVA_HOME = Split-Path -Parent (Split-Path -Parent $java)
 
     New-Item -ItemType Directory -Force -Path $Cliente | Out-Null
+    Limpar-JarQueSombreiaOCliente
 
     # ABSOLUTO, e nao `instancia/cliente`. O caminho relativo e resolvido
     # contra a raiz do PROJETO -- entao com -Codigo ele apontaria para a

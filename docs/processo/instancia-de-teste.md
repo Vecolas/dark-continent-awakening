@@ -122,6 +122,29 @@ pode não ser o código atual.
 
 ---
 
+## "The server send registries with unknown keys"
+
+O jogo recusa a conexao dizendo que o servidor mandou uma chave que o cliente
+nao conhece -- por exemplo
+`ResourceKey[minecraft:entity_type / nenfoundation:master_of_the_swamp]`.
+
+Parece dessincronizacao de protocolo ou mod faltando. Quase sempre e outra
+coisa: **o cliente esta rodando um JAR velho**, e nao o codigo compilado.
+
+O cliente de desenvolvimento compila o mod a partir do repositorio -- mas ele
+tambem varre `instancia/cliente/mods/`, e **um JAR ali ganha do codigo, em
+silencio**. O log nao entrega o problema: ele imprime `Nen Foundation
+registrado` com versao e protocolo, os do JAR velho.
+
+O script apaga esse JAR antes de subir o cliente, em voz alta. Ele e artefato
+de build, refeito a qualquer momento -- nao e dado de ninguem.
+
+> Se a chave desconhecida for de uma entidade que a outra lane acabou de
+> escrever, a outra hipotese e mais simples: o servidor esta na versao nova e
+> o cliente na antiga, ou o contrario. `status` mostra as duas datas.
+
+---
+
 ## "outro processo bloqueou parte do arquivo"
 
 Esse erro do Minecraft quer dizer **ja ha um servidor desta instancia no ar**.

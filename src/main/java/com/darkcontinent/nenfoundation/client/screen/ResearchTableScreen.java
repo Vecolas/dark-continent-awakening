@@ -23,17 +23,16 @@ public final class ResearchTableScreen extends AbstractContainerScreen<ResearchT
     }
 
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        // Vanilla container language without copying another screen's
-        // texture: neutral container surface, vanilla slots and vanilla
-        // Button. Only the research operation is specific to this screen.
-        graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFFC6C6C6);
-        graphics.fill(leftPos + 7, topPos + 7, leftPos + 169, topPos + 68, 0xFFBDBDBD);
-        graphics.fill(leftPos + 7, topPos + 68, leftPos + 169, topPos + 69, 0xFF8B8B8B);
+        // Keep the vanilla container language without copying a complete
+        // crafting/grindstone layout. The lower strip is the exact vanilla
+        // player-inventory area; the table owns only the upper operation area.
+        graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + 70, 0xFFC6C6C6);
+        graphics.blit(INVENTORY_LOCATION, leftPos, topPos + 70, 0, 70, imageWidth, imageHeight - 70);
     }
 
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, 8, 6, 0xFF404040, false);
-        graphics.drawString(font, Component.translatable("bestiary.research.input"), 42, 62, 0xFF404040, false);
-        graphics.drawString(font, Component.translatable("container.inventory"), 8, 72, 0xFF404040, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
+        graphics.drawCenteredString(font, Component.translatable("bestiary.research.input"), 58, 61, 0xFF404040);
+        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
     }
 }

@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeHollowGener
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBranchGenerator;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCanopyGenerator;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeFloraGenerator;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCrownGenerator;
 import com.darkcontinent.nenfoundation.worldtree.checkpoint.WorldTreeCheckpointGenerator;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -63,6 +64,7 @@ public final class WorldTreeChunkGenerator extends ChunkGenerator {
         WorldTreeTrunkGenerator.generate(chunk, level.getSeed());
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(level.getSeed(), 0, 0);
         WorldTreeBranchGenerator.generate(chunk, layout);
+        WorldTreeCrownGenerator.generate(chunk, layout);
         WorldTreeCanopyGenerator.generate(chunk, layout);
         WorldTreeCheckpointGenerator.generate(chunk, layout);
         WorldTreeHollowGenerator.generate(chunk, layout);

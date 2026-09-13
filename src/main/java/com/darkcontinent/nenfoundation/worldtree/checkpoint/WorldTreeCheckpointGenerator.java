@@ -26,10 +26,18 @@ public final class WorldTreeCheckpointGenerator {
             }
             chunk.setBlockState(anchor, WorldTreeBlocks.HUNTER_CLIMBING_ANCHOR.get()
                     .defaultBlockState(), false);
-            BlockPos support = anchor.below();
-            if (chunk.getBlockState(support).isAir()) {
-                chunk.setBlockState(support, WorldTreeBlocks.WORLD_TREE_DEADWOOD.get()
-                        .defaultBlockState(), false);
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    if (dx * dx + dz * dz > 5) {
+                        continue;
+                    }
+                    BlockPos support = anchor.below().offset(dx, 0, dz);
+                    if (chunk.getBlockState(support).isAir()) {
+                        chunk.setBlockState(support, checkpoint == WorldTreeCheckpoint.SUMMIT
+                                ? WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState()
+                                : WorldTreeBlocks.WORLD_TREE_DEADWOOD.get().defaultBlockState(), false);
+                    }
+                }
             }
         }
     }

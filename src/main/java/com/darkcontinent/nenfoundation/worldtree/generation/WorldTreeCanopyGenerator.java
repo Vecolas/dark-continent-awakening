@@ -25,14 +25,14 @@ public final class WorldTreeCanopyGenerator {
         for (int branchId = 0; branchId < layout.branches().size(); branchId++) {
             WorldTreeSpline branch = layout.branches().get(branchId);
             for (int clusterId = 0; clusterId < CLUSTERS_PER_BRANCH; clusterId++) {
-                double t = 0.62 + clusterId * 0.17;
+                double t = 0.55 + clusterId * 0.09;
                 WorldTreePoint center = WorldTreeRootGenerator.bezier(branch, t);
                 double radius = clusterRadius(layout.seed(), branchId, clusterId);
                 if (!chunkIntersectsCluster(minX, maxX, minZ, maxZ, center, radius)) {
                     continue;
                 }
                 placeCluster(chunk, position, minX, minZ, maxX, maxZ,
-                        center, radius, layout.seed(), branchId, clusterId);
+                        branch, center, radius, layout.seed(), branchId, clusterId);
             }
         }
     }
@@ -53,22 +53,32 @@ public final class WorldTreeCanopyGenerator {
     }
 
     private static void placeCluster(ChunkAccess chunk, BlockPos.MutableBlockPos position,
-            int minX, int minZ, int maxX, int maxZ, WorldTreePoint center, double radius,
+            int minX, int minZ, int maxX, int maxZ, WorldTreeSpline branch,
+            WorldTreePoint center, double radius,
             long seed, int branchId, int clusterId) {
-        int fromX = Math.max(minX, (int) Math.floor(center.x() - radius));
-        int toX = Math.min(maxX, (int) Math.ceil(center.x() + radius) + 1);
-        int fromZ = Math.max(minZ, (int) Math.floor(center.z() - radius));
-        int toZ = Math.min(maxZ, (int) Math.ceil(center.z() + radius) + 1);
-        double verticalRadius = radius * 0.78;
+        WorldTreePoint first = branch.controlPoints().get(0);
+        WorldTreePoint last = branch.controlPoints().get(3);
+        double angle = Math.atan2(last.z() - first.z(), last.x() - first.x());
+        double lengthRadius = radius * 1.85;
+        double crossRadius = radius * 0.78;
+        int fromX = Math.max(minX, (int) Math.floor(center.x() - lengthRadius));
+        int toX = Math.min(maxX, (int) Math.ceil(center.x() + lengthRadius) + 1);
+        int fromZ = Math.max(minZ, (int) Math.floor(center.z() - lengthRadius));
+        int toZ = Math.min(maxZ, (int) Math.ceil(center.z() + lengthRadius) + 1);
+        double verticalRadius = radius * 0.82;
         int fromY = Math.max(chunk.getMinBuildHeight(), (int) Math.floor(center.y() - verticalRadius));
         int toY = Math.min(chunk.getMaxBuildHeight(), (int) Math.ceil(center.y() + verticalRadius) + 1);
 
         for (int x = fromX; x < toX; x++) {
             for (int z = fromZ; z < toZ; z++) {
                 for (int y = fromY; y < toY; y++) {
-                    double normalized = Math.pow((x - center.x()) / radius, 2.0)
-                            + Math.pow((y - center.y()) / verticalRadius, 2.0)
-                            + Math.pow((z - center.z()) / radius, 2.0);
+                    double along = (x - center.x()) * Math.cos(angle)
+                            + (z - center.z()) * Math.sin(angle);
+                    double across = -(x - center.x()) * Math.sin(angle)
+                            + (z - center.z()) * Math.cos(angle);
+                    double normalized = Math.pow(along / lengthRadius, 2.0)
+                            + Math.pow(across / crossRadius, 2.0)
+                            + Math.pow((y - center.y()) / verticalRadius, 2.0);
                     if (normalized > 1.0 || cavity(seed, x, y, z, branchId, clusterId)) {
                         continue;
                     }

@@ -36,15 +36,47 @@ param(
     # assim mesmo -- para investigar, ou para comparar com a versao anterior.
     # Fora disso, use o padrao: o proposito desta pasta e estar sempre na
     # versao mais recente.
-    [switch]$SemAtualizar
+    [switch]$SemAtualizar,
+
+    # Compila o mod a partir de OUTRA arvore, sem mexer nesta.
+    #
+    # ISTO EXISTE PORQUE SAO DUAS PESSOAS. Quando a outra lane esta no meio de
+    # um mob -- o renderer escrito e a entidade ainda nao -- a arvore nao
+    # compila, e `servidor` e `cliente` param junto. O trabalho dela nao esta
+    # errado: esta pela metade, que e o estado normal de quem esta escrevendo.
+    #
+    # Sem esta opcao a saida seria mexer nos arquivos da outra pessoa, que e o
+    # erro numero 9 da lista do CLAUDE.md -- ou desistir de jogar ate ela
+    # terminar.
+    #
+    # A INSTANCIA NAO SE MOVE: mundos, options.txt e capturas continuam em
+    # `instancia/` desta copia. So o CODIGO vem de fora.
+    #
+    #   .\scripts\instancia.ps1 servidor -Codigo C:\dev\dca-lane-a
+    [string]$Codigo = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
-$Raiz      = Split-Path -Parent $PSScriptRoot
-$Instancia = Join-Path $Raiz 'instancia'
+# A INSTANCIA MORA SEMPRE AO LADO DESTE SCRIPT, e o codigo pode vir de fora.
+# Separar os dois e o que permite jogar a partir de uma arvore limpa sem
+# perder o mundo de teste -- ver o parametro -Codigo.
+$Instancia = Join-Path (Split-Path -Parent $PSScriptRoot) 'instancia'
 $Servidor  = Join-Path $Instancia 'servidor'
 $Cliente   = Join-Path $Instancia 'cliente'
+
+$Raiz = if ($Codigo) {
+    if (-not (Test-Path -LiteralPath $Codigo)) {
+        throw "-Codigo aponta para '$Codigo', que nao existe."
+    }
+    $resolvido = (Resolve-Path -LiteralPath $Codigo).Path
+    if (-not (Test-Path -LiteralPath (Join-Path $resolvido 'gradlew.bat'))) {
+        throw "-Codigo aponta para '$resolvido', que nao tem gradlew.bat -- nao e uma copia deste repositorio."
+    }
+    $resolvido
+} else {
+    Split-Path -Parent $PSScriptRoot
+}
 $Gradlew   = Join-Path $Raiz 'gradlew.bat'
 
 function Escrever($texto) { Write-Host $texto }
@@ -418,7 +450,11 @@ function Comando-Cliente {
 
     New-Item -ItemType Directory -Force -Path $Cliente | Out-Null
 
-    $argumentos = @('runClient', '--console=plain', "-PdirCliente=instancia/cliente", "-Pjogador=$Jogador")
+    # ABSOLUTO, e nao `instancia/cliente`. O caminho relativo e resolvido
+    # contra a raiz do PROJETO -- entao com -Codigo ele apontaria para a
+    # `instancia/` da outra arvore, e o jogador abriria um perfil vazio
+    # achando que perdeu os mundos.
+    $argumentos = @('runClient', '--console=plain', "-PdirCliente=$Cliente", "-Pjogador=$Jogador")
     if (-not $SemEntrar) { $argumentos += "-PentrarEm=localhost:$Porta" }
 
     # Mesma razao do Comando-Atualizar, com um agravante: -PdirCliente e

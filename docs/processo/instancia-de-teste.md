@@ -74,6 +74,43 @@ cada rebuild transformaria "testar" em "recriar o cenário".
 
 ---
 
+## Quando a outra lane está no meio de alguma coisa
+
+São duas pessoas neste repositório. Enquanto uma está escrevendo um mob — o
+renderer pronto e a entidade ainda não — **a árvore não compila**, e `servidor`
+e `cliente` param junto com ela. O trabalho dela não está errado: está pela
+metade, que é o estado normal de quem está escrevendo.
+
+```powershell
+.\scripts\instancia.ps1 servidor -Codigo C:\dev\dca-lane-a
+.\scripts\instancia.ps1 cliente  -Codigo C:\dev\dca-lane-a
+```
+
+O mod é compilado **da outra árvore**; a instância não se move. Mundos,
+`options.txt` e capturas continuam em `instancia/` desta cópia — é por isso que
+`-PdirCliente` passou a ser caminho absoluto: relativo, ele seria resolvido
+contra a raiz do *projeto*, e o jogador abriria um perfil vazio achando que
+perdeu os mundos.
+
+Use uma worktree em `main` (`git worktree add`), não um clone solto: assim o que
+você joga é uma versão que existe no histórico, e não uma cópia particular.
+
+> **A alternativa seria mexer nos arquivos da outra pessoa** para fazer o build
+> passar — o erro nº 9 da lista do CLAUDE.md — ou esperar ela terminar. As duas
+> são piores.
+
+E há a saída menor, para quando você só quer entrar com o que já está
+instalado:
+
+```powershell
+.\scripts\instancia.ps1 servidor -SemAtualizar
+```
+
+Ela sobe o JAR de `mods/` **sem recompilar**, e avisa em voz alta que aquilo
+pode não ser o código atual.
+
+---
+
 ## O mundo é normal, e não superplano
 
 Ele já foi superplano — sobe rápido, e dá para andar sem obstáculo. O custo só

@@ -143,6 +143,10 @@ public final class HunterBestiaryScreen extends Screen {
                     graphics.drawWordWrap(font, Component.translatable("bestiary.discovery.foxbear.territorial"),
                             right, top + 389, bookWidth / 2 - 52, OLIVE);
                 }
+                if (!progress.weakPointsDiscovered().isEmpty()) {
+                    graphics.drawWordWrap(font, Component.translatable("bestiary.weak_point.discovered"),
+                            right, top + 410, bookWidth / 2 - 52, ALERTA);
+                }
             }
         }
         graphics.drawString(font, "< INDEX", left + 30, top + bookHeight - 30, PETROLEO, false);

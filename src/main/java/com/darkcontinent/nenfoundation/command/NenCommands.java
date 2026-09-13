@@ -201,6 +201,12 @@ public final class NenCommands {
                                         .executes(ctx -> pesquisarBestiario(ctx, false))
                                         .then(Commands.argument("alvo", EntityArgument.player())
                                                 .executes(ctx -> pesquisarBestiario(ctx, true))))))
+                .then(Commands.literal("weakpoint")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("ponto", StringArgumentType.word())
+                                        .executes(ctx -> descobrirPontoFraco(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> descobrirPontoFraco(ctx, true))))))
                 .then(Commands.literal("unlock")
                         .then(Commands.argument("entrada", ResourceLocationArgument.id())
                                 .then(Commands.argument("nivel", StringArgumentType.word())
@@ -261,6 +267,20 @@ public final class NenCommands {
         BestiaryPlayerService.substituir(alvo, BestiaryPlayerService.ler(alvo).withProgress(id,
                 atual.withResearchPoints(0, level)));
         ctx.getSource().sendSuccess(() -> Component.literal("Entrada " + id + " ajustada para " + level), true);
+        return 1;
+    }
+
+    private static int descobrirPontoFraco(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        var ponto = StringArgumentType.getString(ctx, "ponto");
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.descobrirPontoFraco(alvo, id, ponto);
+        ctx.getSource().sendSuccess(() -> Component.literal("Ponto fraco registrado em " + id), true);
         return 1;
     }
 

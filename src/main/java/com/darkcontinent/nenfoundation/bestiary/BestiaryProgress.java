@@ -94,4 +94,15 @@ public record BestiaryProgress(
                 researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
                 behaviorFlags, captureFlags, Set.copyOf(discoveries));
     }
+
+    public BestiaryProgress withWeakPoint(String weakPoint) {
+        if (weakPoint == null || weakPoint.isBlank()) {
+            throw new IllegalArgumentException("ponto fraco do bestiario vazio");
+        }
+        var points = new java.util.HashSet<>(weakPointsDiscovered);
+        points.add(weakPoint);
+        return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
+                researchPoints, firstSeenTime, lastSeenTime, Set.copyOf(points), behaviorFlags,
+                captureFlags, specialDiscoveries);
+    }
 }

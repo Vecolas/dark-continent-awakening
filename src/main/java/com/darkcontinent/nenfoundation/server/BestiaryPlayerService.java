@@ -60,6 +60,13 @@ public final class BestiaryPlayerService {
         }
     }
 
+    public static void descobrirPontoFraco(ServerPlayer jogador, ResourceLocation id, String pontoFraco) {
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) {
+            atualizar(jogador, id, progresso(jogador, id).withWeakPoint(pontoFraco));
+        }
+    }
+
     private static BestiaryProgress pesquisar(BestiaryProgress atual, BestiaryEntryDefinition entry,
             int pontos, BestiaryKnowledgeLevel minimo) {
         var resultado = atual.withResearchPoints(pontos,

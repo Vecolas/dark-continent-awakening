@@ -68,4 +68,11 @@ class BestiaryProgressTest {
                 .withSpecialDiscovery("foxbear.territorial_behavior");
         assertEquals(1, progress.specialDiscoveries().size());
     }
+
+    @Test
+    void pontoFracoEAdicionadoSemDuplicar() {
+        var progress = BestiaryProgress.UNKNOWN.withWeakPoint("foxbear.opening_after_charge")
+                .withWeakPoint("foxbear.opening_after_charge");
+        assertEquals(1, progress.weakPointsDiscovered().size());
+    }
 }

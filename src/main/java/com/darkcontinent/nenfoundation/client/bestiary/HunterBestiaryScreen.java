@@ -16,6 +16,8 @@ import net.minecraft.client.gui.components.EditBox;
 import java.util.Locale;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryCategory;
 
 /** Caderno de campo próprio: duas páginas, papel e marcadores, sem BookViewScreen. */
@@ -38,6 +40,7 @@ public final class HunterBestiaryScreen extends Screen {
     private float previewScale = 0.06F;
     private BestiaryCategory categoryFilter;
     private EditBox searchBox;
+    private final Map<net.minecraft.resources.ResourceLocation, LivingEntity> previewCache = new HashMap<>();
 
     public HunterBestiaryScreen() {
         super(Component.translatable("item.nenfoundation.hunter_bestiary"));
@@ -165,8 +168,11 @@ public final class HunterBestiaryScreen extends Screen {
             return;
         }
         if (minecraft == null || minecraft.level == null) return;
-        Entity preview = BuiltInRegistries.ENTITY_TYPE.getOptional(entry.entityType())
-                .map(type -> type.create(minecraft.level)).orElse(null);
+        Entity preview = previewCache.computeIfAbsent(entry.id(), ignored ->
+                BuiltInRegistries.ENTITY_TYPE.getOptional(entry.entityType())
+                        .map(type -> type.create(minecraft.level))
+                        .filter(LivingEntity.class::isInstance)
+                        .map(LivingEntity.class::cast).orElse(null));
         if (preview instanceof LivingEntity living) {
             living.setYRot(25.0F);
             InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + 12, y + 12, x + 208, y + 178,
@@ -279,6 +285,11 @@ public final class HunterBestiaryScreen extends Screen {
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 256) { onClose(); return true; }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override public void onClose() {
+        previewCache.clear();
+        super.onClose();
     }
 
     @Override public boolean isPauseScreen() { return false; }

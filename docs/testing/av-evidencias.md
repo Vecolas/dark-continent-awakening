@@ -20,9 +20,14 @@ tela que alguém olhou. Vale como fato e fica aqui registrado.
 conjunto mínimo, comparadas lado a lado com a referência, arquivadas com data e
 commit. Isso é um evento de PR, e é o que fecha a issue do gate.
 
-> Até 2026-09-12, a trilha AV tem **verificação**, e **nenhum gate aprovado**.
+> Até 2026-09-13, a trilha AV tem **verificação**, e **nenhum gate aprovado**.
 > Os gates #169 (AV0 — a shell acompanha as animações em servidor dedicado) e
 > #176 (AV1 — Ten convincente sem nenhuma partícula) continuam **abertos**.
+>
+> Em 2026-09-13 a averiguação da [seção 4b](#4b-a-averiguação-dirigida-de-2026-09-13)
+> respondeu item a item a matriz de aderência do AV0, e **nada reprovou**. Isso
+> continua não fechando o #169: o que fecha é imagem arquivada. A diferença
+> agora é que a ferramenta para produzi-la existe (seção 4c), e não existia.
 
 A tentação aqui é escrever "AV0 e AV1 estão prontos, foram vistos em jogo". O
 código está na `main` e a pessoa que olhou disse que está no caminho certo —
@@ -154,6 +159,105 @@ justificativa recebe seis meses depois.
 
 ---
 
+## 4b. A averiguação dirigida de 2026-09-13
+
+**Uma pessoa, instância de teste, roteiro de perguntas fechadas.** Diferente do
+relato de 2026-09-12 — que era uma frase — esta passada respondeu item a item a
+matriz do AV0 e parte da do AV1. **Continua não sendo aprovação de gate**: não
+há captura arquivada, não houve comparação lado a lado com a referência B e não
+houve segunda pessoa olhando. É relato, e entra aqui como relato.
+
+### Aderência — a pergunta que o AV0 existe para responder
+
+| Verificação | Resposta |
+| --- | --- |
+| a shell acompanha correr | acompanha **colada**, sem descolar em articulação |
+| acompanha o swing de ataque | acompanha |
+| acompanha agachar e nadar | acompanha **sempre** |
+| modelo `slim` × `default` | **proporcionais a cada skin** — cada modelo usou o seu |
+| skin com segunda camada completa | a aura **continua visível**; a camada não engole |
+| z-fighting girando a câmera 360° | **nenhum** |
+| morte, respawn, dimensão, relog | **não fica presa**; só desativa |
+
+> Nenhum item de aderência reprovou. **A trilha não para no AV0** — o que falta
+> ali é a evidência arquivada, e não a resposta.
+
+### O critério do ADR-015
+
+Com partículas no mínimo, Ten e Ren em output 100%:
+
+> *"É claro que está em Ten."*
+
+E, perguntado se a aura se parece com alguma coisa da lista de reprovação da
+[direção visual](../vfx/direcao-visual-da-aura.md) seção 5 — fumaça, fogo,
+eletricidade, poção, `Glowing`, armadura holográfica, esfera, outline genérico:
+**nenhuma delas.**
+
+### Duas respostas que NÃO são aprovação — são achados
+
+Estas duas são o que esta passada produziu de mais útil, e nenhuma das duas
+aparece como erro em lugar nenhum:
+
+1. **A leitura está com "densidade contínua".** O critério do AV1 é que *a borda
+   seja mais forte que o miolo* a 5 e a 20 blocos — é a borda que carrega a
+   leitura a distância, e é dela que vêm os três expoentes de Fresnel separados.
+   "Contínua" é a descrição de uma shell que ficou **uniforme**, que é o oposto
+   do que os três passes existem para produzir. Não está fechado se é o
+   `reforco_da_borda`, o expoente, ou a leitura da pergunta — e é exatamente o
+   tipo de dúvida que o slider de Fresnel resolve em minutos.
+2. **No Ten o ruído não tem veios; no Ren tem.** O critério é "veios, não
+   nuvens". Os dois modos usam o mesmo shader e a mesma textura, e diferem só
+   nos números do perfil — então a diferença está em `escala_de_ruido`,
+   `velocidade_de_fluxo` ou no alpha que deixa o padrão aparecer. É o primeiro
+   caso concreto de tuning que a sessão de arte tem para atacar.
+
+### Uma das duas perguntas em aberto foi respondida
+
+A seção 4 registrava dois chutes de quem implementou. Um deles saiu do folclore:
+
+| Pergunta | Situação |
+| --- | --- |
+| **o sentido do fluxo** | **respondida: ele SOBE**, e subir é o que se quer para Ten |
+| **a escala de ruído `4.0`** | **continua em aberto** — "inconclusivo" foi a resposta, e ela só fecha com A/B lado a lado |
+
+A segunda é justamente o que o slider de ruído existe para resolver: comparar
+`2.0`, `4.0` e `8.0` na mesma pose e na mesma luz, sem recompilar entre uma e
+outra.
+
+---
+
+## 4c. A bancada de captura existe (issue #168)
+
+PR em `feat/av0-nenvfx-captura`, 2026-09-13.
+
+Até aqui, **nenhuma captura desta trilha podia ser comparada com outra**: cada
+imagem saía com hora, clima, HUD, câmera e densidade de partícula diferentes, e
+o protocolo A/B da [seção 3](av-aura-visual.md) exige as cinco iguais. O que
+mudou:
+
+| O que | Onde |
+| --- | --- |
+| `/nenvfx` (estado, output, partículas, ribbons, LOD, ajustes, freeze, reset, status) | `client/vfx/debug/AuraDebugCommands` |
+| overlay de tuning em **F6**, com custo do quadro e aviso de sobreposição | `client/vfx/debug/AuraDebugRenderer` |
+| sliders sem recompilar (`/nenvfx tuning`) | `client/vfx/debug/TelaDeTuningDeAura` |
+| modo de captura: hora, clima, HUD e câmera travados | `client/vfx/debug/AuraCaptureMode` |
+| lote de um ponto: `ten`, `ten_sem_particulas`, `ren`, `ren_sem_particulas`, `zetsu`, `sem_aura` | `client/vfx/debug/RoteiroDeCaptura` |
+| nome com data, commit e nível de bloom | `client/vfx/debug/NomeDeCaptura` + `nenfoundation-build.properties` |
+| réguas de custo: chamadas de desenho, filamentos, partículas, jogadores | `client/vfx/MedidorDeVfx` |
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 614`** |
+| quebra deliberada no `limpar()` da sobreposição | **3 testes reprovaram**, incluindo o que existe para isso |
+
+**O que esta entrega NÃO prova:** nada de aparência. Ela não foi rodada em
+`runClient` ainda — nenhum comando foi digitado em jogo, nenhuma captura foi
+gravada em disco, e o overlay não foi visto na tela. O que está provado é a
+lógica sem tela: a máquina do lote, a sanitização do nome, o fechamento das duas
+janelas de medição e o fato de a sobreposição não sobreviver ao logout.
+
+---
+
 ## 5. O que cada execução prova, e o que ela não prova
 
 No estilo de [`o-que-nao-provamos.md`](o-que-nao-provamos.md), e com as mesmas
@@ -274,14 +378,32 @@ do que o console mostra; comece por ele antes de concluir qualquer coisa.
 
 Recorte operacional, para quem for retomar a trilha.
 
-**#169 (AV0)** — a shell acompanha corrida, pulo, ataque, agachar e nadar, nos
-dois modelos, e o dedicado continua limpo. O lado do servidor está verificado
-(seção 2). Falta o lado da tela: captura em movimento, terceira pessoa, `slim` e
-`default`, mais `/nenvfx off`, relog, morte e troca de dimensão sem estado preso.
+**#169 (AV0)** — a aderência **foi respondida e nada reprovou** (seção 4b), e o
+lado do servidor está verificado (seção 2). O que falta é **só evidência**: as
+catorze capturas do conjunto do gate, arquivadas. O `/nenvfx off` que este
+parágrafo cobrava existe a partir da seção 4c.
 
-**#176 (AV1)** — Ten convincente **sem nenhuma partícula**. Falta o conjunto
-mínimo de capturas de [`av-aura-visual.md`](av-aura-visual.md) seção 3, a
-comparação com a referência B, e o teste com `vfx.densidadeDeParticulas = 0.0`.
+Receita, agora que a bancada existe — com dois clientes, um Steve e um Alex:
+
+```
+/nenvfx capture modo on
+/nenvfx capture lote dia          <- seis imagens do mesmo ponto
+```
+
+Depois `/time set night` e repetir com `lote noite`; numa caverna, `lote
+caverna`; correndo, `lote correndo`. Ao fim, `/nenvfx capture modo off`, e
+mover `screenshots/nenfoundation-av/` para `docs/testing/capturas/AV0/`.
+
+**#176 (AV1)** — Ten convincente **sem nenhuma partícula**. A resposta textual
+já veio (*"é claro que está em Ten"*), e continua não fechando o gate. Falta o
+conjunto mínimo arquivado e a comparação lado a lado com a referência B **na
+mesma sessão**. A captura que decide sai do lote com o nome
+`<etiqueta>_ten_sem_particulas__<data>__<commit>__bloom-ausente.png`, e a
+linha de base para compará-la é a `sem_aura` do mesmo lote.
+
+E antes de arquivar, os dois achados da seção 4b precisam de uma sessão de
+slider: **a borda que não está mais forte que o miolo** e **o ruído sem veios no
+Ten**. Arquivar capturas antes disso produz um conjunto que vai ser refeito.
 
 Nenhum dos dois fecha por relato textual. O que fecha é imagem arquivada em
 `docs/testing/capturas/AV<n>/`, com data, commit e nível de bloom no nome.

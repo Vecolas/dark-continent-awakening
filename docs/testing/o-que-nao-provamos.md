@@ -224,6 +224,11 @@ que **é** verificável está em [`av-aura-visual.md`](av-aura-visual.md).
 | O renderer ainda não lê a distribuição | o delta já carrega a alocação e as **partículas** já se movem por ela (#211), mas nenhuma geometria multiplica intensidade por região — o consumidor visual do [ADR-014](../adr/ADR-014-alocacao-de-aura-por-regiao.md) só nasce com a shell | AV1 (#175) |
 | "Não vaza por parede" é teste de olho | o gate do AV5 é uma captura com o jogador atrás de um bloco; um vazamento de poucos pixels em ângulo raro passa | sem previsão |
 | Bloom `FAST` e `HIGH` são duas fontes do mesmo halo | vão divergir com o tempo; a trava é captura de comparação arquivada, e não um portão | sem previsão |
+| **A bancada de captura nunca rodou em jogo** | `/nenvfx`, o overlay F6, os sliders e o lote têm teste unitário da lógica sem tela (614 testes verdes), e **nenhum deles foi digitado num cliente**. O que pode falhar em jogo: o comando não aparecer, o lote fotografar o quadro errado, o modo de captura não devolver a câmera | na primeira sessão de `runClient` que produzir um lote |
+| O modo de captura não trava a **pose** nem a **distância real de câmera** | parar de andar é trabalho de quem está no teclado; e a terceira pessoa encurta sozinha quando há parede atrás, mudando o enquadramento sem avisar | nunca por completo; o protocolo A/B depende de quem captura |
+| A série de distância do jogador LOCAL não exercita LOD | a distância dele para a própria câmera é zero, e o nível fica sempre `FULL`. Uma série `2b..40b` tirada em si mesmo mede tamanho na tela, e não a tabela de corte | quando a série for tirada com um segundo jogador |
+| O contador de chamadas de desenho não é tempo de quadro | ele conta descargas de lote de aura, o que é um proxy. Memória, tempo de quadro e alocação por quadro continuam sem régua | AV8, com `spark` |
+| O commit no nome da captura é o commit do **build**, não o da árvore | com mudança não commitada em cima, a imagem aponta para um código que não é exatamente o que gerou ela | nunca; é o custo aceito por não ter git em runtime |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em

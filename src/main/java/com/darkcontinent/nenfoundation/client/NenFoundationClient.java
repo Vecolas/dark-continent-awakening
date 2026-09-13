@@ -77,6 +77,8 @@ public final class NenFoundationClient {
     private int errosExibidos;
     private final SessaoDeVfxDeAura vfx;
     private long ticksDaSessao;
+    private final com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer overlayDeVfx =
+            new com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer();
 
     public NenFoundationClient(IEventBus modEventBus, ModContainer modContainer) {
         INSTANCIA = this;
@@ -119,6 +121,17 @@ public final class NenFoundationClient {
                         ::aoRenderizarBraco);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
+        NeoForge.EVENT_BUS.addListener(this.overlayDeVfx::aoRenderizar);
+        // COMANDO DE CLIENTE, e nao de servidor: nada de /nenvfx muda estado
+        // autoritativo. Registrado no evento errado, o mesmo codigo passaria a
+        // decidir aparencia para os outros jogadores.
+        NeoForge.EVENT_BUS.addListener(
+                com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugCommands::registrar);
+        // A REGUA FECHA POR QUADRO, e nao por tick: desenho acontece por
+        // quadro, e fechar no tick somaria tres quadros num numero so.
+        NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.client.event.RenderFrameEvent.Post quadro) ->
+                        com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.fecharQuadro());
 
         LOG.debug("Camada de cliente do Nen Foundation carregada.");
     }
@@ -146,6 +159,16 @@ public final class NenFoundationClient {
         // cache acima e a sessao de vfx na linha anterior.
         this.errosExibidos = 0;
         this.ticksDaSessao = 0;
+        // QUEM LIGA, DESLIGA -- e a sobreposicao de vfx e o caso mais caro de
+        // esquecer: um alpha girado numa sessao de arte que sobrevivesse ao
+        // logout faria a proxima captura sair com um numero que nao esta em
+        // perfil nenhum, e ela seria aprovada como se fosse o jogo.
+        com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
+                .desligar(Minecraft.getInstance());
+        com.darkcontinent.nenfoundation.client.vfx.debug.TelaDeTuningDeAura.limpar();
+        this.overlayDeVfx.limpar();
     }
 
     private void aoTickDoCliente(ClientTickEvent.Post evento) {
@@ -170,6 +193,19 @@ public final class NenFoundationClient {
             this.overlay.alternar();
             LOG.debug("Overlay de debug: {}", this.overlay.visivel() ? "ligado" : "desligado");
         }
+        while (NenKeybinds.OVERLAY_DE_VFX.consumeClick()) {
+            this.overlayDeVfx.alternar();
+            LOG.debug("Overlay de vfx: {}", this.overlayDeVfx.visivel() ? "ligado" : "desligado");
+        }
+        // A TELA DE TUNING ABRE AQUI, e nao dentro do comando: fechar o chat
+        // depois de abrir uma Screen fecharia a tela recem-aberta junto.
+        if (com.darkcontinent.nenfoundation.client.vfx.debug.TelaDeTuningDeAura
+                .consumirPedidoDeAbertura() && mc.player != null && mc.screen == null) {
+            mc.setScreen(new com.darkcontinent.nenfoundation.client.vfx.debug
+                    .TelaDeTuningDeAura());
+        }
+        com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia().aoTick(mc);
+        com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.fecharTick();
         // A RODA ABRE NO PRIMEIRO FRAME EM QUE A TECLA ESTA DESCIDA, e fecha
         // sozinha quando ela sobe -- a propria tela pergunta isso no tick.
         // `consumeClick` nao serve aqui: ele conta pressionadas, e o gesto e
@@ -220,13 +256,25 @@ public final class NenFoundationClient {
         var distribuicao = delta
                 .map(d -> AuraDistribution.daAlocacao(d.alocacao()))
                 .orElseGet(AuraDistribution::uniforme);
-        this.vfx.aoTick(ativas, output, cor, NenClientConfig.escalaDeTransicao(), distribuicao);
-        double densidade = NenClientConfig.densidadeDeParticulas();
+        // CONGELADO NAO TICA. Sem isto, /nenvfx freeze pararia a aparencia mas
+        // nao a interpolacao, e dois quadros seguidos continuariam diferentes
+        // -- que e exatamente o que o congelamento existe para impedir na
+        // verificacao de jitter do AV2.
+        if (!com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.congelado()) {
+            this.vfx.aoTick(ativas, output, cor, NenClientConfig.escalaDeTransicao(), distribuicao);
+        }
+        double densidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                .aplicarNaDensidade(NenClientConfig.densidadeDeParticulas());
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e
         // sempre zero, entao o corte por distancia nunca morde -- mas quem
         // escolheu qualidade OFF quer a aura desligada inclusive na propria.
         if (NenClientConfig.qualidade().teto().visivel()) {
-            EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
+            // A PARTICULA LE O MESMO FUNIL QUE O RENDERER, e nao a sessao
+            // crua. Antes ela lia this.vfx.estado() direto -- e com uma
+            // sobreposicao ativa, a shell mostraria Ren enquanto a particula
+            // continuaria emitindo Ten, sem nada acusar.
+            EmissorDeParticulasDeAura.emitir(
+                    mc.level, mc.player, this.estadoVisualDe(mc.player), densidade);
         }
 
         this.tickDaAuraDosOutros(mc, densidade);
@@ -255,14 +303,24 @@ public final class NenFoundationClient {
             return AuraVisualState.desligado();
         }
         if (jogador == mc.player) {
-            return this.vfx.estado();
+            // O UNICO PONTO EM QUE O ESTADO FORCADO ENTRA. Ele fica no funil de
+            // proposito: renderer, primeira pessoa e particula perguntam todos
+            // aqui, e aplicar a sobreposicao em cada um faria os tres
+            // divergirem no dia em que um deles esquecesse.
+            return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                    .aplicarNoLocal(this.vfx.estado());
         }
         var sinal = this.cache.presencaDe(jogador.getId());
         if (sinal == SinalDeAura.NENHUM) {
             return AuraVisualState.desligado();
         }
-        return EstadoVisualDeTerceiro.de(sinal,
-                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador)));
+        // O ESTADO DOS OUTROS NAO SE FORCA -- so se desliga. Desenhar em outra
+        // pessoa um estado que o servidor nunca mandou produziria uma captura
+        // que nao prova nada sobre o jogo.
+        return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
+                EstadoVisualDeTerceiro.de(sinal,
+                        com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
+                                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador)))));
     }
 
     /**
@@ -291,13 +349,15 @@ public final class NenFoundationClient {
             // AQUI O LOD FINALMENTE RECEBE DISTANCIA DE VERDADE. Para o proprio
             // jogador ela e sempre zero, entao ate agora ele so tinha teste
             // unitario -- o corte por distancia nunca mordia em jogo.
-            AuraRenderLod lod = NenClientConfig.qualidade()
-                    .limitar(AuraRenderLod.porDistancia(mc.player.distanceTo(outro)));
+            AuraRenderLod lod = NenClientConfig.qualidade().limitar(
+                    com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
+                            AuraRenderLod.porDistancia(mc.player.distanceTo(outro))));
             if (!lod.visivel()) {
                 continue;
             }
 
-            var estado = EstadoVisualDeTerceiro.de(sinal, lod);
+            var estado = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                    .aplicarEmTerceiro(EstadoVisualDeTerceiro.de(sinal, lod));
             EmissorDeParticulasDeAura.emitir(mc.level, outro, estado, densidade);
         }
     }

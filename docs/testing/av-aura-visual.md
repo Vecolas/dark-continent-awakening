@@ -32,34 +32,74 @@ skin diferente — e a comparação vira achismo.
 
 `AuraCaptureMode` (dev/OP local) faz, de uma vez:
 
-- trava a hora do dia;
+- trava a hora do dia **no valor em que ela estava** — e não num meio-dia fixo,
+  senão `ten_noite` e `ten_caverna` seriam impossíveis;
 - trava o clima;
 - esconde o HUD;
-- força terceira pessoa a distância fixa;
-- coloca o jogador em pose idle;
+- força terceira pessoa;
 - alterna Ten/Ren/Zetsu por comando.
 
-Comandos de dev previstos:
+> **Duas coisas ele NÃO trava, e estão escritas em vez de fingidas:** a **pose**
+> (parar de andar é trabalho de quem está no teclado) e a **distância real de
+> câmera**, que em terceira pessoa é fixa pelo jogo *exceto quando há parede
+> atrás* — e aí ela encurta sem avisar. Capturar de costas para um muro produz
+> um enquadramento diferente com o mesmo nome de arquivo.
+
+Comandos de dev, **como existem no código** (`AuraDebugCommands`):
 
 ```
-/nenvfx on | off
-/nenvfx state ten | ren | zetsu
-/nenvfx output <0..1>
-/nenvfx bloom <0..1>
-/nenvfx ribbons <n>
-/nenvfx lod <0..4>
-/nenvfx freeze
-/nenvfx capture
+/nenvfx on | off                      liga/desliga o DESENHO da aura neste cliente
+/nenvfx state ten|ren|zetsu|off|auto  força o estado visual do jogador LOCAL
+/nenvfx output <0..1> | auto
+/nenvfx particulas <0..2> | auto      sem escrever na config
+/nenvfx ribbons <n> | auto
+/nenvfx lod full|near|medium|far|hidden|auto
+/nenvfx ajuste <nome> <valor> | auto  alpha_interno, alpha_borda, alpha_externo,
+                                      fresnel, fluxo, ruido
+/nenvfx freeze                        alterna o congelamento
+/nenvfx tuning                        abre os sliders
+/nenvfx capture modo on | off
+/nenvfx capture agora <nome>          uma imagem
+/nenvfx capture lote <etiqueta>       o conjunto de estados daquele ponto
+/nenvfx reset | status
 ```
+
+Três diferenças em relação ao que este documento previa, e cada uma tem motivo:
+
+| Previsto | O que existe | Por quê |
+| --- | --- | --- |
+| `/nenvfx bloom <0..1>` | **não existe** | o passe de pós-processamento nasce no AV5. Botão que não gira nada é o erro nº 7 do `CLAUDE.md` em forma de comando |
+| `/nenvfx lod <0..4>` | `lod` por **nome** | a tabela de LOD tem nomes (`FULL`…`HIDDEN`); um índice numérico seria uma segunda forma de dizer a mesma coisa, e as duas divergiriam |
+| — | `/nenvfx particulas` | o critério do ADR-015 é uma captura com densidade **zero**. Sem isto ela custava editar o TOML e reentrar no mundo — e duas imagens com uma reentrada no meio não compartilham hora, pose nem enquadramento |
+
+**As capturas caem em `screenshots/nenfoundation-av/`**, já nomeadas com data,
+commit e nível de bloom. O commit vem do build (`nenfoundation-build.properties`,
+escrito pelo `processResources`); num clone sem `.git` ele sai como `sem-git`, e
+não vazio.
 
 **Só local, só com permissão.** Nada disso muda estado autoritativo — é
 aparência, não técnica.
 
-E um overlay de dev com: técnica, output, intensidade visual, LOD, ribbons
-vivas, partículas vivas, tamanho do alvo de bloom, *draw calls* de aura e
-visibilidade calculada. Com sliders em runtime para alpha interno, alpha de
-borda, Fresnel, fluxo, contagem de ribbon e bloom — **direção de arte sem
-recompilar é a diferença entre uma tarde e uma semana.**
+E um overlay de dev (**F6**, `AuraDebugRenderer`) com: chamadas de desenho,
+filamentos, partículas, jogadores com aura, o commit do build e o que está
+forçado na mão. Os sliders ficam numa tela própria (`/nenvfx tuning`): alpha
+interno, alpha de borda, alpha externo, Fresnel, fluxo, ruído e contagem de
+ribbon — **direção de arte sem recompilar é a diferença entre uma tarde e uma
+semana.**
+
+Duas regras do overlay que não são cosméticas:
+
+- **campo sem consumidor aparece como `--`, e nunca como zero.** O tamanho do
+  alvo de bloom (AV5) e a visibilidade calculada por observador (AV6) não
+  existem: escrever `0` neles afirmaria que o passe rodou e não custou nada;
+- **enquanto houver qualquer sobreposição, o overlay grita `OVERRIDE ATIVO --
+  esta captura NÃO vale como aprovação`.** Sem isso, alguém aprova um gate com
+  um slider que não está em perfil nenhum, e o jogo que os jogadores veem nunca
+  foi aquele.
+
+Nada do que sai da tela de tuning persiste: tudo morre no logout, e o número só
+vira decisão quando alguém o escreve em `assets/nenfoundation/nen_vfx/`, onde o
+resto do time vê o diff.
 
 ---
 

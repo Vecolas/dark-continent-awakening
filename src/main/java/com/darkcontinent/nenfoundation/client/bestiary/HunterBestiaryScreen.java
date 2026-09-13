@@ -132,9 +132,14 @@ public final class HunterBestiaryScreen extends Screen {
             graphics.drawWordWrap(font, Component.translatable(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.FOUGHT)
                     ? entry.combatKey() : entry.behaviorKey()), right, top + 190, bookWidth / 2 - 52, INK);
             drawSection(graphics, "RESEARCH", right, top + 260);
-            graphics.drawWordWrap(font, Component.literal(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.STUDIED)
-                    ? "Weak points and advanced behavior recorded." : "Further observation required."), right, top + 286,
-                    bookWidth / 2 - 52, INK);
+            drawResearchMeter(graphics, entry, progress, right, top + 283);
+            if (progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.STUDIED)) {
+                drawSection(graphics, "WEAK POINTS", right, top + 330);
+                graphics.drawWordWrap(font, Component.literal(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.MASTERED)
+                        ? "Weak points and advanced behavior recorded in the field report."
+                        : "A strategic opening has been identified. Further confirmation is required."),
+                        right, top + 349, bookWidth / 2 - 52, INK);
+            }
         }
         graphics.drawString(font, "< INDEX", left + 30, top + bookHeight - 30, PETROLEO, false);
         graphics.drawString(font, "FIELD NOTE  /  01", right, top + bookHeight - 30, OLIVE, false);
@@ -171,6 +176,18 @@ public final class HunterBestiaryScreen extends Screen {
                 ? "????" : Component.translatable(entry.entityType().toLanguageKey()).getString();
     }
     private String status(BestiaryProgress progress) { return progress.knowledgeLevel().name(); }
+
+    private void drawResearchMeter(GuiGraphics graphics, BestiaryEntryDefinition entry,
+            BestiaryProgress progress, int x, int y) {
+        int width = bookWidth / 2 - 52;
+        int target = Math.max(1, entry.masteredAt());
+        int filled = Math.min(width, width * progress.researchPoints() / target);
+        graphics.fill(x, y, x + width, y + 7, 0x335A665E);
+        graphics.fill(x, y, x + filled, y + 7, progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.MASTERED)
+                ? ALERTA : OLIVE);
+        graphics.drawString(font, "RESEARCH " + progress.researchPoints() + " / " + target,
+                x, y + 12, INK, false);
+    }
 
     private List<BestiaryEntryDefinition> filteredEntries() {
         String query = searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);

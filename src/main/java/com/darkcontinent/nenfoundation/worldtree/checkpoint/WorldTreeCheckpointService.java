@@ -35,15 +35,17 @@ public final class WorldTreeCheckpointService {
                 && progress(player.serverLevel()).isUnlocked(player.getUUID(), target);
     }
 
-    public static void travelTo(ServerPlayer player, WorldTreeCheckpoint target) {
+    public static boolean travelTo(ServerPlayer player, WorldTreeCheckpoint target) {
         if (!canTravel(player, target)) {
-            return;
+            return false;
         }
         ServerLevel destination = player.getServer().getLevel(WorldTreeDebugCommands.WORLD_TREE_LEVEL);
         if (destination != null) {
             player.teleportTo(destination, 0.5D, target.y(), 0.5D,
                     player.getYRot(), player.getXRot());
+            return true;
         }
+        return false;
     }
 
     private static WorldTreePlayerProgressSavedData progress(ServerLevel anyLevel) {

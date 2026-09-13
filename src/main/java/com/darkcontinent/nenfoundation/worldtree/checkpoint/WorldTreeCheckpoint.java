@@ -39,4 +39,13 @@ public enum WorldTreeCheckpoint {
         }
         return distance <= 24 ? result : null;
     }
+
+    public static WorldTreeCheckpoint byId(String id) {
+        for (WorldTreeCheckpoint checkpoint : values()) {
+            if (checkpoint.id.equalsIgnoreCase(id)) {
+                return checkpoint;
+            }
+        }
+        return null;
+    }
 }

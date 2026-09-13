@@ -12,4 +12,10 @@ class WorldTreeCheckpointTest {
         assertEquals(WorldTreeCheckpoint.SUMMIT, WorldTreeCheckpoint.nearest(1470));
         assertNull(WorldTreeCheckpoint.nearest(500));
     }
+
+    @Test
+    void idsSaoCaseInsensitiveEMasDesconhecidosRejeitados() {
+        assertEquals(WorldTreeCheckpoint.CROWN, WorldTreeCheckpoint.byId("CrOwN"));
+        assertNull(WorldTreeCheckpoint.byId("unknown"));
+    }
 }

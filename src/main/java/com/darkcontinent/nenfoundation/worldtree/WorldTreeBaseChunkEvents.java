@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.worldtree;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBaseGenerator;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBaseStructure;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeGroveGenerator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -50,6 +51,7 @@ public final class WorldTreeBaseChunkEvents {
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(level.getSeed(),
                 data.overworldOriginX(), data.overworldOriginZ());
         WorldTreeBaseGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
+        WorldTreeGroveGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
         data.markBaseChunkGenerated(chunk.toLong());
     }
 }

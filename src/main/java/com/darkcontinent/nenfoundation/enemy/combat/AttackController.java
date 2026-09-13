@@ -14,7 +14,7 @@ import net.minecraft.world.phys.Vec3;
  * a janela ACTIVE, transforma a hitbox local e impede double hit por instância.</p>
  */
 public final class AttackController {
-    private final AttackTimeline timeline = new AttackTimeline();
+    private AttackTimeline timeline = new AttackTimeline();
     private final int cooldownTicks;
     private final Set<Integer> atingidos = new HashSet<>();
     private long proximaInstancia = 1L;
@@ -30,6 +30,13 @@ public final class AttackController {
     public int remainingTicks() { return timeline.remainingTicks(); }
     public int cooldownRemaining() { return cooldownRestante; }
     public long attackInstanceId() { return instanciaAtual; }
+
+    /** Encerra a instância atual por uma saída externa, como stagger ou morte. */
+    public void reset() {
+        timeline = new AttackTimeline();
+        atingidos.clear();
+        instanciaAtual = 0L;
+    }
 
     public boolean canStart() {
         return cooldownRestante == 0

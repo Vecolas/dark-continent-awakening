@@ -99,6 +99,10 @@ public final class AuraPlayerRenderLayer
         if (jogador.isInvisible() || jogador.isSpectator()) {
             return;
         }
+        // A REGUA CONTA A PARTIR DAQUI, e nao antes das duas guardas: quem nao
+        // desenha nao custa, e um contador que somasse invisiveis e espectadores
+        // faria o orcamento do AV8 medir gente que nao esta na tela.
+        com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.jogadorComAura();
 
         // O PERFIL VEM DO DADO, e nao de constantes no codigo. Ele recarrega
         // com F3+T, entao ajustar arte deixou de custar um `gradlew`.
@@ -157,7 +161,13 @@ public final class AuraPlayerRenderLayer
             AbstractClientPlayer jogador, AuraVisualState estado, float tempo) {
 
         AuraRibbonProfile perfil = perfilDeFilamento(estado);
-        if (perfil.quantidade() == 0) {
+        // A CONTAGEM PASSA PELA SOBREPOSICAO, e o resto do perfil nao: o que a
+        // sessao de arte precisa girar e "quantos filamentos", e nao a curva
+        // nem o ciclo deles. Zero e um valor legitimo aqui -- e uma das
+        // perguntas do AV2 e exatamente "quanto da leitura vem dos filamentos".
+        int quantidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                .aplicarNasRibbons(perfil.quantidade());
+        if (quantidade == 0) {
             return;
         }
         AuraPlayerModel modelo = this.modelos.get(AuraShellPass.BORDA);
@@ -178,7 +188,7 @@ public final class AuraPlayerRenderLayer
             parteDe(modelo, regiao).translateAndRotate(pilha);
             PoseStack.Pose pose = pilha.last();
 
-            for (int i = 0; i < perfil.quantidade(); i++) {
+            for (int i = 0; i < quantidade; i++) {
                 AuraAnchor ancora = ancoras[i % ancoras.length];
                 if (ancora.regiao() != regiao) {
                     continue;
@@ -201,6 +211,7 @@ public final class AuraPlayerRenderLayer
                 }
 
                 long semente = AuraCurve.semente(semeadura, ancora, i, ciclo);
+                com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.filamento();
                 this.filamentos.desenhar(buffer, pose, ancora, this.slim, semente, folga,
                         perfil.comprimentoDe(semente), perfil.largura(),
                         CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
@@ -230,6 +241,11 @@ public final class AuraPlayerRenderLayer
     private static void descarregar(MultiBufferSource buffers, RenderType tipo) {
         if (buffers instanceof MultiBufferSource.BufferSource lote) {
             lote.endBatch(tipo);
+            // A CONTAGEM FICA AQUI, E NAO ONDE A GEOMETRIA E MONTADA. Uma
+            // chamada de desenho acontece quando o lote e descarregado; contar
+            // por parte de corpo daria seis vezes o numero real, e o AV8
+            // receberia um orcamento inflado sem ninguem perceber.
+            com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.chamadaDeDesenho();
         }
     }
 

@@ -96,6 +96,7 @@ public final class EmissorDeParticulasDeAura {
         if (quantas == 0) {
             return;
         }
+        MedidorDeVfx.particulas(quantas);
 
         DustParticleOptions poeira = new DustParticleOptions(
                 corComo(estado.primaryColor()), tamanhoDe(estado));

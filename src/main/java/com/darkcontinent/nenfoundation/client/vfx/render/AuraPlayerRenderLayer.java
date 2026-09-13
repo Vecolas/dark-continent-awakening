@@ -8,6 +8,10 @@ import com.darkcontinent.nenfoundation.client.vfx.model.AuraPlayerModel;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellMaterial;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellOpacity;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraAnchor;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraCurve;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraRibbonBatch;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraRibbonProfile;
 import com.darkcontinent.nenfoundation.client.vfx.shader.AuraShaders;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -62,10 +66,16 @@ public final class AuraPlayerRenderLayer
     private final Map<AuraShellPass, AuraPlayerModel> modelos =
             new EnumMap<>(AuraShellPass.class);
 
+    /** Uma instancia por layer: todos os vetores de trabalho vivem dentro dela. */
+    private final AuraRibbonBatch filamentos = new AuraRibbonBatch();
+
+    private final boolean slim;
+
     public AuraPlayerRenderLayer(
             RenderLayerParent<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> pai,
             EntityModelSet modelos, boolean slim) {
         super(pai);
+        this.slim = slim;
         for (AuraShellPass passe : AuraShellPass.values()) {
             this.modelos.put(passe,
                     new AuraPlayerModel(modelos.bakeLayer(AuraModelLayers.de(passe, slim)), slim));
@@ -128,6 +138,84 @@ public final class AuraPlayerRenderLayer
             // declarado, e e o AV8 que o ataca.
             descarregar(buffers, tipo);
         }
+
+        desenharFilamentos(pilha, buffers, luzEmpacotada, jogador, estado, tempo);
+    }
+
+    /**
+     * Os filamentos, agrupados POR PARTE do corpo.
+     *
+     * <p>AGRUPAR IMPORTA: empilhar a transformacao de uma parte custa uma
+     * multiplicacao de matriz, e fazer isso por filamento repetiria a conta ate
+     * vinte e oito vezes por jogador. Agrupado, sao seis.
+     *
+     * <p>A POSE E A DA PARTE, e nao a do modelo: e o que faz o filamento nascer
+     * na superficie que se ve, e acompanhar o membro quando ele gira.
+     */
+    private void desenharFilamentos(PoseStack pilha, MultiBufferSource buffers, int luz,
+            AbstractClientPlayer jogador, AuraVisualState estado, float tempo) {
+
+        AuraRibbonProfile perfil = perfilDeFilamento(estado);
+        if (perfil.quantidade() == 0) {
+            return;
+        }
+        AuraPlayerModel modelo = this.modelos.get(AuraShellPass.BORDA);
+        // A FOLGA SAI DA ESPESSURA DA BORDA, e nao de uma constante: engordar a
+        // shell no perfil passaria a esconder os filamentos dentro dela.
+        float folga = AuraCurve.folgaBase(
+                AuraRenderRegistro.geometria().espessuraBorda());
+        long semeadura = jogador.getUUID().getLeastSignificantBits();
+        VertexConsumer buffer = buffers.getBuffer(AuraRenderTypes.ribbon());
+
+        AuraAnchor[] ancoras = AuraAnchor.values();
+        for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
+            float pesoDaRegiao = estado.distribution().intensidade(regiao);
+            if (pesoDaRegiao < 0.02F) {
+                continue;
+            }
+            pilha.pushPose();
+            parteDe(modelo, regiao).translateAndRotate(pilha);
+            PoseStack.Pose pose = pilha.last();
+
+            for (int i = 0; i < perfil.quantidade(); i++) {
+                AuraAnchor ancora = ancoras[i % ancoras.length];
+                if (ancora.regiao() != regiao) {
+                    continue;
+                }
+                // O CICLO E POR FILAMENTO, e defasado pelo indice: sem a
+                // defasagem os oito trocariam de curva no MESMO quadro, e a
+                // troca simultanea e visivel como um pisco.
+                float fase = (i * 0.618F) % 1.0F;
+                float t = tempo / perfil.cicloSegundos() + fase;
+                int ciclo = (int) Math.floor(t);
+                float dentroDoCiclo = t - ciclo;
+
+                // O ENVELOPE ZERA NAS DUAS PONTAS DO CICLO. E o que torna a
+                // troca de curva invisivel: o filamento some antes de virar
+                // outro, em vez de saltar de uma forma para a seguinte.
+                float envelope = (float) Math.sin(Math.PI * dentroDoCiclo);
+                float alpha = estado.intensity() * pesoDaRegiao * envelope * 0.85F;
+                if (alpha < ALPHA_MINIMO) {
+                    continue;
+                }
+
+                long semente = AuraCurve.semente(semeadura, ancora, i, ciclo);
+                this.filamentos.desenhar(buffer, pose, ancora, this.slim, semente, folga,
+                        perfil.comprimentoDe(semente), perfil.largura(),
+                        CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
+            }
+            pilha.popPose();
+        }
+        descarregar(buffers, AuraRenderTypes.ribbon());
+    }
+
+    /** O perfil de filamento do modo ativo. */
+    static AuraRibbonProfile perfilDeFilamento(AuraVisualState estado) {
+        return switch (estado.mode()) {
+            case REN -> AuraRibbonProfile.ren();
+            case TEN, CUSTOM -> AuraRibbonProfile.ten();
+            case ZETSU, OFF -> AuraRibbonProfile.zero();
+        };
     }
 
     /**

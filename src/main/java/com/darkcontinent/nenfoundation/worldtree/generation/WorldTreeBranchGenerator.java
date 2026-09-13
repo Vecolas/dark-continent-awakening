@@ -10,7 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 /** Gera galhos major por splines cubicas, somente no chunk solicitado. */
 public final class WorldTreeBranchGenerator {
     private static final int SAMPLE_COUNT = 96;
-    private static final double MAX_BRANCH_REACH = 235.0;
+    private static final double MAX_BRANCH_REACH = 320.0;
 
     private WorldTreeBranchGenerator() {
     }
@@ -30,6 +30,19 @@ public final class WorldTreeBranchGenerator {
                 continue;
             }
             generateAttachment(chunk, position, minX, minZ, maxX, maxZ, spline, layout);
+            generateSpline(chunk, position, minX, minZ, maxX, maxZ, spline, layout);
+        }
+        for (WorldTreeSpline spline : WorldTreeBranchNetwork.secondaryAndTertiary(layout)) {
+            if (!chunkIntersectsSpline(minX, maxX, minZ, maxZ, spline)) {
+                continue;
+            }
+            generateSpline(chunk, position, minX, minZ, maxX, maxZ, spline, layout);
+        }
+    }
+
+    private static void generateSpline(ChunkAccess chunk, BlockPos.MutableBlockPos position,
+            int minX, int minZ, int maxX, int maxZ, WorldTreeSpline spline,
+            WorldTreeLayout layout) {
             for (int sample = 0; sample <= SAMPLE_COUNT; sample++) {
                 double t = (double) sample / SAMPLE_COUNT;
                 WorldTreePoint point = bezier(spline, t);
@@ -66,7 +79,6 @@ public final class WorldTreeBranchGenerator {
                 }
             }
         }
-    }
 
     /**
      * Liga cada galho ao eixo vivo da árvore. Galhos da Crown/Summit podem

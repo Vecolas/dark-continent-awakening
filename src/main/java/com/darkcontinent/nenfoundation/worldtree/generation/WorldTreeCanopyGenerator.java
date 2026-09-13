@@ -10,7 +10,8 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 
 /** Gera clusters de folhas esparsos e determinísticos ao redor dos galhos. */
 public final class WorldTreeCanopyGenerator {
-    private static final int CLUSTERS_PER_BRANCH = 6;
+    private static final int MAJOR_CLUSTERS = 4;
+    private static final int DETAIL_CLUSTERS = 3;
 
     private WorldTreeCanopyGenerator() {
     }
@@ -23,17 +24,30 @@ public final class WorldTreeCanopyGenerator {
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
 
         for (int branchId = 0; branchId < layout.branches().size(); branchId++) {
-            WorldTreeSpline branch = layout.branches().get(branchId);
-            for (int clusterId = 0; clusterId < CLUSTERS_PER_BRANCH; clusterId++) {
-                double t = 0.55 + clusterId * 0.09;
-                WorldTreePoint center = WorldTreeRootGenerator.bezier(branch, t);
-                double radius = clusterRadius(layout.seed(), branchId, clusterId);
-                if (!chunkIntersectsCluster(minX, maxX, minZ, maxZ, center, radius)) {
-                    continue;
-                }
-                placeCluster(chunk, position, minX, minZ, maxX, maxZ,
-                        branch, center, radius, layout.seed(), branchId, clusterId);
+            generateBranchFoliage(chunk, position, minX, minZ, maxX, maxZ,
+                    layout.branches().get(branchId), layout.seed(), branchId,
+                    MAJOR_CLUSTERS, 0.46, 0.14, 0.78);
+        }
+        int detailId = layout.branches().size();
+        for (WorldTreeSpline branch : WorldTreeBranchNetwork.secondaryAndTertiary(layout)) {
+            generateBranchFoliage(chunk, position, minX, minZ, maxX, maxZ,
+                    branch, layout.seed(), detailId++, DETAIL_CLUSTERS,
+                    0.25, 0.24, 0.58);
+        }
+    }
+
+    private static void generateBranchFoliage(ChunkAccess chunk, BlockPos.MutableBlockPos position,
+            int minX, int minZ, int maxX, int maxZ, WorldTreeSpline branch, long seed,
+            int branchId, int clusterCount, double firstT, double step, double scale) {
+        for (int clusterId = 0; clusterId < clusterCount; clusterId++) {
+            double t = firstT + clusterId * step;
+            WorldTreePoint center = WorldTreeRootGenerator.bezier(branch, t);
+            double radius = clusterRadius(seed, branchId, clusterId) * scale;
+            if (!chunkIntersectsCluster(minX, maxX, minZ, maxZ, center, radius)) {
+                continue;
             }
+            placeCluster(chunk, position, minX, minZ, maxX, maxZ,
+                    branch, center, radius, seed, branchId, clusterId);
         }
     }
 

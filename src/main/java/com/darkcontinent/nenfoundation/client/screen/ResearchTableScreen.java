@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 /** Tela própria da estação; a operação é executada pelo menu server-side. */
@@ -24,10 +23,12 @@ public final class ResearchTableScreen extends AbstractContainerScreen<ResearchT
     }
 
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        // Use the actual vanilla grindstone surface. The table keeps its own
-        // operation, but its container no longer changes the inventory theme.
-        graphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/container/grindstone.png"),
-                leftPos, topPos, 0, 0, imageWidth, imageHeight, imageWidth, imageHeight);
+        // Vanilla container language without copying another screen's
+        // texture: neutral container surface, vanilla slots and vanilla
+        // Button. Only the research operation is specific to this screen.
+        graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFFC6C6C6);
+        graphics.fill(leftPos + 7, topPos + 7, leftPos + 169, topPos + 68, 0xFFBDBDBD);
+        graphics.fill(leftPos + 7, topPos + 68, leftPos + 169, topPos + 69, 0xFF8B8B8B);
     }
 
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {

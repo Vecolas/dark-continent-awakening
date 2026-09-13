@@ -41,6 +41,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.Animation;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.AnimationState;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 /**
  * Spider eagle: a ameaca e o NINHO, nao o caminho. A ave nao caca ninguem --
@@ -65,8 +74,19 @@ import net.minecraft.world.phys.Vec3;
  * sincronizados carregam apenas AVISANDO e a FASE do ataque, que e o que o
  * cliente precisa para desenhar o voo de aviso e o mergulho. O cliente nunca
  * informa alvo nem acerto.</p>
+ *
+ * <p>CORPO PROPRIO (ADR-017). Ate aqui a ave voava com a geometria e a textura
+ * do PHANTOM vanilla, e o emprestimo tinha um custo especifico deste mob: a
+ * envergadura do phantom mede ~2,7 blocos sobre uma hitbox de 1,2, e a silhueta
+ * MENTIA sobre o alcance. Num mob cuja unica resposta ensinada e RECUAR, uma
+ * silhueta que mente sobre distancia e um bug de design que nenhum portao ve.
+ * Agora ela e um {@link GeoEntity} de id proprio {@code spider_eagle}, com a asa
+ * nascendo DOBRADA no geo -- quem abre a asa e a animacao de aviso, porque a asa
+ * aberta E o aviso. O comportamento nao mudou uma linha: escada de guarda,
+ * coleira, mergulho e ninho persistente sao os mesmos que os tres gametests
+ * medem.</p>
  */
-public final class SpiderEagleEntity extends BaseHxHMob {
+public final class SpiderEagleEntity extends BaseHxHMob implements GeoEntity {
     /** Avisando ou nao; o cliente precisa saber para desenhar o voo de aviso. */
     private static final EntityDataAccessor<Boolean> AVISANDO =
             SynchedEntityData.defineId(SpiderEagleEntity.class, EntityDataSerializers.BOOLEAN);
@@ -127,6 +147,37 @@ public final class SpiderEagleEntity extends BaseHxHMob {
     private static final int ALTURA_DA_PATRULHA = 4;
     /** Quanto tempo a ave descansa entre dois voos de patrulha. */
     private static final int TICKS_ENTRE_VOOS = 40;
+
+    // ------------------------------------------------------------- animacao
+    // Os nomes abaixo sao um CONTRATO com spider_eagle.animation.json. Errar um
+    // deles nao da erro: o GeckoLib simplesmente nao acha o clipe e deixa o osso
+    // parado. E o tipo de falha que so aparece na tela de quem joga -- aqui, como
+    // uma ave que avisa sem abrir a asa.
+    //
+    // O tipo de repeticao NAO mora aqui. LoopType.DEFAULT delega para o que o
+    // .animation.json declarar, e e la que o artista mexe: cravar thenLoop no
+    // codigo faria o arquivo dizer uma coisa e o jogo fazer outra, em silencio.
+    private static final RawAnimation PERCH = RawAnimation.begin().then("animation.spider_eagle.perch", Animation.LoopType.DEFAULT);
+    private static final RawAnimation FLY = RawAnimation.begin().then("animation.spider_eagle.fly", Animation.LoopType.DEFAULT);
+    private static final RawAnimation WARN = RawAnimation.begin().then("animation.spider_eagle.warn", Animation.LoopType.DEFAULT);
+    private static final RawAnimation DIVE_WINDUP = RawAnimation.begin().then("animation.spider_eagle.dive_windup", Animation.LoopType.DEFAULT);
+    private static final RawAnimation DIVE = RawAnimation.begin().then("animation.spider_eagle.dive", Animation.LoopType.DEFAULT);
+    private static final RawAnimation RECOVER = RawAnimation.begin().then("animation.spider_eagle.recover", Animation.LoopType.DEFAULT);
+
+    /** Nome do unico controller; quem registrar um segundo clipe reusa esta constante. */
+    private static final String CONTROLLER_DO_CORPO = "corpo";
+    /**
+     * Ticks de mistura entre um clipe e o proximo.
+     *
+     * <p>Quatro, e o mesmo das irmas -- mas aqui ha uma janela que o obriga a ser
+     * curto: a descida ({@code activeTicks}) dura 6 ticks. Uma transicao mais longa
+     * do que a fase que ela atravessa comeria o bote inteiro em mistura, e quem
+     * levasse a pancada nunca veria a ave fechar a asa e cair.</p>
+     */
+    private static final int TRANSICAO_EM_TICKS = 4;
+
+    /** Cache por INSTANCIA. Um cache estatico faria todas as aves compartilharem um clipe. */
+    private final AnimatableInstanceCache cacheDeAnimacao = GeckoLibUtil.createInstanceCache(this);
 
     // Estado DA INSTANCIA. Guardar qualquer um destes numa Goal (ou num static)
     // faria todas as aves do mundo compartilharem o mesmo ninho e o mesmo
@@ -453,6 +504,60 @@ public final class SpiderEagleEntity extends BaseHxHMob {
     private void publicarFase(AttackPhase fase) {
         this.entityData.set(FASE_DE_ATAQUE, fase.ordinal());
     }
+
+    // ------------------------------------------------------------- animacao
+
+    /**
+     * O CLIENTE NAO DECIDE NADA. Ele le o que o servidor ja publica --
+     * {@link #estaAvisando()} e {@link #faseDeAtaque()}, os dois vindos do
+     * SynchedEntityData -- e escolhe o clipe correspondente. Nao existe aqui
+     * nenhum timer, nenhuma copia da escada de guarda e nenhuma heuristica de
+     * "parece que vai mergulhar". Se a animacao e o ataque discordarem, quem esta
+     * errado e o arquivo de animacao, nunca o servidor.
+     *
+     * <p>A FASE VENCE O AVISO, e esta ordem e a regra deste mob inteiro, nao
+     * arrumacao de codigo. Durante o mergulho a ave AINDA esta com
+     * {@code AVISANDO} ligado -- o aviso so apaga em {@link #voltarAoNinho()}, que
+     * e a saida unica do episodio. Testar o aviso primeiro mostraria a asa aberta
+     * do display no meio do bote, e asa aberta e exatamente o sinal que diz "a
+     * janela de recuo ainda esta aberta". Ela ja fechou: quem esta na descida nao
+     * tem mais para onde correr, e mentir sobre isso pune justamente a resposta
+     * que o mob existe para ensinar.</p>
+     *
+     * <p>{@link #ninho()} NAO ENTRA AQUI, e nao e esquecimento: o ninho e verdade
+     * de SERVIDOR (NBT mais ancoragem no primeiro tick), e no cliente ele cai para
+     * a posicao atual da ave. Usa-lo para desenhar daria uma distancia sempre zero
+     * -- um numero plausivel, calado e errado.</p>
+     *
+     * <p>PONTO CEGO DECLARADO: os clipes {@code hurt} e {@code death} existem no
+     * arquivo de animacao e ninguem os pede ainda. Levar dano e morrer nao passam
+     * por estado sincronizado neste mob, e inventar um so para a animacao criaria
+     * um segundo caminho de verdade sobre a vida da ave. Eles entram quando houver
+     * um gatilho de servidor para le-los.</p>
+     */
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<SpiderEagleEntity>(this, CONTROLLER_DO_CORPO,
+                TRANSICAO_EM_TICKS, this::clipeDoCorpo));
+    }
+
+    private PlayState clipeDoCorpo(AnimationState<SpiderEagleEntity> estado) {
+        AttackPhase fase = faseDeAtaque();
+        if (fase == AttackPhase.WINDUP) return estado.setAndContinue(DIVE_WINDUP);
+        if (fase == AttackPhase.ACTIVE) return estado.setAndContinue(DIVE);
+        if (fase == AttackPhase.RECOVERY) return estado.setAndContinue(RECOVER);
+        if (estaAvisando()) return estado.setAndContinue(WARN);
+        // Pousada e voando sao os dois repousos da ave, e a diferenca e visivel:
+        // no chao a asa fica fechada sobre as quatro pernas, no ar ela bate.
+        if (onGround()) return estado.setAndContinue(PERCH);
+        return estado.setAndContinue(FLY);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() { return cacheDeAnimacao; }
+
+    @Override
+    public double getTick(Object entidade) { return this.tickCount; }
 
     // ----------------------------------------------------------------- saidas
 

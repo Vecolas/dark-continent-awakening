@@ -69,17 +69,20 @@ class PlaceholderDeclaradoTest {
      * verde que o build esteja.
      */
     private static final Set<String> VESTINDO_VANILLA_AINDA = Set.of(
-            "FoxbearModel.java",
-            "FoxbearRenderer.java",
             // GreatStampModel.java e GreatStampRenderer.java sairam daqui no PR que deu ao
             // great stamp modelo, esqueleto, animacoes, textura e renderer proprios
             // (ADR-017). FrogInWaitingModel.java e FrogInWaitingRenderer.java sairam no PR
             // seguinte, pelo mesmo motivo, e ManFacedApeModel.java e ManFacedApeRenderer.java
             // no PR depois desse -- este foi o primeiro mob com DUAS silhuetas proprias, uma
-            // por id. Nao reponha os nomes: a lista e a divida, e divida paga que continua
+            // por id. SpiderEagleModel.java e SpiderEagleRenderer.java sairam no PR desta
+            // linha, que fechou a fila: a ave era a ultima e a primeira VOADORA, e o
+            // emprestimo dela mentia sobre ENVERGADURA num mob cuja unica resposta ensinada
+            // e recuar. Nao reponha os nomes: a lista e a divida, e divida paga que continua
             // escrita manda a proxima pessoa refazer o trabalho.
-            "SpiderEagleModel.java",
-            "SpiderEagleRenderer.java");
+            //
+            // O que sobra e de OUTRA FRENTE -- o foxbear nao faz parte desta migracao.
+            "FoxbearModel.java",
+            "FoxbearRenderer.java");
 
     @Test
     @DisplayName("quem veste corpo vanilla se declara PLACEHOLDER e consta na divida")

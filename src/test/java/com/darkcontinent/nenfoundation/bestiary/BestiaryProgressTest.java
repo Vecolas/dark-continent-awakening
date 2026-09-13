@@ -54,4 +54,11 @@ class BestiaryProgressTest {
         assertThrows(IllegalArgumentException.class,
                 () -> BestiaryProgress.UNKNOWN.withResearchPoints(-1, BestiaryKnowledgeLevel.STUDIED));
     }
+
+    @Test
+    void derrotaIncrementaContadorSemRegredirConhecimento() {
+        var progress = BestiaryProgress.UNKNOWN.observe(7L).defeated();
+        assertEquals(1, progress.timesDefeated());
+        assertEquals(BestiaryKnowledgeLevel.FOUGHT, progress.knowledgeLevel());
+    }
 }

@@ -36,6 +36,12 @@ public final class BestiaryPlayerService {
                 BestiaryKnowledgeLevel.FOUGHT));
     }
 
+    public static void derrotar(ServerPlayer jogador, ResourceLocation id) {
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, pesquisar(progresso(jogador, id).defeated(), entry, 3,
+                BestiaryKnowledgeLevel.FOUGHT));
+    }
+
     /** A futura Research Table chamará esta porta; o cliente nunca escolhe o nível. */
     public static void pesquisar(ServerPlayer jogador, ResourceLocation id, int pontos) {
         if (pontos <= 0) return;

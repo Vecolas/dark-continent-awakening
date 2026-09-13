@@ -56,21 +56,31 @@ public final class WorldTreeLayoutGenerator {
     }
 
     private static List<WorldTreeSpline> generateBranches(SplittableRandom random) {
-        int count = 3 + random.nextInt(5);
-        List<WorldTreeSpline> branches = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            double angle = Math.PI * 2.0 * i / count + random.nextDouble(-0.25, 0.25);
-            double y = random.nextDouble(520.0, 1120.0);
+        WorldTreeZone[] branchZones = {
+                WorldTreeZone.CLOUD_SEA,
+                WorldTreeZone.MID_BOUGHS,
+                WorldTreeZone.HIGH_CANOPY,
+                WorldTreeZone.CROWN,
+                WorldTreeZone.SUMMIT
+        };
+        List<WorldTreeSpline> branches = new ArrayList<>(branchZones.length * 5);
+        for (WorldTreeZone zone : branchZones) {
+            int count = 3 + random.nextInt(5);
+            for (int i = 0; i < count; i++) {
+                double angle = Math.PI * 2.0 * i / count + random.nextDouble(-0.25, 0.25);
+                double y = random.nextDouble(zone.minY() + 20.0, zone.maxYExclusive() - 20.0);
             double length = random.nextDouble(80.0, 201.0);
             double dx = Math.cos(angle);
             double dz = Math.sin(angle);
-            branches.add(new WorldTreeSpline(List.of(
-                    new WorldTreePoint(dx * 12.0, y, dz * 12.0),
-                    new WorldTreePoint(dx * 35.0, y + random.nextDouble(-12.0, 18.0), dz * 35.0),
-                    new WorldTreePoint(dx * length * 0.65, y + random.nextDouble(8.0, 42.0),
-                            dz * length * 0.65),
-                    new WorldTreePoint(dx * length, y + random.nextDouble(12.0, 55.0), dz * length)),
-                    random.nextDouble(12.0, 30.0), random.nextDouble(4.0, 9.0)));
+                double startDistance = zone == WorldTreeZone.SUMMIT ? 0.0 : 12.0;
+                branches.add(new WorldTreeSpline(List.of(
+                        new WorldTreePoint(dx * startDistance, y, dz * startDistance),
+                        new WorldTreePoint(dx * 35.0, y + random.nextDouble(-12.0, 18.0), dz * 35.0),
+                        new WorldTreePoint(dx * length * 0.65, y + random.nextDouble(8.0, 42.0),
+                                dz * length * 0.65),
+                        new WorldTreePoint(dx * length, y + random.nextDouble(12.0, 55.0), dz * length)),
+                        random.nextDouble(12.0, 30.0), random.nextDouble(4.0, 9.0)));
+            }
         }
         return branches;
     }

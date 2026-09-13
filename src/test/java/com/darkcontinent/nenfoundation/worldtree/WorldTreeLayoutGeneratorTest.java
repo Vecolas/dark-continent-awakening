@@ -36,6 +36,17 @@ class WorldTreeLayoutGeneratorTest {
         assertTrue(layout.roots().size() >= 8, "o minimo de raizes deve ser respeitado");
         assertTrue(layout.roots().size() <= 14);
         assertTrue(layout.branches().size() >= 3);
+        for (WorldTreeZone zone : new WorldTreeZone[] {
+                WorldTreeZone.CLOUD_SEA, WorldTreeZone.MID_BOUGHS,
+                WorldTreeZone.HIGH_CANOPY, WorldTreeZone.CROWN, WorldTreeZone.SUMMIT
+        }) {
+            long branchesInZone = layout.branches().stream()
+                    .filter(branch -> branch.controlPoints().get(0).y() >= zone.minY()
+                            && branch.controlPoints().get(0).y() < zone.maxYExclusive())
+                    .count();
+            assertTrue(branchesInZone >= 3 && branchesInZone <= 7,
+                    "a zona deve possuir de 3 a 7 galhos major: " + zone);
+        }
         assertEquals(48, layout.trunk().baseY());
         assertEquals(1200, layout.trunk().topY());
         assertEquals(WorldTreeZone.CLOUD_SEA, WorldTreeZone.forY(400));

@@ -74,8 +74,8 @@ public final class BestiaryPlayerService {
 
     public static void sincronizar(ServerPlayer jogador) {
         if (jogador.connection == null) return;
-        var entries = new LinkedHashMap<ResourceLocation, BestiaryKnowledgeLevel>();
-        ler(jogador).entries().forEach((id, progress) -> entries.put(id, progress.knowledgeLevel()));
+        var entries = new LinkedHashMap<ResourceLocation, BestiaryProgress>();
+        ler(jogador).entries().forEach(entries::put);
         var payload = new BestiarySnapshotS2C(entries);
         if (jogador.connection.hasChannel(payload.type())) {
             PacketDistributor.sendToPlayer(jogador, payload);

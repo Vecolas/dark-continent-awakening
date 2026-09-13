@@ -1,11 +1,9 @@
 package com.darkcontinent.nenfoundation.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
-import net.minecraft.core.component.DataComponents;
+import com.darkcontinent.nenfoundation.item.HunterBestiaryItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.WrittenBookItem;
-import net.minecraft.world.item.component.WrittenBookContent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -18,9 +16,7 @@ public final class NenItems {
             DeferredRegister.create(BuiltInRegistries.ITEM, NenFoundation.MOD_ID);
 
     public static final DeferredHolder<Item, Item> HUNTER_BESTIARY = ITEMS.register(
-            "hunter_bestiary", () -> new WrittenBookItem(new Item.Properties()
-                    .stacksTo(1)
-                    .component(DataComponents.WRITTEN_BOOK_CONTENT, conteudoDoBestiario())));
+            "hunter_bestiary", () -> new HunterBestiaryItem(new Item.Properties()));
 
     private NenItems() { }
 
@@ -35,7 +31,4 @@ public final class NenItems {
         }
     }
 
-    static WrittenBookContent conteudoDoBestiario() {
-        return BestiarioContent.conteudo();
-    }
 }

@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation;
 
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
+import com.darkcontinent.nenfoundation.data.attachment.BestiaryAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
@@ -61,6 +62,7 @@ public final class NenFoundation {
         modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
+        BestiaryAttachments.TYPES.register(modEventBus);
         NenItems.register(modEventBus);
         modEventBus.addListener(NenItems::adicionarAoCriativo);
         // UMA fila de inimigos, e so uma. Ate aqui eram duas -- um DeferredRegister

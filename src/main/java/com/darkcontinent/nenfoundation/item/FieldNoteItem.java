@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
 /** Nota de campo consumível; a autoridade do desbloqueio permanece no servidor. */
@@ -31,5 +32,19 @@ public final class FieldNoteItem extends Item {
             player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.used"), true);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+    }
+
+    @Override
+    public net.minecraft.world.InteractionResult useOn(UseOnContext context) {
+        if (!(context.getLevel().getBlockState(context.getClickedPos()).getBlock()
+                instanceof com.darkcontinent.nenfoundation.structure.ResearchTableBlock)) {
+            return super.useOn(context);
+        }
+        if (!context.getLevel().isClientSide() && context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player) {
+            BestiaryPlayerService.pesquisar(player, entryId, researchPoints);
+            context.getItemInHand().shrink(1);
+            player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.researched"), true);
+        }
+        return net.minecraft.world.InteractionResult.sidedSuccess(context.getLevel().isClientSide());
     }
 }

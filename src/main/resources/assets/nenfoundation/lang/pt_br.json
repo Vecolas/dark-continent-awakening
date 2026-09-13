@@ -92,6 +92,7 @@
   "block.nenfoundation.research_table": "Mesa de Pesquisa Hunter",
   "block.nenfoundation.research_table.ready": "A mesa de pesquisa estÃ¡ pronta para amostras.",
   "item.nenfoundation.field_note.used": "Nota de campo adicionada ao bestiÃ¡rio.",
+  "item.nenfoundation.field_note.researched": "A mesa registrou a nota de campo.",
   "entity.nenfoundation.frog_in_waiting": "Sapo-de-Tocaia",
   "entity.nenfoundation.great_stamp": "Great Stamp",
   "entity.nenfoundation.kiriko": "Kiriko",

@@ -89,6 +89,8 @@
   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
   "entity.nenfoundation.foxbear": "Urso-Raposa",
   "item.nenfoundation.foxbear_field_note": "Nota de campo do Urso-Raposa",
+  "block.nenfoundation.research_table": "Mesa de Pesquisa Hunter",
+  "block.nenfoundation.research_table.ready": "A mesa de pesquisa estÃ¡ pronta para amostras.",
   "item.nenfoundation.field_note.used": "Nota de campo adicionada ao bestiÃ¡rio.",
   "entity.nenfoundation.frog_in_waiting": "Sapo-de-Tocaia",
   "entity.nenfoundation.great_stamp": "Great Stamp",

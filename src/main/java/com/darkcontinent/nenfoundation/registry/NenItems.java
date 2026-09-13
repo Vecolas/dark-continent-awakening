@@ -34,6 +34,9 @@ public final class NenItems {
             evento.accept(HUNTER_BESTIARY.get());
             evento.accept(FOXBEAR_FIELD_NOTE.get());
         }
+        if (evento.getTabKey() == net.minecraft.world.item.CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+            evento.accept(NenBlocks.RESEARCH_TABLE_ITEM.get());
+        }
     }
 
 }

@@ -382,10 +382,37 @@ function Comando-Servidor {
     $java = Resolver-Java
 
     if (-not (Test-Path -LiteralPath $Servidor)) {
-        throw "a instancia nao existe. Rode: .\scripts\instancia.ps1 instalar"
+        # A MENSAGEM DIZ ONDE PROCUROU, e isso nao e detalhe.
+        # A instancia mora ao lado DESTE script, e o -Codigo so muda de onde
+        # vem o codigo. Quem roda o script da copia limpa -- que e o reflexo
+        # natural, porque foi ela que apareceu no comando -- recebia "a
+        # instancia nao existe" sem o caminho, e nao tinha como descobrir que o
+        # script estava certo e o diretorio e que era outro.
+        #
+        # Pior: o proximo passo obvio seria `instalar` ali, criando uma SEGUNDA
+        # instancia, baixando o NeoForge de novo e deixando os mundos antigos
+        # para tras sem nada avisar.
+        throw (
+            "a instancia nao existe em: $Instancia`n" +
+            "   A instancia mora sempre ao lado do script que voce chamou.`n" +
+            "   Se ela existe em OUTRA copia do repositorio, rode o script de LA`n" +
+            "   e use -Codigo para apontar o codigo para ca:`n" +
+            "     cd <copia com a instancia>`n" +
+            "     .\scripts\instancia.ps1 servidor -Codigo $Raiz`n" +
+            "   Para criar uma instancia nova aqui: .\scripts\instancia.ps1 instalar")
     }
 
     Conferir-Gerador
+
+    # O MUNDO QUE AINDA NAO EXISTE NASCE NESTA SUBIDA, e com o gerador que o
+    # server.properties declara AGORA. Sem guardar isso, a marca nunca era
+    # escrita para um mundo criado pela propria execucao -- a conferencia roda
+    # antes de o mundo existir e sai cedo -- e a subida SEGUINTE acusaria
+    # "nasceu com: desconhecido" num mundo que nasceu certo.
+    #
+    # Alarme falso e pior que alarme nenhum: ele treina a pessoa a ignorar o
+    # aviso, e quando a divergencia for real ela passa batida junto.
+    $mundoNasceAqui = -not (Test-Path -LiteralPath (Join-Path $Servidor 'world'))
 
     # SUBIR JA ATUALIZA, e este e o ponto da pasta inteira.
     #
@@ -435,7 +462,14 @@ function Comando-Servidor {
         } else {
             throw "run.bat nao existe na instancia; a instalacao ficou incompleta."
         }
-    } finally { Pop-Location }
+    } finally {
+        Pop-Location
+        # SO QUANDO O MUNDO NASCEU NESTA EXECUCAO. Se ele ja existia e a marca
+        # discordava, `Conferir-Gerador` avisou -- e escrever a marca aqui
+        # apagaria a divergencia em silencio, que e o contrario do que esta
+        # guarda existe para fazer.
+        if ($mundoNasceAqui) { Registrar-Gerador }
+    }
 }
 
 function Comando-Cliente {

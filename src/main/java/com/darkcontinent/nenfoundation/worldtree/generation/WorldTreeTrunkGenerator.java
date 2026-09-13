@@ -27,8 +27,17 @@ public final class WorldTreeTrunkGenerator {
 
     /** Gera a escala reduzida da base no Overworld, deslocada para a origem salva. */
     public static void generateBase(ChunkAccess chunk, WorldTreeLayout layout, int baseY) {
+        int bottomY = overworldBottomY(chunk.getMinBuildHeight());
+        // O fuste continua abaixo do solo e substitui o terreno até imediatamente
+        // acima da bedrock, mas não remove a camada de bedrock do mundo.
+        generateVolume(chunk, layout, layout.overworldOriginX(), layout.overworldOriginZ(),
+                bottomY, baseY + 1, 52.0, 48.0);
         generateVolume(chunk, layout, layout.overworldOriginX(), layout.overworldOriginZ(),
                 baseY, baseY + 220, 48.0, 30.0);
+    }
+
+    static int overworldBottomY(int minBuildHeight) {
+        return minBuildHeight + 1;
     }
 
     private static void generateVolume(ChunkAccess chunk, WorldTreeLayout layout,
@@ -80,8 +89,12 @@ public final class WorldTreeTrunkGenerator {
         return Math.max(1.0, baseRadius + lobes + noise);
     }
 
-    private static BlockState stateFor(double distance, double radius, int x, int y, int z, long seed) {
+    static BlockState stateFor(double distance, double radius, int x, int y, int z, long seed) {
         double normalized = distance / radius;
+        return stateForNormalized(normalized, x, y, z, seed);
+    }
+
+    static BlockState stateForNormalized(double normalized, int x, int y, int z, long seed) {
         if (normalized >= 0.86) {
             return barkVariant(x, y, z, seed);
         }
@@ -101,7 +114,7 @@ public final class WorldTreeTrunkGenerator {
         return WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState();
     }
 
-    private static BlockState barkVariant(int x, int y, int z, long seed) {
+    static BlockState barkVariant(int x, int y, int z, long seed) {
         long value = mix(seed ^ ((long) x * 341873128712L) ^ ((long) y * 132897987541L)
                 ^ ((long) z * 42317861L));
         return switch (Math.floorMod(value, 16)) {

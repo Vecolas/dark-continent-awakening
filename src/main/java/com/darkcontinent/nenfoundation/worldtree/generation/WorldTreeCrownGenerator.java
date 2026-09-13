@@ -1,6 +1,5 @@
 package com.darkcontinent.nenfoundation.worldtree.generation;
 
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
 import net.minecraft.core.BlockPos;
@@ -31,7 +30,7 @@ public final class WorldTreeCrownGenerator {
         // Plataforma irregular sob o anchor do Summit, em vez de um ponto no vazio.
         placeEllipsoid(chunk, position, minX, minZ, maxX, maxZ,
                 new WorldTreePoint(18.0, 1448.0, 0.0), 15.0, 5.0,
-                WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState());
+                layout.seed());
     }
 
     private static void generateLeader(ChunkAccess chunk, BlockPos.MutableBlockPos position,
@@ -42,7 +41,7 @@ public final class WorldTreeCrownGenerator {
             double z = Math.cos(y * 0.015 - layout.seed() * 0.0000017) * (1.5 + t * 2.0);
             double radius = 19.0 - t * 12.0;
             placeEllipsoid(chunk, position, minX, minZ, maxX, maxZ,
-                    new WorldTreePoint(x, y, z), radius, radius * 0.78, woodState(t));
+                    new WorldTreePoint(x, y, z), radius, radius * 0.78, layout.seed());
         }
     }
 
@@ -62,19 +61,13 @@ public final class WorldTreeCrownGenerator {
                     Math.sin(angle) * reach * t + Math.cos(angle) * bend);
             double radius = 17.0 - t * 9.0;
             placeEllipsoid(chunk, position, minX, minZ, maxX, maxZ, point,
-                    radius, radius * 0.72, woodState(t));
+                    radius, radius * 0.72, layout.seed());
         }
-    }
-
-    private static BlockState woodState(double t) {
-        return t < 0.22
-                ? WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState()
-                : WorldTreeBlocks.WORLD_TREE_BARK.get().defaultBlockState();
     }
 
     private static void placeEllipsoid(ChunkAccess chunk, BlockPos.MutableBlockPos position,
             int minX, int minZ, int maxX, int maxZ, WorldTreePoint center,
-            double horizontalRadius, double verticalRadius, BlockState state) {
+            double horizontalRadius, double verticalRadius, long seed) {
         int fromX = Math.max(minX, (int) Math.floor(center.x() - horizontalRadius - 1));
         int toX = Math.min(maxX, (int) Math.ceil(center.x() + horizontalRadius + 1));
         int fromZ = Math.max(minZ, (int) Math.floor(center.z() - horizontalRadius - 1));
@@ -91,7 +84,11 @@ public final class WorldTreeCrownGenerator {
                             + Math.pow((z - center.z()) / horizontalRadius, 2.0);
                     if (normalized <= 1.0) {
                         position.set(x, y, z);
-                        chunk.setBlockState(position, state, false);
+                        BlockState state = WorldTreeTrunkGenerator.stateForNormalized(
+                                normalized, x, y, z, seed);
+                        if (state != null) {
+                            chunk.setBlockState(position, state, false);
+                        }
                     }
                 }
             }

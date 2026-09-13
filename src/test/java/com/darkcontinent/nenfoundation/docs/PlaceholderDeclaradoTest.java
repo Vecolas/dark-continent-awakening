@@ -145,6 +145,34 @@ class PlaceholderDeclaradoTest {
     }
 
     @Test
+    @DisplayName("som vanilla emprestado se declara PLACEHOLDER")
+    void somVanillaEmprestadoSeDeclara() {
+        // A diretriz PERMITE som vanilla como placeholder (secao 10) -- e permite de
+        // propriedade, porque identidade sonora propria esta bloqueada por FERRAMENTA
+        // nesta maquina: o Minecraft so toca .ogg vorbis e nao ha encoder aqui. O que
+        // ela nao permite e o emprestimo passar despercebido.
+        //
+        // Som e o emprestimo mais facil de esquecer de todos: ele nao aparece em
+        // revisao de diff visual, nao tem textura para alguem estranhar, e some no
+        // meio do barulho do jogo. Sem esta regra, o dia em que houver encoder
+        // ninguem vai saber QUAIS sons precisam trocar.
+        Set<String> semMarcador = new LinkedHashSet<>();
+        for (Path fonte : Repo.varrer("src/main/java/com/darkcontinent/nenfoundation/enemy", ".java")) {
+            String caminho = Repo.raiz().relativize(fonte).toString().replace('\\', '/');
+            String texto = Repo.texto(caminho);
+            if (texto.contains("SoundEvents.") && !texto.contains("PLACEHOLDER")) {
+                semMarcador.add(caminho);
+            }
+        }
+        assertTrue(semMarcador.isEmpty(),
+                "Estes arquivos usam som VANILLA e nao se declaram: " + semMarcador
+                        + ". Escreva PLACEHOLDER dizendo qual som foi emprestado e o que vai"
+                        + " substituir. A secao 10 da diretriz permite o emprestimo durante o"
+                        + " desenvolvimento; o que ela nao permite e ele virar definitivo por"
+                        + " ninguem lembrar que estava la.");
+    }
+
+    @Test
     @DisplayName("nenhuma entidade do mod herda de especie vanilla concreta")
     void nenhumaEntidadeHerdaDeEspecieVanilla() {
         Set<String> violacoes = new LinkedHashSet<>();

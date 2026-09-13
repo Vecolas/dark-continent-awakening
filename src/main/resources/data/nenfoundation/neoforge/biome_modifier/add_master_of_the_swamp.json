@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:swamp_water_biomes",
+  "spawners": [
+    {
+      "type": "nenfoundation:master_of_the_swamp",
+      "weight": 2,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

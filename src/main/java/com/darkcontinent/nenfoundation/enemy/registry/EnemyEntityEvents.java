@@ -4,9 +4,11 @@ import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnPlacements;
@@ -24,6 +26,8 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.FROG_IN_WAITING.get(), FrogInWaitingEntity.createAttributes().build());
         event.put(EnemyEntityTypes.MAN_FACED_APE.get(), ManFacedApeEntity.createAttributes().build());
         event.put(EnemyEntityTypes.SPIDER_EAGLE.get(), SpiderEagleEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
+                MasterOfTheSwampEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -63,6 +67,16 @@ public final class EnemyEntityEvents {
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // O PRIMEIRO PLACEMENT DE AGUA DO REPOSITORIO. O predicado de chao nao serve
+        // aqui: ele exige face solida embaixo, e isso reprovaria todo ponto de agua
+        // funda -- o mob simplesmente nunca nasceria, e nada acusaria. A faixa de luz
+        // continua sendo a DO PERFIL, lida e nao repetida, pelo mesmo motivo de sempre.
+        event.register(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
+                SpawnPlacementTypes.IN_WATER,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
     }
 
     /**
@@ -82,6 +96,32 @@ public final class EnemyEntityEvents {
             int luz = level.getMaxLocalRawBrightness(pos);
             return spawnType != MobSpawnType.SPAWNER
                     && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP)
+                    && luz >= luzMinima && luz <= luzMaxima;
+        };
+    }
+
+    /**
+     * Irmao AQUATICO do predicado acima: "agua funda, dentro da faixa de luz DO
+     * PERFIL, e nao vindo de spawner".
+     *
+     * <p>A forma e a mesma de proposito -- inclusive a leitura da faixa de luz --
+     * porque o erro que ela evita e o mesmo: numero de luz repetido aqui vira botao
+     * morto na {@link SpawnRule}, e a sessao de balanceamento gira o botao sem que
+     * nada mude em jogo.</p>
+     *
+     * <p>DOIS blocos de agua, e nao um. A caixa deste mob tem 1.6 de altura: nascido
+     * numa poca de um bloco ele apareceria com metade do corpo para fora, encalhado,
+     * e o unico sinal disso seria alguem ver a cena. Exigir o bloco de cima tambem com
+     * agua e o que transforma "bioma de pantano" em "agua que comporta o bicho".</p>
+     */
+    private static <T extends Entity> SpawnPlacements.SpawnPredicate<T> naAguaComLuzDoPerfil(SpawnRule regra) {
+        int luzMinima = regra.minLight();
+        int luzMaxima = regra.maxLight();
+        return (type, level, spawnType, pos, random) -> {
+            int luz = level.getMaxLocalRawBrightness(pos);
+            return spawnType != MobSpawnType.SPAWNER
+                    && level.getFluidState(pos).is(FluidTags.WATER)
+                    && level.getFluidState(pos.above()).is(FluidTags.WATER)
                     && luz >= luzMinima && luz <= luzMaxima;
         };
     }

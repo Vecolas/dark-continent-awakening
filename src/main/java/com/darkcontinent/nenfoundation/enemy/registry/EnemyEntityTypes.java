@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -43,6 +44,20 @@ public final class EnemyEntityTypes {
             TYPES.register("spider_eagle",
                     () -> EntityType.Builder.of(SpiderEagleEntity::new, MobCategory.CREATURE)
                             .sized(1.2F, 0.9F).build(NenFoundation.id("spider_eagle").toString()));
+
+    // Caixa de PEIXE ENORME: 2.4 x 1.6 (38.4 x 25.6 px). Ela e larga de proposito --
+    // o encontro inteiro e "isto nao cabe na sua vara", e uma caixa modesta faria a
+    // silhueta mentir sobre o que esta puxando a linha. O preco esta declarado: com
+    // esta largura ele so se move em agua FUNDA, e o predicado de spawn exige dois
+    // blocos de agua justamente por isso.
+    //
+    // WATER_CREATURE, e nao CREATURE: e a categoria que faz o biome modifier cair na
+    // lista de spawn de agua. Registrado como CREATURE ele simplesmente nunca
+    // nasceria, e nada acusaria -- o pantano ficaria vazio.
+    public static final DeferredHolder<EntityType<?>, EntityType<MasterOfTheSwampEntity>> MASTER_OF_THE_SWAMP =
+            TYPES.register("master_of_the_swamp",
+                    () -> EntityType.Builder.of(MasterOfTheSwampEntity::new, MobCategory.WATER_CREATURE)
+                            .sized(2.4F, 1.6F).build(NenFoundation.id("master_of_the_swamp").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

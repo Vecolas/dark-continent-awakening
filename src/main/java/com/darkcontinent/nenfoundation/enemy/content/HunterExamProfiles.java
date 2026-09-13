@@ -15,6 +15,7 @@ import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
+import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeFisgada;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import java.util.Map;
 import java.util.Set;
@@ -235,6 +236,81 @@ public final class HunterExamProfiles {
     }
 
     /**
+     * HP 60, dano 6, velocidade 0.6, armadura 4 -- corpo GRANDE e teimoso.
+     *
+     * <p>Os numeros nao existem para tornar o mob um bom combate; existem para
+     * tornar o combate um MAU caminho. Sessenta de vida com armadura 4 num
+     * bicho que foge ao primeiro golpe da uma briga longa, chata e sem premio,
+     * e esse e o ponto: a recompensa esta na CAPTURA. Se alguem "corrigir"
+     * estes numeros para um combate agradavel, o mob inteiro deixa de ensinar
+     * o que veio ensinar, e nada acusa -- o build segue verde.</p>
+     *
+     * <p>Velocidade 0.6 e alta de proposito: e ela que faz o cabo de guerra
+     * existir. Um peixe lento seria acompanhado sem esforco, a tensao nunca
+     * subiria e a linha nunca arrebentaria.</p>
+     *
+     * <p>territorial=false e social=false: ele nao defende lugar nenhum e nao
+     * anda em cardume. E UM por regiao -- o limite de 1 por grupo e o que faz
+     * "encontro raro" querer dizer alguma coisa.</p>
+     *
+     * <p>allowWater=true e requireGround=false: e o primeiro perfil AQUATICO do
+     * repositorio. Marcado como os outros, ele nunca nasceria.</p>
+     *
+     * <p>maxLight 15: ele vive na agua, e agua de pantano pega sol. Exigir
+     * escuridao faria o encontro nunca acontecer -- e isso nao da erro nenhum,
+     * aparece como um pantano vazio que ninguem consegue explicar.</p>
+     */
+    public static EnemyDefinition masterOfTheSwamp() {
+        return new EnemyDefinition(metadata("master_of_the_swamp", ThreatTier.DANGEROUS, false, false),
+                new EnemyAttributes(60, 0.6F, 6, 4, 24, 0.6F),
+                spawn("#nenfoundation:swamp_water_biomes", 0, 15, false, true, 1));
+    }
+
+    /**
+     * Bocada de 12 ticks de aviso, 4 de janela e 16 de recuperacao.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: ele e lido de
+     * {@link #masterOfTheSwamp()}, porque a bocada e o unico ataque do peixe --
+     * o mesmo ATTACK_DAMAGE que o atributo publica. Repetir o 6 aqui criaria
+     * duas fontes para a mesma verdade: girar o atributo numa sessao de
+     * balanceamento mudaria o dano em jogo e nao mudaria este numero, e a
+     * divergencia so apareceria como uma representacao que promete um dano
+     * diferente do que o jogador leva.</p>
+     *
+     * <p>O WINDUP E O AVISO, e aqui ele avisa uma coisa incomum: nao "voce vai
+     * apanhar", e sim "sua isca vai sumir". Doze ticks sao o tempo de ver a
+     * boca abrir e recolher a linha antes da mordida -- quem recolhe a tempo
+     * escapa da fisgada inteira. Encurtar isto transforma o encontro numa
+     * fisgada sem telegrafo.</p>
+     *
+     * <p>O empurrao de 0.3 e pequeno DE PROPOSITO: quem estiver nadando ao lado
+     * da propria boia leva a bocada, mas nao e arremessado para longe -- o
+     * perigo deste mob e perder a linha, nao morrer.</p>
+     */
+    public static AttackDefinition masterOfTheSwampBite() {
+        return new AttackDefinition("bite", 12, 4, 16,
+                masterOfTheSwamp().attributes().attackDamage(), 0.3F, true, false, true);
+    }
+
+    /**
+     * Isca a 8 blocos, 200 ticks de linha presa para cansar, 100 de tensao
+     * maxima, 6 de tensao por bloco afastado e 4 de alivio por bloco
+     * aproximado.
+     *
+     * <p>Os cinco numeros se leem JUNTOS, e a conta e o mob inteiro: correndo
+     * para longe a 0.28 bloco por tick, o jogador poe 1.68 de tensao por tick e
+     * arrebenta a linha em cerca de 60 ticks -- tres segundos de puxao errado.
+     * Os dez segundos que cansam o peixe so cabem nesse orcamento para quem
+     * ACOMPANHA, porque o alivio (4) e menor que a tensao (6): seguir o peixe
+     * paga o puxao dele, mas nao gera credito. Inverter essa relacao faria a
+     * captura virar um passeio, e igualar as duas faria o cabo de guerra virar
+     * uma soma que da sempre zero -- nenhum dos dois daria erro.</p>
+     */
+    public static RegrasDeFisgada masterOfTheSwampFishing() {
+        return new RegrasDeFisgada(8.0D, 200, 100.0D, 6.0D, 4.0D);
+    }
+
+    /**
      * Os ids que ESTE repositorio ja publica como entidade registrada.
      *
      * <p>ACRESCENTE O MOB AQUI NO MESMO PR QUE REGISTRA O ENTITYTYPE DELE. O
@@ -253,7 +329,8 @@ public final class HunterExamProfiles {
                 "great_stamp", greatStamp(),
                 "frog_in_waiting", frogInWaiting(),
                 "man_faced_ape", manFacedApe(),
-                "spider_eagle", spiderEagle());
+                "spider_eagle", spiderEagle(),
+                "master_of_the_swamp", masterOfTheSwamp());
     }
 
     public static EnemyDefinition foxbear() {

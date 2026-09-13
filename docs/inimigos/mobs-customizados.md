@@ -106,6 +106,7 @@ conseguem medir, e arte não trava IA.
 
 | Inimigo | O que empresta | Comportamento próprio |
 | --- | --- | --- |
+| Master of the Swamp | **nada** — corpo próprio desde o primeiro dia | fisgada, cabo de guerra, captura |
 | Foxbear | **nada** — modelo, esqueleto, animações, textura e renderer próprios | territorial, em jogo |
 | Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
 | Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
@@ -116,7 +117,7 @@ A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. E
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
 **A dívida visual fechou: os cinco têm corpo próprio.** Nenhum deles, mas nenhum dos
-dois é DONE pela ficha acima: faltam **sons próprios**. Os cinco são silenciosos —
+dois é DONE pela ficha acima: faltam **sons próprios**. Os seis são silenciosos —
 não emprestam som de vanilla, simplesmente não emitem. E isso hoje está
 **bloqueado por ferramenta**, não por esforço: o Minecraft só toca `.ogg`
 Vorbis e esta máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav`

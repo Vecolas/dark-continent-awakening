@@ -2,7 +2,6 @@ package com.darkcontinent.nenfoundation.enemy.api;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.darkcontinent.nenfoundation.enemy.data.EnemyCodecs;
 import net.minecraft.resources.ResourceLocation;
 
 /** Identidade estavel de uma criatura; atributos de runtime ficam fora deste record. */

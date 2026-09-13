@@ -4,7 +4,6 @@ import com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
-import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -28,6 +27,10 @@ public final class HunterBestiaryScreen extends Screen {
     private int bookHeight;
     private boolean index = true;
     private net.minecraft.resources.ResourceLocation selectedId = BestiaryRegistry.FOXBEAR_ID;
+    private boolean draggingPreview;
+    private int previewCursorX;
+    private int previewCursorY;
+    private float previewScale = 0.06F;
 
     public HunterBestiaryScreen() {
         super(Component.translatable("item.nenfoundation.hunter_bestiary"));
@@ -39,6 +42,8 @@ public final class HunterBestiaryScreen extends Screen {
         bookHeight = Math.min(460, height - 20);
         left = (width - bookWidth) / 2;
         top = (height - bookHeight) / 2;
+        previewCursorX = left + 130;
+        previewCursorY = top + 170;
     }
 
     @Override
@@ -134,12 +139,13 @@ public final class HunterBestiaryScreen extends Screen {
         if (preview instanceof LivingEntity living) {
             living.setYRot(25.0F);
             InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + 12, y + 12, x + 208, y + 178,
-                    55, 0.06F, mouseXForPreview(), mouseYForPreview(), living);
+                    (int) (55 * (previewScale / 0.06F)), previewScale,
+                    mouseXForPreview(), mouseYForPreview(), living);
         }
     }
 
-    private int mouseXForPreview() { return left + 130; }
-    private int mouseYForPreview() { return top + 170; }
+    private int mouseXForPreview() { return previewCursorX; }
+    private int mouseYForPreview() { return previewCursorY; }
     private void drawTitle(GuiGraphics g, String text, int x, int y) { g.drawString(font, text, x, y, INK, false); }
     private void drawSection(GuiGraphics g, String text, int x, int y) { g.drawString(font, text, x, y, PETROLEO, false); }
     private void drawMarker(GuiGraphics g, int x, int y, String text, boolean selected) {
@@ -153,6 +159,13 @@ public final class HunterBestiaryScreen extends Screen {
     private String status(BestiaryProgress progress) { return progress.knowledgeLevel().name(); }
 
     @Override public boolean mouseClicked(double x, double y, int button) {
+        if (!index && button == 0 && x >= left + 30 && x <= left + 250
+                && y >= top + 78 && y <= top + 266) {
+            draggingPreview = true;
+            previewCursorX = (int) x;
+            previewCursorY = (int) y;
+            return true;
+        }
         if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 75 && y < top + bookHeight - 55) {
             int row = (int) ((y - (top + 78)) / 42);
             var entries = BestiaryRegistry.entries();
@@ -167,6 +180,31 @@ public final class HunterBestiaryScreen extends Screen {
             return true;
         }
         return super.mouseClicked(x, y, button);
+    }
+
+    @Override public boolean mouseReleased(double x, double y, int button) {
+        if (button == 0 && draggingPreview) {
+            draggingPreview = false;
+            return true;
+        }
+        return super.mouseReleased(x, y, button);
+    }
+
+    @Override public boolean mouseDragged(double x, double y, int button, double dragX, double dragY) {
+        if (draggingPreview && button == 0) {
+            previewCursorX += (int) dragX * 2;
+            previewCursorY += (int) dragY;
+            return true;
+        }
+        return super.mouseDragged(x, y, button, dragX, dragY);
+    }
+
+    @Override public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
+        if (!index && x >= left + 30 && x <= left + 250 && y >= top + 78 && y <= top + 266) {
+            previewScale = Math.max(0.035F, Math.min(0.095F, previewScale + (float) scrollY * 0.006F));
+            return true;
+        }
+        return super.mouseScrolled(x, y, scrollX, scrollY);
     }
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {

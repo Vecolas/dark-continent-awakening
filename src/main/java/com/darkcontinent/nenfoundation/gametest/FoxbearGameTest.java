@@ -1,9 +1,9 @@
 package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
-import com.darkcontinent.nenfoundation.enemy.FoxbearEntity;
-import com.darkcontinent.nenfoundation.enemy.FoxbearState;
-import com.darkcontinent.nenfoundation.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.enemy.ai.FoxbearState;
+import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
+import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.neoforged.neoforge.gametest.GameTestHolder;

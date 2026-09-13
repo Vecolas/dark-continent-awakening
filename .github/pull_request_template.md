@@ -17,7 +17,8 @@ Issue: #
 ## Arquivos hostis a merge tocados
 
 <!-- build.gradle, gradle.properties, settings.gradle, NenFoundation.java,
-     NenProtocol.java, NenConfig.java, registry/*, lang/*.json, workflows/*.
+     NenProtocol.java, NenConfig.java, enemy/registry/EnemyEntityTypes.java,
+     lang/*.json, workflows/*.
      Escreva "nenhum" se for o caso. -->
 
 ## Mudança de contrato

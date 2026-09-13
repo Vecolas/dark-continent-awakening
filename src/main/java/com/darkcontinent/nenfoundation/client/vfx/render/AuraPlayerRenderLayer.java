@@ -221,13 +221,22 @@ public final class AuraPlayerRenderLayer
         descarregar(buffers, AuraRenderTypes.ribbon());
     }
 
-    /** O perfil de filamento do modo ativo. */
+    /**
+     * O perfil de filamento do modo ativo.
+     *
+     * <p>ELE VEM DO MESMO ARQUIVO DA SHELL, e nao de um `switch` com constantes
+     * ao lado. Havia aqui um caso por modo chamando `AuraRibbonProfile.ten()` e
+     * `.ren()` -- numeros de arte no codigo, ao lado de um perfil de dado que ja
+     * carregava os da shell. Duas fontes para "como Ren se parece" divergem, e a
+     * divergencia aparece como um Ren cuja shell responde ao ajuste e cujos
+     * filamentos nao.
+     *
+     * <p>{@code AuraPerfis.de} ja responde o perfil apagado para ZETSU e OFF, e
+     * o apagado ja vem sem filamento nenhum -- entao a ausencia continua escrita
+     * no dado, e nao numa guarda daqui.
+     */
     static AuraRibbonProfile perfilDeFilamento(AuraVisualState estado) {
-        return switch (estado.mode()) {
-            case REN -> AuraRibbonProfile.ren();
-            case TEN, CUSTOM -> AuraRibbonProfile.ten();
-            case ZETSU, OFF -> AuraRibbonProfile.zero();
-        };
+        return AuraPerfis.de(estado.mode()).filamentos();
     }
 
     /**

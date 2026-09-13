@@ -15,5 +15,14 @@
 
   "_particula": "ACABAMENTO, e nao a aura. Ren emite mais e maior que Ten -- mas quem carrega a leitura continua sendo a shell.",
   "densidade_de_particula": 0.16,
-  "tamanho_de_particula": 0.30
+  "tamanho_de_particula": 0.30,
+
+  "_filamentos": "A MESMA linguagem de Ten, mais densa: mais filamentos, mais longos, trocando mais rapido. Nao e outro efeito.",
+  "filamentos": {
+    "quantidade": 18,
+    "comprimento_min": 0.40,
+    "comprimento_max": 1.60,
+    "largura": 0.014,
+    "ciclo_segundos": 0.55
+  }
 }

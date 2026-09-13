@@ -331,6 +331,21 @@ informação e o código responde com o perfil apagado.
 | `reforco_da_borda` | ≥ 0 | quanto o Fresnel soma à intensidade |
 | `densidade_de_particula` | 0–1 | **acabamento**: quantas faíscas acompanham a shell |
 | `tamanho_de_particula` | 0–1 | **acabamento**: o quanto cada faísca cresce com a intensidade |
+| `filamentos` | objeto | o bloco das ribbons, abaixo |
+
+O bloco `filamentos` é **obrigatório** — um perfil sem ele é recusado inteiro.
+Assumir um padrão daria um Ren que carrega e desenha filamento de Ten, e
+"carregou e errado" não tem sintoma.
+
+| Chave em `filamentos` | Faixa | O que é |
+| --- | --- | --- |
+| `quantidade` | 0–28 | filamentos por jogador no detalhe cheio; 28 é teto de segurança |
+| `comprimento_min` | > 0 | em blocos |
+| `comprimento_max` | > 0 | em blocos; a curva sorteia dentro da faixa |
+| `largura` | 0–0.05 | em blocos. Acima de 0.05 vira **tubo de neon**, que é modo de falha da direção visual |
+| `ciclo_segundos` | > 0 | quanto uma curva dura antes de ser trocada |
+
+Invariante conferida na leitura: **`comprimento_min` ≤ `comprimento_max`**.
 
 Uma invariante viaja com o dado e é conferida na leitura: **o expoente de
 Fresnel precisa DIMINUIR** da camada interna para a externa. Com os três iguais
@@ -338,7 +353,11 @@ as camadas viram uma só mais opaca, e a profundidade que justifica os três
 passes desaparece. Arquivo torto é recusado com motivo, e o perfil de emergência
 assume.
 
-As **duas últimas chaves chegaram no AV0**, quando `AuraVisualPreset` foi
+O bloco `filamentos` chegou logo depois, pelo mesmo motivo: `AuraRibbonProfile`
+tinha `ten()` e `ren()` no código, com um javadoc prometendo tirá-los *"quando o
+perfil existir"* — e o perfil já existia havia dois gates.
+
+As **duas chaves de partícula chegaram no AV0**, quando `AuraVisualPreset` foi
 removido: elas eram `particleIntensity` e `shellOpacity`, constantes de código
 ao lado de cinco irmãs que ninguém lia. A segunda tinha nome de shell e
 dimensionava partícula — que é por que ninguém a encontrava procurando pelo

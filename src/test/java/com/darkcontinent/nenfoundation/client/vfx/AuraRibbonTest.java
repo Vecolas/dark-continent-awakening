@@ -135,8 +135,11 @@ class AuraRibbonTest {
     @Test
     @DisplayName("Ren e mais denso que Ten em todos os eixos")
     void renEMaisDenso() {
-        AuraRibbonProfile ten = AuraRibbonProfile.ten();
-        AuraRibbonProfile ren = AuraRibbonProfile.ren();
+        // OS PERFIS VEM DO DISCO desde que `ten()` e `ren()` sairam do codigo.
+        // Um perfil montado aqui provaria que dois numeros escolhidos NESTE
+        // ARQUIVO se ordenam, e nao que os que o jogo carrega se ordenam.
+        AuraRibbonProfile ten = PerfilDoDisco.de(AuraVisualMode.TEN).filamentos();
+        AuraRibbonProfile ren = PerfilDoDisco.de(AuraVisualMode.REN).filamentos();
         assertTrue(ren.quantidade() > ten.quantidade());
         assertTrue(ren.comprimentoMax() > ten.comprimentoMax());
         assertTrue(ren.largura() > ten.largura());
@@ -151,8 +154,14 @@ class AuraRibbonTest {
                 "brilhante nao e grosso: acima de 0,05 bloco vira tubo neon");
         assertThrows(IllegalArgumentException.class,
                 () -> new AuraRibbonProfile(200, 0.15F, 0.6F, 0.009F, 1.0F));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AuraRibbonProfile(8, 0.8F, 0.2F, 0.009F, 1.0F));
+        // O MINIMO MAIOR QUE O MAXIMO SAIU DAQUI, e nao por relaxamento.
+        //
+        // Ele era conferido no construtor, e o construtor LANCA. O codec
+        // constroi para depois validar -- entao um resource pack com os dois
+        // trocados derrubava o reload de recursos INTEIRO em vez de virar erro
+        // com motivo. A regra continua valendo; ela mudou de lugar, e quem a
+        // prova agora e `filamentoTortoERecusado`, em AuraPerfilVisualTest,
+        // pelo caminho que o jogo realmente usa.
     }
 
     @Test

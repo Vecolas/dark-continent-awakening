@@ -307,6 +307,60 @@ do perfil, e não o valor.
 
 ---
 
+---
+
+## 4e. Os números de filamento também saíram do código (issue #178)
+
+PR em `feat/av2-filamentos-de-dado`, 2026-09-13.
+
+`AuraRibbonProfile` carregava `ten()` e `ren()` — cinco números de arte cada —
+com um javadoc dizendo, em voz alta: *"saem daqui quando o perfil em datapack
+existir (#98)"*. **O perfil existia havia dois gates.** A issue #178 já previa
+exatamente esta dívida e o que ela vira se ficar: *"número que fica nos dois
+lugares vira botão morto"*.
+
+O bloco `filamentos` passou para `nen_vfx/*.json`, e o renderer busca por
+`AuraPerfis.de(estado.mode()).filamentos()` — o **mesmo** caminho da shell. O
+`switch` por modo que havia no renderer sumiu junto: `ZETSU` e `OFF` já recebiam
+o perfil apagado, e o apagado agora vem sem filamento nenhum.
+
+### O portão encontrou um defeito no próprio código desta entrega
+
+Vale registrar porque é o caso limpo de régua que morde antes do merge, e não
+depois.
+
+O `AuraRibbonProfile` conferia `comprimento_min ≤ comprimento_max` **no
+construtor** — e o construtor **lança**. Como o `Codec` constrói para só depois
+validar, um resource pack com os dois trocados derrubaria o **reload de recursos
+inteiro** — não só a aura — em vez de virar um erro com motivo e cair no perfil
+de emergência.
+
+É exatamente a armadilha que `AuraPerfilVisual` já documentava na ordem do
+Fresnel, repetida uma pasta ao lado. Nada em jogo tinha acusado: o construtor só
+era chamado com constantes corretas, escritas no próprio código. **Foi o teste
+novo do caminho de dado que o encontrou**, no primeiro `test` depois de escrito.
+A regra mudou de lugar, para `validate`.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 621`** |
+| `gradlew runServer` | **`Done (2.465s)`**, zero `NoClassDefFoundError`, zero `ClassNotFoundException` |
+| Ren com menos filamentos que Ten, de propósito | **2 testes reprovaram**, em dois arquivos |
+| `apagado()` deixando o filamento passar | **1 reprovou**, o que existe para isso |
+
+**O que esta entrega NÃO prova:** nada de aparência. Os cinco números são os
+mesmos; mudou de onde vêm. Ninguém abriu o cliente.
+
+**Uma correção de rota, encontrada no caminho:** a linha de
+[`o-que-nao-provamos.md`](o-que-nao-provamos.md) que dizia *"o renderer ainda
+não lê a distribuição"* estava **obsoleta desde o AV1** — `AuraPlayerRenderLayer`
+multiplica por região no passe de shell e nos filamentos. O que continua
+faltando do #175 é o outro lado: **o overlay de dev não mostra os seis fatores**,
+e multiplicador que ninguém observa é folclore. A linha foi corrigida para dizer
+isso.
+
+---
+
 ## 5. O que cada execução prova, e o que ela não prova
 
 No estilo de [`o-que-nao-provamos.md`](o-que-nao-provamos.md), e com as mesmas

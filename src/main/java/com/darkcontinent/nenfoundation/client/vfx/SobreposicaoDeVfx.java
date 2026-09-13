@@ -310,7 +310,11 @@ public final class SobreposicaoDeVfx {
                 // Um segundo caminho para a mesma coisa aqui daria dois botoes
                 // que se sobrepoem, e a captura nao diria qual dos dois valia.
                 base.densidadeDeParticula(),
-                base.tamanhoDeParticula());
+                base.tamanhoDeParticula(),
+                // O BLOCO DE FILAMENTO PASSA INTACTO pelo mesmo motivo: quem
+                // quer mais ou menos filamento usa `/nenvfx ribbons`, que ja
+                // sobrepoe a CONTAGEM no ponto do desenho.
+                base.filamentos());
     }
 
     private static float alpha(float sobreposto, float original) {

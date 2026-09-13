@@ -44,7 +44,10 @@ public final class PostoAvancadoCommands {
         }
         var resultado = PostoAvancadoWorldPlacer.colocar(source.getLevel(), x, z, rotacao);
         if (resultado.rejeitado()) {
-            source.sendFailure(Component.literal("Terreno rejeitado: variacao acima de 5 blocos."));
+            String motivo = resultado.motivo() == PostoAvancadoWorldPlacer.Resultado.Motivo.BIOMA
+                    ? "bioma fora da tag hunter_outpost_biomes"
+                    : "variacao do terreno acima de 5 blocos";
+            source.sendFailure(Component.literal("Placement rejeitado: " + motivo + "."));
             return 0;
         }
         source.sendSuccess(() -> Component.literal("Posto Hunter colocado: "

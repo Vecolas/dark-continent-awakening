@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /** Caderno de campo próprio: duas páginas, papel e marcadores, sem BookViewScreen. */
 public final class HunterBestiaryScreen extends Screen {
@@ -26,6 +27,7 @@ public final class HunterBestiaryScreen extends Screen {
     private int bookWidth;
     private int bookHeight;
     private boolean index = true;
+    private net.minecraft.resources.ResourceLocation selectedId = BestiaryRegistry.FOXBEAR_ID;
 
     public HunterBestiaryScreen() {
         super(Component.translatable("item.nenfoundation.hunter_bestiary"));
@@ -65,13 +67,15 @@ public final class HunterBestiaryScreen extends Screen {
         drawTitle(graphics, "FIELD INDEX", left + 30, top + 30);
         graphics.drawString(font, "ASSOCIATION HUNTER / FIELD RESEARCH", left + 30, top + 49, OLIVE, false);
         int y = top + 82;
+        int number = 1;
         for (BestiaryEntryDefinition entry : BestiaryRegistry.entries()) {
             BestiaryProgress progress = BestiaryClientState.progress(entry.id());
             graphics.fill(left + 25, y - 4, left + bookWidth - 25, y + 29, 0x22606A5E);
-            graphics.drawString(font, "01", left + 35, y + 5, OLIVE, false);
+            graphics.drawString(font, String.format("%02d", number++), left + 35, y + 5, OLIVE, false);
             graphics.drawString(font, nome(entry, progress), left + 72, y + 5, INK, false);
             graphics.drawString(font, status(progress), left + bookWidth - 135, y + 5, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? ALERTA : OLIVE, false);
-            graphics.drawString(font, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "????" : "WILDLIFE  /  II",
+            graphics.drawString(font, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "????"
+                            : entry.category().name() + "  /  " + entry.threat(),
                     left + 72, y + 17, 0xFF66716C, false);
             y += 42;
         }
@@ -80,16 +84,20 @@ public final class HunterBestiaryScreen extends Screen {
     }
 
     private void drawEntry(GuiGraphics graphics) {
-        BestiaryEntryDefinition entry = BestiaryRegistry.get(BestiaryRegistry.FOXBEAR_ID);
+        BestiaryEntryDefinition entry = BestiaryRegistry.get(selectedId);
+        if (entry == null) {
+            index = true;
+            return;
+        }
         BestiaryProgress progress = BestiaryClientState.progress(entry.id());
         drawTitle(graphics, nome(entry, progress), left + 30, top + 30);
-        graphics.drawString(font, "WILDLIFE", left + 30, top + 49, OLIVE, false);
-        graphics.drawString(font, "THREAT  " + (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "?" : "II"),
+        graphics.drawString(font, entry.category().name(), left + 30, top + 49, OLIVE, false);
+        graphics.drawString(font, "THREAT  " + (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "?" : entry.threat()),
                 left + bookWidth / 2 - 115, top + 49, ALERTA, false);
         drawPreview(graphics, entry, progress, left + 30, top + 78);
         graphics.drawString(font, "HABITAT", left + 30, top + 285, PETROLEO, false);
         graphics.drawString(font, progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.OBSERVED)
-                ? "FOREST / OPEN GROUND" : "LOCKED", left + 30, top + 302, INK, false);
+                ? Component.translatable(entry.habitatKey()).getString() : "LOCKED", left + 30, top + 302, INK, false);
         graphics.drawString(font, "KNOWLEDGE", left + 30, top + 337, PETROLEO, false);
         graphics.drawString(font, status(progress), left + 30, top + 354, OLIVE, false);
 
@@ -121,7 +129,8 @@ public final class HunterBestiaryScreen extends Screen {
             return;
         }
         if (minecraft == null || minecraft.level == null) return;
-        Entity preview = EnemyEntityTypes.FOXBEAR.get().create(minecraft.level);
+        Entity preview = BuiltInRegistries.ENTITY_TYPE.getOptional(entry.entityType())
+                .map(type -> type.create(minecraft.level)).orElse(null);
         if (preview instanceof LivingEntity living) {
             living.setYRot(25.0F);
             InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + 12, y + 12, x + 208, y + 178,
@@ -138,14 +147,20 @@ public final class HunterBestiaryScreen extends Screen {
         g.drawString(font, text, x + 7, y + 8, PAPER, false);
     }
     private String nome(BestiaryEntryDefinition entry, BestiaryProgress progress) {
-        return progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "????" : "FOXBEAR";
+        return progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN
+                ? "????" : Component.translatable(entry.entityType().toLanguageKey()).getString();
     }
     private String status(BestiaryProgress progress) { return progress.knowledgeLevel().name(); }
 
     @Override public boolean mouseClicked(double x, double y, int button) {
-        if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 70 && y < top + 135) {
-            index = false;
-            return true;
+        if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 75 && y < top + bookHeight - 55) {
+            int row = (int) ((y - (top + 78)) / 42);
+            var entries = BestiaryRegistry.entries();
+            if (row >= 0 && row < entries.size()) {
+                selectedId = entries.get(row).id();
+                index = false;
+                return true;
+            }
         }
         if (!index && x < left + 100 && y > top + bookHeight - 55) {
             index = true;

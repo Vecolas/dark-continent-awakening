@@ -30,6 +30,8 @@ class WorldTreeSavedDataTest {
         original.markCloudLayerReached();
         original.markCrownReached();
         original.markSummitReached();
+        assertTrue(original.markBaseChunkGenerated(123L));
+        assertTrue(!original.markBaseChunkGenerated(123L));
 
         WorldTreeSavedData carregado = WorldTreeSavedData.load(original.save(new CompoundTag(), null), null);
 
@@ -39,6 +41,7 @@ class WorldTreeSavedDataTest {
         assertTrue(carregado.firstReachedCloudLayer());
         assertTrue(carregado.firstReachedCrown());
         assertTrue(carregado.summitReached());
+        assertTrue(carregado.isBaseChunkGenerated(123L));
     }
 
     @Test

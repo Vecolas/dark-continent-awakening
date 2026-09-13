@@ -2,7 +2,10 @@ package com.darkcontinent.nenfoundation.worldtree;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.LongArrayTag;
 import net.minecraft.world.level.saveddata.SavedData;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Estado global da unica World Tree, salvo no Overworld. */
 public final class WorldTreeSavedData extends SavedData {
@@ -19,6 +22,7 @@ public final class WorldTreeSavedData extends SavedData {
     private static final String CLOUD_REACHED = "first_reached_cloud_layer";
     private static final String CROWN_REACHED = "first_reached_crown";
     private static final String SUMMIT_REACHED = "summit_reached";
+    private static final String GENERATED_CHUNKS = "generated_base_chunks";
 
     private int generationVersion = CURRENT_VERSION;
     private boolean treeGenerated;
@@ -30,6 +34,7 @@ public final class WorldTreeSavedData extends SavedData {
     private boolean firstReachedCloudLayer;
     private boolean firstReachedCrown;
     private boolean summitReached;
+    private final Set<Long> generatedBaseChunks = new HashSet<>();
 
     public static SavedData.Factory<WorldTreeSavedData> factory() {
         return new SavedData.Factory<>(WorldTreeSavedData::new, WorldTreeSavedData::load, null);
@@ -51,6 +56,9 @@ public final class WorldTreeSavedData extends SavedData {
         data.firstReachedCloudLayer = tag.getBoolean(CLOUD_REACHED);
         data.firstReachedCrown = tag.getBoolean(CROWN_REACHED);
         data.summitReached = tag.getBoolean(SUMMIT_REACHED);
+        for (long chunk : tag.getLongArray(GENERATED_CHUNKS)) {
+            data.generatedBaseChunks.add(chunk);
+        }
         return data;
     }
 
@@ -83,6 +91,15 @@ public final class WorldTreeSavedData extends SavedData {
     public boolean firstReachedCloudLayer() { return firstReachedCloudLayer; }
     public boolean firstReachedCrown() { return firstReachedCrown; }
     public boolean summitReached() { return summitReached; }
+    public boolean isBaseChunkGenerated(long chunk) { return generatedBaseChunks.contains(chunk); }
+
+    public boolean markBaseChunkGenerated(long chunk) {
+        if (!generatedBaseChunks.add(chunk)) {
+            return false;
+        }
+        setDirty();
+        return true;
+    }
 
     public void markDiscovered() { discovered = true; setDirty(); }
     public void markCloudLayerReached() { firstReachedCloudLayer = true; setDirty(); }
@@ -101,6 +118,12 @@ public final class WorldTreeSavedData extends SavedData {
         tag.putBoolean(CLOUD_REACHED, firstReachedCloudLayer);
         tag.putBoolean(CROWN_REACHED, firstReachedCrown);
         tag.putBoolean(SUMMIT_REACHED, summitReached);
+        long[] chunks = new long[generatedBaseChunks.size()];
+        int index = 0;
+        for (long chunk : generatedBaseChunks) {
+            chunks[index++] = chunk;
+        }
+        tag.put(GENERATED_CHUNKS, new LongArrayTag(chunks));
         return tag;
     }
 }

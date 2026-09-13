@@ -3,7 +3,6 @@ package com.darkcontinent.nenfoundation.worldtree.generation;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -11,7 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 /** Gera somente o volume do tronco pertencente ao chunk recebido. */
 public final class WorldTreeTrunkGenerator {
     private static final int CHUNK_SIZE = 16;
-    private static final double MAX_TRUNK_RADIUS = 40.0;
+    private static final double MAX_TRUNK_RADIUS = 56.0;
 
     private WorldTreeTrunkGenerator() {
     }
@@ -22,22 +21,37 @@ public final class WorldTreeTrunkGenerator {
     }
 
     public static void generate(ChunkAccess chunk, WorldTreeLayout layout) {
-        WorldTreeTrunkProfile trunk = layout.trunk();
+        generateVolume(chunk, layout, 0, 0, layout.trunk().baseY(), layout.trunk().topY(),
+                layout.trunk().baseRadius(), layout.trunk().topRadius());
+    }
+
+    /** Gera a escala reduzida da base no Overworld, deslocada para a origem salva. */
+    public static void generateBase(ChunkAccess chunk, WorldTreeLayout layout, int baseY) {
+        generateVolume(chunk, layout, layout.overworldOriginX(), layout.overworldOriginZ(),
+                baseY, baseY + 220, 48.0, 30.0);
+    }
+
+    private static void generateVolume(ChunkAccess chunk, WorldTreeLayout layout,
+            int originX, int originZ, int baseY, int topY, double baseRadius, double topRadius) {
         int minX = chunk.getPos().getMinBlockX();
         int minZ = chunk.getPos().getMinBlockZ();
         int maxX = minX + CHUNK_SIZE;
         int maxZ = minZ + CHUNK_SIZE;
-        if (!chunkIntersectsTrunk(minX, maxX, minZ, maxZ)) {
+        if (maxX < originX - MAX_TRUNK_RADIUS || minX > originX + MAX_TRUNK_RADIUS
+                || maxZ < originZ - MAX_TRUNK_RADIUS || minZ > originZ + MAX_TRUNK_RADIUS) {
             return;
         }
         BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
 
-        for (int y = trunk.baseY(); y < trunk.topY(); y++) {
-            double centerRadius = trunk.radiusAt(y);
+        for (int y = baseY; y < topY; y++) {
+            double normalizedY = (double) (y - baseY) / (topY - baseY);
+            double centerRadius = baseRadius + (topRadius - baseRadius) * normalizedY;
             for (int x = minX; x < maxX; x++) {
                 for (int z = minZ; z < maxZ; z++) {
-                    double radius = irregularRadius(centerRadius, x, y, z, layout.seed());
-                    double distance = Math.sqrt((double) x * x + (double) z * z);
+                    double radius = irregularRadius(centerRadius, x - originX, y, z - originZ,
+                            layout.seed());
+                    double distance = Math.sqrt((double) (x - originX) * (x - originX)
+                            + (double) (z - originZ) * (z - originZ));
                     if (distance > radius) {
                         continue;
                     }

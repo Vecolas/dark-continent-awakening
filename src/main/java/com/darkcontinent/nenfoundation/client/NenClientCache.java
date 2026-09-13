@@ -10,6 +10,7 @@ import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
 import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
 import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientState;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
 import com.darkcontinent.nenfoundation.client.hud.animation.HudValueAnimator;
 import java.util.Optional;
@@ -47,6 +48,9 @@ public final class NenClientCache implements RecebedorDeNen {
 
     @Override
     public void aoReceberBestiary(BestiarySnapshotS2C payload) {
+        if (!payload.definitions().isEmpty()) {
+            BestiaryRegistry.replaceAll(payload.definitions().values());
+        }
         BestiaryClientState.replaceLevels(payload.entries());
     }
 

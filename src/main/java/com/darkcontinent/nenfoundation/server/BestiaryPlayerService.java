@@ -92,7 +92,9 @@ public final class BestiaryPlayerService {
         if (jogador.connection == null) return;
         var entries = new LinkedHashMap<ResourceLocation, BestiaryProgress>();
         ler(jogador).entries().forEach(entries::put);
-        var payload = new BestiarySnapshotS2C(entries);
+        var definitions = new LinkedHashMap<ResourceLocation, BestiaryEntryDefinition>();
+        BestiaryRegistry.entries().forEach(entry -> definitions.put(entry.id(), entry));
+        var payload = new BestiarySnapshotS2C(entries, definitions);
         if (jogador.connection.hasChannel(payload.type())) {
             PacketDistributor.sendToPlayer(jogador, payload);
         }

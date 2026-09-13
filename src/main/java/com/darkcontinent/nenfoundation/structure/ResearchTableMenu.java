@@ -58,13 +58,16 @@ public final class ResearchTableMenu extends AbstractContainerMenu {
 
     @Override public void slotsChanged(net.minecraft.world.Container container) {
         super.slotsChanged(container);
-        if (!level.isClientSide() && researchSlot.hasItem()
-                && researchSlot.getItem().getItem() instanceof FieldNoteItem note
-                && owner instanceof net.minecraft.server.level.ServerPlayer serverPlayer
-                && stillValid(owner)) {
-            note.applyAtResearchTable(serverPlayer,
-                    researchSlot.getItem());
+    }
+
+    @Override public boolean clickMenuButton(Player player, int id) {
+        if (id != 0 || level.isClientSide() || !(player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)
+                || !stillValid(player) || !researchSlot.hasItem()
+                || !(researchSlot.getItem().getItem() instanceof FieldNoteItem note)) {
+            return false;
         }
+        note.applyAtResearchTable(serverPlayer, researchSlot.getItem());
+        return true;
     }
 
     @Override public void removed(Player player) {

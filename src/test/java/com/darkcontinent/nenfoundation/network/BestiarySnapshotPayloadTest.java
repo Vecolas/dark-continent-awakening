@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryCategory;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition;
 import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
 import io.netty.buffer.Unpooled;
 import java.util.Map;
@@ -19,11 +21,14 @@ class BestiarySnapshotPayloadTest {
         var progress = new BestiaryProgress(BestiaryKnowledgeLevel.STUDIED, 4, 2, 1, 6,
                 10L, 20L, Set.of("opening_after_charge"), Set.of("territorial"),
                 Set.of("captured"), Set.of("field_note"), BestiaryNenStatus.AWAKENED);
-        var original = new BestiarySnapshotS2C(Map.of(id, progress));
+        var definition = new BestiaryEntryDefinition(id, id, BestiaryCategory.WILDLIFE, 2, 3, 8,
+                "habitat", "summary", "behavior", "combat");
+        var original = new BestiarySnapshotS2C(Map.of(id, progress), Map.of(id, definition));
         var buffer = Unpooled.buffer();
         BestiarySnapshotS2C.STREAM_CODEC.encode(buffer, original);
         var decoded = BestiarySnapshotS2C.STREAM_CODEC.decode(buffer);
 
         assertEquals(progress, decoded.entries().get(id));
+        assertEquals(definition, decoded.definitions().get(id));
     }
 }

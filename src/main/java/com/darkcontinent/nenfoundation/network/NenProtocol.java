@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 8;
+    public static final int VERSION = 9;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -120,8 +120,8 @@ public final class NenProtocol {
                             + " perceberia. Zetsu manda NENHUM, igual a quem nunca"
                             + " despertou -- o segredo nao atravessa a rede"),
             s2c("bestiary_snapshot",
-                    List.of("entries"),
-                    "conhecimento editorial do proprio jogador; nunca inclui dados de outro jogador")
+                    List.of("entries", "definitions"),
+                    "catalogo editorial e conhecimento do proprio jogador; nunca inclui dados de outro jogador")
     );
 
     /** Ids dos payloads que o CLIENTE pode enviar. Derivado da tabela. */

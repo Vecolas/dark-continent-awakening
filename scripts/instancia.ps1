@@ -171,7 +171,19 @@ function Comando-Instalar {
         'enable-rcon=true',
         'rcon.password=dev',
         'rcon.port=25575',
-        'level-type=minecraft\:flat',
+        # MUNDO NORMAL, e nao superplano.
+        #
+        # Ele era superplano porque isso sobe rapido e da para andar. O custo
+        # so apareceu depois: metade do que este mod faz DEPENDE DO RELEVO e do
+        # bioma, e num superplano nada disso acontece. O posto avancado tem
+        # regra de terreno e regra de bioma; inimigo tem regra de spawn; a aura
+        # e vista contra o mundo. Testar tudo isso num tabuleiro plano e
+        # aprovar o que ninguem vai jogar.
+        #
+        # `runServer` e o servidor de gametest ja usavam `normal`. Esta
+        # instancia -- justamente a do teste MANUAL, a unica em que alguem
+        # olha para a tela -- era a que discordava das outras duas.
+        'level-type=minecraft\:normal',
         'gamemode=creative',
         'spawn-protection=0',
         'motd=Nen Foundation - instancia de teste',
@@ -285,12 +297,60 @@ function Instalar-Bibliotecas($mods) {
         }
 }
 
+function Gerador-Declarado {
+    $props = Join-Path $Servidor 'server.properties'
+    if (-not (Test-Path -LiteralPath $props)) { return $null }
+    $linha = Select-String -Path $props -Pattern '^level-type=' -ErrorAction SilentlyContinue
+    if (-not $linha) { return $null }
+    return ($linha.Line -replace '^level-type=', '') -replace '\', ''
+}
+
+function Marca-Do-Mundo {
+    return Join-Path $Servidor 'world\.nenfoundation-gerador'
+}
+
+function Registrar-Gerador {
+    # O MUNDO NASCE UMA VEZ SO, e o gerador dele fica gravado no level.dat.
+    # Trocar `level-type` depois NAO regenera nada -- o servidor sobe com o
+    # mundo antigo e ninguem e avisado. Esta marca existe para que a troca
+    # deixe de ser silenciosa.
+    $mundo = Join-Path $Servidor 'world'
+    if (-not (Test-Path -LiteralPath $mundo)) { return }
+    $g = Gerador-Declarado
+    if ($g) { Escrever-Arquivo (Marca-Do-Mundo) @($g) }
+}
+
+function Conferir-Gerador {
+    $mundo = Join-Path $Servidor 'world'
+    if (-not (Test-Path -LiteralPath $mundo)) { return }
+    $declarado = Gerador-Declarado
+    if (-not $declarado) { return }
+
+    $marca = Marca-Do-Mundo
+    $nasceuCom = if (Test-Path -LiteralPath $marca) {
+        (Get-Content -LiteralPath $marca -Raw).Trim()
+    } else { $null }
+
+    if ($nasceuCom -eq $declarado) { Registrar-Gerador; return }
+
+    Erro "O MUNDO NAO FOI GERADO COM O GERADOR DECLARADO."
+    Erro "   server.properties pede : $declarado"
+    Erro "   este mundo nasceu com  : $(if ($nasceuCom) { $nasceuCom } else { 'desconhecido (anterior a esta verificacao)' })"
+    Erro "   Trocar level-type nao regenera mundo: o gerador fica no level.dat."
+    Erro "   Para valer, o mundo precisa nascer de novo:"
+    Erro "     Rename-Item '$mundo' 'world-antigo'"
+    Erro "   Testar relevo, bioma e spawn num mundo que nao e o declarado"
+    Erro "   aprova o que ninguem vai jogar, e nada acusa isso."
+}
+
 function Comando-Servidor {
     $java = Resolver-Java
 
     if (-not (Test-Path -LiteralPath $Servidor)) {
         throw "a instancia nao existe. Rode: .\scripts\instancia.ps1 instalar"
     }
+
+    Conferir-Gerador
 
     # SUBIR JA ATUALIZA, e este e o ponto da pasta inteira.
     #
@@ -378,6 +438,9 @@ function Comando-Status {
 
     $instalado = Test-Path -LiteralPath (Join-Path $Servidor 'libraries')
     Escrever "   servidor instalado : $(if ($instalado) { 'sim' } else { 'NAO' })"
+    $g = Gerador-Declarado
+    if ($g) { Escrever "   gerador declarado  : $g" }
+    Conferir-Gerador
 
     $naPasta = Get-ChildItem -Path (Join-Path $Servidor 'mods') -Filter 'nenfoundation-*.jar' `
         -ErrorAction SilentlyContinue

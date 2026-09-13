@@ -17,4 +17,13 @@ class BestiaryRegistryTest {
         assertEquals(8, foxbear.masteredAt());
         assertEquals("nenfoundation.bestiary.behavior.foxbear", foxbear.behaviorKey());
     }
+
+    @Test
+    void pesquisaPuraRespeitaLimiarDaDefinicao() {
+        var foxbear = BestiaryRegistry.get(BestiaryRegistry.FOXBEAR_ID);
+        var progress = BestiaryResearchService.aplicar(BestiaryProgress.UNKNOWN, foxbear, 3,
+                BestiaryKnowledgeLevel.STUDIED);
+        assertEquals(BestiaryKnowledgeLevel.STUDIED, progress.knowledgeLevel());
+        assertEquals(3, progress.researchPoints());
+    }
 }

@@ -77,7 +77,7 @@ public final class ResearchTableMenu extends AbstractContainerMenu {
     }
 
     private final class ResearchSlot extends Slot {
-        ResearchSlot() { super(new net.minecraft.world.SimpleContainer(1), 0, 80, 35); }
+        ResearchSlot() { super(new net.minecraft.world.SimpleContainer(1), 0, 49, 35); }
         @Override public void setChanged() { super.setChanged(); }
     }
 }

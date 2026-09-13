@@ -61,7 +61,7 @@ public final class HunterBestiaryScreen extends Screen {
         previewCursorY = top + 130;
         searchBox = new EditBox(font, left + bookWidth / 2 + 20, top + 28, Math.max(80, bookWidth / 2 - 50), 18,
                 Component.literal("Search"));
-        searchBox.setHint(Component.literal("search field notes"));
+        searchBox.setHint(Component.literal("Search field notes"));
         addRenderableWidget(searchBox);
     }
 
@@ -82,10 +82,11 @@ public final class HunterBestiaryScreen extends Screen {
         if (!index) searchBox.setFocused(false);
         super.render(graphics, mouseX, mouseY, partialTick);
         if (index) {
-            drawMarker(graphics, left, top + 48, "ALL", categoryFilter == null);
-            drawMarker(graphics, left, top + 78, "WILD", categoryFilter == BestiaryCategory.WILDLIFE);
-            drawMarker(graphics, left + bookWidth - 65, top + 48, "MAGIC", categoryFilter == BestiaryCategory.MAGICAL);
-            drawMarker(graphics, left + bookWidth - 65, top + 78, "SPECIAL", categoryFilter == BestiaryCategory.SPECIAL);
+            int tabsY = top + 48;
+            drawMarker(graphics, left + 25, tabsY, "ALL", categoryFilter == null);
+            drawMarker(graphics, left + 95, tabsY, "WILD", categoryFilter == BestiaryCategory.WILDLIFE);
+            drawMarker(graphics, left + 165, tabsY, "MAGIC", categoryFilter == BestiaryCategory.MAGICAL);
+            drawMarker(graphics, left + 235, tabsY, "SPECIAL", categoryFilter == BestiaryCategory.SPECIAL);
             drawIndex(graphics);
         } else drawEntry(graphics);
     }
@@ -250,19 +251,19 @@ public final class HunterBestiaryScreen extends Screen {
     }
 
     @Override public boolean mouseClicked(double x, double y, int button) {
-        if (index && x >= left && x <= left + 65 && y >= top + 48 && y <= top + 73) {
+        if (index && x >= left + 25 && x <= left + 90 && y >= top + 48 && y <= top + 73) {
             categoryFilter = null;
             return true;
         }
-        if (index && x >= left && x <= left + 65 && y >= top + 78 && y <= top + 103) {
+        if (index && x >= left + 95 && x <= left + 160 && y >= top + 48 && y <= top + 73) {
             categoryFilter = BestiaryCategory.WILDLIFE;
             return true;
         }
-        if (index && x >= left + bookWidth - 65 && x <= left + bookWidth && y >= top + 48 && y <= top + 73) {
+        if (index && x >= left + 165 && x <= left + 230 && y >= top + 48 && y <= top + 73) {
             categoryFilter = BestiaryCategory.MAGICAL;
             return true;
         }
-        if (index && x >= left + bookWidth - 65 && x <= left + bookWidth && y >= top + 78 && y <= top + 103) {
+        if (index && x >= left + 235 && x <= left + 300 && y >= top + 48 && y <= top + 73) {
             categoryFilter = BestiaryCategory.SPECIAL;
             return true;
         }

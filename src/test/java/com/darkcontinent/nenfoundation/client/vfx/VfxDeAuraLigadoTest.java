@@ -80,9 +80,13 @@ class VfxDeAuraLigadoTest {
         AuraVisualController c = new AuraVisualController();
         c.receber(AuraVisualMode.REN, 1.0F);
 
+        // A CONTAGEM SAI DA TABELA, e nao de um 10 escrito a mao: cada troca
+        // tem duracao propria desde o AV3, e um numero fixo aqui voltaria a ser
+        // a segunda fonte de verdade que a tabela acabou de eliminar.
+        int metade = AuraTransicao.de(AuraVisualMode.OFF, AuraVisualMode.REN).ticks() / 2;
         float anterior = 0.0F;
-        for (int i = 0; i < 10; i++) {
-            float agora = c.avancar(0.05F).intensity();
+        for (int i = 0; i < metade; i++) {
+            float agora = c.avancar(1.0F).intensity();
             assertTrue(agora >= anterior, "a intensidade andou para tras no passo " + i);
             anterior = agora;
         }
@@ -92,8 +96,8 @@ class VfxDeAuraLigadoTest {
                         + " 0.5. A curva nao e a que o smoothstep promete: a"
                         + " transicao corre demais no comeco e rasteja no fim.");
 
-        for (int i = 0; i < 10; i++) {
-            anterior = c.avancar(0.05F).intensity();
+        for (int i = 0; i < 40; i++) {
+            anterior = c.avancar(1.0F).intensity();
         }
         assertEquals(1.0F, anterior, 1.0e-5F, "a transicao nao chegou ao alvo");
     }
@@ -108,7 +112,7 @@ class VfxDeAuraLigadoTest {
         int laranja = 0xFF_F0_8A_30;
         c.receber(AuraVisualMode.REN, 1.0F, AuraDistribution.uniforme(), laranja, laranja);
 
-        assertEquals(laranja, c.avancar(1.0F).primaryColor(),
+        assertEquals(laranja, concluir(c).primaryColor(),
                 "a cor passada no comando nao chegou ao estado visual.");
     }
 
@@ -122,7 +126,7 @@ class VfxDeAuraLigadoTest {
         // para sempre, e sem erro nenhum.
         SessaoDeVfxDeAura sessao = new SessaoDeVfxDeAura();
         for (int i = 0; i < 10; i++) {
-            sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 0.2F);
+            sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 1.0F);
         }
         assertEquals(1.0F, sessao.estado().intensity(), 1.0e-5F,
                 "Depois de dez ticks com passo de 0.2 a transicao devia ter"
@@ -134,7 +138,12 @@ class VfxDeAuraLigadoTest {
     @DisplayName("limpar apaga tudo, e e o que impede a aura do mundo anterior")
     void limparApagaTudo() {
         SessaoDeVfxDeAura sessao = new SessaoDeVfxDeAura();
-        sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 1.0F);
+        // O MODO SO TROCA QUANDO A TRANSICAO TERMINA, e desde o AV3 ela leva
+        // varios ticks. Um tick so deixa o estado ainda em OFF -- o que e
+        // correto, e nao era o que este teste queria exercitar.
+        for (int i = 0; i < 40; i++) {
+            sessao.aoTick(Set.of(Ren.ID), 1.0F, 0xFF112233, 1.0F);
+        }
         assertTrue(sessao.estado().enabled(), "a aura nao ligou; nao ha o que limpar");
 
         sessao.limpar();
@@ -251,6 +260,30 @@ class VfxDeAuraLigadoTest {
     private static AuraVisualState estadoDe(AuraVisualMode modo, float intensidade) {
         AuraVisualController c = new AuraVisualController();
         c.receber(modo, intensidade);
-        return c.avancar(1.0F);
+        return concluir(c);
+    }
+
+    /**
+     * Leva a transicao ate o fim, seja qual for a duracao dela.
+     *
+     * <p>AS DURACOES DEIXARAM DE SER UM NUMERO SO no AV3: cada troca tem o
+     * proprio tempo, e {@code avancar} recebe uma ESCALA, e nao um passo. Os
+     * testes que diziam {@code avancar(1.0F)} para "terminar agora" nao
+     * terminavam mais nada -- eles pediam um tick de duracao normal.
+     *
+     * <p>O teto de cem ticks nao e paciencia: e a garantia de que um erro de
+     * escala nunca vire um teste que nao termina.
+     */
+    private static AuraVisualState concluir(AuraVisualController c) {
+        // AVANCO FIXO, e nao "ate o progresso chegar a 1". A primeira versao
+        // disto olhava `transitionProgress() < 1`, e o estado inicial
+        // (`desligado()`) ja NASCE com progresso 1 -- entao o laco nunca rodava
+        // e todo teste via OFF. Quarenta ticks e mais que o dobro da transicao
+        // mais longa da tabela.
+        AuraVisualState estado = c.atual();
+        for (int i = 0; i < 40; i++) {
+            estado = c.avancar(1.0F);
+        }
+        return estado;
     }
 }

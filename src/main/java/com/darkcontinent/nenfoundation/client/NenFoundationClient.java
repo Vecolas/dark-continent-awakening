@@ -208,7 +208,7 @@ public final class NenFoundationClient {
         var distribuicao = delta
                 .map(d -> AuraDistribution.daAlocacao(d.alocacao()))
                 .orElseGet(AuraDistribution::uniforme);
-        this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao(), distribuicao);
+        this.vfx.aoTick(ativas, output, cor, NenClientConfig.escalaDeTransicao(), distribuicao);
         double densidade = NenClientConfig.densidadeDeParticulas();
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e
         // sempre zero, entao o corte por distancia nunca morde -- mas quem

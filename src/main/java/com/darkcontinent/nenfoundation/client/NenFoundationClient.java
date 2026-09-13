@@ -112,6 +112,11 @@ public final class NenFoundationClient {
 
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
+        // A aura de primeira pessoa e OUTRO renderer, e nao a layer: o braco
+        // em primeira pessoa nao passa pelo PlayerRenderer.
+        NeoForge.EVENT_BUS.addListener(
+                new com.darkcontinent.nenfoundation.client.vfx.render.AuraPrimeiraPessoa()
+                        ::aoRenderizarBraco);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
 

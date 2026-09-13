@@ -25,6 +25,7 @@ public final class WorldTreeLayoutGenerator {
         WorldTreeTrunkProfile trunk = new WorldTreeTrunkProfile(48, 1200, 30.0, 14.0);
         List<WorldTreeSpline> roots = generateRoots(random);
         List<WorldTreeSpline> branches = generateBranches(random);
+        List<WorldTreeHollow> hollows = generateHollows(random);
         List<WorldTreeLandmark> landmarks = List.of(
                 new WorldTreeLandmark("base", 48, 0.0, 0.0),
                 new WorldTreeLandmark("cloud", 400, 0.0, 0.0),
@@ -32,7 +33,7 @@ public final class WorldTreeLayoutGenerator {
                 new WorldTreeLandmark("crown", 1250, 0.0, 0.0),
                 new WorldTreeLandmark("summit", 1450, 0.0, 0.0));
         return new WorldTreeLayout(seed, generationVersion, overworldOriginX, overworldOriginZ,
-                trunk, roots, branches, landmarks);
+                trunk, roots, branches, hollows, landmarks);
     }
 
     private static List<WorldTreeSpline> generateRoots(SplittableRandom random) {
@@ -72,6 +73,18 @@ public final class WorldTreeLayoutGenerator {
                     random.nextDouble(12.0, 30.0), random.nextDouble(4.0, 9.0)));
         }
         return branches;
+    }
+
+    private static List<WorldTreeHollow> generateHollows(SplittableRandom random) {
+        int count = 8 + random.nextInt(5);
+        List<WorldTreeHollow> hollows = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            int y = 110 + i * 90 + random.nextInt(40);
+            hollows.add(new WorldTreeHollow(y, random.nextDouble(-7.0, 7.0),
+                    random.nextDouble(-7.0, 7.0), random.nextDouble(5.0, 9.0),
+                    random.nextDouble(3.0, 7.0), random.nextDouble(5.0, 9.0)));
+        }
+        return hollows;
     }
 
     private static long mix(long seed, int version) {

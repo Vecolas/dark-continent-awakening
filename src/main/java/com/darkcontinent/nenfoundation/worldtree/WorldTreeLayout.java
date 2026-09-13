@@ -18,6 +18,7 @@ public record WorldTreeLayout(
         WorldTreeTrunkProfile trunk,
         List<WorldTreeSpline> roots,
         List<WorldTreeSpline> branches,
+        List<WorldTreeHollow> hollows,
         List<WorldTreeLandmark> landmarks) {
 
     public WorldTreeLayout {
@@ -27,6 +28,7 @@ public record WorldTreeLayout(
         trunk = Objects.requireNonNull(trunk, "trunk");
         roots = List.copyOf(Objects.requireNonNull(roots, "roots"));
         branches = List.copyOf(Objects.requireNonNull(branches, "branches"));
+        hollows = List.copyOf(Objects.requireNonNull(hollows, "hollows"));
         landmarks = List.copyOf(Objects.requireNonNull(landmarks, "landmarks"));
         if (roots.size() < 8 || roots.size() > 14) {
             throw new IllegalArgumentException("layout precisa de 8 a 14 raizes principais");

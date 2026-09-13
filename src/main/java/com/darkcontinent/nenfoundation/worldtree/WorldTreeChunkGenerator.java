@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.worldtree;
 
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeTrunkGenerator;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeHollowGenerator;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Arrays;
@@ -56,6 +57,8 @@ public final class WorldTreeChunkGenerator extends ChunkGenerator {
             RandomState random, ChunkAccess chunk) {
         // O seed do mundo existe neste estagio e evita uma seed fixa silenciosa.
         WorldTreeTrunkGenerator.generate(chunk, level.getSeed());
+        WorldTreeHollowGenerator.generate(chunk,
+                WorldTreeLayoutGenerator.generate(level.getSeed(), 0, 0));
     }
 
     @Override

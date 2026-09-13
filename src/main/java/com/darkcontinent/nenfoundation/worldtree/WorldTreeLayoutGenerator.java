@@ -68,7 +68,9 @@ public final class WorldTreeLayoutGenerator {
             int count = 3 + random.nextInt(5);
             for (int i = 0; i < count; i++) {
                 double angle = Math.PI * 2.0 * i / count + random.nextDouble(-0.25, 0.25);
-                double y = random.nextDouble(zone.minY() + 20.0, zone.maxYExclusive() - 20.0);
+                double y = zone == WorldTreeZone.SUMMIT
+                        ? 1450.0
+                        : random.nextDouble(zone.minY() + 20.0, zone.maxYExclusive() - 20.0);
             double length = random.nextDouble(80.0, 201.0);
             double dx = Math.cos(angle);
             double dz = Math.sin(angle);

@@ -1,4 +1,4 @@
-package com.darkcontinent.nenfoundation.enemy;
+package com.darkcontinent.nenfoundation.enemy.ai;
 
 /** Regras deterministicas do territorio do Foxbear. */
 public final class FoxbearTerritory {

@@ -2,14 +2,12 @@ package com.darkcontinent.nenfoundation;
 
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
-import com.darkcontinent.nenfoundation.registry.EnemyAttributes;
-import com.darkcontinent.nenfoundation.registry.EnemyEntityTypes;
-import com.darkcontinent.nenfoundation.registry.EnemySpawns;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
 import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityEvents;
+import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -62,10 +60,12 @@ public final class NenFoundation {
         modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        EnemyEntityTypes.ENTITY_TYPES.register(modEventBus);
-        modEventBus.addListener(EnemyAttributes::registrar);
-        modEventBus.addListener(EnemySpawns::registrar);
-        com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes.register(modEventBus);
+        // UMA fila de inimigos, e so uma. Ate aqui eram duas -- um DeferredRegister
+        // para o foxbear e outro para os seis irmaos -- e a linha abaixo tinha de
+        // escrever o pacote inteiro para desviar da colisao de nome. Duas filas nao
+        // dao erro: dao um mob que fica de fora do par atributos/placement e nunca
+        // aparece no mundo. O portao FilaUnicaDeInimigosTest guarda esta linha.
+        EnemyEntityTypes.register(modEventBus);
         modEventBus.addListener(EnemyEntityEvents::attributes);
         modEventBus.addListener(EnemyEntityEvents::spawnPlacements);
 

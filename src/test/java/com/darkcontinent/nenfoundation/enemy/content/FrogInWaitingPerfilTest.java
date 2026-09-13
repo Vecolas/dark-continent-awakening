@@ -140,10 +140,11 @@ class FrogInWaitingPerfilTest {
      * verde varrendo menos. Agora o lugar de lembrar e um so, e todo mob publicado cai
      * neste portao sozinho.</p>
      *
-     * <p>"foxbear" fica FORA de {@code publicados()} DE PROPOSITO: ele pertence a outra
-     * frente, hoje nao tem arquivo de tag nem biome modifier, e essa divida e dela.
-     * Inclui-lo transformaria este portao num alarme que a nossa lane nao pode desligar
-     * -- e portao que ninguem consegue apagar acaba sendo ignorado.</p>
+     * <p>O "foxbear" era a excecao escrita aqui, e deixou de ser na issue #266: ele
+     * ganhou tag e biome modifier no mesmo PR que o pos em {@code publicados()}, e
+     * agora cai neste portao como os outros seis. Enquanto a excecao existiu, o custo
+     * dela foi invisivel do jeito pior: o mob simplesmente nao nascia em lugar nenhum,
+     * e este portao ficava verde porque nao o varria.</p>
      */
     @Test
     void todaTagDeBiomaDeclaradaExisteETemBiomeModifier() {

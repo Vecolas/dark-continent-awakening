@@ -5,8 +5,22 @@
  * {@code client.render} e nunca e alcancada daqui -- o portao
  * {@code PacotesDeclaradosTest} reprova o contrario.
  *
- * <p>As regras deterministicas moram separadas da entidade ({@code
- * FoxbearTerritory}) para poderem ser testadas sem o jogo de pe.
+ * <p>UM LUGAR POR PAPEL, e o mob novo nao precisa escolher:</p>
+ *
+ * <ul>
+ *   <li>{@code entity}: as entidades registradas, todas elas;
+ *   <li>{@code registry}: o UNICO {@code DeferredRegister} de entidade, mais os
+ *       atributos e os {@code SpawnPlacement} -- guardado pelo portao
+ *       {@code FilaUnicaDeInimigosTest};
+ *   <li>{@code ai}, {@code combat}, {@code encounter}: as regras deterministicas,
+ *       que moram separadas da entidade para serem testadas sem o jogo de pe
+ *       ({@code FoxbearTerritory}, {@code AmbushRules}, {@code RegrasDeJulgamento});
+ *   <li>{@code content}: os perfis de balanceamento, que nao registram nada.
+ * </ul>
+ *
+ * <p>Ate a issue #266 o foxbear morava fora dessa divisao -- entidade na raiz e
+ * registro num pacote {@code registry} proprio, paralelo a este. Nao dava erro:
+ * dava um mob que ficava de fora de tudo que a fila ganhava depois.
  *
  * <p>Nasce no conjunto de inimigos (#107). Owner: Dev A.
  */

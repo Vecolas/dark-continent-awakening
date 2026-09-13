@@ -1,7 +1,7 @@
 package com.darkcontinent.nenfoundation.client.render;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
-import com.darkcontinent.nenfoundation.enemy.FoxbearEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
 /**

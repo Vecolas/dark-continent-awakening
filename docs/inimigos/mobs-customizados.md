@@ -117,14 +117,23 @@ conseguem medir, e arte não trava IA.
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
-**A dívida visual fechou: os cinco têm corpo próprio.** Nenhum deles, mas nenhum dos
-dois é DONE pela ficha acima: faltam **sons próprios**. Os sete são silenciosos —
-não emprestam som de vanilla, simplesmente não emitem. E isso hoje está
-**bloqueado por ferramenta**, não por esforço: o Minecraft só toca `.ogg`
-Vorbis e esta máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav`
-renomeado carregaria mudo, que é o falso verde que este projeto passa o dia
-evitando. Isso não reprova nenhum portão, e é justamente por isso
-que está escrito aqui e em `o-que-nao-provamos.md`.
+**A dívida visual fechou: os sete têm corpo próprio.** Nenhum deles, porém, é
+DONE pela ficha acima: faltam **sons próprios**. Os sete são silenciosos — não
+emprestam som de vanilla, simplesmente não emitem. E isso hoje está **bloqueado
+por ferramenta**, não por esforço: o Minecraft só toca `.ogg` Vorbis e esta
+máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav` renomeado carregaria
+mudo, que é o falso verde que este projeto passa o dia evitando. Isso não
+reprova nenhum portão, e é justamente por isso que está escrito aqui e em
+`o-que-nao-provamos.md`.
+
+**Uma fila, e não duas.** Até a issue #266 o Foxbear era registrado num
+`DeferredRegister` próprio, num pacote paralelo ao dos outros seis. As duas filas
+funcionavam — e era esse o problema: o mob de uma delas ficava de fora de tudo
+que a outra ganhava depois. O Foxbear passou meses com a faixa de luz do perfil
+**morta** (o placement dele ignorava a `SpawnRule`) e sem tag de bioma nem biome
+modifier, ou seja, **sem nascer no mundo**, sem que nada reprovasse. Hoje o
+registro é um só, e `FilaUnicaDeInimigosTest` reprova o segundo — e também o mob
+que entre na fila sem atributos, placement, perfil publicado, loot ou tradução.
 
 A coerência do que ele ganhou é cobrada por `CoerenciaDeGeckoLibTest`, que
 descobre os mobs no disco: quem ganhar um `.geo.json` entra na varredura sem

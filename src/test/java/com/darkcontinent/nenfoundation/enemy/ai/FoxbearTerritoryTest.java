@@ -1,4 +1,4 @@
-package com.darkcontinent.nenfoundation.enemy;
+package com.darkcontinent.nenfoundation.enemy.ai;
 
 import org.junit.jupiter.api.Test;
 

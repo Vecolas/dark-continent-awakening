@@ -19,7 +19,7 @@ Arquivos de codigo distintos **nunca** conflitam. Estes **sempre**:
 | `settings.gradle` | idem |
 | `NenFoundation.java` | ponto de registro de todo subsistema |
 | `network/NenProtocol.java` | tabela unica, todos acrescentam linhas |
-| `registry/*` (quando existir) | idem |
+| `enemy/registry/EnemyEntityTypes.java` | tabela unica de entidades; **e a unica** — o portao `FilaUnicaDeInimigosTest` reprova a segunda (#266) |
 | `config/NenConfig.java` | idem |
 | `assets/**/lang/*.json` | gerado a partir do M3; ate la, editado a mao pelos dois |
 | `.github/workflows/*` | um arquivo, dois interesses |

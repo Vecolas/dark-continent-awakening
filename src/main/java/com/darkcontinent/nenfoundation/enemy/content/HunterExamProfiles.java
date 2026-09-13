@@ -411,10 +411,11 @@ public final class HunterExamProfiles {
      * um mob de FORA desta lista fica SEM PORTAO, e nada acusa -- ele apenas
      * nunca aparece no mundo, e o relato de bug vira "o bioma esta vazio".</p>
      *
-     * <p>"foxbear" fica de fora DE PROPOSITO: ele pertence a outra frente, hoje
-     * nao tem arquivo de tag nem biome modifier, e essa divida e dela. Inclui-lo
-     * aqui transformaria o portao num alarme que esta lane nao pode desligar --
-     * e portao que ninguem consegue apagar acaba ignorado.</p>
+     * <p>O "foxbear" ficou de fora daqui ate a issue #266, com a divida atribuida
+     * a outra frente. O preco disso foi exatamente o que a linha acima descreve:
+     * sem tag e sem biome modifier ele NUNCA nasceu no mundo, e nenhum portao
+     * podia dizer isso porque ele nao estava nesta lista. Agora esta, com a tag e
+     * o modifier no mesmo PR -- que e a unica ordem que nao produz alarme orfao.</p>
      */
     public static Map<String, EnemyDefinition> publicados() {
         return Map.of(
@@ -423,7 +424,8 @@ public final class HunterExamProfiles {
                 "man_faced_ape", manFacedApe(),
                 "spider_eagle", spiderEagle(),
                 "master_of_the_swamp", masterOfTheSwamp(),
-                "kiriko", kiriko());
+                "kiriko", kiriko(),
+                "foxbear", foxbear());
     }
 
     public static EnemyDefinition foxbear() {

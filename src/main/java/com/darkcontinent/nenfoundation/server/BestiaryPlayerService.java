@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.bestiary.BestiaryPlayerData;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.data.attachment.BestiaryAttachments;
 import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
@@ -65,6 +66,11 @@ public final class BestiaryPlayerService {
         if (entry != null) {
             atualizar(jogador, id, progresso(jogador, id).withWeakPoint(pontoFraco));
         }
+    }
+
+    public static void descobrirNen(ServerPlayer jogador, ResourceLocation id, BestiaryNenStatus status) {
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, progresso(jogador, id).withNenStatus(status));
     }
 
     private static BestiaryProgress pesquisar(BestiaryProgress atual, BestiaryEntryDefinition entry,

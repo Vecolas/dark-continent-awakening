@@ -16,7 +16,8 @@ public record BestiaryProgress(
         Set<String> weakPointsDiscovered,
         Set<String> behaviorFlags,
         Set<String> captureFlags,
-        Set<String> specialDiscoveries) {
+        Set<String> specialDiscoveries,
+        BestiaryNenStatus nenStatus) {
 
     public static final Codec<BestiaryProgress> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.xmap(BestiaryKnowledgeLevel::valueOf, Enum::name)
@@ -35,12 +36,14 @@ public record BestiaryProgress(
             Codec.STRING.listOf().xmap(list -> Set.copyOf(list), set -> java.util.List.copyOf(set))
                     .optionalFieldOf("capture_flags", Set.of()).forGetter(BestiaryProgress::captureFlags),
             Codec.STRING.listOf().xmap(list -> Set.copyOf(list), set -> java.util.List.copyOf(set))
-                    .optionalFieldOf("special_discoveries", Set.of()).forGetter(BestiaryProgress::specialDiscoveries)
+                    .optionalFieldOf("special_discoveries", Set.of()).forGetter(BestiaryProgress::specialDiscoveries),
+            Codec.STRING.xmap(BestiaryNenStatus::valueOf, Enum::name)
+                    .optionalFieldOf("nen_status", BestiaryNenStatus.NONE).forGetter(BestiaryProgress::nenStatus)
     ).apply(instance, BestiaryProgress::new));
 
     public static final BestiaryProgress UNKNOWN = new BestiaryProgress(
             BestiaryKnowledgeLevel.UNKNOWN, 0, 0, 0, 0, 0L, 0L,
-            Set.of(), Set.of(), Set.of(), Set.of());
+            Set.of(), Set.of(), Set.of(), Set.of(), BestiaryNenStatus.NONE);
 
     public BestiaryProgress {
         if (timesSeen < 0 || timesFought < 0 || timesDefeated < 0 || researchPoints < 0) {
@@ -57,7 +60,7 @@ public record BestiaryProgress(
                 ? knowledgeLevel : BestiaryKnowledgeLevel.OBSERVED,
                 timesSeen + 1, timesFought, timesDefeated, researchPoints,
                 firstSeenTime == 0L ? gameTime : firstSeenTime, gameTime,
-                weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries);
+                weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries, nenStatus);
     }
 
     public BestiaryProgress fought() {
@@ -65,7 +68,7 @@ public record BestiaryProgress(
                 ? knowledgeLevel : BestiaryKnowledgeLevel.FOUGHT,
                 timesSeen, timesFought + 1, timesDefeated, researchPoints,
                 firstSeenTime, lastSeenTime, weakPointsDiscovered, behaviorFlags,
-                captureFlags, specialDiscoveries);
+                captureFlags, specialDiscoveries, nenStatus);
     }
 
     public BestiaryProgress defeated() {
@@ -73,7 +76,7 @@ public record BestiaryProgress(
                 ? knowledgeLevel : BestiaryKnowledgeLevel.FOUGHT,
                 timesSeen, timesFought, timesDefeated + 1, researchPoints,
                 firstSeenTime, lastSeenTime, weakPointsDiscovered, behaviorFlags,
-                captureFlags, specialDiscoveries);
+                captureFlags, specialDiscoveries, nenStatus);
     }
 
     public BestiaryProgress withResearchPoints(int points, BestiaryKnowledgeLevel minimum) {
@@ -81,7 +84,7 @@ public record BestiaryProgress(
         var level = knowledgeLevel.atLeast(minimum) ? knowledgeLevel : minimum;
         return new BestiaryProgress(level, timesSeen, timesFought, timesDefeated,
                 researchPoints + points, firstSeenTime, lastSeenTime,
-                weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries);
+                weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries, nenStatus);
     }
 
     public BestiaryProgress withSpecialDiscovery(String discovery) {
@@ -92,7 +95,7 @@ public record BestiaryProgress(
         discoveries.add(discovery);
         return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
                 researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
-                behaviorFlags, captureFlags, Set.copyOf(discoveries));
+                behaviorFlags, captureFlags, Set.copyOf(discoveries), nenStatus);
     }
 
     public BestiaryProgress withWeakPoint(String weakPoint) {
@@ -103,6 +106,12 @@ public record BestiaryProgress(
         points.add(weakPoint);
         return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
                 researchPoints, firstSeenTime, lastSeenTime, Set.copyOf(points), behaviorFlags,
-                captureFlags, specialDiscoveries);
+                captureFlags, specialDiscoveries, nenStatus);
+    }
+
+    public BestiaryProgress withNenStatus(BestiaryNenStatus status) {
+        return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
+                researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
+                behaviorFlags, captureFlags, specialDiscoveries, status);
     }
 }

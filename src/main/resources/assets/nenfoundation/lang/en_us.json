@@ -105,6 +105,7 @@
   "bestiary.toast.updated": "%s — bestiary updated",
   "bestiary.discovery.foxbear.territorial": "Field note: territorial pressure increases when the Hunter loses space.",
   "bestiary.weak_point.discovered": "Weak point confirmed in field observations.",
+  "bestiary.nen.status": "Nen status",
   "nenfoundation.bestiary.habitat.foxbear": "Forests and open ground",
   "nenfoundation.bestiary.summary.foxbear": "A heavy territorial creature. Read the marks on the ground before crossing a clearing.",
   "nenfoundation.bestiary.behavior.foxbear": "It patrols its territory and presses intruders with its weight. The danger grows when space disappears.",

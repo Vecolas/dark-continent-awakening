@@ -24,7 +24,7 @@ class BestiaryProgressTest {
     void progressoNaoAceitaContadorNegativo() {
         assertThrows(IllegalArgumentException.class, () -> new BestiaryProgress(
                 BestiaryKnowledgeLevel.UNKNOWN, -1, 0, 0, 0, 0L, 0L,
-                java.util.Set.of(), java.util.Set.of(), java.util.Set.of(), java.util.Set.of()));
+                java.util.Set.of(), java.util.Set.of(), java.util.Set.of(), java.util.Set.of(), BestiaryNenStatus.NONE));
     }
 
     @Test

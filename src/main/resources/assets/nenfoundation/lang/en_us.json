@@ -94,6 +94,7 @@
   "entity.nenfoundation.man_faced_ape": "Man-faced Ape",
   "entity.nenfoundation.master_of_the_swamp": "Master of the Swamp",
   "entity.nenfoundation.spider_eagle": "Spider Eagle",
+  "item.nenfoundation.hunter_bestiary": "Hunter Association Bestiary",
   "key.nenfoundation.overlay_de_vfx": "Aura visual tuning overlay",
   "nenfoundation.vfx.desenho_ligado": "Aura rendering ON for this client.",
   "nenfoundation.vfx.desenho_desligado": "Aura rendering OFF for this client. The technique is still active on the server.",

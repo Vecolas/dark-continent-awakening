@@ -42,6 +42,7 @@ public final class NenPlayerLifecycle {
             NenRuntimeService.iniciarSessao(jogador);
             PedidosC2S.iniciar(jogador.connection.getConnection());
             NenSyncService.enviarSnapshot(jogador, perfil);
+            BestiaryPlayerService.sincronizar(jogador);
         }
     }
 

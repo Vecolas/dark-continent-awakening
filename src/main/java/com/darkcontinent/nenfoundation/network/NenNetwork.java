@@ -17,6 +17,7 @@ import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
+import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -82,6 +83,12 @@ public final class NenNetwork {
                 PresencaDeAuraS2C.STREAM_CODEC,
                 (payload, contexto) -> contexto.enqueueWork(
                         () -> Recebedores.atual().aoReceberPresenca(payload)));
+
+        registrar.playToClient(
+                BestiarySnapshotS2C.TYPE,
+                BestiarySnapshotS2C.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> Recebedores.atual().aoReceberBestiary(payload)));
 
         PayloadRegistrar entrada = registrar.executesOn(HandlerThread.NETWORK);
         entrada.playToServer(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,

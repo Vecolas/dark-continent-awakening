@@ -70,5 +70,7 @@ public final class NenPayloads {
             new Implementado(FeedbackDeErroS2C.TYPE, FeedbackDeErroS2C.STREAM_CODEC,
                     Direcao.S2C, FeedbackDeErroS2C.class),
             new Implementado(PresencaDeAuraS2C.TYPE, PresencaDeAuraS2C.STREAM_CODEC,
-                    Direcao.S2C, PresencaDeAuraS2C.class));
+                    Direcao.S2C, PresencaDeAuraS2C.class),
+            new Implementado(BestiarySnapshotS2C.TYPE, BestiarySnapshotS2C.STREAM_CODEC,
+                    Direcao.S2C, BestiarySnapshotS2C.class));
 }

@@ -12,6 +12,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.gui.components.EditBox;
+import java.util.Locale;
+import java.util.List;
+import java.util.stream.Collectors;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryCategory;
 
 /** Caderno de campo próprio: duas páginas, papel e marcadores, sem BookViewScreen. */
 public final class HunterBestiaryScreen extends Screen {
@@ -31,6 +36,8 @@ public final class HunterBestiaryScreen extends Screen {
     private int previewCursorX;
     private int previewCursorY;
     private float previewScale = 0.06F;
+    private BestiaryCategory categoryFilter;
+    private EditBox searchBox;
 
     public HunterBestiaryScreen() {
         super(Component.translatable("item.nenfoundation.hunter_bestiary"));
@@ -44,6 +51,10 @@ public final class HunterBestiaryScreen extends Screen {
         top = (height - bookHeight) / 2;
         previewCursorX = left + 130;
         previewCursorY = top + 170;
+        searchBox = new EditBox(font, left + bookWidth / 2 + 20, top + 28, bookWidth / 2 - 50, 18,
+                Component.literal("Search"));
+        searchBox.setHint(Component.literal("search field notes"));
+        addRenderableWidget(searchBox);
     }
 
     @Override
@@ -60,10 +71,10 @@ public final class HunterBestiaryScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
-        drawMarker(graphics, left - 11, top + 47, "ALL", true);
-        drawMarker(graphics, left - 11, top + 82, "WILD", false);
-        drawMarker(graphics, left + bookWidth - 4, top + 47, "MAGIC", false);
-        drawMarker(graphics, left + bookWidth - 4, top + 82, "SPECIAL", false);
+        drawMarker(graphics, left - 11, top + 47, "ALL", categoryFilter == null);
+        drawMarker(graphics, left - 11, top + 82, "WILD", categoryFilter == BestiaryCategory.WILDLIFE);
+        drawMarker(graphics, left + bookWidth - 4, top + 47, "MAGIC", categoryFilter == BestiaryCategory.MAGICAL);
+        drawMarker(graphics, left + bookWidth - 4, top + 82, "SPECIAL", categoryFilter == BestiaryCategory.SPECIAL);
         if (index) drawIndex(graphics);
         else drawEntry(graphics);
     }
@@ -73,7 +84,8 @@ public final class HunterBestiaryScreen extends Screen {
         graphics.drawString(font, "ASSOCIATION HUNTER / FIELD RESEARCH", left + 30, top + 49, OLIVE, false);
         int y = top + 82;
         int number = 1;
-        for (BestiaryEntryDefinition entry : BestiaryRegistry.entries()) {
+        int visible = 0;
+        for (BestiaryEntryDefinition entry : filteredEntries()) {
             BestiaryProgress progress = BestiaryClientState.progress(entry.id());
             graphics.fill(left + 25, y - 4, left + bookWidth - 25, y + 29, 0x22606A5E);
             graphics.drawString(font, String.format("%02d", number++), left + 35, y + 5, OLIVE, false);
@@ -83,7 +95,9 @@ public final class HunterBestiaryScreen extends Screen {
                             : entry.category().name() + "  /  " + entry.threat(),
                     left + 72, y + 17, 0xFF66716C, false);
             y += 42;
+            visible++;
         }
+        if (visible == 0) graphics.drawString(font, "NO FIELD NOTES MATCH", left + 35, top + 105, ALERTA, false);
         graphics.drawString(font, "A field guide is built one observation at a time.", left + 30, top + bookHeight - 38, OLIVE, false);
         graphics.drawString(font, "CLICK AN ENTRY TO OPEN THE RECORD", left + bookWidth / 2 + 20, top + bookHeight - 38, PETROLEO, false);
     }
@@ -158,7 +172,33 @@ public final class HunterBestiaryScreen extends Screen {
     }
     private String status(BestiaryProgress progress) { return progress.knowledgeLevel().name(); }
 
+    private List<BestiaryEntryDefinition> filteredEntries() {
+        String query = searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);
+        return BestiaryRegistry.entries().stream()
+                .filter(entry -> categoryFilter == null || entry.category() == categoryFilter)
+                .filter(entry -> query.isEmpty()
+                        || nome(entry, BestiaryClientState.progress(entry.id())).toLowerCase(Locale.ROOT).contains(query)
+                        || entry.category().name().toLowerCase(Locale.ROOT).contains(query))
+                .collect(Collectors.toList());
+    }
+
     @Override public boolean mouseClicked(double x, double y, int button) {
+        if (index && x >= left - 11 && x <= left + 54 && y >= top + 47 && y <= top + 72) {
+            categoryFilter = null;
+            return true;
+        }
+        if (index && x >= left - 11 && x <= left + 54 && y >= top + 82 && y <= top + 107) {
+            categoryFilter = BestiaryCategory.WILDLIFE;
+            return true;
+        }
+        if (index && x >= left + bookWidth - 4 && x <= left + bookWidth + 61 && y >= top + 47 && y <= top + 72) {
+            categoryFilter = BestiaryCategory.MAGICAL;
+            return true;
+        }
+        if (index && x >= left + bookWidth - 4 && x <= left + bookWidth + 61 && y >= top + 82 && y <= top + 107) {
+            categoryFilter = BestiaryCategory.SPECIAL;
+            return true;
+        }
         if (!index && button == 0 && x >= left + 30 && x <= left + 250
                 && y >= top + 78 && y <= top + 266) {
             draggingPreview = true;
@@ -168,7 +208,7 @@ public final class HunterBestiaryScreen extends Screen {
         }
         if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 75 && y < top + bookHeight - 55) {
             int row = (int) ((y - (top + 78)) / 42);
-            var entries = BestiaryRegistry.entries();
+            var entries = filteredEntries();
             if (row >= 0 && row < entries.size()) {
                 selectedId = entries.get(row).id();
                 index = false;

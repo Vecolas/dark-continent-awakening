@@ -37,10 +37,31 @@ public final class NenClientConfig {
                     "seca demais para ser lida como transicao.")
             .defineInRange("vfx.ticksDeTransicao", 12, 1, 200);
 
+    private static final ModConfigSpec.EnumValue<
+            com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality> QUALIDADE = BUILDER
+            .comment("Quanta aura este cliente desenha.",
+                    "OFF desliga o desenho sem desligar o Nen -- a tecnica continua",
+                    "valendo no servidor. LOW mantem so a borda, que e o que diz",
+                    "QUAL e o estado. ULTRA desenha tudo o que a distancia permitir.")
+            .defineEnum("vfx.qualidade",
+                    com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality.HIGH);
+
     /** O spec deste arquivo, registrado como CLIENT. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private NenClientConfig() {
+    }
+
+    /**
+     * A qualidade escolhida por este cliente.
+     *
+     * <p>Ela NASCE COM CONSUMIDOR, como a regra exige: quem a le e o corte de
+     * nivel de detalhe, no mesmo PR em que a chave aparece. Chave declarada
+     * antes do consumidor e config orfa, e alguem passa uma tarde girando um
+     * botao morto.
+     */
+    public static com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality qualidade() {
+        return QUALIDADE.get();
     }
 
     /** Densidade de particulas escolhida por este cliente. */

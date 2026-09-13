@@ -407,9 +407,19 @@ mudam.
 | 3 | 48–72 | só a borda |
 | 4 | > 72 | nada, ou mínimo |
 
-O `AuraRenderLod` que já existe corta em 8/20/40 e será reconciliado com esta
-tabela no AV3 — **duas tabelas de LOD no repositório é duas verdades**, e a que
-vale é esta.
+**Reconciliado no AV3.** Havia duas tabelas — este documento e o
+`AuraRenderLod`, que cortava em 8/20/40 com quatro níveis. Ficou a de cinco
+níveis, e ela agora mora **no código**: `AuraRenderLod` carrega os cortes, a
+intensidade, a fração de filamentos e quais camadas cada nível desenha. Este
+documento descreve; quem manda é o enum, e `AuraLodTest` o fixa.
+
+A escolha foi pela tabela daqui, e não pela do código, por um motivo concreto:
+cortar a aura completa a oito blocos é perto demais — oito blocos é a distância
+de uma briga corpo a corpo, exatamente onde o estado de Nen do adversário
+precisa ser legível.
+
+A degradação segue a **hierarquia de leitura**: somem primeiro os filamentos,
+depois o halo externo, depois o filme interno. **A borda é a última a sair.**
 
 Qualidade escolhida pelo jogador: `OFF`, `LOW`, `MEDIUM`, `HIGH`, `ULTRA`, com
 interruptores separados para bloom, distorção, detritos, primeira pessoa e

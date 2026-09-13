@@ -210,7 +210,12 @@ public final class NenFoundationClient {
                 .orElseGet(AuraDistribution::uniforme);
         this.vfx.aoTick(ativas, output, cor, NenClientConfig.passoDeTransicao(), distribuicao);
         double densidade = NenClientConfig.densidadeDeParticulas();
-        EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
+        // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e
+        // sempre zero, entao o corte por distancia nunca morde -- mas quem
+        // escolheu qualidade OFF quer a aura desligada inclusive na propria.
+        if (NenClientConfig.qualidade().teto().visivel()) {
+            EmissorDeParticulasDeAura.emitir(mc.level, mc.player, this.vfx.estado(), densidade);
+        }
 
         this.tickDaAuraDosOutros(mc, densidade);
     }
@@ -274,8 +279,9 @@ public final class NenFoundationClient {
             // AQUI O LOD FINALMENTE RECEBE DISTANCIA DE VERDADE. Para o proprio
             // jogador ela e sempre zero, entao ate agora ele so tinha teste
             // unitario -- o corte por distancia nunca mordia em jogo.
-            AuraRenderLod lod = AuraRenderLod.porDistancia(mc.player.distanceTo(outro));
-            if (lod == AuraRenderLod.HIDDEN) {
+            AuraRenderLod lod = NenClientConfig.qualidade()
+                    .limitar(AuraRenderLod.porDistancia(mc.player.distanceTo(outro)));
+            if (!lod.visivel()) {
                 continue;
             }
 

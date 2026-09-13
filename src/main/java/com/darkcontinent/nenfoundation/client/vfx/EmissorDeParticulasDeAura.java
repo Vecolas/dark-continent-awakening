@@ -35,6 +35,25 @@ public final class EmissorDeParticulasDeAura {
      */
     private static final int TETO_POR_TICK = 12;
 
+    /**
+     * Quanto da densidade configurada sobra depois que a shell existe.
+     *
+     * <p>A PARTICULA FOI REBAIXADA A ACABAMENTO (AV3, issue #186). Ate o AV0 ela
+     * ERA a aura -- era o unico efeito que desenhava. Agora a shell e os
+     * filamentos sustentam a identidade sozinhos, e a nuvem de poeira que
+     * bastava antes passaria a competir com eles.
+     *
+     * <p>O NUMERO NAO E UM BOTAO: quem quer menos particula mexe em
+     * {@code vfx.densidadeDeParticulas}, que e config. Este fator existe para
+     * que a densidade 1.0 -- o padrao, escolhido quando a particula era tudo --
+     * passe a significar "faisca ocasional" em vez de "nuvem".
+     *
+     * <p>Com Ten em intensidade cheia isto da algo perto de meia particula por
+     * tick; com Ren, cerca de tres. A direcao de arte pede 0-4 em Ten e 10-24
+     * em Ren considerando TODAS as fontes, e o resto vem dos filamentos.
+     */
+    private static final double FATOR_DE_ACABAMENTO = 0.25D;
+
     /** Altura e largura da nuvem, em blocos, relativas ao corpo. */
     private static final double RAIO_HORIZONTAL = 0.45D;
     private static final double ALTURA = 1.9D;
@@ -55,7 +74,7 @@ public final class EmissorDeParticulasDeAura {
             return 0;
         }
         double bruto = estado.preset().particleIntensity() * estado.intensity() * densidade
-                * TETO_POR_TICK;
+                * FATOR_DE_ACABAMENTO * TETO_POR_TICK;
         int inteiras = (int) bruto;
         double resto = bruto - inteiras;
         // O RESTO VIRA CHANCE. Sem isto, toda intensidade abaixo de 1/TETO

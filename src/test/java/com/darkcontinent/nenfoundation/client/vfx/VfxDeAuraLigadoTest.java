@@ -177,17 +177,41 @@ class VfxDeAuraLigadoTest {
     }
 
     @Test
-    @DisplayName("Ren emite mais que Ten, sempre")
+    @DisplayName("Ren emite mais que Ten -- medido na TAXA, e nao num sorteio")
     void renEmiteMaisQueTen() {
-        float sorteio = 0.5F;
-        int ten = EmissorDeParticulasDeAura.quantasEmitir(
-                estadoDe(AuraVisualMode.TEN, 1.0F), 1.0D, sorteio);
-        int ren = EmissorDeParticulasDeAura.quantasEmitir(
-                estadoDe(AuraVisualMode.REN, 1.0F), 1.0D, sorteio);
+        // ESTE TESTE MUDOU DE FORMA NO AV3, e vale dizer por que.
+        //
+        // Ele perguntava se Ren emitia mais que Ten NUM sorteio fixo (0.5), com
+        // a justificativa de que "se os dois saem iguais, o jogador nao
+        // distingue o estado". Naquela epoca a particula ERA a aura, e a
+        // justificativa estava certa.
+        //
+        // Com a shell e os filamentos carregando a identidade, a particula virou
+        // ACABAMENTO (#186) e a contagem caiu: nos dois estados ela agora e
+        // fracionaria, e num sorteio especifico os dois podem dar zero. Isso nao
+        // e regressao -- e o efeito pretendido.
+        //
+        // A PROPRIEDADE QUE CONTINUA VALENDO e sobre a TAXA, e nao sobre um
+        // sorteio: ao longo do tempo, Ren precisa emitir estritamente mais. Esta
+        // forma e mais forte que a anterior, porque cobre o intervalo inteiro em
+        // vez de um ponto.
+        int ten = 0;
+        int ren = 0;
+        for (int i = 0; i < 100; i++) {
+            float sorteio = i / 100.0F;
+            ten += EmissorDeParticulasDeAura.quantasEmitir(
+                    estadoDe(AuraVisualMode.TEN, 1.0F), 1.0D, sorteio);
+            ren += EmissorDeParticulasDeAura.quantasEmitir(
+                    estadoDe(AuraVisualMode.REN, 1.0F), 1.0D, sorteio);
+        }
         assertTrue(ren > ten,
-                "Ren (" + ren + ") nao emite mais que Ten (" + ten + "). Se os dois"
-                        + " saem iguais, o jogador nao distingue o estado de combate"
-                        + " do estado de repouso olhando.");
+                "Ren (" + ren + " em 100 ticks) nao emite mais que Ten (" + ten + ")."
+                        + " A particula e acabamento, mas acabamento de Ren ainda tem"
+                        + " de ser mais denso que o de Ten.");
+        assertTrue(ten > 0,
+                "Ten parou de emitir por completo. Acabamento discreto nao e"
+                        + " acabamento ausente -- e a faisca ocasional continua sendo"
+                        + " parte da linguagem visual.");
     }
 
     @Test

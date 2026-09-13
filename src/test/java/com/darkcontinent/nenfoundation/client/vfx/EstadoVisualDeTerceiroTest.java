@@ -38,9 +38,9 @@ class EstadoVisualDeTerceiroTest {
         // decidir de verdade, e por isso ganha teste de comportamento e nao so
         // de tabela.
         float perto = EstadoVisualDeTerceiro.de(SinalDeAura.REN, AuraRenderLod.FULL).intensity();
-        float medio = EstadoVisualDeTerceiro.de(SinalDeAura.REN, AuraRenderLod.SHELL).intensity();
+        float medio = EstadoVisualDeTerceiro.de(SinalDeAura.REN, AuraRenderLod.NEAR).intensity();
         float longe = EstadoVisualDeTerceiro.de(SinalDeAura.REN,
-                AuraRenderLod.SIMPLIFIED).intensity();
+                AuraRenderLod.MEDIUM).intensity();
 
         assertTrue(perto > medio, "perto (" + perto + ") nao e mais forte que medio (" + medio + ")");
         assertTrue(medio > longe, "medio (" + medio + ") nao e mais forte que longe (" + longe + ")");
@@ -53,8 +53,8 @@ class EstadoVisualDeTerceiroTest {
     @Test
     @DisplayName("Ten e Ren continuam distinguiveis a distancia")
     void tenERenSeparadosMesmoLonge() {
-        var ten = EstadoVisualDeTerceiro.de(SinalDeAura.TEN, AuraRenderLod.SIMPLIFIED);
-        var ren = EstadoVisualDeTerceiro.de(SinalDeAura.REN, AuraRenderLod.SIMPLIFIED);
+        var ten = EstadoVisualDeTerceiro.de(SinalDeAura.TEN, AuraRenderLod.MEDIUM);
+        var ren = EstadoVisualDeTerceiro.de(SinalDeAura.REN, AuraRenderLod.MEDIUM);
 
         assertNotEquals(ten.mode(), ren.mode());
         assertNotEquals(ten.primaryColor(), ren.primaryColor(),

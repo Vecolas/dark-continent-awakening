@@ -38,8 +38,13 @@ class AuraVfxSupportTest {
     @Test
     void qualidadeLocalNuncaAumentaDetalheAlemDoLod() {
         assertEquals(AuraRenderLod.HIDDEN, AuraVisualQuality.OFF.limitar(AuraRenderLod.FULL));
-        assertEquals(AuraRenderLod.SHELL, AuraVisualQuality.LOW.limitar(AuraRenderLod.FULL));
-        assertEquals(AuraRenderLod.SIMPLIFIED, AuraVisualQuality.LOW.limitar(AuraRenderLod.SIMPLIFIED));
+        // A REGRA DE LOW MUDOU NO AV3. Antes ela so rebaixava FULL um degrau;
+        // agora impoe TETO em FAR -- porque quem escolhe LOW quer menos
+        // trabalho perto, e perto era onde o custo estava.
+        assertEquals(AuraRenderLod.FAR, AuraVisualQuality.LOW.limitar(AuraRenderLod.FULL));
+        assertEquals(AuraRenderLod.FAR, AuraVisualQuality.LOW.limitar(AuraRenderLod.MEDIUM));
+        assertEquals(AuraRenderLod.HIDDEN, AuraVisualQuality.LOW.limitar(AuraRenderLod.HIDDEN),
+                "qualidade nunca MELHORA o que a distancia ja cortou");
         assertTrue(AuraVisualProfile.agressiva().flowSpeed()
                 > AuraVisualProfile.controlada().flowSpeed());
     }

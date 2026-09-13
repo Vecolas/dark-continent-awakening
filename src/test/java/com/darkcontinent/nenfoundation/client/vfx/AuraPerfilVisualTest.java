@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.darkcontinent.nenfoundation.Repo;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilVisual;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraRibbonProfile;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
@@ -26,6 +27,12 @@ import org.junit.jupiter.api.Test;
 class AuraPerfilVisualTest {
 
     private static final String DIRETORIO = "src/main/resources/assets/nenfoundation/nen_vfx";
+
+    /** O bloco obrigatorio, para os JSON inline que testam OUTRA coisa. */
+    private static final String FILAMENTOS =
+            "\"filamentos\": {\"quantidade\": 8, \"comprimento_min\": 0.15,"
+                    + " \"comprimento_max\": 0.6, \"largura\": 0.009,"
+                    + " \"ciclo_segundos\": 1.1}";
 
     private static List<Path> arquivos() {
         List<Path> encontrados = new ArrayList<>(Repo.varrer(DIRETORIO, ".json"));
@@ -96,8 +103,9 @@ class AuraPerfilVisualTest {
         JsonElement json = JsonParser.parseString("""
                 {"alpha_interno": 0.05, "alpha_borda": 0.2, "alpha_externo": 0.03,
                  "fresnel_interno": %s, "fresnel_borda": %s, "fresnel_externo": %s,
-                 "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9}
-                """.formatted(f[0], f[1], f[2]));
+                 "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
+                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18, %s}
+                """.formatted(f[0], f[1], f[2], FILAMENTOS));
         return AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, json);
     }
 
@@ -108,8 +116,9 @@ class AuraPerfilVisualTest {
         JsonElement torto = JsonParser.parseString("""
                 {"alpha_interno": 5.0, "alpha_borda": 0.2, "alpha_externo": 0.03,
                  "fresnel_interno": 3.4, "fresnel_borda": 2.7, "fresnel_externo": 2.0,
-                 "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9}
-                """);
+                 "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
+                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18, %s}
+                """.formatted(FILAMENTOS));
         assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, torto).error().isPresent(),
                 "alpha acima de 1 passou. Corrigir em silencio esconderia um pack quebrado"
                         + " atras de numeros plausiveis.");
@@ -144,11 +153,100 @@ class AuraPerfilVisualTest {
     }
 
     @Test
-    @DisplayName("o perfil apagado zera os alphas e nao quebra as invariantes")
+    @DisplayName("o perfil apagado zera os alphas E a particula")
     void apagadoEZero() {
         AuraPerfilVisual apagado = ler("ren.json").apagado();
         for (AuraShellPass passe : AuraShellPass.values()) {
             assertEquals(0.0F, apagado.alphaDe(passe), "a ausencia e a informacao, em " + passe);
         }
+        // A PARTICULA ENTROU NESTA CONTA no AV0, quando os dois numeros dela
+        // sairam do codigo. Zerar so os alphas apagaria a shell e deixaria a
+        // nuvem de poeira acesa -- ou seja, Zetsu vira "poeira desligada", que e
+        // exatamente a leitura que o ADR-015 existe para nao produzir.
+        assertEquals(0.0F, apagado.densidadeDeParticula(),
+                "Zetsu com faisca nao e supressao");
+        assertEquals(0, apagado.filamentos().quantidade(),
+                "Zetsu com filamento tambem nao");
+    }
+
+    @Test
+    @DisplayName("os numeros de filamento estao no DADO, e Ren e a mesma linguagem mais densa")
+    void filamentoVemDoArquivo() {
+        // ELES MORAVAM EM `AuraRibbonProfile.ten()` e `.ren()`, com um javadoc
+        // que prometia tira-los "quando o perfil existir". O perfil existia
+        // havia dois gates. Esta e a regua que impede a promessa de voltar:
+        // rebaixar Ren aqui reprova, e reescrever a contagem como constante no
+        // renderer faz mexer no JSON parar de mudar a tela.
+        AuraRibbonProfile ten = ler("ten.json").filamentos();
+        AuraRibbonProfile ren = ler("ren.json").filamentos();
+
+        assertTrue(ten.quantidade() > 0, "Ten sem filamento nenhum");
+        assertTrue(ren.quantidade() > ten.quantidade(), "Ren nao tem mais filamentos que Ten");
+        assertTrue(ren.comprimentoMax() > ten.comprimentoMax(), "os de Ren nao sao mais longos");
+        assertTrue(ren.largura() > ten.largura(), "os de Ren nao sao mais grossos");
+        assertTrue(ren.cicloSegundos() < ten.cicloSegundos(), "Ren nao troca mais rapido");
+        assertTrue(ren.quantidade() <= AuraRibbonProfile.TETO,
+                "acima do teto o custo por jogador deixa de ter limite");
+    }
+
+    @Test
+    @DisplayName("bloco de filamento faltando ou torto e RECUSADO, e nao assumido")
+    void filamentoTortoERecusado() {
+        // SEM O BLOCO, o perfil inteiro tem de ser recusado. Assumir um padrao
+        // aqui daria um Ren que carrega e desenha filamento de Ten -- carregou
+        // e errado e pior que nao carregou, porque nao tem sintoma.
+        JsonElement semBloco = JsonParser.parseString("""
+                {"alpha_interno": 0.05, "alpha_borda": 0.2, "alpha_externo": 0.03,
+                 "fresnel_interno": 3.4, "fresnel_borda": 2.7, "fresnel_externo": 2.0,
+                 "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
+                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18}
+                """);
+        assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, semBloco).error().isPresent(),
+                "perfil sem o bloco `filamentos` passou");
+
+        assertTrue(filamento("8, 0.15, 0.6, 0.2, 1.1").error().isPresent(),
+                "largura de tubo neon passou pelo codec");
+        assertTrue(filamento("8, 0.8, 0.2, 0.009, 1.1").error().isPresent(),
+                "comprimento minimo maior que o maximo passou");
+        assertTrue(filamento("200, 0.15, 0.6, 0.009, 1.1").error().isPresent(),
+                "contagem acima do teto passou");
+        assertTrue(filamento("8, 0.15, 0.6, 0.009, 1.1").error().isEmpty(),
+                "o bloco correto foi recusado; um portao que reprova tudo nao mede nada");
+    }
+
+    private static com.mojang.serialization.DataResult<AuraRibbonProfile> filamento(String cinco) {
+        String[] f = cinco.split(",\s*");
+        JsonElement json = JsonParser.parseString("""
+                {"quantidade": %s, "comprimento_min": %s, "comprimento_max": %s,
+                 "largura": %s, "ciclo_segundos": %s}
+                """.formatted(f[0], f[1], f[2], f[3], f[4]));
+        return AuraRibbonProfile.CODEC.parse(JsonOps.INSTANCE, json);
+    }
+
+    @Test
+    @DisplayName("os numeros de particula estao no DADO, e Ren e mais denso que Ten")
+    void particulaEAcabamentoEVemDoArquivo() {
+        // ELES MORAVAM EM `AuraVisualPreset.tenBasic()` e `renBasic()`, no
+        // codigo, ao lado de cinco campos que nao tinham leitor nenhum. Este
+        // teste e a regua que impede a volta: se alguem reescrever a densidade
+        // como constante no emissor, mexer no JSON deixa de mudar o resultado --
+        // e e este arquivo, e nao a tela, que acusa primeiro.
+        AuraPerfilVisual ten = ler("ten.json");
+        AuraPerfilVisual ren = ler("ren.json");
+
+        assertTrue(ten.densidadeDeParticula() > 0.0F,
+                "Ten sem faisca nenhuma; acabamento discreto nao e acabamento ausente");
+        assertTrue(ren.densidadeDeParticula() > ten.densidadeDeParticula(),
+                "Ren emite " + ren.densidadeDeParticula() + " contra " + ten.densidadeDeParticula()
+                        + " de Ten -- deixou de ser mais denso");
+        assertTrue(ren.tamanhoDeParticula() > ten.tamanhoDeParticula(),
+                "a faisca de Ren deixou de ser maior que a de Ten");
+
+        // O TETO E BAIXO DE PROPOSITO. A particula e ACABAMENTO desde o #186:
+        // com densidade perto de 1 a nuvem volta a competir com a shell, e a
+        // aura volta a ser lida como pocao.
+        assertTrue(ren.densidadeDeParticula() <= 0.25F,
+                "densidade " + ren.densidadeDeParticula() + " devolve a particula ao papel"
+                        + " de aura, que o ADR-015 tirou dela");
     }
 }

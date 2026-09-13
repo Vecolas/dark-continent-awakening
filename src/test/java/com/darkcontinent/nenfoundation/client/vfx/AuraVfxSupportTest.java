@@ -45,7 +45,11 @@ class AuraVfxSupportTest {
         assertEquals(AuraRenderLod.FAR, AuraVisualQuality.LOW.limitar(AuraRenderLod.MEDIUM));
         assertEquals(AuraRenderLod.HIDDEN, AuraVisualQuality.LOW.limitar(AuraRenderLod.HIDDEN),
                 "qualidade nunca MELHORA o que a distancia ja cortou");
-        assertTrue(AuraVisualProfile.agressiva().flowSpeed()
-                > AuraVisualProfile.controlada().flowSpeed());
+        // A ULTIMA LINHA DESTE TESTE SAIU. Ela comparava
+        // `AuraVisualProfile.agressiva().flowSpeed()` com o da `controlada()` --
+        // um record que NINGUEM no repositorio construia fora deste teste. Ele
+        // provava a si mesmo, e o record foi removido. A mesma propriedade,
+        // sobre o dado que o jogo carrega, vive em AuraPerfilVisualTest:
+        // `ren.velocidadeDeFluxo() > ten.velocidadeDeFluxo()`.
     }
 }

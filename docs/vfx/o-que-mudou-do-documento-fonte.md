@@ -59,11 +59,11 @@ precisa de qualquer jeito.
 
 | Arquivo de hoje | Destino | O que muda |
 | --- | --- | --- |
-| `AuraVisualState` | **fica** | ganha campos de shell/ribbon/bloom/pressão e passa a carregar intensidade por região |
+| `AuraVisualState` | **fica, enxugado** | o plano dizia "ganha campos de shell/ribbon/bloom/pressão". **O código foi para o outro lado, e ele ganha:** o estado PERDEU o único campo de arte que tinha. Ele carrega o que muda por tick e por jogador — modo, intensidade, transição, distribuição, cores; os números de arte moram no perfil e se buscam por `AuraPerfis.de(estado.mode())`. Duplicá-los dentro do estado criaria duas fontes para o mesmo Ren |
 | `AuraVisualController` | **fica** | a correção de interpolação (origem congelada, e não `atual`) continua valendo e não se toca |
 | `AuraVisualMode` | **fica** | inalterado |
-| `AuraVisualPreset` | **substituído** por perfil de datapack | hoje ele tem `shellScale` e `edgeIntensity` que **ninguém lê** — é config órfã dentro do código |
-| `AuraVisualProfile` | **fica, reescrito** | vira o perfil carregado de JSON, com os campos de [`perfis-visuais.md`](perfis-visuais.md) |
+| `AuraVisualPreset` | **REMOVIDO** (AV0) | cinco dos sete campos (`shellScale`, `edgeIntensity`, `flowIntensity`, `pulseAmplitude`, `pulseFrequency`) nunca tiveram um leitor sequer. Os dois que tinham — contagem e tamanho de partícula — viraram `densidade_de_particula` e `tamanho_de_particula` no perfil de _resource pack_ |
+| `AuraVisualProfile` | **REMOVIDO** (AV0) | o perfil de JSON nasceu com outro nome no AV3 — `model/AuraPerfilVisual` — e este record ficou para trás sem nenhum construtor fora do próprio teste dele. Um record que só o teste dele constrói prova a si mesmo |
 | `AuraVisualQuality` | **fica** | ganha `ULTRA` e os interruptores separados |
 | `AuraRenderLod` | **fica, recalibrado** | os cortes 8/20/40 passam para a tabela de cinco níveis no AV3 |
 | `AuraBodyRegion` | **fica** | vira índice de intensidade no shader |

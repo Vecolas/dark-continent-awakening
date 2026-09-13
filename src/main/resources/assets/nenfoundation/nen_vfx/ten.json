@@ -11,5 +11,18 @@
 
   "velocidade_de_fluxo": 0.12,
   "escala_de_ruido": 4.0,
-  "reforco_da_borda": 0.9
+  "reforco_da_borda": 0.9,
+
+  "_particula": "ACABAMENTO, e nao a aura. Estes dois numeros moravam em AuraVisualPreset.tenBasic(), no codigo, ao lado de cinco irmaos que ninguem lia.",
+  "densidade_de_particula": 0.03,
+  "tamanho_de_particula": 0.18,
+
+  "_filamentos": "Poucos, curtos, trocando devagar. Moravam em AuraRibbonProfile.ten(), no codigo, com um javadoc dizendo que sairiam quando o perfil existisse.",
+  "filamentos": {
+    "quantidade": 8,
+    "comprimento_min": 0.15,
+    "comprimento_max": 0.60,
+    "largura": 0.009,
+    "ciclo_segundos": 1.1
+  }
 }

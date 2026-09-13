@@ -258,6 +258,168 @@ janelas de medição e o fato de a sobreposição não sobreviver ao logout.
 
 ---
 
+## 4d. Os últimos números de arte saíram do código (issue #98)
+
+PR em `fix/av0-preset-orfao`, 2026-09-13.
+
+A issue #98 do AV0 pedia, com todas as letras, que **`AuraVisualPreset` saísse**
+— "config órfã dentro do código, erro nº 7 do `CLAUDE.md`". Ele continuava lá, e
+o levantamento encontrou o quadro completo:
+
+| Record | Campos | Leitores no repositório |
+| --- | --- | --- |
+| `AuraVisualPreset` | `shellScale`, `edgeIntensity`, `flowIntensity`, `pulseAmplitude`, `pulseFrequency` | **nenhum** |
+| `AuraVisualPreset` | `particleIntensity`, `shellOpacity` | só o emissor de partículas |
+| `AuraVisualProfile` | os oito | **nenhum**, fora do próprio teste dele |
+
+Os cinco primeiros eram o botão morto na forma mais pura: giravam, e nada do
+outro lado. `AuraVisualProfile` era pior — ele tinha um teste, e o teste
+comparava dois métodos estáticos da própria classe, ou seja, provava a si mesmo.
+
+O que mudou:
+
+| O que | Para onde |
+| --- | --- |
+| `AuraVisualPreset`, `AuraVisualProfile` | **removidos** |
+| `particleIntensity` | `densidade_de_particula`, em `nen_vfx/*.json` |
+| `shellOpacity` (que dimensionava **partícula**, apesar do nome) | `tamanho_de_particula`, no mesmo arquivo |
+| `AuraVisualState` | perdeu o componente `preset`; quem desenha busca o perfil por `AuraPerfis.de(estado.mode())` |
+
+Consequência que vale para a sessão de arte: **os dois números de partícula
+agora recarregam com `F3+T`**, como os da shell — e um _resource pack_ pode
+sobrepô-los.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 619`** |
+| `gradlew runServer` | **`Done (4.649s)`**, zero `NoClassDefFoundError`, zero `ClassNotFoundException`, nenhuma linha de `client/vfx` |
+| densidade de Ren rebaixada abaixo da de Ten, de propósito | **4 testes reprovaram**, em quatro arquivos diferentes |
+| `apagado()` deixando a densidade passar, de propósito | **2 testes reprovaram**, incluindo o que existe para isso |
+
+As duas últimas linhas são o que a régua nova vale. Alimentar o portão com o
+defeito é a única forma de saber que ele morde; sem isso, `apagadoEZero` seria
+carimbo.
+
+**O que esta entrega NÃO prova:** nada de aparência, de novo. Os números são os
+mesmos de antes — a mudança é de onde eles vêm, e não de quanto valem. Ninguém
+abriu o cliente. Se a partícula mudar de aspecto em jogo, o suspeito é a leitura
+do perfil, e não o valor.
+
+---
+
+---
+
+## 4e. Os números de filamento também saíram do código (issue #178)
+
+PR em `feat/av2-filamentos-de-dado`, 2026-09-13.
+
+`AuraRibbonProfile` carregava `ten()` e `ren()` — cinco números de arte cada —
+com um javadoc dizendo, em voz alta: *"saem daqui quando o perfil em datapack
+existir (#98)"*. **O perfil existia havia dois gates.** A issue #178 já previa
+exatamente esta dívida e o que ela vira se ficar: *"número que fica nos dois
+lugares vira botão morto"*.
+
+O bloco `filamentos` passou para `nen_vfx/*.json`, e o renderer busca por
+`AuraPerfis.de(estado.mode()).filamentos()` — o **mesmo** caminho da shell. O
+`switch` por modo que havia no renderer sumiu junto: `ZETSU` e `OFF` já recebiam
+o perfil apagado, e o apagado agora vem sem filamento nenhum.
+
+### O portão encontrou um defeito no próprio código desta entrega
+
+Vale registrar porque é o caso limpo de régua que morde antes do merge, e não
+depois.
+
+O `AuraRibbonProfile` conferia `comprimento_min ≤ comprimento_max` **no
+construtor** — e o construtor **lança**. Como o `Codec` constrói para só depois
+validar, um resource pack com os dois trocados derrubaria o **reload de recursos
+inteiro** — não só a aura — em vez de virar um erro com motivo e cair no perfil
+de emergência.
+
+É exatamente a armadilha que `AuraPerfilVisual` já documentava na ordem do
+Fresnel, repetida uma pasta ao lado. Nada em jogo tinha acusado: o construtor só
+era chamado com constantes corretas, escritas no próprio código. **Foi o teste
+novo do caminho de dado que o encontrou**, no primeiro `test` depois de escrito.
+A regra mudou de lugar, para `validate`.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 621`** |
+| `gradlew runServer` | **`Done (2.465s)`**, zero `NoClassDefFoundError`, zero `ClassNotFoundException` |
+| Ren com menos filamentos que Ten, de propósito | **2 testes reprovaram**, em dois arquivos |
+| `apagado()` deixando o filamento passar | **1 reprovou**, o que existe para isso |
+
+**O que esta entrega NÃO prova:** nada de aparência. Os cinco números são os
+mesmos; mudou de onde vêm. Ninguém abriu o cliente.
+
+**Uma correção de rota, encontrada no caminho:** a linha de
+[`o-que-nao-provamos.md`](o-que-nao-provamos.md) que dizia *"o renderer ainda
+não lê a distribuição"* estava **obsoleta desde o AV1** — `AuraPlayerRenderLayer`
+multiplica por região no passe de shell e nos filamentos. O que continua
+faltando do #175 é o outro lado: **o overlay de dev não mostra os seis fatores**,
+e multiplicador que ninguém observa é folclore. A linha foi corrigida para dizer
+isso.
+
+---
+
+---
+
+## 4f. Os seis fatores por região ganharam régua (issue #175)
+
+PR em `feat/av1-regua-de-regiao`, 2026-09-13.
+
+A issue #175 diz a frase em uma linha: *"a régua entra junto do número, senão o
+multiplicador é um valor que ninguém consegue observar"*. O renderer multiplica
+intensidade e alpha por `AuraBodyRegion` **desde o AV1** — no passe de shell e
+nos filamentos —, e até aqui **ninguém tinha como ver isso acontecendo**: com
+tudo em 1.0 o multiplicador é invisível por construção.
+
+O overlay **F6** ganhou a linha `regioes:`, e ela tem três formas, de propósito:
+
+| Situação | O que aparece |
+| --- | --- |
+| distribuição plana | `regioes: uniforme 1.00` |
+| desigual (Gyo, Ko) | `regioes: cab 0.70  tor 0.70  bE 0.70  *bD 1.80  pE 0.70  pD 0.70` |
+| sem aura | `regioes: -- (sem aura)` |
+
+Três decisões que o teste guarda:
+
+1. **Plana não repete seis vezes o mesmo número.** Uma linha que se repete deixa
+   de ser lida no terceiro dia, e ler é o único propósito dela.
+2. **O pico sai marcado com `*`.** É o que torna "Gyo no braço direito" legível
+   de relance, em vez de exigir comparar seis números.
+3. **Sem aura é `--`, e nunca seis zeros.** Zetsu zera *de propósito*; "não há
+   estado" não zera nada. Escrever `0.00` nos dois apagaria a diferença que este
+   overlay inteiro existe para preservar.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 626`** |
+| `gradlew runServer` | **`Done (2.845s)`**, zero `NoClassDefFoundError` |
+| overlay escrevendo zeros no lugar do traço, de propósito | **1 teste reprovou** |
+| um rótulo a menos que o enum de regiões | **3 reprovaram** |
+
+O segundo é o que fecha um buraco de portão real: `AuraDistribution` tem um
+`switch` exaustivo, e o compilador reprova quando uma região nova entra no enum.
+**Um vetor de rótulos não reprova em lugar nenhum** — a linha simplesmente
+mostraria seis de sete, sem erro.
+
+### Um falso verde apareceu no caminho, e é o da seção 5
+
+Depois de restaurar a segunda quebra deliberada, `gradlew build` respondeu
+**`BUILD SUCCESSFUL`** com `> Task :build UP-TO-DATE` — logo depois de uma
+execução em que três testes tinham reprovado. O verde era da tarefa pulada, e
+não de teste nenhum. Foi preciso `test --rerun-tasks` (2 min) para ter um verde
+que significasse alguma coisa. Mesma família do `BUILD SUCCESSFUL` com o jogo
+morto dentro, registrado na seção 2.
+
+**O que esta entrega NÃO prova:** que os seis fatores já sejam diferentes de 1.0
+em jogo. **Nada no jogo produz distribuição desigual ainda** — Gyo, Ko e Ryu são
+marcos de Nen, não da trilha AV. Os valores de Gyo (`1.8` num braço) e de Ko
+(quase tudo num membro) estão provados em JUnit, e não em tela. E ninguém abriu
+o cliente nesta entrega.
+
+---
+
 ## 5. O que cada execução prova, e o que ela não prova
 
 No estilo de [`o-que-nao-provamos.md`](o-que-nao-provamos.md), e com as mesmas
@@ -377,6 +539,13 @@ do que o console mostra; comece por ele antes de concluir qualquer coisa.
 ## 8. O que falta para fechar cada gate
 
 Recorte operacional, para quem for retomar a trilha.
+
+> **O bloqueio de governança do AV0 caiu em 2026-09-13.** A aprovação do Dev B
+> no [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md), que a issue #98
+> listava como condição para fechar, foi **relatada por @Vecolas** — não
+> assinada pela própria pessoa. A distinção está registrada na tabela de
+> governança do ADR, e o que ela destrava é o bloqueio nominal, não a aprovação
+> visual: **capturas continuam sendo o único jeito de fechar o #169.**
 
 **#169 (AV0)** — a aderência **foi respondida e nada reprovou** (seção 4b), e o
 lado do servidor está verificado (seção 2). O que falta é **só evidência**: as

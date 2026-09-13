@@ -1,8 +1,11 @@
 package com.darkcontinent.nenfoundation.client.vfx.debug;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.client.vfx.AuraBodyRegion;
+import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +27,7 @@ class AuraDebugRendererTest {
 
     private static AuraDebugRenderer.Dados semNada() {
         return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null);
+                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
     }
 
     private static String juntar(List<String> linhas) {
@@ -54,7 +57,8 @@ class AuraDebugRendererTest {
     void qualquerSobreposicaoGrita() {
         AuraDebugRenderer.Dados so1Slider = new AuraDebugRenderer.Dados(
                 true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", "alpha_borda=0.400");
+                0, 0, 0, 0, false, null, "33ded12", "alpha_borda=0.400",
+                AuraDistribution.uniforme());
         String texto = juntar(AuraDebugRenderer.linhas(so1Slider));
 
         assertTrue(texto.contains("OVERRIDE ATIVO"),
@@ -67,7 +71,7 @@ class AuraDebugRendererTest {
     void desenhoDesligadoGrita() {
         AuraDebugRenderer.Dados desligado = new AuraDebugRenderer.Dados(
                 false, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null);
+                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
         String texto = juntar(AuraDebugRenderer.linhas(desligado));
         assertTrue(texto.contains("OVERRIDE ATIVO"), texto);
         assertTrue(texto.contains("desenho=off"), texto);
@@ -78,12 +82,76 @@ class AuraDebugRendererTest {
     void custoAparece() {
         AuraDebugRenderer.Dados comCusto = new AuraDebugRenderer.Dados(
                 true, false, null, Float.NaN, Float.NaN, null, -1,
-                6, 48, 12, 2, false, null, "33ded12", null);
+                6, 48, 12, 2, false, null, "33ded12", null, AuraDistribution.uniforme());
         String texto = juntar(AuraDebugRenderer.linhas(comCusto));
         assertTrue(texto.contains("6 chamadas"), texto);
         assertTrue(texto.contains("48 filamentos"), texto);
         assertTrue(texto.contains("12 particulas"), texto);
         assertTrue(texto.contains("2 com aura"), texto);
+    }
+
+    // ------------------------------------------------- os seis fatores
+
+    private static AuraDebugRenderer.Dados com(AuraDistribution d) {
+        return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
+                0, 0, 0, 0, false, null, "33ded12", null, d);
+    }
+
+    @Test
+    @DisplayName("os seis fatores aparecem, e o desequilibrio marca o pico")
+    void gyoSeLeDeRelance() {
+        // Gyo no braco direito: 1.8 nele, 0.7 no resto. O renderer multiplica
+        // por isto desde o AV1 -- mas ate esta linha existir, o multiplicador
+        // era um numero que ninguem conseguia OBSERVAR (#175).
+        String texto = juntar(AuraDebugRenderer.linhas(com(
+                new AuraDistribution(0.7F, 0.7F, 0.7F, 1.8F, 0.7F, 0.7F))));
+
+        assertTrue(texto.contains("*bD 1.80"),
+                "o pico tem de sair marcado, senao ler 'Gyo no braco direito' exige"
+                        + " comparar seis numeros de tres casas\n" + texto);
+        assertTrue(texto.contains("cab 0.70") && texto.contains("pD 0.70"), texto);
+        assertFalse(texto.contains("uniforme"), texto);
+    }
+
+    @Test
+    @DisplayName("distribuicao plana diz 'uniforme', em vez de seis copias do mesmo numero")
+    void uniformeNaoRepete() {
+        String texto = juntar(AuraDebugRenderer.linhas(com(AuraDistribution.uniforme())));
+        assertTrue(texto.contains("regioes: uniforme 1.00"), texto);
+        assertFalse(texto.contains("cab 1.00"),
+                "uma linha que repete o mesmo texto seis vezes deixa de ser lida\n" + texto);
+    }
+
+    @Test
+    @DisplayName("sem aura NAO e distribuicao de zeros -- e a distincao que este overlay guarda")
+    void semAuraNaoEZero() {
+        String texto = juntar(AuraDebugRenderer.linhas(com(null)));
+        assertTrue(texto.contains("regioes: " + AuraDebugRenderer.SEM_CONSUMIDOR), texto);
+        assertFalse(texto.contains("0.00"),
+                "escrever 0.00 seis vezes confundiria 'nao ha estado' com Zetsu, que"
+                        + " zera DE PROPOSITO\n" + texto);
+    }
+
+    @Test
+    @DisplayName("Ko nao estoura a linha, e o pico continua unico")
+    void koTemUmPicoSo() {
+        // Ko: quase tudo num membro. O caso extremo do ADR-014.
+        String texto = juntar(AuraDebugRenderer.linhas(com(
+                new AuraDistribution(0.02F, 0.02F, 0.02F, 1.0F, 0.02F, 0.02F))));
+        assertEquals(1, texto.chars().filter(c -> c == '*').count(),
+                "dois picos marcados fariam a leitura de relance mentir\n" + texto);
+        assertTrue(texto.contains("*bD 1.00"), texto);
+    }
+
+    @Test
+    @DisplayName("ha um rotulo para CADA regiao -- uma regiao nova sem rotulo some da linha")
+    void rotuloPorRegiao() {
+        // SEM ESTE TESTE, acrescentar uma regiao ao enum faria a linha mostrar
+        // seis de sete e nao lancar nada -- o `switch` de AuraDistribution
+        // reprova no compilador, mas um vetor de rotulos nao reprova em lugar
+        // nenhum.
+        assertEquals(AuraBodyRegion.values().length, AuraDebugRenderer.ROTULOS.length,
+                "o numero de rotulos do overlay saiu de sincronia com AuraBodyRegion");
     }
 
     @Test

@@ -244,7 +244,7 @@ public final class SobreposicaoDeVfx {
         // progresso pela metade faria a primeira captura depois do comando sair
         // com a aura subindo, e a comparacao A/B pegaria dois quadros de
         // animacao diferentes sem ninguem perceber.
-        return new AuraVisualState(modoFinal, base.preset(), intensidade, 1.0F,
+        return new AuraVisualState(modoFinal, intensidade, 1.0F,
                 base.distribution(), base.primaryColor(), base.secondaryColor());
     }
 
@@ -303,7 +303,18 @@ public final class SobreposicaoDeVfx {
                         base.fresnelExterno()),
                 naoNegativo(fluxo, base.velocidadeDeFluxo()),
                 positivo(escalaDeRuido, base.escalaDeRuido()),
-                base.reforcoDaBorda());
+                base.reforcoDaBorda(),
+                // OS DOIS NUMEROS DE PARTICULA PASSAM INTACTOS, e nao por
+                // esquecimento: quem quer mais ou menos faisca usa
+                // `/nenvfx densidade`, que multiplica a config e ja tem slider.
+                // Um segundo caminho para a mesma coisa aqui daria dois botoes
+                // que se sobrepoem, e a captura nao diria qual dos dois valia.
+                base.densidadeDeParticula(),
+                base.tamanhoDeParticula(),
+                // O BLOCO DE FILAMENTO PASSA INTACTO pelo mesmo motivo: quem
+                // quer mais ou menos filamento usa `/nenvfx ribbons`, que ja
+                // sobrepoe a CONTAGEM no ponto do desenho.
+                base.filamentos());
     }
 
     private static float alpha(float sobreposto, float original) {

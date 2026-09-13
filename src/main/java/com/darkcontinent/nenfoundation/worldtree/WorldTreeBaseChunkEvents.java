@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBaseGenerator;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBaseStructure;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeGroveGenerator;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCampGenerator;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -52,6 +53,7 @@ public final class WorldTreeBaseChunkEvents {
                 data.overworldOriginX(), data.overworldOriginZ());
         WorldTreeBaseGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
         WorldTreeGroveGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
+        WorldTreeCampGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
         data.markBaseChunkGenerated(chunk.toLong());
     }
 }

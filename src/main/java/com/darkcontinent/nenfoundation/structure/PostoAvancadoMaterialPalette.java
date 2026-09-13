@@ -25,6 +25,18 @@ public final class PostoAvancadoMaterialPalette {
                 ResourceLocation.withDefaultNamespace("light_gray_wool"));
         palette.put(PostoAvancadoBlockout.Material.PATIO_GRAVEL,
                 ResourceLocation.withDefaultNamespace("gravel"));
+        palette.put(PostoAvancadoBlockout.Material.WINDOW,
+                ResourceLocation.withDefaultNamespace("glass_pane"));
+        palette.put(PostoAvancadoBlockout.Material.WOOD,
+                ResourceLocation.withDefaultNamespace("spruce_planks"));
+        palette.put(PostoAvancadoBlockout.Material.GRATING,
+                ResourceLocation.withDefaultNamespace("iron_trapdoor"));
+        palette.put(PostoAvancadoBlockout.Material.HARDSTAND,
+                ResourceLocation.withDefaultNamespace("polished_andesite"));
+        palette.put(PostoAvancadoBlockout.Material.EQUIPMENT,
+                ResourceLocation.withDefaultNamespace("blast_furnace"));
+        palette.put(PostoAvancadoBlockout.Material.LIGHT,
+                ResourceLocation.withDefaultNamespace("lantern"));
         return Map.copyOf(palette);
     }
 }

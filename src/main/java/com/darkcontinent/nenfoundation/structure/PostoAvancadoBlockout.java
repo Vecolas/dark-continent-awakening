@@ -20,10 +20,14 @@ public final class PostoAvancadoBlockout {
         for (PostoAvancadoLayout.Modulo modulo : layout.modulos()) {
             if (modulo.id().equals("patio_operacional")) {
                 piso(blocos, modulo, Material.PATIO_GRAVEL);
+                patioEquipamento(blocos, modulo);
             } else if (modulo.id().equals("torre_scaffold")) {
                 torre(blocos, modulo, layout.towerHeight());
+            } else if (modulo.id().equals("portao_logistico")) {
+                portao(blocos, modulo);
             } else {
                 modulo(blocos, modulo, layout.buildingHeight());
+                interiores(blocos, modulo);
             }
         }
         cercamento(blocos, layout.footprint());
@@ -51,8 +55,54 @@ public final class PostoAvancadoBlockout {
         for (int y = 1; y <= altura - 2; y++) {
             borda(blocos, modulo, y, Material.CONCRETE);
         }
-        borda(blocos, modulo, altura - 1, Material.METAL);
+        pisoEm(blocos, modulo, altura - 1, Material.METAL);
+        janelas(blocos, modulo);
         toldo(blocos, modulo);
+    }
+
+    private static void janelas(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo) {
+        int y = 2;
+        for (int x = modulo.x() + 2; x < modulo.x() + modulo.largura() - 1; x += 3) {
+            adicionar(blocos, x, y, modulo.z(), Material.WINDOW);
+            adicionar(blocos, x, y + 1, modulo.z(), Material.WINDOW);
+            adicionar(blocos, x, y, modulo.z() + modulo.profundidade() - 1, Material.WINDOW);
+            adicionar(blocos, x, y + 1, modulo.z() + modulo.profundidade() - 1, Material.WINDOW);
+        }
+    }
+
+    private static void interiores(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo) {
+        int centroX = modulo.x() + modulo.largura() / 2;
+        int centroZ = modulo.z() + modulo.profundidade() / 2;
+        for (int x = modulo.x() + 2; x < modulo.x() + modulo.largura() - 2; x += 3) {
+            adicionar(blocos, x, 1, centroZ, Material.WOOD);
+        }
+        adicionar(blocos, centroX, 1, centroZ, Material.EQUIPMENT);
+        adicionar(blocos, centroX, 2, centroZ, Material.LIGHT);
+    }
+
+    private static void portao(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo) {
+        piso(blocos, modulo, Material.HARDSTAND);
+        int esquerda = modulo.x();
+        int direita = modulo.x() + modulo.largura() - 1;
+        for (int y = 1; y <= 4; y++) {
+            adicionar(blocos, esquerda, y, modulo.z(), Material.METAL);
+            adicionar(blocos, direita, y, modulo.z(), Material.METAL);
+        }
+        for (int x = esquerda; x <= direita; x++) {
+            adicionar(blocos, x, 4, modulo.z(), Material.METAL);
+        }
+        toldo(blocos, modulo);
+    }
+
+    private static void patioEquipamento(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo) {
+        for (int x = modulo.x() + 1; x <= modulo.x() + 4; x++) {
+            for (int z = modulo.z() + 1; z <= modulo.z() + 3; z++) {
+                adicionar(blocos, x, 1, z, Material.HARDSTAND);
+            }
+        }
+        for (int x = modulo.x() + modulo.largura() - 5; x < modulo.x() + modulo.largura() - 1; x++) {
+            adicionar(blocos, x, 1, modulo.z() + modulo.profundidade() - 2, Material.EQUIPMENT);
+        }
     }
 
     private static void piso(List<Placement> blocos, PostoAvancadoLayout.Modulo modulo, Material material) {
@@ -100,7 +150,11 @@ public final class PostoAvancadoBlockout {
         }
         for (int y : new int[] { 4, 8, 12 }) {
             pisoEm(blocos, new PostoAvancadoLayout.Modulo("plataforma", x1, z1,
-                    modulo.largura(), modulo.profundidade()), y, Material.METAL);
+                    modulo.largura(), modulo.profundidade()), y, Material.GRATING);
+            for (int x = x1; x <= x2; x++) {
+                adicionar(blocos, x, y + 1, z1, Material.METAL);
+                adicionar(blocos, x, y + 1, z2, Material.METAL);
+            }
         }
         pisoEm(blocos, new PostoAvancadoLayout.Modulo("topo", x1, z1,
                 modulo.largura(), modulo.profundidade()), altura - 1,
@@ -131,7 +185,10 @@ public final class PostoAvancadoBlockout {
         blocos.add(new Placement(new BlockPos(x, y, z), material));
     }
 
-    public enum Material { FOUNDATION, CONCRETE, METAL, CANVAS, PATIO_GRAVEL }
+    public enum Material {
+        FOUNDATION, CONCRETE, METAL, CANVAS, PATIO_GRAVEL, WINDOW, WOOD,
+        GRATING, HARDSTAND, EQUIPMENT, LIGHT
+    }
 
     public record Placement(BlockPos posicao, Material material) {
         public Placement {

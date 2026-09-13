@@ -122,6 +122,22 @@ pode não ser o código atual.
 
 ---
 
+## "outro processo bloqueou parte do arquivo"
+
+Esse erro do Minecraft quer dizer **ja ha um servidor desta instancia no ar**.
+O arquivo e o `session.lock` do mundo, e o processo e o servidor anterior --
+mas a mensagem nao diz nem uma coisa nem outra, e vem depois de uma pagina de
+stack trace do ModLauncher. Parece defeito do mod: o log mostra o Nen
+Foundation carregando normalmente uma linha antes.
+
+Acontece mais do que parece -- a janela do servidor anterior ficou atras de
+outra, ou alguem fechou o terminal sem digitar `stop`.
+
+O script agora recusa antes de chegar la, dizendo quem ocupa a porta e com que
+PID. Para parar o anterior: `stop` no console dele, ou `Stop-Process -Id <pid>`.
+
+---
+
 ## O mundo é normal, e não superplano
 
 Ele já foi superplano — sobe rápido, e dá para andar sem obstáculo. O custo só

@@ -378,6 +378,36 @@ function Conferir-Gerador {
     Erro "   aprova o que ninguem vai jogar, e nada acusa isso."
 }
 
+function Recusar-SeJaHaServidor {
+    # O MINECRAFT NAO DIZ O QUE ACONTECEU, e por isso esta guarda existe.
+    #
+    # Com um servidor desta instancia ja no ar, o segundo morre com
+    # "O processo nao pode acessar o arquivo porque outro processo bloqueou
+    # parte do arquivo" -- sem dizer QUAL arquivo (o session.lock do mundo) nem
+    # QUEM o segura. Vem depois de uma pagina de stack trace de ModLauncher, o
+    # que faz parecer defeito do mod: o log mostra o Nen Foundation carregando
+    # normalmente uma linha antes.
+    #
+    # Acontece mais do que parece: a janela do servidor anterior ficou aberta
+    # atras de outra, ou alguem fechou o terminal sem digitar `stop`.
+    $emUso = Get-NetTCPConnection -LocalPort $Porta -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (-not $emUso) { return }
+
+    $dono = Get-Process -Id $emUso.OwningProcess -ErrorAction SilentlyContinue
+    $nome = if ($dono) { $dono.ProcessName } else { 'desconhecido' }
+    $desde = if ($dono -and $dono.StartTime) { " desde $($dono.StartTime)" } else { '' }
+
+    throw (
+        "a porta $Porta ja esta ocupada por '$nome' (PID $($emUso.OwningProcess))$desde.`n" +
+        "   Se e um servidor desta instancia: ele segura o mundo, e um segundo`n" +
+        "   nao sobe. Digite 'stop' no console dele, ou:`n" +
+        "     Stop-Process -Id $($emUso.OwningProcess)`n" +
+        "   Se voce QUER dois servidores ao mesmo tempo, use outra porta:`n" +
+        "     .\scripts\instancia.ps1 servidor -Porta 25566`n" +
+        "   -- mas os dois abririam o MESMO mundo, e o Minecraft nao permite.")
+}
+
 function Comando-Servidor {
     $java = Resolver-Java
 
@@ -403,6 +433,7 @@ function Comando-Servidor {
     }
 
     Conferir-Gerador
+    Recusar-SeJaHaServidor
 
     # O MUNDO QUE AINDA NAO EXISTE NASCE NESTA SUBIDA, e com o gerador que o
     # server.properties declara AGORA. Sem guardar isso, a marca nunca era

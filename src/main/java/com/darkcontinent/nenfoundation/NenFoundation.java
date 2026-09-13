@@ -9,6 +9,7 @@ import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityEvents;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeRegistries;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
@@ -62,6 +63,7 @@ public final class NenFoundation {
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
         WorldTreeRegistries.register(modEventBus);
+        WorldTreeBlocks.register(modEventBus);
         // UMA fila de inimigos, e so uma. Ate aqui eram duas -- um DeferredRegister
         // para o foxbear e outro para os seis irmaos -- e a linha abaixo tinha de
         // escrever o pacote inteiro para desviar da colisao de nome. Duas filas nao

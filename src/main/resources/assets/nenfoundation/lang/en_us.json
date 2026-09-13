@@ -98,6 +98,7 @@
   "item.nenfoundation.foxbear_field_note": "Foxbear Field Note",
   "block.nenfoundation.research_table": "Hunter Research Table",
   "block.nenfoundation.research_table.ready": "The research table is ready for specimens.",
+  "bestiary.research.input": "FIELD NOTE",
   "item.nenfoundation.field_note.used": "Field note added to the bestiary.",
   "item.nenfoundation.field_note.researched": "The research table recorded the field note.",
   "bestiary.toast.title": "NEW FIELD KNOWLEDGE",

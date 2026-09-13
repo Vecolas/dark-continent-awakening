@@ -8,6 +8,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.network.chat.Component;
 
 /** Estação de pesquisa; a tela de amostras será acoplada na próxima fatia. */
 public final class ResearchTableBlock extends Block {
@@ -19,7 +21,9 @@ public final class ResearchTableBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             net.minecraft.world.phys.BlockHitResult hit) {
         if (!level.isClientSide()) {
-            player.displayClientMessage(Component.translatable("block.nenfoundation.research_table.ready"), true);
+            player.openMenu(new SimpleMenuProvider((id, inventory, ignored) ->
+                    new ResearchTableMenu(id, inventory, pos),
+                    Component.translatable("block.nenfoundation.research_table")));
         }
         return InteractionResult.sidedSuccess(level.isClientSide());
     }

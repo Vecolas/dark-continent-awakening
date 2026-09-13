@@ -42,11 +42,14 @@ public final class FieldNoteItem extends Item {
             return super.useOn(context);
         }
         if (!context.getLevel().isClientSide() && context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player) {
-            BestiaryPlayerService.descobrir(player, entryId, researchPoints,
-                    "foxbear.territorial_behavior");
-            context.getItemInHand().shrink(1);
-            player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.researched"), true);
+            applyAtResearchTable(player, context.getItemInHand());
         }
         return net.minecraft.world.InteractionResult.sidedSuccess(context.getLevel().isClientSide());
+    }
+
+    public void applyAtResearchTable(net.minecraft.server.level.ServerPlayer player, ItemStack stack) {
+        BestiaryPlayerService.descobrir(player, entryId, researchPoints, "foxbear.territorial_behavior");
+        stack.shrink(1);
+        player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.researched"), true);
     }
 }

@@ -91,6 +91,7 @@
   "item.nenfoundation.foxbear_field_note": "Nota de campo do Urso-Raposa",
   "block.nenfoundation.research_table": "Mesa de Pesquisa Hunter",
   "block.nenfoundation.research_table.ready": "A mesa de pesquisa estÃ¡ pronta para amostras.",
+  "bestiary.research.input": "NOTA DE CAMPO",
   "item.nenfoundation.field_note.used": "Nota de campo adicionada ao bestiÃ¡rio.",
   "item.nenfoundation.field_note.researched": "A mesa registrou a nota de campo.",
   "bestiary.toast.title": "NOVO CONHECIMENTO DE CAMPO",

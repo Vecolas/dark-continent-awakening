@@ -34,6 +34,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +99,9 @@ public final class NenFoundationClient {
 
         modEventBus.addListener(NenKeybinds::registrar);
         modEventBus.addListener(EnemyRenderers::registrar);
+        modEventBus.addListener((RegisterMenuScreensEvent evento) ->
+                evento.register(com.darkcontinent.nenfoundation.registry.NenMenus.RESEARCH_TABLE.get(),
+                        com.darkcontinent.nenfoundation.client.screen.ResearchTableScreen::new));
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
         modEventBus.addListener(AuraShaders::registrar);

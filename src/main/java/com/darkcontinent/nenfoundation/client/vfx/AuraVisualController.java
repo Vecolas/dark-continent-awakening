@@ -53,7 +53,9 @@ public final class AuraVisualController {
      * chama sabe qual tecnica esta ligada e passa a cor dela.
      *
      * <p>Antes desta sobrecarga o controlador gravava {@code 0xFFFFFFFF} fixo e
-     * {@link AuraVisualProfile} carregava campos de cor que ninguem lia.
+     * um {@code AuraVisualProfile} carregava campos de cor que ninguem lia. Esse
+     * record foi removido junto do {@code AuraVisualPreset}: os numeros de arte
+     * moram no perfil de {@code assets/nenfoundation/nen_vfx/}.
      */
     public void receber(AuraVisualMode modo, float intensidade, AuraDistribution distribuicao,
             int corPrimaria, int corSecundaria) {
@@ -61,14 +63,7 @@ public final class AuraVisualController {
                 || intensidade < 0.0F || intensidade > 1.0F) {
             throw new IllegalArgumentException("comando visual invalido");
         }
-        AuraVisualPreset preset = switch (modo) {
-            case TEN -> AuraVisualPreset.tenBasic();
-            case REN -> AuraVisualPreset.renBasic();
-            case ZETSU -> AuraVisualPreset.zetsu();
-            case OFF -> AuraVisualPreset.off();
-            case CUSTOM -> AuraVisualPreset.tenBasic();
-        };
-        this.alvo = new AuraVisualState(modo, preset, modo == AuraVisualMode.ZETSU ? 0.0F : intensidade,
+        this.alvo = new AuraVisualState(modo, modo == AuraVisualMode.ZETSU ? 0.0F : intensidade,
                 0.0F, modo == AuraVisualMode.ZETSU ? AuraDistribution.zetsu() : distribuicao,
                 corPrimaria, corSecundaria);
         this.transicaoEmCurso = AuraTransicao.de(this.atual.mode(), modo);
@@ -124,12 +119,11 @@ public final class AuraVisualController {
         // transicao estava pela metade, e a aura "pulava" de estado antes da
         // hora. Nada lancava; so parecia apressado.
         boolean chegou = progresso >= 1.0F;
-        AuraVisualPreset p = chegou ? b.preset() : a.preset();
         // O PROGRESSO GRAVADO E SATURADO. Com OVERSHOOT o `t` passa de 1 no
         // meio do caminho -- de proposito --, mas `AuraVisualState` valida
         // `transitionProgress` entre 0 e 1 e lancaria. Excecao no tick de render
         // derruba o desenho do mundo, e nao so a aura.
-        return new AuraVisualState(chegou ? b.mode() : a.mode(), p,
+        return new AuraVisualState(chegou ? b.mode() : a.mode(),
                 Math.clamp(ler(a.intensity(), b.intensity(), t), 0.0F, 1.0F),
                 Math.clamp(t, 0.0F, 1.0F), d, b.primaryColor(), b.secondaryColor());
     }

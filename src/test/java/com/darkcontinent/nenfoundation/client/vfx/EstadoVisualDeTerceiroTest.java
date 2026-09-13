@@ -61,7 +61,14 @@ class EstadoVisualDeTerceiroTest {
                 "Ten e Ren sairam da mesma cor para terceiros. A cor e a mesma do"
                         + " HUD e da roda de proposito; se ela colapsa aqui, o"
                         + " jogador nao sabe o que esta olhando.");
-        assertTrue(ren.preset().particleIntensity() > ten.preset().particleIntensity(),
+        // O QUE SEPARA OS DOIS AQUI E O MODO, e nao um numero embutido no
+        // estado. Quem desenha busca o perfil por `estado.mode()`, entao a aura
+        // de um terceiro em Ren usa o mesmo `ren.json` da do jogador local.
+        // Antes este teste lia `preset().particleIntensity()`, um numero que
+        // viajava dentro do estado -- e que podia divergir do arquivo sem que
+        // nada acusasse.
+        assertTrue(PerfilDoDisco.de(ren.mode()).densidadeDeParticula()
+                        > PerfilDoDisco.de(ten.mode()).densidadeDeParticula(),
                 "Ren nao emite mais que Ten a distancia.");
     }
 

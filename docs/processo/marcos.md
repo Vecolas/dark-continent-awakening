@@ -386,10 +386,20 @@ Duas coisas mudaram neste dia, e nenhuma das duas fecha gate:
 2. A **bancada de captura** da issue #168 existe: `/nenvfx`, overlay em F6,
    sliders e lote de capturas nomeadas com data, commit e nivel de bloom. Ate
    entao nenhuma captura desta trilha podia ser comparada com outra.
+3. Os **ultimos numeros de arte sairam do codigo** (issue #98):
+   `AuraVisualPreset` e `AuraVisualProfile` foram removidos, e os dois campos
+   deles que alguem lia viraram `densidade_de_particula` e
+   `tamanho_de_particula` no perfil de resource pack. Cinco campos nao tinham
+   leitor nenhum. Nao muda um pixel: muda de onde o pixel vem.
 
 O detalhe, com numero e linha de comando, esta em
-[`av-evidencias.md`](../testing/av-evidencias.md) secoes 4b e 4c. **Entrega nao
-se deduz de codigo compilavel, e gate nao se deduz de relato textual.**
+[`av-evidencias.md`](../testing/av-evidencias.md) secoes 4b, 4c e 4d. **Entrega
+nao se deduz de codigo compilavel, e gate nao se deduz de relato textual.**
+
+O que falta para o **#169** e so evidencia: as catorze capturas do conjunto,
+tiradas com dois clientes reais (um Steve, um Alex) e arquivadas em
+`docs/testing/capturas/AV0/`. Nenhuma linha de codigo do AV0 continua em
+aberto.
 
 ---
 

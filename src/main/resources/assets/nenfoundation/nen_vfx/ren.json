@@ -11,5 +11,9 @@
 
   "velocidade_de_fluxo": 0.32,
   "escala_de_ruido": 4.0,
-  "reforco_da_borda": 1.2
+  "reforco_da_borda": 1.2,
+
+  "_particula": "ACABAMENTO, e nao a aura. Ren emite mais e maior que Ten -- mas quem carrega a leitura continua sendo a shell.",
+  "densidade_de_particula": 0.16,
+  "tamanho_de_particula": 0.30
 }

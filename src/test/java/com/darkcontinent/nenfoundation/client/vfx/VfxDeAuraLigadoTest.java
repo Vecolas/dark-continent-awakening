@@ -176,11 +176,13 @@ class VfxDeAuraLigadoTest {
         // sempre: a tecnica mais basica do jogo nao teria efeito nenhum, e o
         // sintoma seria "Ten nao faz nada".
         AuraVisualState ten = estadoDe(AuraVisualMode.TEN, 1.0F);
-        int comSorteioBaixo = EmissorDeParticulasDeAura.quantasEmitir(ten, 1.0D, 0.0F);
+        int comSorteioBaixo = EmissorDeParticulasDeAura.quantasEmitir(
+                PerfilDoDisco.de(AuraVisualMode.TEN), ten, 1.0D, 0.0F);
         assertTrue(comSorteioBaixo >= 1,
                 "Com o sorteio favoravel Ten devia emitir ao menos uma particula;"
                         + " emitiu " + comSorteioBaixo + ".");
-        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(ten, 1.0D, 0.999F),
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        PerfilDoDisco.de(AuraVisualMode.TEN), ten, 1.0D, 0.999F),
                 "Com o sorteio desfavoravel Ten deve ficar quieto -- e o que o"
                         + " torna discreto em vez de constante.");
     }
@@ -209,8 +211,10 @@ class VfxDeAuraLigadoTest {
         for (int i = 0; i < 100; i++) {
             float sorteio = i / 100.0F;
             ten += EmissorDeParticulasDeAura.quantasEmitir(
+                    PerfilDoDisco.de(AuraVisualMode.TEN),
                     estadoDe(AuraVisualMode.TEN, 1.0F), 1.0D, sorteio);
             ren += EmissorDeParticulasDeAura.quantasEmitir(
+                    PerfilDoDisco.de(AuraVisualMode.REN),
                     estadoDe(AuraVisualMode.REN, 1.0F), 1.0D, sorteio);
         }
         assertTrue(ren > ten,
@@ -227,24 +231,51 @@ class VfxDeAuraLigadoTest {
     @DisplayName("Zetsu e densidade zero nao emitem nada")
     void zetsuESilencioNaoEmitem() {
         assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        PerfilDoDisco.de(AuraVisualMode.ZETSU),
                         estadoDe(AuraVisualMode.ZETSU, 1.0F), 1.0D, 0.0F),
                 "Zetsu emitiu particula. Ele e o estado em que o jogador SOME do"
                         + " radar; brilhar seria o contrario do que ele faz.");
         assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        PerfilDoDisco.de(AuraVisualMode.REN),
                         estadoDe(AuraVisualMode.REN, 1.0F), 0.0D, 0.0F),
                 "densidade zero na config devia desligar o desenho por completo.");
-        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(null, 1.0D, 0.0F));
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        PerfilDoDisco.de(AuraVisualMode.TEN), null, 1.0D, 0.0F));
+        assertEquals(0, EmissorDeParticulasDeAura.quantasEmitir(
+                        null, estadoDe(AuraVisualMode.REN, 1.0F), 1.0D, 0.0F),
+                "sem perfil carregado o emissor tem de ficar quieto, e nao"
+                        + " assumir um numero de dentro do codigo -- assumir e"
+                        + " como o AuraVisualPreset voltaria pela porta dos fundos.");
     }
 
     @Test
     @DisplayName("densidade absurda na config nao trava o cliente")
     void densidadeAbsurdaTemTeto() {
         int quantas = EmissorDeParticulasDeAura.quantasEmitir(
+                PerfilDoDisco.de(AuraVisualMode.REN),
                 estadoDe(AuraVisualMode.REN, 1.0F), 1_000_000.0D, 0.5F);
         assertTrue(quantas <= 12 && quantas > 0,
                 "Sem teto, um numero errado na config emitiria " + quantas
                         + " particulas por tick e travaria o cliente -- e config e"
                         + " arquivo que qualquer um edita a mao.");
+    }
+
+    @Test
+    @DisplayName("o tamanho da faisca vem do PERFIL, e Ren tem a maior")
+    void tamanhoVemDoPerfil() {
+        // ESTE NUMERO MORAVA NO CODIGO. Era `AuraVisualPreset.shellOpacity()`,
+        // um campo com nome de shell usado para dimensionar particula -- e por
+        // isso ninguem o encontrava ao procurar por que a faisca tinha aquele
+        // tamanho. Hoje ele e `tamanho_de_particula`, no JSON.
+        float ten = EmissorDeParticulasDeAura.tamanhoDe(
+                PerfilDoDisco.de(AuraVisualMode.TEN), estadoDe(AuraVisualMode.TEN, 1.0F));
+        float ren = EmissorDeParticulasDeAura.tamanhoDe(
+                PerfilDoDisco.de(AuraVisualMode.REN), estadoDe(AuraVisualMode.REN, 1.0F));
+        assertTrue(ren > ten, "a faisca de Ren (" + ren + ") nao e maior que a de Ten ("
+                + ten + ")");
+        assertTrue(ten >= 0.6F && ren <= 1.5F,
+                "fora de 0,6..1,5 a poeira vanilla ou some ou vira mancha; saiu "
+                        + ten + " e " + ren);
     }
 
     @Test

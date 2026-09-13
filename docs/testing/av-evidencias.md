@@ -258,6 +258,55 @@ janelas de medição e o fato de a sobreposição não sobreviver ao logout.
 
 ---
 
+## 4d. Os últimos números de arte saíram do código (issue #98)
+
+PR em `fix/av0-preset-orfao`, 2026-09-13.
+
+A issue #98 do AV0 pedia, com todas as letras, que **`AuraVisualPreset` saísse**
+— "config órfã dentro do código, erro nº 7 do `CLAUDE.md`". Ele continuava lá, e
+o levantamento encontrou o quadro completo:
+
+| Record | Campos | Leitores no repositório |
+| --- | --- | --- |
+| `AuraVisualPreset` | `shellScale`, `edgeIntensity`, `flowIntensity`, `pulseAmplitude`, `pulseFrequency` | **nenhum** |
+| `AuraVisualPreset` | `particleIntensity`, `shellOpacity` | só o emissor de partículas |
+| `AuraVisualProfile` | os oito | **nenhum**, fora do próprio teste dele |
+
+Os cinco primeiros eram o botão morto na forma mais pura: giravam, e nada do
+outro lado. `AuraVisualProfile` era pior — ele tinha um teste, e o teste
+comparava dois métodos estáticos da própria classe, ou seja, provava a si mesmo.
+
+O que mudou:
+
+| O que | Para onde |
+| --- | --- |
+| `AuraVisualPreset`, `AuraVisualProfile` | **removidos** |
+| `particleIntensity` | `densidade_de_particula`, em `nen_vfx/*.json` |
+| `shellOpacity` (que dimensionava **partícula**, apesar do nome) | `tamanho_de_particula`, no mesmo arquivo |
+| `AuraVisualState` | perdeu o componente `preset`; quem desenha busca o perfil por `AuraPerfis.de(estado.mode())` |
+
+Consequência que vale para a sessão de arte: **os dois números de partícula
+agora recarregam com `F3+T`**, como os da shell — e um _resource pack_ pode
+sobrepô-los.
+
+| Comando | Resultado observado |
+| --- | --- |
+| `gradlew build` (na máquina) | verde, **`Testes executados: 619`** |
+| `gradlew runServer` | **`Done (4.649s)`**, zero `NoClassDefFoundError`, zero `ClassNotFoundException`, nenhuma linha de `client/vfx` |
+| densidade de Ren rebaixada abaixo da de Ten, de propósito | **4 testes reprovaram**, em quatro arquivos diferentes |
+| `apagado()` deixando a densidade passar, de propósito | **2 testes reprovaram**, incluindo o que existe para isso |
+
+As duas últimas linhas são o que a régua nova vale. Alimentar o portão com o
+defeito é a única forma de saber que ele morde; sem isso, `apagadoEZero` seria
+carimbo.
+
+**O que esta entrega NÃO prova:** nada de aparência, de novo. Os números são os
+mesmos de antes — a mudança é de onde eles vêm, e não de quanto valem. Ninguém
+abriu o cliente. Se a partícula mudar de aspecto em jogo, o suspeito é a leitura
+do perfil, e não o valor.
+
+---
+
 ## 5. O que cada execução prova, e o que ela não prova
 
 No estilo de [`o-que-nao-provamos.md`](o-que-nao-provamos.md), e com as mesmas

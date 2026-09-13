@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class SobreposicaoDeVfxTest {
 
     private static final AuraPerfilVisual BASE = new AuraPerfilVisual(
-            0.055F, 0.20F, 0.035F, 3.4F, 2.7F, 2.0F, 0.12F, 4.0F, 0.9F);
+            0.055F, 0.20F, 0.035F, 3.4F, 2.7F, 2.0F, 0.12F, 4.0F, 0.9F, 0.03F, 0.18F);
 
     @BeforeEach
     @AfterEach
@@ -99,8 +99,7 @@ class SobreposicaoDeVfxTest {
     @Test
     @DisplayName("o estado forcado vai com a transicao no fim")
     void estadoForcadoNaoFicaNoMeioDaTransicao() {
-        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, AuraVisualPreset.off(),
-                0.4F, 0.3F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
+        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, 0.4F, 0.3F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
         SobreposicaoDeVfx.forcarModo(AuraVisualMode.REN);
 
         AuraVisualState saida = SobreposicaoDeVfx.aplicarNoLocal(base);
@@ -114,8 +113,7 @@ class SobreposicaoDeVfxTest {
     @Test
     @DisplayName("o desligamento geral vale tambem para os outros jogadores")
     void desligarValeParaTerceiros() {
-        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, AuraVisualPreset.off(),
-                1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
+        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, 1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
         SobreposicaoDeVfx.desligar(true);
         assertFalse(SobreposicaoDeVfx.aplicarEmTerceiro(base).enabled());
         assertFalse(SobreposicaoDeVfx.aplicarNoLocal(base).enabled());
@@ -124,8 +122,7 @@ class SobreposicaoDeVfxTest {
     @Test
     @DisplayName("o estado dos OUTROS nao se forca -- so se desliga")
     void terceiroNaoAceitaEstadoForcado() {
-        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, AuraVisualPreset.off(),
-                1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
+        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, 1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
         SobreposicaoDeVfx.forcarModo(AuraVisualMode.REN);
 
         assertEquals(AuraVisualMode.TEN, SobreposicaoDeVfx.aplicarEmTerceiro(base).mode(),
@@ -136,8 +133,7 @@ class SobreposicaoDeVfxTest {
     @Test
     @DisplayName("modo forcado para OFF apaga, em vez de desenhar um preset vazio")
     void modoOffApaga() {
-        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, AuraVisualPreset.off(),
-                1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
+        AuraVisualState base = new AuraVisualState(AuraVisualMode.TEN, 1.0F, 1.0F, AuraDistribution.uniforme(), 0xFFFFFFFF, 0xFFFFFFFF);
         SobreposicaoDeVfx.forcarModo(AuraVisualMode.OFF);
         assertFalse(SobreposicaoDeVfx.aplicarNoLocal(base).enabled());
     }

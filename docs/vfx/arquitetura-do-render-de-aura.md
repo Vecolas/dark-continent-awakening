@@ -326,7 +326,7 @@ dá erro: dá tela que some ou memória que sobe devagar.
 client/vfx/
   AuraVisualSystem        orquestra; o único ponto de entrada
   AuraVisualState         snapshot interpolável (JÁ EXISTE)
-  AuraVisualProfile       perfil de personalidade visual (JÁ EXISTE)
+  model/AuraPerfilVisual  os números de arte, lidos de nen_vfx/*.json
   AuraVisualController    interpolador (JÁ EXISTE)
   AuraVisibilityResolver  observador x alvo -> 0..1
   AuraLodController       distância -> nível de detalhe

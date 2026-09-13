@@ -41,6 +41,7 @@ public final class WorldTreeSavedData extends SavedData {
     }
 
     public static WorldTreeSavedData load(CompoundTag tag, HolderLookup.Provider registries) {
+        tag = WorldTreeSaveMigration.migrate(tag);
         int version = tag.getInt(VERSION);
         if (version <= 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("versao de World Tree nao suportada: " + version);

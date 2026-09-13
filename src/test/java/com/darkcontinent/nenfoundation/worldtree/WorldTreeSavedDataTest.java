@@ -51,4 +51,15 @@ class WorldTreeSavedDataTest {
 
         assertThrows(IllegalArgumentException.class, () -> WorldTreeSavedData.load(tag, null));
     }
+
+    @Test
+    void saveLegadoSemVersaoEAtualizado() {
+        CompoundTag legado = new CompoundTag();
+        legado.putBoolean("tree_generated", true);
+
+        WorldTreeSavedData carregado = WorldTreeSavedData.load(legado, null);
+
+        assertEquals(WorldTreeSavedData.CURRENT_VERSION, carregado.generationVersion());
+        assertTrue(carregado.treeGenerated());
+    }
 }

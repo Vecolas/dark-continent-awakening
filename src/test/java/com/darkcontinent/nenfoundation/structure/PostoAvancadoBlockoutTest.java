@@ -14,10 +14,13 @@ class PostoAvancadoBlockoutTest {
     @Test
     void blockoutUsaPaletaIndustrialEContemTorreAberta() {
         var blocos = PostoAvancadoBlockout.gerar();
-        assertTrue(blocos.size() > 500, "blockout pequeno demais para os modulos V2");
+        assertTrue(blocos.size() > 1200, "blockout pequeno demais para os modulos V2");
         assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.METAL));
         assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.CONCRETE));
         assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.CANVAS));
+        assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.WINDOW));
+        assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.WOOD));
+        assertTrue(blocos.stream().anyMatch(p -> p.material() == PostoAvancadoBlockout.Material.GRATING));
         assertFalse(blocos.stream().anyMatch(p -> p.material().name().contains("DARK_OAK")));
     }
 

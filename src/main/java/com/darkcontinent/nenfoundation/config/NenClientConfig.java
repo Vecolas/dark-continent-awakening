@@ -52,6 +52,13 @@ public final class NenClientConfig {
             .defineEnum("vfx.qualidade",
                     com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality.HIGH);
 
+    private static final ModConfigSpec.BooleanValue AURA_EM_PRIMEIRA_PESSOA = BUILDER
+            .comment("Se a aura aparece nos bracos em primeira pessoa.",
+                    "E so a BORDA, com alpha reduzido -- nunca uma shell inteira na",
+                    "frente da camera, que cobriria a mira e cansaria em minutos.",
+                    "Desligar aqui nao muda nada do que os OUTROS veem.")
+            .define("vfx.primeiraPessoa", true);
+
     /** O spec deste arquivo, registrado como CLIENT. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -68,6 +75,11 @@ public final class NenClientConfig {
      */
     public static com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality qualidade() {
         return QUALIDADE.get();
+    }
+
+    /** Se este cliente desenha a aura nos bracos em primeira pessoa. */
+    public static boolean auraEmPrimeiraPessoa() {
+        return AURA_EM_PRIMEIRA_PESSOA.get();
     }
 
     /** Densidade de particulas escolhida por este cliente. */

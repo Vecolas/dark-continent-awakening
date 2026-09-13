@@ -5,7 +5,6 @@ import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
 import net.minecraft.resources.ResourceLocation;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.toasts.TutorialToast;
 import net.minecraft.network.chat.Component;
 
 /** Cache somente-leitura do conhecimento do jogador local; sync entra na próxima fatia. */
@@ -24,12 +23,11 @@ public final class BestiaryClientState {
                 var old = anterior.progress(id).knowledgeLevel();
                 var current = progress.knowledgeLevel();
                 if (current.ordinal() > old.ordinal()) {
-                    String nome = Component.translatable(id.toLanguageKey()).getString();
+                    String nome = Component.translatable("bestiary.entry." + id.getPath()).getString();
                     var title = Component.translatable("bestiary.toast.title");
                     var description = Component.translatable(current.ordinal() == 1
                             ? "bestiary.toast.observed" : "bestiary.toast.updated", nome);
-                    Minecraft.getInstance().getToasts().addToast(new TutorialToast(
-                            TutorialToast.Icons.RECIPE_BOOK, title, description, false));
+                    Minecraft.getInstance().getToasts().addToast(new BestiaryToast(title, description));
                 }
             });
         }

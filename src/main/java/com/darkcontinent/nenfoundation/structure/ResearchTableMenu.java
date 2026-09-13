@@ -31,10 +31,14 @@ public final class ResearchTableMenu extends AbstractContainerMenu {
     }
 
     public static ResearchTableMenu fromNetwork(int id, Inventory inventory, FriendlyByteBuf buffer) {
-        return new ResearchTableMenu(id, inventory, buffer.readBlockPos());
+        // SimpleMenuProvider opens this menu without extra data. The client
+        // only needs a safe placeholder; the server menu already owns the
+        // authoritative block position supplied by ResearchTableBlock.
+        return new ResearchTableMenu(id, inventory, buffer == null ? BlockPos.ZERO : buffer.readBlockPos());
     }
 
     @Override public boolean stillValid(Player player) {
+        if (level.isClientSide()) return true;
         return level.getBlockState(tablePos).getBlock() instanceof ResearchTableBlock
                 && player.distanceToSqr(tablePos.getCenter()) <= 64.0D;
     }

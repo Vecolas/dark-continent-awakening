@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientEvents;
 import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientState;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryDefinitionReloadListener;
 import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
@@ -112,6 +113,11 @@ public final class NenFoundationClient {
                 .RegisterClientReloadListenersEvent evento) ->
                 evento.registerReloadListener(
                         new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis()));
+        // The server owns progress, but the client must load the same catalog
+        // to render unknown entries instead of silently falling back to Foxbear.
+        modEventBus.addListener((net.neoforged.neoforge.client.event
+                .RegisterClientReloadListenersEvent evento) ->
+                evento.registerReloadListener(new BestiaryDefinitionReloadListener()));
 
         // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
         // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a

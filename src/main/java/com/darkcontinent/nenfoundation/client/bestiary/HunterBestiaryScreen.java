@@ -49,8 +49,11 @@ public final class HunterBestiaryScreen extends Screen {
 
     @Override
     protected void init() {
-        bookWidth = Math.min(760, width - 20);
-        bookHeight = Math.min(460, height - 20);
+        // Keep the field guide readable without turning it into a full-screen
+        // panel. The content coordinates below are designed for this compact
+        // 680x410 canvas and remain inside it at smaller GUI resolutions.
+        bookWidth = Math.min(680, width - 40);
+        bookHeight = Math.min(410, height - 40);
         left = (width - bookWidth) / 2;
         top = (height - bookHeight) / 2;
         previewCursorX = left + 130;
@@ -74,11 +77,13 @@ public final class HunterBestiaryScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        searchBox.setVisible(index);
+        if (!index) searchBox.setFocused(false);
         super.render(graphics, mouseX, mouseY, partialTick);
-        drawMarker(graphics, left - 11, top + 47, "ALL", categoryFilter == null);
-        drawMarker(graphics, left - 11, top + 82, "WILD", categoryFilter == BestiaryCategory.WILDLIFE);
-        drawMarker(graphics, left + bookWidth - 4, top + 47, "MAGIC", categoryFilter == BestiaryCategory.MAGICAL);
-        drawMarker(graphics, left + bookWidth - 4, top + 82, "SPECIAL", categoryFilter == BestiaryCategory.SPECIAL);
+        drawMarker(graphics, left, top + 47, "ALL", categoryFilter == null);
+        drawMarker(graphics, left, top + 82, "WILD", categoryFilter == BestiaryCategory.WILDLIFE);
+        drawMarker(graphics, left + bookWidth - 65, top + 47, "MAGIC", categoryFilter == BestiaryCategory.MAGICAL);
+        drawMarker(graphics, left + bookWidth - 65, top + 82, "SPECIAL", categoryFilter == BestiaryCategory.SPECIAL);
         if (index) drawIndex(graphics);
         else drawEntry(graphics);
     }
@@ -140,22 +145,22 @@ public final class HunterBestiaryScreen extends Screen {
             drawSection(graphics, "RESEARCH", right, top + 260);
             drawResearchMeter(graphics, entry, progress, right, top + 283);
             if (progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.STUDIED)) {
-                drawSection(graphics, "WEAK POINTS", right, top + 330);
+                drawSection(graphics, "WEAK POINTS", right, top + 286);
                 graphics.drawWordWrap(font, Component.literal(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.MASTERED)
                         ? "Weak points and advanced behavior recorded in the field report."
                         : "A strategic opening has been identified. Further confirmation is required."),
-                        right, top + 349, bookWidth / 2 - 52, INK);
+                        right, top + 304, bookWidth / 2 - 52, INK);
                 if (progress.specialDiscoveries().contains("foxbear.territorial_behavior")) {
                     graphics.drawWordWrap(font, Component.translatable("bestiary.discovery.foxbear.territorial"),
-                            right, top + 389, bookWidth / 2 - 52, OLIVE);
+                            right, top + 338, bookWidth / 2 - 52, OLIVE);
                 }
                 if (progress.nenStatus() != com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus.NONE) {
-                    drawSection(graphics, "NEN", right, top + 430);
-                    graphics.drawString(font, progress.nenStatus().name(), right, top + 447, PETROLEO, false);
+                    drawSection(graphics, "NEN", right, top + 365);
+                    graphics.drawString(font, progress.nenStatus().name(), right, top + 382, PETROLEO, false);
                 }
                 if (!progress.weakPointsDiscovered().isEmpty()) {
                     graphics.drawWordWrap(font, Component.translatable("bestiary.weak_point.discovered"),
-                            right, top + 410, bookWidth / 2 - 52, ALERTA);
+                            right, top + 338, bookWidth / 2 - 52, ALERTA);
                 }
             }
         }
@@ -194,7 +199,7 @@ public final class HunterBestiaryScreen extends Screen {
     }
     private String nome(BestiaryEntryDefinition entry, BestiaryProgress progress) {
         return progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN
-                ? "????" : Component.translatable(entry.entityType().toLanguageKey()).getString();
+                ? "????" : Component.translatable("bestiary.entry." + entry.id().getPath()).getString();
     }
     private String status(BestiaryProgress progress) {
         return Component.translatable("bestiary.knowledge." + progress.knowledgeLevel().name().toLowerCase(Locale.ROOT)).getString();
@@ -227,19 +232,19 @@ public final class HunterBestiaryScreen extends Screen {
     }
 
     @Override public boolean mouseClicked(double x, double y, int button) {
-        if (index && x >= left - 11 && x <= left + 54 && y >= top + 47 && y <= top + 72) {
+        if (index && x >= left && x <= left + 65 && y >= top + 47 && y <= top + 72) {
             categoryFilter = null;
             return true;
         }
-        if (index && x >= left - 11 && x <= left + 54 && y >= top + 82 && y <= top + 107) {
+        if (index && x >= left && x <= left + 65 && y >= top + 82 && y <= top + 107) {
             categoryFilter = BestiaryCategory.WILDLIFE;
             return true;
         }
-        if (index && x >= left + bookWidth - 4 && x <= left + bookWidth + 61 && y >= top + 47 && y <= top + 72) {
+        if (index && x >= left + bookWidth - 65 && x <= left + bookWidth && y >= top + 47 && y <= top + 72) {
             categoryFilter = BestiaryCategory.MAGICAL;
             return true;
         }
-        if (index && x >= left + bookWidth - 4 && x <= left + bookWidth + 61 && y >= top + 82 && y <= top + 107) {
+        if (index && x >= left + bookWidth - 65 && x <= left + bookWidth && y >= top + 82 && y <= top + 107) {
             categoryFilter = BestiaryCategory.SPECIAL;
             return true;
         }

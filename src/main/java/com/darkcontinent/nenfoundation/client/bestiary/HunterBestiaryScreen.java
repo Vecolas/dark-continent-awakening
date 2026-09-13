@@ -51,14 +51,15 @@ public final class HunterBestiaryScreen extends Screen {
     protected void init() {
         // Keep the field guide readable without turning it into a full-screen
         // panel. The content coordinates below are designed for this compact
-        // 680x410 canvas and remain inside it at smaller GUI resolutions.
-        bookWidth = Math.min(680, width - 40);
-        bookHeight = Math.min(410, height - 40);
+        // Every page reserves separate vertical bands so optional sections
+        // cannot draw over the footer or over one another.
+        bookWidth = Math.min(620, width - 40);
+        bookHeight = Math.min(370, height - 40);
         left = (width - bookWidth) / 2;
         top = (height - bookHeight) / 2;
-        previewCursorX = left + 130;
-        previewCursorY = top + 170;
-        searchBox = new EditBox(font, left + bookWidth / 2 + 20, top + 28, bookWidth / 2 - 50, 18,
+        previewCursorX = left + 120;
+        previewCursorY = top + 130;
+        searchBox = new EditBox(font, left + bookWidth / 2 + 20, top + 28, Math.max(80, bookWidth / 2 - 50), 18,
                 Component.literal("Search"));
         searchBox.setHint(Component.literal("search field notes"));
         addRenderableWidget(searchBox);
@@ -92,26 +93,30 @@ public final class HunterBestiaryScreen extends Screen {
     private void drawIndex(GuiGraphics graphics) {
         drawTitle(graphics, "FIELD INDEX", left + 30, top + 17);
         graphics.drawString(font, "ASSOCIATION HUNTER / FIELD RESEARCH", left + 30, top + 35, OLIVE, false);
-        int y = top + 112;
+        int y = top + 100;
         int number = 1;
         int visible = 0;
         int rowIndex = 0;
+        int maxRows = Math.max(1, (bookHeight - 120) / 34);
         for (BestiaryEntryDefinition entry : filteredEntries()) {
+            if (visible == maxRows) break;
             BestiaryProgress progress = BestiaryClientState.progress(entry.id());
             graphics.fill(left + 25, y - 4, left + bookWidth - 25, y + 29,
                     rowIndex++ == selectedIndex ? 0x55606A5E : 0x22606A5E);
             graphics.drawString(font, String.format("%02d", number++), left + 35, y + 5, OLIVE, false);
             graphics.drawString(font, nome(entry, progress), left + 72, y + 5, INK, false);
-            graphics.drawString(font, status(progress), left + bookWidth - 135, y + 5, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? ALERTA : OLIVE, false);
+            graphics.drawString(font, status(progress), left + bookWidth / 2 + 24, y + 5,
+                    progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? ALERTA : OLIVE, false);
             graphics.drawString(font, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "????"
                             : categoryName(entry) + "  /  " + entry.threat(),
                     left + 72, y + 17, 0xFF66716C, false);
-            y += 42;
+            y += 34;
             visible++;
         }
         if (visible == 0) graphics.drawString(font, "NO FIELD NOTES MATCH", left + 35, top + 105, ALERTA, false);
-        graphics.drawString(font, "A field guide is built one observation at a time.", left + 30, top + bookHeight - 38, OLIVE, false);
-        graphics.drawString(font, "CLICK AN ENTRY TO OPEN THE RECORD", left + bookWidth / 2 + 20, top + bookHeight - 38, PETROLEO, false);
+        int footerY = top + bookHeight - 16;
+        graphics.drawString(font, "A field guide is built one observation at a time.", left + 30, footerY, OLIVE, false);
+        graphics.drawString(font, "CLICK AN ENTRY TO OPEN THE RECORD", left + bookWidth / 2 + 20, footerY, PETROLEO, false);
     }
 
     private void drawEntry(GuiGraphics graphics) {
@@ -121,59 +126,61 @@ public final class HunterBestiaryScreen extends Screen {
             return;
         }
         BestiaryProgress progress = BestiaryClientState.progress(entry.id());
-        drawTitle(graphics, nome(entry, progress), left + 30, top + 30);
-        graphics.drawString(font, categoryName(entry), left + 30, top + 49, OLIVE, false);
+        drawTitle(graphics, nome(entry, progress), left + 30, top + 20);
+        graphics.drawString(font, categoryName(entry), left + 30, top + 38, OLIVE, false);
         graphics.drawString(font, "THREAT  " + (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "?" : entry.threat()),
-                left + bookWidth / 2 - 115, top + 49, ALERTA, false);
-        drawPreview(graphics, entry, progress, left + 30, top + 78);
-        graphics.drawString(font, "HABITAT", left + 30, top + 285, PETROLEO, false);
+                left + bookWidth / 2 + 24, top + 38, ALERTA, false);
+        drawPreview(graphics, entry, progress, left + 30, top + 60);
+        graphics.drawString(font, "HABITAT", left + 30, top + 216, PETROLEO, false);
         graphics.drawString(font, progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.OBSERVED)
-                ? Component.translatable(entry.habitatKey()).getString() : "LOCKED", left + 30, top + 302, INK, false);
-        graphics.drawString(font, "KNOWLEDGE", left + 30, top + 337, PETROLEO, false);
-        graphics.drawString(font, status(progress), left + 30, top + 354, OLIVE, false);
+                ? Component.translatable(entry.habitatKey()).getString() : "LOCKED", left + 30, top + 233, INK, false);
+        graphics.drawString(font, "KNOWLEDGE", left + 30, top + 257, PETROLEO, false);
+        graphics.drawString(font, status(progress), left + 30, top + 274, OLIVE, false);
 
         int right = left + bookWidth / 2 + 24;
-        drawSection(graphics, "FIELD NOTES", right, top + 78);
+        int textWidth = bookWidth / 2 - 52;
+        drawSection(graphics, "FIELD NOTES", right, top + 60);
         if (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN) {
             graphics.drawWordWrap(font, Component.literal("Registro não catalogado. Observe a criatura para iniciar a ficha."), right,
-                    top + 104, bookWidth / 2 - 52, INK);
+                    top + 80, textWidth, INK);
         } else {
-            graphics.drawWordWrap(font, Component.translatable(entry.summaryKey()), right, top + 104,
-                    bookWidth / 2 - 52, INK);
-            drawSection(graphics, "BEHAVIOR", right, top + 164);
-            graphics.drawWordWrap(font, Component.translatable(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.FOUGHT)
-                    ? entry.combatKey() : entry.behaviorKey()), right, top + 190, bookWidth / 2 - 52, INK);
-            drawSection(graphics, "RESEARCH", right, top + 260);
-            drawResearchMeter(graphics, entry, progress, right, top + 283);
+            drawWrapped(graphics, Component.translatable(entry.summaryKey()), right, top + 80,
+                    textWidth, INK, 3);
+            drawSection(graphics, "BEHAVIOR", right, top + 115);
+            drawWrapped(graphics, Component.translatable(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.FOUGHT)
+                    ? entry.combatKey() : entry.behaviorKey()), right, top + 135, textWidth, INK, 4);
+            drawSection(graphics, "RESEARCH", right, top + 190);
+            drawResearchMeter(graphics, entry, progress, right, top + 208);
             if (progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.STUDIED)) {
-                drawSection(graphics, "WEAK POINTS", right, top + 286);
-                graphics.drawWordWrap(font, Component.literal(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.MASTERED)
+                drawSection(graphics, "WEAK POINTS", right, top + 245);
+                drawWrapped(graphics, Component.literal(progress.knowledgeLevel().atLeast(BestiaryKnowledgeLevel.MASTERED)
                         ? "Weak points and advanced behavior recorded in the field report."
                         : "A strategic opening has been identified. Further confirmation is required."),
-                        right, top + 304, bookWidth / 2 - 52, INK);
-                if (progress.specialDiscoveries().contains("foxbear.territorial_behavior")) {
-                    graphics.drawWordWrap(font, Component.translatable("bestiary.discovery.foxbear.territorial"),
-                            right, top + 338, bookWidth / 2 - 52, OLIVE);
+                        right, top + 263, textWidth, INK, 3);
+                if (!progress.weakPointsDiscovered().isEmpty()) {
+                    drawSingleLine(graphics, Component.translatable("bestiary.weak_point.discovered"),
+                            right, top + 296, textWidth, ALERTA);
+                } else if (progress.specialDiscoveries().contains("foxbear.territorial_behavior")) {
+                    drawSingleLine(graphics, Component.translatable("bestiary.discovery.foxbear.territorial"),
+                            right, top + 296, textWidth, OLIVE);
                 }
                 if (progress.nenStatus() != com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus.NONE) {
-                    drawSection(graphics, "NEN", right, top + 365);
-                    graphics.drawString(font, progress.nenStatus().name(), right, top + 382, PETROLEO, false);
-                }
-                if (!progress.weakPointsDiscovered().isEmpty()) {
-                    graphics.drawWordWrap(font, Component.translatable("bestiary.weak_point.discovered"),
-                            right, top + 338, bookWidth / 2 - 52, ALERTA);
+                    drawSection(graphics, "NEN", right, top + 315);
+                    graphics.drawString(font, progress.nenStatus().name(), right, top + 332, PETROLEO, false);
                 }
             }
         }
-        graphics.drawString(font, "< INDEX", left + 30, top + bookHeight - 30, PETROLEO, false);
-        graphics.drawString(font, "FIELD NOTE  /  01", right, top + bookHeight - 30, OLIVE, false);
+        int footerY = top + bookHeight - 16;
+        graphics.drawString(font, "< INDEX", left + 30, footerY, PETROLEO, false);
+        graphics.drawString(font, "FIELD NOTE  /  01", right, footerY, OLIVE, false);
     }
 
     private void drawPreview(GuiGraphics graphics, BestiaryEntryDefinition entry, BestiaryProgress progress, int x, int y) {
-        graphics.fill(x, y, x + 220, y + 188, 0x334B5A57);
+        int previewWidth = previewWidth();
+        graphics.fill(x, y, x + previewWidth, y + 145, 0x334B5A57);
         if (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN) {
-            graphics.drawCenteredString(font, "?", x + 110, y + 70, 0xFF59615D);
-            graphics.drawCenteredString(font, "SILHOUETTE LOCKED", x + 110, y + 103, OLIVE);
+            graphics.drawCenteredString(font, "?", x + previewWidth / 2, y + 52, 0xFF59615D);
+            graphics.drawCenteredString(font, "SILHOUETTE LOCKED", x + previewWidth / 2, y + 82, OLIVE);
             return;
         }
         if (minecraft == null || minecraft.level == null) return;
@@ -184,7 +191,7 @@ public final class HunterBestiaryScreen extends Screen {
                         .map(LivingEntity.class::cast).orElse(null));
         if (preview instanceof LivingEntity living) {
             living.setYRot(25.0F);
-            InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + 12, y + 12, x + 208, y + 178,
+            InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, x + 5, y + 10, x + previewWidth - 10, y + 140,
                     (int) (55 * (previewScale / 0.06F)), previewScale,
                     mouseXForPreview(), mouseYForPreview(), living);
         }
@@ -192,8 +199,18 @@ public final class HunterBestiaryScreen extends Screen {
 
     private int mouseXForPreview() { return previewCursorX; }
     private int mouseYForPreview() { return previewCursorY; }
+    private int previewWidth() { return Math.min(180, Math.max(80, bookWidth / 2 - 40)); }
     private void drawTitle(GuiGraphics g, String text, int x, int y) { g.drawString(font, text, x, y, INK, false); }
     private void drawSection(GuiGraphics g, String text, int x, int y) { g.drawString(font, text, x, y, PETROLEO, false); }
+    private void drawWrapped(GuiGraphics g, Component text, int x, int y, int width, int color, int maxLines) {
+        var lines = font.split(text, width);
+        for (int line = 0; line < Math.min(maxLines, lines.size()); line++) {
+            g.drawString(font, lines.get(line), x, y + line * 9, color, false);
+        }
+    }
+    private void drawSingleLine(GuiGraphics g, Component text, int x, int y, int width, int color) {
+        g.drawString(font, font.plainSubstrByWidth(text.getString(), width), x, y, color, false);
+    }
     private void drawMarker(GuiGraphics g, int x, int y, String text, boolean selected) {
         g.fill(x, y, x + 65, y + 25, selected ? OLIVE : 0xFF9EAA96);
         g.drawString(font, text, x + 7, y + 8, PAPER, false);
@@ -249,15 +266,15 @@ public final class HunterBestiaryScreen extends Screen {
             categoryFilter = BestiaryCategory.SPECIAL;
             return true;
         }
-        if (!index && button == 0 && x >= left + 30 && x <= left + 250
-                && y >= top + 78 && y <= top + 266) {
+        if (!index && button == 0 && x >= left + 30 && x <= left + 30 + previewWidth()
+                && y >= top + 60 && y <= top + 205) {
             draggingPreview = true;
             previewCursorX = (int) x;
             previewCursorY = (int) y;
             return true;
         }
-        if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 108 && y < top + bookHeight - 55) {
-            int row = (int) ((y - (top + 112)) / 42);
+        if (index && x >= left + 20 && x <= left + bookWidth - 20 && y >= top + 96 && y < top + bookHeight - 30) {
+            int row = (int) ((y - (top + 100)) / 34);
             var entries = filteredEntries();
             if (row >= 0 && row < entries.size()) {
                 selectedIndex = row;
@@ -291,7 +308,7 @@ public final class HunterBestiaryScreen extends Screen {
     }
 
     @Override public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
-        if (!index && x >= left + 30 && x <= left + 250 && y >= top + 78 && y <= top + 266) {
+        if (!index && x >= left + 30 && x <= left + 30 + previewWidth() && y >= top + 60 && y <= top + 205) {
             previewScale = Math.max(0.035F, Math.min(0.095F, previewScale + (float) scrollY * 0.006F));
             return true;
         }

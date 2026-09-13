@@ -25,9 +25,9 @@ public final class ResearchTableScreen extends AbstractContainerScreen<ResearchT
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         // This screen deliberately follows the compact vanilla inventory
         // language. The field-guide styling belongs only to the bestiary.
+        // One neutral vanilla container surface: no parchment, bands or
+        // overlays continue into the player inventory area.
         graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFFC6C6C6);
-        graphics.fill(leftPos + 7, topPos + 7, leftPos + 169, topPos + 68, 0xFFBDBDBD);
-        graphics.fill(leftPos + 7, topPos + 74, leftPos + 169, topPos + 76, 0xFF8B8B8B);
     }
 
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {

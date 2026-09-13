@@ -1,6 +1,5 @@
 package com.darkcontinent.nenfoundation.worldtree.generation;
 
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeSpline;
@@ -56,7 +55,11 @@ public final class WorldTreeBranchGenerator {
                                     + Math.pow((y - point.y()) / (radius * 0.72 * irregular), 2.0);
                             if (normalized <= 1.0) {
                                 position.set(x, y, z);
-                                chunk.setBlockState(position, branchState(normalized), false);
+                                var state = WorldTreeTrunkGenerator.stateForNormalized(
+                                        normalized, x, y, z, layout.seed());
+                                if (state != null) {
+                                    chunk.setBlockState(position, state, false);
+                                }
                             }
                         }
                     }
@@ -121,7 +124,11 @@ public final class WorldTreeBranchGenerator {
                             + Math.pow((y - point.y()) / (radius * 0.72), 2.0);
                     if (normalized <= 1.0) {
                         position.set(x, y, z);
-                        chunk.setBlockState(position, branchState(normalized), false);
+                        var state = WorldTreeTrunkGenerator.stateForNormalized(
+                                normalized, x, y, z, layout.seed());
+                        if (state != null) {
+                            chunk.setBlockState(position, state, false);
+                        }
                     }
                 }
             }
@@ -157,13 +164,4 @@ public final class WorldTreeBranchGenerator {
         return WorldTreeRootGenerator.radiusAt(spline, t);
     }
 
-    private static net.minecraft.world.level.block.state.BlockState branchState(double normalized) {
-        if (normalized >= 0.78) {
-            return WorldTreeBlocks.WORLD_TREE_BARK.get().defaultBlockState();
-        }
-        if (normalized >= 0.48) {
-            return WorldTreeBlocks.WORLD_TREE_SAPWOOD.get().defaultBlockState();
-        }
-        return WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState();
-    }
 }

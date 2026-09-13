@@ -66,6 +66,7 @@ public final class WorldTreeChunkGenerator extends ChunkGenerator {
         WorldTreeBranchGenerator.generate(chunk, layout);
         WorldTreeCrownGenerator.generate(chunk, layout);
         WorldTreeCanopyGenerator.generate(chunk, layout);
+        WorldTreeCrownGenerator.generateFoliage(chunk, layout);
         WorldTreeCheckpointGenerator.generate(chunk, layout);
         WorldTreeHollowGenerator.generate(chunk, layout);
         WorldTreeFloraGenerator.generate(chunk, layout);

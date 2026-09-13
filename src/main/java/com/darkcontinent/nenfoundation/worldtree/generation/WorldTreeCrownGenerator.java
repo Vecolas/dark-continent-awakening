@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.worldtree.generation;
 
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
 import net.minecraft.core.BlockPos;
@@ -33,6 +34,29 @@ public final class WorldTreeCrownGenerator {
                 layout.seed());
     }
 
+    /** Folhagem do topo acompanha os boughs horizontais, sem esferas isoladas. */
+    public static void generateFoliage(ChunkAccess chunk, WorldTreeLayout layout) {
+        int minX = chunk.getPos().getMinBlockX();
+        int minZ = chunk.getPos().getMinBlockZ();
+        int maxX = minX + 16;
+        int maxZ = minZ + 16;
+        BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
+        for (int bough = 0; bough < BOUGH_COUNT; bough++) {
+            double angle = boughAngle(layout, bough);
+            double reach = boughReach(layout, bough);
+            double startY = boughStartY(layout, bough);
+            double endY = boughEndY(layout, bough);
+            for (int cluster = 0; cluster < 5; cluster++) {
+                double t = 0.28 + cluster * 0.17;
+                WorldTreePoint center = boughPoint(angle, reach, startY, endY, t);
+                double radius = 11.0 + Math.floorMod(layout.seed() + bough * 41L
+                        + cluster * 17L, 8);
+                placeLeafMass(chunk, position, minX, minZ, maxX, maxZ,
+                        center, radius, angle, layout.seed(), bough, cluster);
+            }
+        }
+    }
+
     private static void generateLeader(ChunkAccess chunk, BlockPos.MutableBlockPos position,
             int minX, int minZ, int maxX, int maxZ, WorldTreeLayout layout) {
         for (int y = LEADER_BOTTOM; y <= LEADER_TOP; y++) {
@@ -47,22 +71,94 @@ public final class WorldTreeCrownGenerator {
 
     private static void generateBough(ChunkAccess chunk, BlockPos.MutableBlockPos position,
             int minX, int minZ, int maxX, int maxZ, WorldTreeLayout layout, int boughId) {
-        double angle = Math.PI * 2.0 * boughId / BOUGH_COUNT
-                + Math.floorMod(layout.seed() + boughId * 37L, 100) * 0.002;
-        double reach = 48.0 + Math.floorMod(layout.seed() + boughId * 101L, 46);
-        double startY = 1350.0 + Math.floorMod(layout.seed() + boughId * 17L, 34);
-        double endY = 1405.0 + Math.floorMod(layout.seed() + boughId * 53L, 45);
+        double angle = boughAngle(layout, boughId);
+        double reach = boughReach(layout, boughId);
+        double startY = boughStartY(layout, boughId);
+        double endY = boughEndY(layout, boughId);
         for (int sample = 0; sample <= BOUGH_SAMPLES; sample++) {
             double t = (double) sample / BOUGH_SAMPLES;
-            double bend = Math.sin(t * Math.PI) * 8.0;
-            WorldTreePoint point = new WorldTreePoint(
-                    Math.cos(angle) * reach * t - Math.sin(angle) * bend,
-                    startY + (endY - startY) * t + Math.sin(t * Math.PI) * 8.0,
-                    Math.sin(angle) * reach * t + Math.cos(angle) * bend);
+            WorldTreePoint point = boughPoint(angle, reach, startY, endY, t);
             double radius = 17.0 - t * 9.0;
             placeEllipsoid(chunk, position, minX, minZ, maxX, maxZ, point,
                     radius, radius * 0.72, layout.seed());
         }
+    }
+
+    private static double boughAngle(WorldTreeLayout layout, int boughId) {
+        return Math.PI * 2.0 * boughId / BOUGH_COUNT
+                + Math.floorMod(layout.seed() + boughId * 37L, 100) * 0.002;
+    }
+
+    private static double boughReach(WorldTreeLayout layout, int boughId) {
+        return 48.0 + Math.floorMod(layout.seed() + boughId * 101L, 46);
+    }
+
+    private static double boughStartY(WorldTreeLayout layout, int boughId) {
+        return 1350.0 + Math.floorMod(layout.seed() + boughId * 17L, 34);
+    }
+
+    private static double boughEndY(WorldTreeLayout layout, int boughId) {
+        return 1405.0 + Math.floorMod(layout.seed() + boughId * 53L, 45);
+    }
+
+    private static WorldTreePoint boughPoint(double angle, double reach,
+            double startY, double endY, double t) {
+        double bend = Math.sin(t * Math.PI) * 8.0;
+        return new WorldTreePoint(
+                Math.cos(angle) * reach * t - Math.sin(angle) * bend,
+                startY + (endY - startY) * t + Math.sin(t * Math.PI) * 8.0,
+                Math.sin(angle) * reach * t + Math.cos(angle) * bend);
+    }
+
+    private static void placeLeafMass(ChunkAccess chunk, BlockPos.MutableBlockPos position,
+            int minX, int minZ, int maxX, int maxZ, WorldTreePoint center,
+            double radius, double angle, long seed, int bough, int cluster) {
+        double lengthRadius = radius * 2.35;
+        double crossRadius = radius * 0.82;
+        double verticalRadius = radius * 0.78;
+        int fromX = Math.max(minX, (int) Math.floor(center.x() - lengthRadius - 1));
+        int toX = Math.min(maxX, (int) Math.ceil(center.x() + lengthRadius + 1));
+        int fromZ = Math.max(minZ, (int) Math.floor(center.z() - lengthRadius - 1));
+        int toZ = Math.min(maxZ, (int) Math.ceil(center.z() + lengthRadius + 1));
+        int fromY = Math.max(chunk.getMinBuildHeight(),
+                (int) Math.floor(center.y() - verticalRadius));
+        int toY = Math.min(chunk.getMaxBuildHeight(),
+                (int) Math.ceil(center.y() + verticalRadius) + 1);
+        for (int x = fromX; x < toX; x++) {
+            for (int z = fromZ; z < toZ; z++) {
+                double along = (x - center.x()) * Math.cos(angle)
+                        + (z - center.z()) * Math.sin(angle);
+                double across = -(x - center.x()) * Math.sin(angle)
+                        + (z - center.z()) * Math.cos(angle);
+                for (int y = fromY; y < toY; y++) {
+                    double normalized = Math.pow(along / lengthRadius, 2.0)
+                            + Math.pow(across / crossRadius, 2.0)
+                            + Math.pow((y - center.y()) / verticalRadius, 2.0);
+                    if (normalized > 1.0
+                            || Math.floorMod(mix(seed, x, y, z, bough, cluster), 100) >= 52) {
+                        continue;
+                    }
+                    position.set(x, y, z);
+                    if (chunk.getBlockState(position).isAir()) {
+                        chunk.setBlockState(position, leafState(center.y()), false);
+                    }
+                }
+            }
+        }
+    }
+
+    private static net.minecraft.world.level.block.state.BlockState leafState(double y) {
+        return y >= 1340.0
+                ? WorldTreeBlocks.WORLD_TREE_LEAVES_PALE.get().defaultBlockState()
+                : WorldTreeBlocks.WORLD_TREE_LEAVES_DENSE.get().defaultBlockState();
+    }
+
+    private static long mix(long seed, int x, int y, int z, int bough, int cluster) {
+        long value = seed ^ ((long) x * 341873128712L) ^ ((long) y * 132897987541L)
+                ^ ((long) z * 42317861L) ^ ((long) bough * 31L + cluster);
+        value ^= value >>> 33;
+        value *= 0xff51afd7ed558ccdl;
+        return value ^ (value >>> 33);
     }
 
     private static void placeEllipsoid(ChunkAccess chunk, BlockPos.MutableBlockPos position,

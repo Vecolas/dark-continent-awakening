@@ -28,7 +28,7 @@ public final class FieldNoteItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide() && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             BestiaryPlayerService.descobrir(serverPlayer, entryId, researchPoints,
-                    "foxbear.territorial_behavior");
+                    entryId.getPath() + ".field_note");
             stack.shrink(1);
             player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.used"), true);
         }
@@ -48,7 +48,7 @@ public final class FieldNoteItem extends Item {
     }
 
     public void applyAtResearchTable(net.minecraft.server.level.ServerPlayer player, ItemStack stack) {
-        BestiaryPlayerService.descobrir(player, entryId, researchPoints, "foxbear.territorial_behavior");
+        BestiaryPlayerService.descobrir(player, entryId, researchPoints, entryId.getPath() + ".field_note");
         stack.shrink(1);
         player.displayClientMessage(Component.translatable("item.nenfoundation.field_note.researched"), true);
     }

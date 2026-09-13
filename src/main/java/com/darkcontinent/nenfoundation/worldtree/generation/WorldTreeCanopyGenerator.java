@@ -48,8 +48,9 @@ public final class WorldTreeCanopyGenerator {
 
     static boolean chunkIntersectsCluster(int minX, int maxX, int minZ, int maxZ,
             WorldTreePoint center, double radius) {
-        return minX <= center.x() + radius && maxX >= center.x() - radius
-                && minZ <= center.z() + radius && maxZ >= center.z() - radius;
+        double envelope = radius * 1.85;
+        return minX <= center.x() + envelope && maxX >= center.x() - envelope
+                && minZ <= center.z() + envelope && maxZ >= center.z() - envelope;
     }
 
     private static void placeCluster(ChunkAccess chunk, BlockPos.MutableBlockPos position,

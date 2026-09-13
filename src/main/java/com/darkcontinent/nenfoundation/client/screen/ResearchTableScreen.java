@@ -33,6 +33,5 @@ public final class ResearchTableScreen extends AbstractContainerScreen<ResearchT
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF404040, false);
         graphics.drawCenteredString(font, Component.translatable("bestiary.research.input"), 58, 61, 0xFF404040);
-        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 0xFF404040, false);
     }
 }

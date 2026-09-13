@@ -16,10 +16,14 @@ public final class PostoAvancadoWorldPlacer {
     public static Resultado colocar(ServerLevel level, int centroX, int centroZ,
             PostoAvancadoPlacementTransform.Rotacao rotacao) {
         Objects.requireNonNull(level, "nivel ausente");
+        if (!level.getBiome(new BlockPos(centroX, level.getMinBuildHeight(), centroZ))
+                .is(PostoAvancadoBiomes.HUNTER_OUTPOST_BIOMES)) {
+            return Resultado.rejeitado(Resultado.Motivo.BIOMA);
+        }
         var plano = PostoAvancadoPlacementPlanner.planejar(centroX, centroZ, rotacao,
                 (x, z) -> level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1);
         if (plano.isEmpty()) {
-            return Resultado.REJEITADO;
+            return Resultado.rejeitado(Resultado.Motivo.TERRENO);
         }
         var palette = PostoAvancadoMaterialPalette.vanilla();
         Set<BlockPos> unicos = new HashSet<>();
@@ -33,18 +37,25 @@ public final class PostoAvancadoWorldPlacer {
             }
         }
         return new Resultado(plano.orElseThrow().placements().size(), unicos.size(),
-                plano.orElseThrow().origem(), plano.orElseThrow().terreno().diferenca());
+                plano.orElseThrow().origem(), plano.orElseThrow().terreno().diferenca(),
+                Resultado.Motivo.ACEITO);
     }
 
-    public record Resultado(int placements, int blocosUnicos, BlockPos origem, int variacaoTerreno) {
-        private static final Resultado REJEITADO = new Resultado(0, 0, BlockPos.ZERO, -1);
+    public record Resultado(int placements, int blocosUnicos, BlockPos origem, int variacaoTerreno,
+            Motivo motivo) {
+        private static Resultado rejeitado(Motivo motivo) {
+            return new Resultado(0, 0, BlockPos.ZERO, -1, motivo);
+        }
 
         public Resultado {
             origem = origem.immutable();
+            Objects.requireNonNull(motivo, "motivo ausente");
         }
 
         public boolean rejeitado() {
-            return variacaoTerreno < 0;
+            return motivo != Motivo.ACEITO;
         }
+
+        public enum Motivo { ACEITO, BIOMA, TERRENO }
     }
 }

@@ -37,6 +37,10 @@ public final class WorldTreeGroveGenerator {
                 }
                 chunk.setBlockState(position,
                         WorldTreeBlocks.WORLD_TREE_MOSS_CARPET.get().defaultBlockState(), false);
+                if (shouldPlaceFlower(layout.seed(), x, z)) {
+                    position.set(x, y + 1, z);
+                    chunk.setBlockState(position, flowerState(layout.seed(), x, z), false);
+                }
                 if (shouldPlaceMoss(layout.seed(), x, z)) {
                     position.set(x, y - 1, z);
                     if (chunk.getBlockState(position).is(Blocks.DIRT)) {
@@ -54,6 +58,21 @@ public final class WorldTreeGroveGenerator {
 
     static boolean shouldPlaceMoss(long seed, int x, int z) {
         return Math.floorMod(mix(seed ^ 0x51ED2705L, x, z), 5) == 0;
+    }
+
+    static boolean shouldPlaceFlower(long seed, int x, int z) {
+        return Math.floorMod(mix(seed ^ 0xC0FFEE12L, x, z), 3) != 0;
+    }
+
+    private static net.minecraft.world.level.block.state.BlockState flowerState(long seed, int x, int z) {
+        return switch (Math.floorMod(mix(seed ^ 0xD1B54A32D192ED03L, x, z), 6)) {
+            case 0 -> Blocks.POPPY.defaultBlockState();
+            case 1 -> Blocks.DANDELION.defaultBlockState();
+            case 2 -> Blocks.CORNFLOWER.defaultBlockState();
+            case 3 -> Blocks.AZURE_BLUET.defaultBlockState();
+            case 4 -> Blocks.OXEYE_DAISY.defaultBlockState();
+            default -> Blocks.ALLIUM.defaultBlockState();
+        };
     }
 
     private static long mix(long seed, int x, int z) {

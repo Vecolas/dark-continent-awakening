@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.item.HunterBestiaryItem;
+import com.darkcontinent.nenfoundation.item.FieldNoteItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
@@ -17,6 +18,9 @@ public final class NenItems {
 
     public static final DeferredHolder<Item, Item> HUNTER_BESTIARY = ITEMS.register(
             "hunter_bestiary", () -> new HunterBestiaryItem(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> FOXBEAR_FIELD_NOTE = ITEMS.register(
+            "foxbear_field_note", () -> new FieldNoteItem(new Item.Properties(),
+                    com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry.FOXBEAR_ID, 3));
 
     private NenItems() { }
 
@@ -28,6 +32,7 @@ public final class NenItems {
     public static void adicionarAoCriativo(BuildCreativeModeTabContentsEvent evento) {
         if (evento.getTabKey() == net.minecraft.world.item.CreativeModeTabs.INGREDIENTS) {
             evento.accept(HUNTER_BESTIARY.get());
+            evento.accept(FOXBEAR_FIELD_NOTE.get());
         }
     }
 

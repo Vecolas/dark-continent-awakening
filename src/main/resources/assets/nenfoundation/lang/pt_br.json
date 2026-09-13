@@ -88,6 +88,8 @@
   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
   "entity.nenfoundation.foxbear": "Urso-Raposa",
+  "item.nenfoundation.foxbear_field_note": "Nota de campo do Urso-Raposa",
+  "item.nenfoundation.field_note.used": "Nota de campo adicionada ao bestiÃ¡rio.",
   "entity.nenfoundation.frog_in_waiting": "Sapo-de-Tocaia",
   "entity.nenfoundation.great_stamp": "Great Stamp",
   "entity.nenfoundation.kiriko": "Kiriko",

@@ -98,7 +98,7 @@ public final class HunterBestiaryScreen extends Screen {
             graphics.drawString(font, nome(entry, progress), left + 72, y + 5, INK, false);
             graphics.drawString(font, status(progress), left + bookWidth - 135, y + 5, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? ALERTA : OLIVE, false);
             graphics.drawString(font, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "????"
-                            : entry.category().name() + "  /  " + entry.threat(),
+                            : categoryName(entry) + "  /  " + entry.threat(),
                     left + 72, y + 17, 0xFF66716C, false);
             y += 42;
             visible++;
@@ -116,7 +116,7 @@ public final class HunterBestiaryScreen extends Screen {
         }
         BestiaryProgress progress = BestiaryClientState.progress(entry.id());
         drawTitle(graphics, nome(entry, progress), left + 30, top + 30);
-        graphics.drawString(font, entry.category().name(), left + 30, top + 49, OLIVE, false);
+        graphics.drawString(font, categoryName(entry), left + 30, top + 49, OLIVE, false);
         graphics.drawString(font, "THREAT  " + (progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? "?" : entry.threat()),
                 left + bookWidth / 2 - 115, top + 49, ALERTA, false);
         drawPreview(graphics, entry, progress, left + 30, top + 78);
@@ -196,7 +196,13 @@ public final class HunterBestiaryScreen extends Screen {
         return progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN
                 ? "????" : Component.translatable(entry.entityType().toLanguageKey()).getString();
     }
-    private String status(BestiaryProgress progress) { return progress.knowledgeLevel().name(); }
+    private String status(BestiaryProgress progress) {
+        return Component.translatable("bestiary.knowledge." + progress.knowledgeLevel().name().toLowerCase(Locale.ROOT)).getString();
+    }
+
+    private String categoryName(BestiaryEntryDefinition entry) {
+        return Component.translatable("bestiary.category." + entry.category().name().toLowerCase(Locale.ROOT)).getString();
+    }
 
     private void drawResearchMeter(GuiGraphics graphics, BestiaryEntryDefinition entry,
             BestiaryProgress progress, int x, int y) {

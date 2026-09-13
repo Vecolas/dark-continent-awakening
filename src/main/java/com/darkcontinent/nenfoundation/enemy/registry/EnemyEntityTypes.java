@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.enemy.registry;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
@@ -58,6 +59,22 @@ public final class EnemyEntityTypes {
             TYPES.register("master_of_the_swamp",
                     () -> EntityType.Builder.of(MasterOfTheSwampEntity::new, MobCategory.WATER_CREATURE)
                             .sized(2.4F, 1.6F).build(NenFoundation.id("master_of_the_swamp").toString()));
+
+    // Caixa de GENTE ALTA: 1.0 x 2.1 (16 x 33.6 px). UMA SO para as DUAS formas, e
+    // isso e o mob inteiro: se a hitbox mudasse na revelacao, o disfarce se
+    // entregaria pela colisao antes de o corpo mudar -- o jogador tropecaria numa
+    // caixa de bicho enquanto ve uma pessoa, e aprenderia a ler a hitbox em vez de
+    // ler o comportamento. A forma verdadeira e desenhada PARA CABER aqui; e o
+    // modelo que se ajusta a caixa, nunca o contrario.
+    //
+    // CREATURE, e nao MONSTER: ele nao nasce pela escuridao e nao e monstro. A
+    // categoria escolhe a lista de spawn que o biome modifier alimenta, e registrado
+    // como MONSTER ele nasceria no escuro, de noite, e ninguem seria enganado por um
+    // homem parado no meio do mato as tres da manha.
+    public static final DeferredHolder<EntityType<?>, EntityType<KirikoEntity>> KIRIKO =
+            TYPES.register("kiriko",
+                    () -> EntityType.Builder.of(KirikoEntity::new, MobCategory.CREATURE)
+                            .sized(1.0F, 2.1F).build(NenFoundation.id("kiriko").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

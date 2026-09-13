@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.enemy.registry;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
@@ -28,6 +29,7 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.SPIDER_EAGLE.get(), SpiderEagleEntity.createAttributes().build());
         event.put(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
                 MasterOfTheSwampEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -76,6 +78,18 @@ public final class EnemyEntityEvents {
                 SpawnPlacementTypes.IN_WATER,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // O kiriko nasce no chao e de dia, com a MESMA forma de predicado dos outros
+        // tres terrestres -- reusada, e nao copiada, pelo motivo de sempre: numero de
+        // luz repetido aqui vira botao morto na SpawnRule. A faixa dele vai ate 15
+        // porque o mob inteiro depende de ser VISTO: um disfarce de gente no escuro nao
+        // engana ninguem, e o encontro simplesmente nao aconteceria. Nada acusaria --
+        // apareceria como um bioma vazio.
+        event.register(EnemyEntityTypes.KIRIKO.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

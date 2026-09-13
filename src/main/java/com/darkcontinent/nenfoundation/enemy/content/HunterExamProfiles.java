@@ -16,6 +16,7 @@ import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeFisgada;
+import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeJulgamento;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import java.util.Map;
 import java.util.Set;
@@ -311,6 +312,97 @@ public final class HunterExamProfiles {
     }
 
     /**
+     * HP 40, dano 7, velocidade 0.32, armadura 3 -- corpo de ELITE que quase
+     * nunca e usado.
+     *
+     * <p>OS NUMEROS SAO O AVISO, E NAO O ENCONTRO. Este e o primeiro mob do
+     * repositorio cujo caminho bom nao passa por combate nenhum: o jogador vence
+     * NAO lutando. O corpo e forte -- e o ThreatTier e ELITE -- justamente para
+     * que a alternativa seja ruim: quem reprova no exame enfrenta um bicho que
+     * bate a 7 com armadura 3, e e isso que transforma "eu podia ter ficado
+     * parado" em arrependimento. Se alguem "equilibrar" estes numeros para uma
+     * briga agradavel, o mob deixa de ensinar o que veio ensinar e nada acusa --
+     * o build segue verde.</p>
+     *
+     * <p>territorial=false e social=false: ele nao defende lugar nenhum e nao
+     * anda em bando. E UM, e o limite de 1 por grupo e o que faz o encontro ser
+     * um encontro -- dois kirikos avaliando o mesmo jogador dariam dois
+     * vereditos sobre a mesma pessoa, e a cena perderia o sentido.</p>
+     *
+     * <p>maxLight 15: ele se disfarca de GENTE e precisa ser visto para ser
+     * avaliado. Exigir escuridao faria o encontro nunca acontecer -- e isso nao
+     * da erro nenhum, aparece como um bioma vazio que ninguem consegue
+     * explicar.</p>
+     *
+     * <p>PONTO CEGO DECLARADO: a faccao sai como WILDLIFE, e nao MAGICAL_BEAST,
+     * porque ela vem do helper {@link #metadata} que todos os perfis usam. A
+     * ficha do kiriko diz "Magical Beast != monster", e o comportamento cumpre
+     * isso; o rotulo de faccao ainda nao. Trocar so para ele exigiria um segundo
+     * helper, e a divergencia entre os dois seria pior do que o rotulo errado --
+     * a mudanca certa e dar faccao a TODOS os perfis de uma vez, e isso e outra
+     * entrega.</p>
+     */
+    public static EnemyDefinition kiriko() {
+        return new EnemyDefinition(metadata("kiriko", ThreatTier.ELITE, false, false),
+                new EnemyAttributes(40, 0.32F, 7, 3, 24, 0.2F),
+                spawn("#nenfoundation:magical_beast_biomes", 0, 15, true, false, 1));
+    }
+
+    /**
+     * Golpe de 10 ticks de aviso, 5 de janela e 14 de recuperacao.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: ele e lido de {@link #kiriko()}, porque
+     * a garra e o unico ataque dele -- o mesmo ATTACK_DAMAGE que o atributo
+     * publica. Repetir o 7 aqui criaria duas fontes para a mesma verdade: girar o
+     * atributo numa sessao de balanceamento mudaria o golpe em jogo e nao mudaria
+     * este numero, e a divergencia so apareceria como uma representacao que
+     * promete um dano diferente do que o jogador leva.</p>
+     *
+     * <p>ESTE ATAQUE SO EXISTE DEPOIS DE UMA REPROVACAO. Ele nao e o mob: e a
+     * consequencia de ter errado o mob. Por isso o windup e curto se comparado ao
+     * dos outros -- o aviso de verdade ja foi dado, e durou o clipe inteiro da
+     * transformacao.</p>
+     */
+    public static AttackDefinition kirikoStrike() {
+        return new AttackDefinition("strike", 10, 5, 14,
+                kiriko().attributes().attackDamage(), 0.6F, true, false, true);
+    }
+
+    /**
+     * 200 ticks de observacao, 40 por agressao, 25 por crueldade, 1 por tick de
+     * paciencia e 60 para aprovar.
+     *
+     * <p>Os cinco numeros se leem JUNTOS, e a conta e o encontro inteiro: a
+     * paciencia enche o teto de 60 em 60 ticks e a aprovacao so acontece aos 200,
+     * entao quem se comporta passa sete segundos a mais de bom comportamento do
+     * que precisaria -- e esse excedente e o que da ao jogador tempo de PERCEBER
+     * que esta sendo observado. Uma pancada custa 40: de teto cheio sobra 20, e
+     * sao precisos mais 40 ticks de paz para voltar. A SEGUNDA pancada em menos
+     * de 40 ticks leva a pontuacao a negativa e reprova -- e como a recarga de
+     * uma espada e menor do que isso, atacar reprova na pratica, que e o que a
+     * ficha manda. O que a janela compra e o caso honesto: quem acertou sem
+     * querer e parou na hora.</p>
+     *
+     * <p>CRUELDADE CUSTA MENOS QUE AGRESSAO (25 contra 40) de proposito: bater no
+     * proprio kiriko e uma escolha sobre ELE, e ferir um bicho por perto e uma
+     * escolha sobre o mundo. As duas reprovam, a primeira mais depressa.</p>
+     */
+    /**
+     * O custo da agressao e MAIOR que o limite de aprovacao, e isso nao e folga de
+     * balanceamento: e o que faz um golpe reprovar DE QUALQUER nota alcancavel.
+     *
+     * <p>A pontuacao tem teto no proprio limite de aprovacao -- sem teto, esperar
+     * bastante viraria credito, e o jogador paciente compraria o direito de bater. Com
+     * teto e com custo 80 contra limite 60, o melhor aluno possivel ainda afunda para
+     * -20 no primeiro golpe. A ficha diz que quem ataca e reprovado, sem excecao, e e
+     * a RELACAO entre estes dois numeros que sustenta isso -- nao a regra, que so
+     * soma e subtrai.</p>
+     */
+    public static RegrasDeJulgamento kirikoJulgamento() {
+        return new RegrasDeJulgamento(200, 80, 25, 1, 60);
+    }
+
+    /**
      * Os ids que ESTE repositorio ja publica como entidade registrada.
      *
      * <p>ACRESCENTE O MOB AQUI NO MESMO PR QUE REGISTRA O ENTITYTYPE DELE. O
@@ -330,7 +422,8 @@ public final class HunterExamProfiles {
                 "frog_in_waiting", frogInWaiting(),
                 "man_faced_ape", manFacedApe(),
                 "spider_eagle", spiderEagle(),
-                "master_of_the_swamp", masterOfTheSwamp());
+                "master_of_the_swamp", masterOfTheSwamp(),
+                "kiriko", kiriko());
     }
 
     public static EnemyDefinition foxbear() {

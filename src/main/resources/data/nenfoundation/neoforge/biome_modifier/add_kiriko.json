@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:magical_beast_biomes",
+  "spawners": [
+    {
+      "type": "nenfoundation:kiriko",
+      "weight": 1,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

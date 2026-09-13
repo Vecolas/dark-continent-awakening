@@ -10,7 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 
 /** Gera clusters de folhas esparsos e determinísticos ao redor dos galhos. */
 public final class WorldTreeCanopyGenerator {
-    private static final int CLUSTERS_PER_BRANCH = 3;
+    private static final int CLUSTERS_PER_BRANCH = 6;
 
     private WorldTreeCanopyGenerator() {
     }
@@ -87,11 +87,11 @@ public final class WorldTreeCanopyGenerator {
         value ^= value >>> 33;
         value *= 0xff51afd7ed558ccdl;
         value ^= value >>> 33;
-        return Math.floorMod(value, 100) >= 68;
+        return Math.floorMod(value, 100) >= 38;
     }
 
     private static BlockState leafState(double y) {
-        if (y >= 1120.0) {
+        if (y >= 1340.0) {
             return WorldTreeBlocks.WORLD_TREE_LEAVES_PALE.get().defaultBlockState();
         }
         return y >= 820.0

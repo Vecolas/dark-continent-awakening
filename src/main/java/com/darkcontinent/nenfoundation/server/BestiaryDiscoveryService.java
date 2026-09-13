@@ -2,12 +2,12 @@ package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
-import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
@@ -30,7 +30,7 @@ public final class BestiaryDiscoveryService {
         var contador = OBSERVACOES.computeIfAbsent(jogador.getUUID(), ignored -> new HashMap<>());
         var candidatos = jogador.serverLevel().getEntitiesOfClass(LivingEntity.class,
                 jogador.getBoundingBox().inflate(DISTANCIA_DE_OBSERVACAO),
-                entidade -> entidade.getType() == EnemyEntityTypes.FOXBEAR.get()
+                entidade -> entradaDe(entidade) != null
                         && jogador.hasLineOfSight(entidade)
                         && jogador.distanceToSqr(entidade) <= DISTANCIA_DE_OBSERVACAO * DISTANCIA_DE_OBSERVACAO);
         var idsVisiveis = new java.util.HashSet<Integer>();
@@ -38,7 +38,7 @@ public final class BestiaryDiscoveryService {
             idsVisiveis.add(entidade.getId());
             int ticks = contador.merge(entidade.getId(), 2, Integer::sum);
             if (ticks >= TICKS_DE_OBSERVACAO) {
-                BestiaryPlayerService.observar(jogador, BestiaryRegistry.FOXBEAR_ID,
+                BestiaryPlayerService.observar(jogador, entradaDe(entidade),
                         jogador.serverLevel().getGameTime());
                 contador.remove(entidade.getId());
             }
@@ -48,22 +48,32 @@ public final class BestiaryDiscoveryService {
 
     @SubscribeEvent
     public static void aoAtacar(LivingDamageEvent.Pre evento) {
-        if (evento.getEntity().getType() != EnemyEntityTypes.FOXBEAR.get()) return;
+        var id = entradaDe(evento.getEntity());
+        if (id == null) return;
         if (evento.getSource().getEntity() instanceof ServerPlayer jogador) {
-            BestiaryPlayerService.lutar(jogador, BestiaryRegistry.FOXBEAR_ID);
+            BestiaryPlayerService.lutar(jogador, id);
         }
     }
 
     @SubscribeEvent
     public static void aoDerrotar(LivingDeathEvent evento) {
-        if (evento.getEntity().getType() != EnemyEntityTypes.FOXBEAR.get()) return;
+        var id = entradaDe(evento.getEntity());
+        if (id == null) return;
         if (evento.getSource().getEntity() instanceof ServerPlayer jogador) {
-            BestiaryPlayerService.derrotar(jogador, BestiaryRegistry.FOXBEAR_ID);
+            BestiaryPlayerService.derrotar(jogador, id);
         }
     }
 
     @SubscribeEvent
     public static void aoSair(PlayerEvent.PlayerLoggedOutEvent evento) {
         OBSERVACOES.remove(evento.getEntity().getUUID());
+    }
+
+    private static net.minecraft.resources.ResourceLocation entradaDe(LivingEntity entidade) {
+        var entityType = BuiltInRegistries.ENTITY_TYPE.getKey(entidade.getType());
+        return BestiaryRegistry.entries().stream()
+                .filter(entry -> entry.entityType().equals(entityType))
+                .map(com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition::id)
+                .findFirst().orElse(null);
     }
 }

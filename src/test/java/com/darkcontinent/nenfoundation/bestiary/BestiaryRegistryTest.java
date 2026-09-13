@@ -13,6 +13,8 @@ class BestiaryRegistryTest {
         assertNotNull(foxbear);
         assertEquals(BestiaryCategory.WILDLIFE, foxbear.category());
         assertEquals(2, foxbear.threat());
+        assertEquals(3, foxbear.studiedAt());
+        assertEquals(8, foxbear.masteredAt());
         assertEquals("nenfoundation.bestiary.behavior.foxbear", foxbear.behaviorKey());
     }
 }

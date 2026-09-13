@@ -67,4 +67,12 @@ public record BestiaryProgress(
                 firstSeenTime, lastSeenTime, weakPointsDiscovered, behaviorFlags,
                 captureFlags, specialDiscoveries);
     }
+
+    public BestiaryProgress withResearchPoints(int points, BestiaryKnowledgeLevel minimum) {
+        if (points < 0) throw new IllegalArgumentException("pontos de pesquisa negativos");
+        var level = knowledgeLevel.atLeast(minimum) ? knowledgeLevel : minimum;
+        return new BestiaryProgress(level, timesSeen, timesFought, timesDefeated,
+                researchPoints + points, firstSeenTime, lastSeenTime,
+                weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries);
+    }
 }

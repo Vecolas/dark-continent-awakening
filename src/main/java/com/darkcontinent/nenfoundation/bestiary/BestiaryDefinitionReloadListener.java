@@ -39,7 +39,8 @@ public final class BestiaryDefinitionReloadListener extends SimpleJsonResourceRe
             BestiaryEntryDefinition.CODEC.parse(JsonOps.INSTANCE, file.getValue())
                     .resultOrPartial(error -> LOG.error("Bestiary definition inválida em {}: {}", file.getKey(), error))
                     .ifPresent(definition -> candidates.add(new BestiaryEntryDefinition(file.getKey(),
-                            definition.entityType(), definition.category(), definition.threat(), definition.habitatKey(),
+                    definition.entityType(), definition.category(), definition.threat(), definition.studiedAt(),
+                    definition.masteredAt(), definition.habitatKey(),
                             definition.summaryKey(), definition.behaviorKey(), definition.combatKey())));
         }
         if (candidates.size() != files.size()) {

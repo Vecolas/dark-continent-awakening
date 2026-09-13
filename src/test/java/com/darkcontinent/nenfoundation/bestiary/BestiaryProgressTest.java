@@ -38,4 +38,20 @@ class BestiaryProgressTest {
         assertEquals(BestiaryKnowledgeLevel.OBSERVED, decoded.progress(id).knowledgeLevel());
         assertEquals(12L, decoded.progress(id).firstSeenTime());
     }
+
+    @Test
+    void pesquisaAcumulaPontosEAvancaAteOMinimoSolicitado() {
+        var progress = BestiaryProgress.UNKNOWN
+                .withResearchPoints(2, BestiaryKnowledgeLevel.OBSERVED)
+                .withResearchPoints(1, BestiaryKnowledgeLevel.STUDIED);
+
+        assertEquals(BestiaryKnowledgeLevel.STUDIED, progress.knowledgeLevel());
+        assertEquals(3, progress.researchPoints());
+    }
+
+    @Test
+    void pesquisaNaoPermitePontosNegativos() {
+        assertThrows(IllegalArgumentException.class,
+                () -> BestiaryProgress.UNKNOWN.withResearchPoints(-1, BestiaryKnowledgeLevel.STUDIED));
+    }
 }

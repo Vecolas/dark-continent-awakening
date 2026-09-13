@@ -12,7 +12,7 @@ public final class BestiaryRegistry {
     public static final ResourceLocation FOXBEAR_ID = NenFoundation.id("foxbear");
     private static final Map<ResourceLocation, BestiaryEntryDefinition> DEFAULT_ENTRIES = Map.of(
             FOXBEAR_ID, new BestiaryEntryDefinition(FOXBEAR_ID,
-                    NenFoundation.id("foxbear"), BestiaryCategory.WILDLIFE, 2,
+                    NenFoundation.id("foxbear"), BestiaryCategory.WILDLIFE, 2, 3, 8,
                     "nenfoundation.bestiary.habitat.foxbear",
                     "nenfoundation.bestiary.summary.foxbear",
                     "nenfoundation.bestiary.behavior.foxbear",

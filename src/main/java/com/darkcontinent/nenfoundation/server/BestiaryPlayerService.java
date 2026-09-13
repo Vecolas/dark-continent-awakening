@@ -1,8 +1,10 @@
 package com.darkcontinent.nenfoundation.server;
 
-import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryPlayerData;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.data.attachment.BestiaryAttachments;
 import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
 import java.util.LinkedHashMap;
@@ -23,11 +25,36 @@ public final class BestiaryPlayerService {
     }
 
     public static void observar(ServerPlayer jogador, ResourceLocation id, long gameTime) {
-        atualizar(jogador, id, progresso(jogador, id).observe(gameTime));
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, pesquisar(progresso(jogador, id).observe(gameTime), entry, 1,
+                BestiaryKnowledgeLevel.OBSERVED));
     }
 
     public static void lutar(ServerPlayer jogador, ResourceLocation id) {
-        atualizar(jogador, id, progresso(jogador, id).fought());
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, pesquisar(progresso(jogador, id).fought(), entry, 2,
+                BestiaryKnowledgeLevel.FOUGHT));
+    }
+
+    /** A futura Research Table chamará esta porta; o cliente nunca escolhe o nível. */
+    public static void pesquisar(ServerPlayer jogador, ResourceLocation id, int pontos) {
+        if (pontos <= 0) return;
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, pesquisar(progresso(jogador, id), entry, pontos,
+                BestiaryKnowledgeLevel.STUDIED));
+    }
+
+    private static BestiaryProgress pesquisar(BestiaryProgress atual, BestiaryEntryDefinition entry,
+            int pontos, BestiaryKnowledgeLevel minimo) {
+        var resultado = atual.withResearchPoints(pontos,
+                minimo == BestiaryKnowledgeLevel.STUDIED ? atual.knowledgeLevel() : minimo);
+        if (resultado.researchPoints() >= entry.masteredAt()) {
+            return resultado.withResearchPoints(0, BestiaryKnowledgeLevel.MASTERED);
+        }
+        if (resultado.researchPoints() >= entry.studiedAt()) {
+            return resultado.withResearchPoints(0, BestiaryKnowledgeLevel.STUDIED);
+        }
+        return resultado;
     }
 
     private static void atualizar(ServerPlayer jogador, ResourceLocation id, BestiaryProgress progresso) {

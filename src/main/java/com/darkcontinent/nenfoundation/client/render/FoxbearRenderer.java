@@ -1,37 +1,38 @@
 package com.darkcontinent.nenfoundation.client.render;
 
-import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.FoxbearEntity;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
 /**
- * Renderer do Foxbear com geometria e UVs de urso vanilla.
+ * Renderer AUTORAL do foxbear -- o ultimo andaime saiu (ADR-017).
  *
- * <p>A TEXTURA E AUTORAL E CASA COM A UV EMPRESTADA. Antes ela apontava para a
- * imagem do URSO POLAR: os UVs batiam, nada dava erro, e o Foxbear aparecia
- * BRANCO em jogo -- que para quem joga le como "esse bicho nao tem textura".
+ * <p>Aqui nao ha mais {@code ModelLayers}, nem a textura emprestada. Os dois
+ * existiam pelo mesmo motivo: o corpo era a geometria do URSO-POLAR vanilla, cuja
+ * camada tem UV 128x64, e a arte autoral quadrada nao cabia nela -- por isso
+ * existiu {@code emprestado.png}, uma imagem pintada na UV de outra especie. Ela
+ * morre com este arquivo. O modelo proprio traz a propria folha e a propria UV, e
+ * textura emprestada que sobrevive a troca de modelo nao da erro: da um bicho
+ * manchado que le como erro de arte.</p>
  *
- * <p>A arte autoral de verdade ({@code foxbear.png}, atlas 1254x1254) NAO serve
- * aqui: ela foi feita para um modelo GeckoLib que ainda nao existe no
- * repositorio, e a camada {@link ModelLayers#POLAR_BEAR} tem UV 128x64. Textura
- * quadrada em UV 2:1 nao da erro -- da um bicho manchado. Por isso existe a
- * variante {@code emprestado.png}, pintada na UV desta camada, com a fonte em
- * {@code art-source/enemies/foxbear/emprestado.py}. Ela MORRE no dia em que o
- * modelo GeckoLib chegar; quem sobrevive e {@code foxbear.png}.
+ * <p>SEM {@code withScale()} e sem {@code translate()} de correcao. O geo nasce
+ * medindo a hitbox de {@code sized(1.4F, 1.35F)} com as patas em y=0, entao nao ha
+ * o que compensar -- e escala ou deslocamento emprestados que sobrevivem a troca de
+ * modelo nao aparecem no log, aparecem como um urso flutuando longe da caixa em que
+ * ele de fato leva flecha. Num predador TERRITORIAL isso custa caro: a leitura que o
+ * jogador faz de "ja estou perto demais" e a silhueta, e o raio de territorio do
+ * mob (12 blocos) so ensina alguma coisa se o corpo desenhado estiver onde o
+ * servidor acha que ele esta.</p>
  *
- * <p>TODO: PLACEHOLDER -- a camada do URSO-POLAR vanilla; a textura ja e autoral. Sai quando houver renderer GeoModel proprio, com dimensoes e sons do foxbear.
- * Mob vanilla e andaime: ver ADR-017 e docs/inimigos/mobs-customizados.md.
+ * <p>Quem escolhe o clipe e a entidade, lendo o estado que o servidor publica; este
+ * renderer so desenha. Ver {@code FoxbearEntity#registerControllers}.</p>
  */
-public final class FoxbearRenderer extends MobRenderer<FoxbearEntity, FoxbearModel> {
-    private static final ResourceLocation TEXTURE =
-            NenFoundation.id("textures/entity/foxbear/emprestado.png");
+public final class FoxbearRenderer extends GeoEntityRenderer<FoxbearEntity> {
+    /** Metade da largura da hitbox (1.4F): a sombra acompanha o CORPO, nao o modelo. */
+    private static final float RAIO_DA_SOMBRA = 0.7F;
 
     public FoxbearRenderer(EntityRendererProvider.Context context) {
-        super(context, new FoxbearModel(context.bakeLayer(ModelLayers.POLAR_BEAR)), 0.7F);
+        super(context, new FoxbearGeoModel());
+        this.shadowRadius = RAIO_DA_SOMBRA;
     }
-
-    @Override public ResourceLocation getTextureLocation(FoxbearEntity entity) { return TEXTURE; }
 }

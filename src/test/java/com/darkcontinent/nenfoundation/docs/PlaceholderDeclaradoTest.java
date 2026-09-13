@@ -67,22 +67,37 @@ class PlaceholderDeclaradoTest {
      * o {@code PLACEHOLDER} do arquivo e a linha desta lista saem no MESMO PR.
      * Enquanto o nome estiver aqui, o inimigo NAO conta como entregue, por mais
      * verde que o build esteja.
+     *
+     * <p>HOJE ELA ESTA VAZIA: os cinco inimigos principais tem corpo proprio. Isso
+     * nao aposenta o portao nem a lista -- a metade que reprova emprestimo NAO
+     * DECLARADO continua sendo a que morde, e e ela que pega o proximo mob que
+     * nascer vestindo vanilla. Divida visual zerada tambem nao e o mesmo que mob
+     * DONE: faltam sons proprios, e isso esta escrito em
+     * {@code docs/inimigos/mobs-customizados.md}.
      */
     private static final Set<String> VESTINDO_VANILLA_AINDA = Set.of(
+            // VAZIA, e vazia e o estado CORRETO -- nao um esquecimento.
+            //
             // GreatStampModel.java e GreatStampRenderer.java sairam daqui no PR que deu ao
             // great stamp modelo, esqueleto, animacoes, textura e renderer proprios
             // (ADR-017). FrogInWaitingModel.java e FrogInWaitingRenderer.java sairam no PR
             // seguinte, pelo mesmo motivo, e ManFacedApeModel.java e ManFacedApeRenderer.java
             // no PR depois desse -- este foi o primeiro mob com DUAS silhuetas proprias, uma
-            // por id. SpiderEagleModel.java e SpiderEagleRenderer.java sairam no PR desta
-            // linha, que fechou a fila: a ave era a ultima e a primeira VOADORA, e o
-            // emprestimo dela mentia sobre ENVERGADURA num mob cuja unica resposta ensinada
-            // e recuar. Nao reponha os nomes: a lista e a divida, e divida paga que continua
-            // escrita manda a proxima pessoa refazer o trabalho.
+            // por id. SpiderEagleModel.java e SpiderEagleRenderer.java sairam no PR seguinte,
+            // que fechou a fila da migracao: a ave era a primeira VOADORA, e o emprestimo
+            // dela mentia sobre ENVERGADURA num mob cuja unica resposta ensinada e recuar.
             //
-            // O que sobra e de OUTRA FRENTE -- o foxbear nao faz parte desta migracao.
-            "FoxbearModel.java",
-            "FoxbearRenderer.java");
+            // FoxbearModel.java e FoxbearRenderer.java sairam no PR desta linha. O foxbear
+            // era de OUTRA FRENTE e por isso ficou por ultimo; ele vestia a geometria do
+            // urso-polar com uma textura autoral pintada na UV emprestada -- o disfarce mais
+            // convincente da lista, porque a cor ja era nossa. Com ele, a divida VISUAL
+            // fecha.
+            //
+            // Nao reponha nome nenhum: a lista e a divida, e divida paga que continua escrita
+            // manda a proxima pessoa refazer o trabalho. Lista vazia tambem nao afrouxa o
+            // portao -- ele varre a FONTE, e qualquer renderer novo que volte a emprestar
+            // reprova exatamente aqui.
+            );
 
     @Test
     @DisplayName("quem veste corpo vanilla se declara PLACEHOLDER e consta na divida")

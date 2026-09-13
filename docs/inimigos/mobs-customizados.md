@@ -106,7 +106,7 @@ conseguem medir, e arte não trava IA.
 
 | Inimigo | O que empresta | Comportamento próprio |
 | --- | --- | --- |
-| Foxbear | geometria do urso-polar (textura já é autoral) | territorial, em jogo |
+| Foxbear | **nada** — modelo, esqueleto, animações, textura e renderer próprios | territorial, em jogo |
 | Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
 | Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
 | Man-faced Ape | **nada** — duas silhuetas próprias (disfarce humano e forma revelada) | disfarce, bando |
@@ -115,8 +115,8 @@ conseguem medir, e arte não trava IA.
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
-Great Stamp, Frog-In-Waiting, Man-faced Ape e Spider Eagle saíram da dívida **visual** — sobra só o Foxbear, mas nenhum dos
-dois é DONE pela ficha acima: faltam **sons próprios**. Os quatro são silenciosos —
+**A dívida visual fechou: os cinco têm corpo próprio.** Nenhum deles, mas nenhum dos
+dois é DONE pela ficha acima: faltam **sons próprios**. Os cinco são silenciosos —
 não emprestam som de vanilla, simplesmente não emitem. E isso hoje está
 **bloqueado por ferramenta**, não por esforço: o Minecraft só toca `.ogg`
 Vorbis e esta máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav`

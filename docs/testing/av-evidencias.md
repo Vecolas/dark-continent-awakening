@@ -427,6 +427,13 @@ do que o console mostra; comece por ele antes de concluir qualquer coisa.
 
 Recorte operacional, para quem for retomar a trilha.
 
+> **O bloqueio de governança do AV0 caiu em 2026-09-13.** A aprovação do Dev B
+> no [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md), que a issue #98
+> listava como condição para fechar, foi **relatada por @Vecolas** — não
+> assinada pela própria pessoa. A distinção está registrada na tabela de
+> governança do ADR, e o que ela destrava é o bloqueio nominal, não a aprovação
+> visual: **capturas continuam sendo o único jeito de fechar o #169.**
+
 **#169 (AV0)** — a aderência **foi respondida e nada reprovou** (seção 4b), e o
 lado do servidor está verificado (seção 2). O que falta é **só evidência**: as
 catorze capturas do conjunto do gate, arquivadas. O `/nenvfx off` que este

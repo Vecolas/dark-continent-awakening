@@ -149,4 +149,21 @@ nunca a fundação.**
 | Desenvolvedor | Papel | Aprovacao |
 | --- | --- | --- |
 | **@Vecolas** | Dev A — núcleo | **aprovado**, por instrução direta nesta sessão: *"essa sera a implementação definitiva do render das auras e vfx"* |
-| **@jonex-01** | Dev B — superfície | **pendente** — e é a lane que executa quase tudo desta trilha |
+| **@jonex-01** | Dev B — superfície | **aprovado** em 2026-09-13 — **relatado por @Vecolas**, e não assinado aqui pela própria pessoa (ver a nota abaixo) |
+
+> **Como esta aprovação chegou, dito em voz alta.** Ela veio de @Vecolas, na
+> sessão de 2026-09-13, com a instrução *"considere como aprovado pelo jonex"* —
+> e não de @jonex-01 escrevendo neste arquivo ou num PR. Fica registrado assim
+> porque uma tabela de governança que não distingue **assinatura** de **relato**
+> perde exatamente a informação que ela existe para guardar: no dia em que a
+> decisão for questionada, "estava aprovado" não diz quem aprovou.
+>
+> O que isto destrava é concreto e limitado: o bloqueio nominal da issue #98 e a
+> execução da lane Dev B na trilha AV. O que **não** destrava é a aprovação
+> visual — essa continua sendo a captura comparada do gate #169, e nenhuma
+> instrução a substitui.
+
+> **O [ADR-016](ADR-016-pos-processamento-proprio-da-aura.md) segue com o Dev B
+> pendente.** Ele é a outra metade do par (o bloom próprio, do AV5) e é citado
+> junto deste em todo lugar — mas é decisão própria, e esta instrução nomeou o
+> ADR-015. Quem quiser fechá-lo também precisa dizer isso.

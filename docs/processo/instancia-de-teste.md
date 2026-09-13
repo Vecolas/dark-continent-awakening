@@ -81,10 +81,21 @@ renderer pronto e a entidade ainda não — **a árvore não compila**, e `servi
 e `cliente` param junto com ela. O trabalho dela não está errado: está pela
 metade, que é o estado normal de quem está escrevendo.
 
+**Rode da copia que e dona da instancia**, e aponte `-Codigo` para a limpa --
+nao o contrario:
+
 ```powershell
+cd C:\Users\<voce>\...\dark-continent-awakening   # a copia com instancia/
 .\scripts\instancia.ps1 servidor -Codigo C:\dev\dca-lane-a
 .\scripts\instancia.ps1 cliente  -Codigo C:\dev\dca-lane-a
 ```
+
+O reflexo natural e o oposto: entrar na copia limpa, porque foi ela que
+apareceu no comando. Dali o script nao acha instancia nenhuma -- e o passo
+seguinte "obvio" seria `instalar`, que criaria uma **segunda** instancia,
+baixaria o NeoForge de novo e deixaria os mundos para tras sem avisar. Por
+isso a mensagem de erro diz o caminho onde procurou e entrega o comando
+certo, em vez de so dizer que nao existe.
 
 O mod é compilado **da outra árvore**; a instância não se move. Mundos,
 `options.txt` e capturas continuam em `instancia/` desta cópia — é por isso que

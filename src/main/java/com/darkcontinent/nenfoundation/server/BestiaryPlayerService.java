@@ -75,4 +75,9 @@ public final class BestiaryPlayerService {
             PacketDistributor.sendToPlayer(jogador, payload);
         }
     }
+
+    public static void substituir(ServerPlayer jogador, BestiaryPlayerData data) {
+        jogador.setData(BestiaryAttachments.BESTIARY, data);
+        sincronizar(jogador);
+    }
 }

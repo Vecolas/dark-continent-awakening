@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client.vfx.model;
 
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraRibbonProfile;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -40,12 +41,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param reforcoDaBorda   quanto o Fresnel soma a intensidade
  * @param densidadeDeParticula quantas faiscas de ACABAMENTO acompanham a shell
  * @param tamanhoDeParticula   o quanto cada faisca cresce com a intensidade
+ * @param filamentos           quantos, de que tamanho e de quanto em quanto tempo
  */
 public record AuraPerfilVisual(
         float alphaInterno, float alphaBorda, float alphaExterno,
         float fresnelInterno, float fresnelBorda, float fresnelExterno,
         float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda,
-        float densidadeDeParticula, float tamanhoDeParticula) {
+        float densidadeDeParticula, float tamanhoDeParticula,
+        AuraRibbonProfile filamentos) {
 
     /**
      * O perfil de emergencia.
@@ -57,7 +60,8 @@ public record AuraPerfilVisual(
      * que "o perfil nao carregou" seja PERCEPTIVEL em vez de indistinguivel.
      */
     public static final AuraPerfilVisual SEGURO = new AuraPerfilVisual(
-            0.03F, 0.10F, 0.02F, 3.0F, 2.5F, 2.0F, 0.10F, 4.0F, 0.6F, 0.02F, 0.15F);
+            0.03F, 0.10F, 0.02F, 3.0F, 2.5F, 2.0F, 0.10F, 4.0F, 0.6F, 0.02F, 0.15F,
+            new AuraRibbonProfile(4, 0.15F, 0.40F, 0.007F, 1.4F));
 
     /** Alpha de 0 a 1. Fora disso o codec RECUSA, em vez de lancar. */
     private static final Codec<Float> ALPHA = Codec.floatRange(0.0F, 1.0F);
@@ -96,7 +100,9 @@ public record AuraPerfilVisual(
             ALPHA.fieldOf("densidade_de_particula")
                     .forGetter(AuraPerfilVisual::densidadeDeParticula),
             ALPHA.fieldOf("tamanho_de_particula")
-                    .forGetter(AuraPerfilVisual::tamanhoDeParticula))
+                    .forGetter(AuraPerfilVisual::tamanhoDeParticula),
+            AuraRibbonProfile.CODEC.fieldOf("filamentos")
+                    .forGetter(AuraPerfilVisual::filamentos))
             .apply(i, AuraPerfilVisual::new))
             .validate(AuraPerfilVisual::ordemDoFresnel);
 
@@ -135,6 +141,10 @@ public record AuraPerfilVisual(
         naoNegativo(reforcoDaBorda, "reforco_da_borda");
         alpha(densidadeDeParticula, "densidade_de_particula");
         alpha(tamanhoDeParticula, "tamanho_de_particula");
+        if (filamentos == null) {
+            throw new NullPointerException("filamentos e obrigatorio; um perfil sem o bloco"
+                    + " desenharia zero filamento e pareceria um perfil de Zetsu");
+        }
     }
 
     /** O alpha deste passe. */
@@ -165,7 +175,8 @@ public record AuraPerfilVisual(
         // "poeira desligada" que o ADR-015 existe para nao produzir.
         return new AuraPerfilVisual(0.0F, 0.0F, 0.0F, this.fresnelInterno, this.fresnelBorda,
                 this.fresnelExterno, this.velocidadeDeFluxo, this.escalaDeRuido,
-                this.reforcoDaBorda, 0.0F, this.tamanhoDeParticula);
+                this.reforcoDaBorda, 0.0F, this.tamanhoDeParticula,
+                this.filamentos.semFilamentos());
     }
 
     private static void alpha(float valor, String nome) {

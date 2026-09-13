@@ -17,6 +17,7 @@ import com.darkcontinent.nenfoundation.server.NenAwakeningService;
 import com.darkcontinent.nenfoundation.server.NenCategoryService;
 import com.darkcontinent.nenfoundation.server.BestiaryPlayerService;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryPlayerData;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -207,6 +208,18 @@ public final class NenCommands {
                                         .executes(ctx -> descobrirPontoFraco(ctx, false))
                                         .then(Commands.argument("alvo", EntityArgument.player())
                                                 .executes(ctx -> descobrirPontoFraco(ctx, true))))))
+                .then(Commands.literal("capture")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("condicao", StringArgumentType.word())
+                                        .executes(ctx -> registrarCaptura(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> registrarCaptura(ctx, true))))))
+                .then(Commands.literal("nen")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("estado", StringArgumentType.word())
+                                        .executes(ctx -> registrarNen(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> registrarNen(ctx, true))))))
                 .then(Commands.literal("unlock")
                         .then(Commands.argument("entrada", ResourceLocationArgument.id())
                                 .then(Commands.argument("nivel", StringArgumentType.word())
@@ -281,6 +294,39 @@ public final class NenCommands {
         }
         BestiaryPlayerService.descobrirPontoFraco(alvo, id, ponto);
         ctx.getSource().sendSuccess(() -> Component.literal("Ponto fraco registrado em " + id), true);
+        return 1;
+    }
+
+    private static int registrarCaptura(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.registrarCaptura(alvo, id, StringArgumentType.getString(ctx, "condicao"));
+        ctx.getSource().sendSuccess(() -> Component.literal("Condição de captura registrada em " + id), true);
+        return 1;
+    }
+
+    private static int registrarNen(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        final BestiaryNenStatus estado;
+        try {
+            estado = BestiaryNenStatus.valueOf(StringArgumentType.getString(ctx, "estado").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException erro) {
+            ctx.getSource().sendFailure(Component.literal("Estado de Nen inválido."));
+            return 0;
+        }
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.descobrirNen(alvo, id, estado);
+        ctx.getSource().sendSuccess(() -> Component.literal("Estado de Nen registrado em " + id), true);
         return 1;
     }
 

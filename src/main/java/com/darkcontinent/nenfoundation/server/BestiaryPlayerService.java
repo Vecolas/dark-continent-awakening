@@ -50,6 +50,16 @@ public final class BestiaryPlayerService {
                 BestiaryKnowledgeLevel.STUDIED));
     }
 
+    public static void descobrir(ServerPlayer jogador, ResourceLocation id, int pontos, String descoberta) {
+        if (pontos <= 0) return;
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) {
+            var resultado = pesquisar(progresso(jogador, id), entry, pontos, BestiaryKnowledgeLevel.STUDIED)
+                    .withSpecialDiscovery(descoberta);
+            atualizar(jogador, id, resultado);
+        }
+    }
+
     private static BestiaryProgress pesquisar(BestiaryProgress atual, BestiaryEntryDefinition entry,
             int pontos, BestiaryKnowledgeLevel minimo) {
         var resultado = atual.withResearchPoints(pontos,

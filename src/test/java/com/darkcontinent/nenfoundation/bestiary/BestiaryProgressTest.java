@@ -61,4 +61,11 @@ class BestiaryProgressTest {
         assertEquals(1, progress.timesDefeated());
         assertEquals(BestiaryKnowledgeLevel.FOUGHT, progress.knowledgeLevel());
     }
+
+    @Test
+    void descobertaEspecialEAdicionadaSemDuplicar() {
+        var progress = BestiaryProgress.UNKNOWN.withSpecialDiscovery("foxbear.territorial_behavior")
+                .withSpecialDiscovery("foxbear.territorial_behavior");
+        assertEquals(1, progress.specialDiscoveries().size());
+    }
 }

@@ -139,6 +139,10 @@ public final class HunterBestiaryScreen extends Screen {
                         ? "Weak points and advanced behavior recorded in the field report."
                         : "A strategic opening has been identified. Further confirmation is required."),
                         right, top + 349, bookWidth / 2 - 52, INK);
+                if (progress.specialDiscoveries().contains("foxbear.territorial_behavior")) {
+                    graphics.drawWordWrap(font, Component.translatable("bestiary.discovery.foxbear.territorial"),
+                            right, top + 389, bookWidth / 2 - 52, OLIVE);
+                }
             }
         }
         graphics.drawString(font, "< INDEX", left + 30, top + bookHeight - 30, PETROLEO, false);

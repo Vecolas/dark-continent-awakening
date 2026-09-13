@@ -83,4 +83,15 @@ public record BestiaryProgress(
                 researchPoints + points, firstSeenTime, lastSeenTime,
                 weakPointsDiscovered, behaviorFlags, captureFlags, specialDiscoveries);
     }
+
+    public BestiaryProgress withSpecialDiscovery(String discovery) {
+        if (discovery == null || discovery.isBlank()) {
+            throw new IllegalArgumentException("descoberta do bestiario vazia");
+        }
+        var discoveries = new java.util.HashSet<>(specialDiscoveries);
+        discoveries.add(discovery);
+        return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
+                researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
+                behaviorFlags, captureFlags, Set.copyOf(discoveries));
+    }
 }

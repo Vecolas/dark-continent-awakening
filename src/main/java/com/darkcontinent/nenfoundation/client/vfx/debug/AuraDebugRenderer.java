@@ -1,8 +1,12 @@
 package com.darkcontinent.nenfoundation.client.vfx.debug;
 
+import com.darkcontinent.nenfoundation.client.vfx.AuraBodyRegion;
+import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualMode;
 import com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
+import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
 import com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx;
 import com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.AjusteDePerfil;
 import java.util.ArrayList;
@@ -46,6 +50,29 @@ public final class AuraDebugRenderer {
     /** O que se escreve onde ainda nao existe consumidor. */
     public static final String SEM_CONSUMIDOR = "--";
 
+    /**
+     * Os rotulos curtos das seis regioes, na ordem do enum.
+     *
+     * <p>CURTOS PORQUE A LINHA E UMA SO. Seis nomes por extenso passariam da
+     * largura util da tela em resolucao baixa, e uma linha que corta e pior que
+     * uma abreviada: ela esconde justamente as ultimas regioes, que sao as
+     * pernas -- onde Ko e Ryu tiram aura.
+     *
+     * <p>A ORDEM ACOMPANHA {@link AuraBodyRegion#values()}, e o teste reprova se
+     * as duas se separarem. Uma regiao nova no enum sem rotulo aqui mostraria
+     * cinco numeros de seis, sem erro nenhum.
+     */
+    static final String[] ROTULOS = {"cab", "tor", "bE", "bD", "pE", "pD"};
+
+    /**
+     * Abaixo disto, duas regioes se leem como iguais.
+     *
+     * <p>Existe para a linha dizer "uniforme" em vez de listar seis vezes
+     * {@code 1.00} -- e para nao dizer "uniforme" quando um Gyo sutil estiver
+     * ligado.
+     */
+    private static final float TOLERANCIA = 0.005F;
+
     private boolean visivel;
 
     /** Chamado pela tecla. */
@@ -81,6 +108,11 @@ public final class AuraDebugRenderer {
     /** Le o estado vivo e o congela num record, para o texto sair de dado puro. */
     private static Dados coletar() {
         AuraCaptureMode captura = AuraCaptureMode.instancia();
+        // A DISTRIBUICAO E A DO JOGADOR LOCAL, pelo mesmo ponto de entrada que o
+        // renderer usa -- e nao por uma segunda leitura da sessao. Se a regua
+        // lesse de outro lugar, ela mediria uma coisa e a tela desenharia outra,
+        // que e o modo de falha exato que uma regua existe para nao ter.
+        AuraVisualState estado = AuraVisualSystem.estadoDe(Minecraft.getInstance().player);
         AuraVisualMode modo = SobreposicaoDeVfx.modoForcado();
         AuraRenderLod lod = SobreposicaoDeVfx.lodForcado();
         return new Dados(
@@ -98,7 +130,12 @@ public final class AuraDebugRenderer {
                 captura.ligado(),
                 captura.emLote() ? captura.progressoDoLote() : null,
                 InfoDeBuild.commit(),
-                ajustesDePerfil());
+                ajustesDePerfil(),
+                // AURA DESLIGADA NAO TEM DISTRIBUICAO, e nao tem uma
+                // distribuicao de zeros. Zetsu zera de proposito e "nao ha
+                // estado" nao zera nada -- escrever `0.00` nos dois casos
+                // apagaria a diferenca, que e a regra desta tela inteira.
+                estado.enabled() ? estado.distribution() : null);
     }
 
     private static String ajustesDePerfil() {
@@ -132,6 +169,8 @@ public final class AuraDebugRenderer {
         l.add("custo do ultimo quadro: " + d.chamadasDeDesenho() + " chamadas | "
                 + d.filamentos() + " filamentos | " + d.particulas() + " particulas | "
                 + d.jogadoresComAura() + " com aura");
+
+        l.add("regioes: " + regioes(d.distribuicao()));
 
         // O QUE AINDA NAO EXISTE, DITO COMO NAO EXISTINDO.
         l.add("alvo de bloom: " + SEM_CONSUMIDOR + " (AV5)   visibilidade: "
@@ -179,6 +218,58 @@ public final class AuraDebugRenderer {
     }
 
     /**
+     * Os seis fatores do [ADR-014](docs/adr/ADR-014-alocacao-de-aura-por-regiao.md),
+     * em uma linha.
+     *
+     * <p><b>POR QUE ESTA LINHA EXISTE.</b> O renderer multiplica intensidade e
+     * alpha por regiao desde o AV1 -- no passe de shell e nos filamentos. Ate
+     * aqui, ninguem conseguia OBSERVAR esse multiplicador: com tudo em 1.0 ele e
+     * invisivel por construcao, e no dia em que Gyo mandar 1.8 num braco a
+     * unica forma de conferir seria olhar a tela e achar que esta mais forte.
+     * A issue #175 diz a frase: a regua entra junto do numero, senao o
+     * multiplicador vira folclore.
+     *
+     * <p>QUANDO OS SEIS SAO IGUAIS, ela diz "uniforme" e o valor -- e nao seis
+     * copias do mesmo numero. Uma linha que repete o mesmo texto seis vezes
+     * deixa de ser lida depois do terceiro dia, e a leitura e o unico proposito
+     * dela.
+     *
+     * <p>A MAIOR REGIAO SAI MARCADA com {@code *} quando ha desequilibrio. E o
+     * que torna "Gyo no braco direito" legivel de relance, em vez de exigir
+     * comparar seis numeros com tres casas.
+     */
+    static String regioes(AuraDistribution d) {
+        if (d == null) {
+            return SEM_CONSUMIDOR + " (sem aura)";
+        }
+        float menor = Float.MAX_VALUE;
+        float maior = -Float.MAX_VALUE;
+        AuraBodyRegion pico = null;
+        for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
+            float valor = d.intensidade(regiao);
+            menor = Math.min(menor, valor);
+            if (valor > maior) {
+                maior = valor;
+                pico = regiao;
+            }
+        }
+        if (maior - menor <= TOLERANCIA) {
+            return String.format(Locale.ROOT, "uniforme %.2f", maior);
+        }
+        StringBuilder texto = new StringBuilder();
+        AuraBodyRegion[] regioes = AuraBodyRegion.values();
+        for (int i = 0; i < regioes.length; i++) {
+            if (i > 0) {
+                texto.append("  ");
+            }
+            texto.append(regioes[i] == pico ? "*" : "")
+                    .append(ROTULOS[i]).append(' ')
+                    .append(String.format(Locale.ROOT, "%.2f", d.intensidade(regioes[i])));
+        }
+        return texto.toString();
+    }
+
+    /**
      * O estado vivo, congelado num instante.
      *
      * <p>Numero ausente e {@code NaN} e texto ausente e {@code null}: os dois
@@ -200,6 +291,7 @@ public final class AuraDebugRenderer {
             boolean capturaLigada,
             String progressoDoLote,
             String commit,
-            String ajustesDePerfil) {
+            String ajustesDePerfil,
+            AuraDistribution distribuicao) {
     }
 }

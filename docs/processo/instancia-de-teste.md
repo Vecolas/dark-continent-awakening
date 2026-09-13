@@ -74,6 +74,33 @@ cada rebuild transformaria "testar" em "recriar o cenário".
 
 ---
 
+## O mundo é normal, e não superplano
+
+Ele já foi superplano — sobe rápido, e dá para andar sem obstáculo. O custo só
+apareceu depois: **metade do que este mod faz depende do relevo e do bioma.**
+
+| O que se testa | O que o superplano faz com isso |
+| --- | --- |
+| Regra de terreno do posto avançado | variação zero em todo lugar: o caso "recusado por terreno" nunca acontece |
+| Regra de bioma do posto e dos inimigos | um bioma só, no mundo inteiro |
+| Spawn natural de inimigos | sem caverna, sem altura, sem superfície variada |
+| A aura vista contra o mundo | sempre o mesmo fundo, sempre a mesma luz |
+
+Testar tudo isso num tabuleiro plano **aprova o que ninguém vai jogar** — e o
+verde é indistinguível do verde de um teste que valeu.
+
+> **Trocar `level-type` não regenera mundo nenhum.** O gerador fica gravado no
+> `level.dat` quando o mundo nasce; depois disso a propriedade é ignorada em
+> silêncio. O script grava uma marca ao lado do mundo e **recusa passar batido**
+> quando as duas discordam — `servidor` e `status` avisam, com o comando para
+> renomear o mundo antigo e deixar nascer um novo.
+>
+> `runServer` e o servidor de gametest **já usavam `normal`.** Esta instância —
+> justamente a do teste manual, a única em que alguém olha para a tela — era a
+> que discordava das outras duas.
+
+---
+
 ## O cliente é o de desenvolvimento
 
 E isso é uma limitação real, não um detalhe.

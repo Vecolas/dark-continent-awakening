@@ -18,7 +18,7 @@ public final class HunterClimbingAnchorBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
             Player player, BlockHitResult hit) {
         if (!level.isClientSide && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            WorldTreeCheckpointService.interact(serverPlayer);
+            WorldTreeCheckpointService.interact(serverPlayer, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

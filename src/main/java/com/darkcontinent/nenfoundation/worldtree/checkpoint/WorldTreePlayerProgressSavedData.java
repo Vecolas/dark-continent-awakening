@@ -3,6 +3,8 @@ package com.darkcontinent.nenfoundation.worldtree.checkpoint;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -46,6 +48,17 @@ public final class WorldTreePlayerProgressSavedData extends SavedData {
         unlocked.put(player, updated);
         setDirty();
         return true;
+    }
+
+    public List<WorldTreeCheckpoint> unlocked(java.util.UUID player) {
+        int mask = unlocked.getOrDefault(player, 0);
+        List<WorldTreeCheckpoint> result = new ArrayList<>();
+        for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+            if ((mask & (1 << checkpoint.ordinal())) != 0) {
+                result.add(checkpoint);
+            }
+        }
+        return List.copyOf(result);
     }
 
     @Override

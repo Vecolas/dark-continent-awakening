@@ -41,6 +41,7 @@ public final class HunterBestiaryScreen extends Screen {
     private BestiaryCategory categoryFilter;
     private EditBox searchBox;
     private final Map<net.minecraft.resources.ResourceLocation, LivingEntity> previewCache = new HashMap<>();
+    private int selectedIndex;
 
     public HunterBestiaryScreen() {
         super(Component.translatable("item.nenfoundation.hunter_bestiary"));
@@ -88,9 +89,11 @@ public final class HunterBestiaryScreen extends Screen {
         int y = top + 82;
         int number = 1;
         int visible = 0;
+        int rowIndex = 0;
         for (BestiaryEntryDefinition entry : filteredEntries()) {
             BestiaryProgress progress = BestiaryClientState.progress(entry.id());
-            graphics.fill(left + 25, y - 4, left + bookWidth - 25, y + 29, 0x22606A5E);
+            graphics.fill(left + 25, y - 4, left + bookWidth - 25, y + 29,
+                    rowIndex++ == selectedIndex ? 0x55606A5E : 0x22606A5E);
             graphics.drawString(font, String.format("%02d", number++), left + 35, y + 5, OLIVE, false);
             graphics.drawString(font, nome(entry, progress), left + 72, y + 5, INK, false);
             graphics.drawString(font, status(progress), left + bookWidth - 135, y + 5, progress.knowledgeLevel() == BestiaryKnowledgeLevel.UNKNOWN ? ALERTA : OLIVE, false);
@@ -245,6 +248,7 @@ public final class HunterBestiaryScreen extends Screen {
             int row = (int) ((y - (top + 78)) / 42);
             var entries = filteredEntries();
             if (row >= 0 && row < entries.size()) {
+                selectedIndex = row;
                 selectedId = entries.get(row).id();
                 index = false;
                 return true;
@@ -284,6 +288,16 @@ public final class HunterBestiaryScreen extends Screen {
 
     @Override public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 256) { onClose(); return true; }
+        if (searchBox != null && searchBox.isFocused()) return super.keyPressed(keyCode, scanCode, modifiers);
+        var entries = filteredEntries();
+        if (index && !entries.isEmpty()) {
+            if (keyCode == 87) { selectedIndex = Math.max(0, selectedIndex - 1); return true; }
+            if (keyCode == 83) { selectedIndex = Math.min(entries.size() - 1, selectedIndex + 1); return true; }
+            if (keyCode == 257) { selectedId = entries.get(selectedIndex).id(); index = false; return true; }
+        } else if (!index && keyCode == 65) {
+            index = true;
+            return true;
+        }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 

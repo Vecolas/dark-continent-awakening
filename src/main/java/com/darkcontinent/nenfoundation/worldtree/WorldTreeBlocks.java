@@ -5,6 +5,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CarpetBlock;
 import net.minecraft.world.level.block.SoundType;
+import com.darkcontinent.nenfoundation.worldtree.checkpoint.HunterClimbingAnchorBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
@@ -71,6 +72,10 @@ public final class WorldTreeBlocks {
             BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(1.0F)
                     .sound(SoundType.GLASS).noOcclusion());
     public static final DeferredBlock<Block> WORLD_TREE_DEADWOOD = BLOCKS.registerSimpleBlock("world_tree_deadwood", WOOD);
+    public static final DeferredBlock<Block> HUNTER_CLIMBING_ANCHOR = BLOCKS.register(
+            "hunter_climbing_anchor", () -> new HunterClimbingAnchorBlock(
+                    BlockBehaviour.Properties.of().mapColor(MapColor.METAL)
+                            .strength(2.0F, 1200.0F).sound(SoundType.METAL)));
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

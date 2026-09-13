@@ -1,5 +1,7 @@
 package com.darkcontinent.nenfoundation.client.vfx;
 
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilVisual;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.RandomSource;
@@ -67,13 +69,20 @@ public final class EmissorDeParticulasDeAura {
      * <p>SEPARADO DO DESENHO para poder ser provado sem o jogo: o sorteio entra
      * como {@code float} de fora, e nao como chamada a um gerador escondido.
      *
+     * <p>O PERFIL ENTRA POR PARAMETRO, e nao e buscado aqui dentro. Buscar
+     * {@code AuraPerfis.de(...)} nesta funcao a amarraria ao gerenciador de
+     * recursos do Minecraft -- e a unica parte do emissor que da para provar sem
+     * tela deixaria de rodar em JUnit. Quem chama ja tem o perfil na mao.
+     *
+     * @param perfil  os numeros de arte do modo, vindos de {@code nen_vfx/*.json}
      * @param sorteio um numero de 0 (inclusive) a 1 (exclusive)
      */
-    public static int quantasEmitir(AuraVisualState estado, double densidade, float sorteio) {
-        if (estado == null || !estado.enabled() || densidade <= 0.0D) {
+    public static int quantasEmitir(AuraPerfilVisual perfil, AuraVisualState estado,
+            double densidade, float sorteio) {
+        if (perfil == null || estado == null || !estado.enabled() || densidade <= 0.0D) {
             return 0;
         }
-        double bruto = estado.preset().particleIntensity() * estado.intensity() * densidade
+        double bruto = perfil.densidadeDeParticula() * estado.intensity() * densidade
                 * FATOR_DE_ACABAMENTO * TETO_POR_TICK;
         int inteiras = (int) bruto;
         double resto = bruto - inteiras;
@@ -91,15 +100,20 @@ public final class EmissorDeParticulasDeAura {
         if (nivel == null || jogador == null || estado == null || !estado.enabled()) {
             return;
         }
+        // O MESMO PERFIL DO MESMO MODO que a shell desenha, e nao uma copia:
+        // `AuraPerfis.de` ja aplica a sobreposicao de tuning, entao mexer no
+        // slider muda a shell E a faisca juntas. Duas fontes aqui produziriam
+        // uma captura em que a poeira nao acompanha o ajuste, sem erro nenhum.
+        AuraPerfilVisual perfil = AuraPerfis.de(estado.mode());
         RandomSource aleatorio = nivel.getRandom();
-        int quantas = quantasEmitir(estado, densidade, aleatorio.nextFloat());
+        int quantas = quantasEmitir(perfil, estado, densidade, aleatorio.nextFloat());
         if (quantas == 0) {
             return;
         }
         MedidorDeVfx.particulas(quantas);
 
         DustParticleOptions poeira = new DustParticleOptions(
-                corComo(estado.primaryColor()), tamanhoDe(estado));
+                corComo(estado.primaryColor()), tamanhoDe(perfil, estado));
 
         for (int i = 0; i < quantas; i++) {
             double angulo = aleatorio.nextDouble() * Math.PI * 2.0D;
@@ -175,8 +189,14 @@ public final class EmissorDeParticulasDeAura {
                 (argb & 0xFF) / 255.0F);
     }
 
-    /** Particula maior quando a aura esta mais forte, dentro do que o vanilla aceita. */
-    static float tamanhoDe(AuraVisualState estado) {
-        return 0.6F + 0.9F * estado.intensity() * estado.preset().shellOpacity();
+    /**
+     * Particula maior quando a aura esta mais forte, dentro do que o vanilla aceita.
+     *
+     * <p>O PISO E O VAO SAO ESTRUTURA, e nao botao de arte: abaixo de 0,6 a
+     * poeira vanilla some em qualquer luz, e acima de 1,5 ela vira mancha. O que
+     * a sessao de arte gira e {@code tamanho_de_particula}, no perfil.
+     */
+    static float tamanhoDe(AuraPerfilVisual perfil, AuraVisualState estado) {
+        return 0.6F + 0.9F * estado.intensity() * perfil.tamanhoDeParticula();
     }
 }

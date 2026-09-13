@@ -38,11 +38,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param velocidadeDeFluxo com que rapidez a energia sobe pelo corpo
  * @param escalaDeRuido    quantas repeticoes do ruido cabem na superficie
  * @param reforcoDaBorda   quanto o Fresnel soma a intensidade
+ * @param densidadeDeParticula quantas faiscas de ACABAMENTO acompanham a shell
+ * @param tamanhoDeParticula   o quanto cada faisca cresce com a intensidade
  */
 public record AuraPerfilVisual(
         float alphaInterno, float alphaBorda, float alphaExterno,
         float fresnelInterno, float fresnelBorda, float fresnelExterno,
-        float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda) {
+        float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda,
+        float densidadeDeParticula, float tamanhoDeParticula) {
 
     /**
      * O perfil de emergencia.
@@ -54,7 +57,7 @@ public record AuraPerfilVisual(
      * que "o perfil nao carregou" seja PERCEPTIVEL em vez de indistinguivel.
      */
     public static final AuraPerfilVisual SEGURO = new AuraPerfilVisual(
-            0.03F, 0.10F, 0.02F, 3.0F, 2.5F, 2.0F, 0.10F, 4.0F, 0.6F);
+            0.03F, 0.10F, 0.02F, 3.0F, 2.5F, 2.0F, 0.10F, 4.0F, 0.6F, 0.02F, 0.15F);
 
     /** Alpha de 0 a 1. Fora disso o codec RECUSA, em vez de lancar. */
     private static final Codec<Float> ALPHA = Codec.floatRange(0.0F, 1.0F);
@@ -89,7 +92,11 @@ public record AuraPerfilVisual(
             NAO_NEGATIVO.fieldOf("velocidade_de_fluxo")
                     .forGetter(AuraPerfilVisual::velocidadeDeFluxo),
             POSITIVO.fieldOf("escala_de_ruido").forGetter(AuraPerfilVisual::escalaDeRuido),
-            NAO_NEGATIVO.fieldOf("reforco_da_borda").forGetter(AuraPerfilVisual::reforcoDaBorda))
+            NAO_NEGATIVO.fieldOf("reforco_da_borda").forGetter(AuraPerfilVisual::reforcoDaBorda),
+            ALPHA.fieldOf("densidade_de_particula")
+                    .forGetter(AuraPerfilVisual::densidadeDeParticula),
+            ALPHA.fieldOf("tamanho_de_particula")
+                    .forGetter(AuraPerfilVisual::tamanhoDeParticula))
             .apply(i, AuraPerfilVisual::new))
             .validate(AuraPerfilVisual::ordemDoFresnel);
 
@@ -126,6 +133,8 @@ public record AuraPerfilVisual(
         naoNegativo(velocidadeDeFluxo, "velocidade_de_fluxo");
         positivo(escalaDeRuido, "escala_de_ruido");
         naoNegativo(reforcoDaBorda, "reforco_da_borda");
+        alpha(densidadeDeParticula, "densidade_de_particula");
+        alpha(tamanhoDeParticula, "tamanho_de_particula");
     }
 
     /** O alpha deste passe. */
@@ -148,9 +157,15 @@ public record AuraPerfilVisual(
 
     /** Um perfil todo em zero, para os estados em que a ausencia e a informacao. */
     public AuraPerfilVisual apagado() {
+        // A DENSIDADE DE PARTICULA ZERA JUNTO com os alphas, e o tamanho nao
+        // precisa: sem densidade nenhuma faisca nasce, e um tamanho preservado
+        // nao desenha nada. Zerar so os alphas -- que era o que este metodo
+        // fazia antes de a particula virar dado -- deixaria Zetsu apagando a
+        // shell e mantendo a nuvem de poeira, que e exatamente a leitura
+        // "poeira desligada" que o ADR-015 existe para nao produzir.
         return new AuraPerfilVisual(0.0F, 0.0F, 0.0F, this.fresnelInterno, this.fresnelBorda,
                 this.fresnelExterno, this.velocidadeDeFluxo, this.escalaDeRuido,
-                this.reforcoDaBorda);
+                this.reforcoDaBorda, 0.0F, this.tamanhoDeParticula);
     }
 
     private static void alpha(float valor, String nome) {

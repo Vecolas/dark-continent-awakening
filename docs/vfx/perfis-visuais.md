@@ -306,6 +306,44 @@ consumida uma vez, na construção das malhas, e não pode recarregar sem
 reconstruí-las — então ela continua no código, e isso é limite real, não
 preguiça.
 
+### O esquema que o código lê hoje
+
+**As §3–§5 acima são o PLANO, e o código diverge delas.** O JSON real é
+**plano**, sem os grupos `shell`/`flow`/`ribbons` que aquelas seções desenham, e
+os nomes estão em português como o resto do repositório. Regra do projeto: o
+código ganha, o texto se atualiza, e a discrepância se relata em voz alta em vez
+de sumir. Quem for mexer num perfil usa esta lista, e não as de cima.
+
+`assets/nenfoundation/nen_vfx/<modo>.json` — um arquivo por modo com brilho
+(`ten`, `ren`); `zetsu` e `off` não têm arquivo, porque a ausência é a
+informação e o código responde com o perfil apagado.
+
+| Chave | Faixa | O que é |
+| --- | --- | --- |
+| `alpha_interno` | 0–1 | filme interno; presença no corpo |
+| `alpha_borda` | 0–1 | a borda, que carrega a leitura |
+| `alpha_externo` | 0–1 | halo externo |
+| `fresnel_interno` | > 0 | expoente da camada interna |
+| `fresnel_borda` | > 0 | expoente da borda |
+| `fresnel_externo` | > 0 | expoente do halo |
+| `velocidade_de_fluxo` | ≥ 0 | com que rapidez a energia sobe |
+| `escala_de_ruido` | > 0 | repetições do ruído na superfície |
+| `reforco_da_borda` | ≥ 0 | quanto o Fresnel soma à intensidade |
+| `densidade_de_particula` | 0–1 | **acabamento**: quantas faíscas acompanham a shell |
+| `tamanho_de_particula` | 0–1 | **acabamento**: o quanto cada faísca cresce com a intensidade |
+
+Uma invariante viaja com o dado e é conferida na leitura: **o expoente de
+Fresnel precisa DIMINUIR** da camada interna para a externa. Com os três iguais
+as camadas viram uma só mais opaca, e a profundidade que justifica os três
+passes desaparece. Arquivo torto é recusado com motivo, e o perfil de emergência
+assume.
+
+As **duas últimas chaves chegaram no AV0**, quando `AuraVisualPreset` foi
+removido: elas eram `particleIntensity` e `shellOpacity`, constantes de código
+ao lado de cinco irmãs que ninguém lia. A segunda tinha nome de shell e
+dimensionava partícula — que é por que ninguém a encontrava procurando pelo
+tamanho da faísca.
+
 ---
 
 ## 10. Assets

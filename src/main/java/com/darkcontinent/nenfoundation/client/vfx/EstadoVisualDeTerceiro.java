@@ -59,16 +59,19 @@ public final class EstadoVisualDeTerceiro {
             case REN, KEN -> AuraVisualMode.REN;
             case NENHUM -> AuraVisualMode.OFF;
         };
-        AuraVisualPreset preset = modo == AuraVisualMode.REN
-                ? AuraVisualPreset.renBasic()
-                : AuraVisualPreset.tenBasic();
         int cor = AparenciaDeTecnica.de(switch (sinal) {
             case KEN -> Ken.ID;
             case REN -> Ren.ID;
             default -> Ten.ID;
         }).cor();
 
-        return new AuraVisualState(modo, preset, intensidadePara(lod), 1.0F,
+        // OS NUMEROS DE ARTE NAO ENTRAM AQUI. Quem desenha busca o perfil pelo
+        // MODO -- `AuraPerfis.de(estado.mode())` --, e por isso a aura de um
+        // terceiro em Ren usa exatamente o mesmo `ren.json` que a do jogador
+        // local. Carregar os numeros dentro do estado abriria a porta para dois
+        // caminhos com valores diferentes para o mesmo Ren, e a divergencia
+        // apareceria como "a aura dos outros esta mais fraca" sem nenhum erro.
+        return new AuraVisualState(modo, intensidadePara(lod), 1.0F,
                 AuraDistribution.uniforme(), cor, cor);
     }
 

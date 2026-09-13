@@ -7,12 +7,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 class AuraVisualControllerTest {
+    /**
+     * O ESTADO NAO CARREGA MAIS NUMERO DE ARTE, e este teste mudou por causa
+     * disso.
+     *
+     * <p>Ele conferia {@code AuraVisualPreset.tenBasic()} contra
+     * {@code renBasic()} -- dois metodos que devolviam constantes de codigo. Dos
+     * sete campos daquele record, CINCO nao tinham leitor nenhum: o teste
+     * comparava numeros que nao chegavam a lugar algum, e teria continuado verde
+     * com o efeito inteiro desligado.
+     *
+     * <p>A propriedade que importa -- Ten contido, Ren mais intenso -- continua
+     * provada, agora sobre os arquivos que o jogo carrega de verdade. O que
+     * sobrou aqui e o que o controlador ainda decide sozinho: o modo.
+     */
     @Test
-    void presetsMantemTenContidoRenMaisIntensoEZetsuInvisivel() {
-        assertTrue(AuraVisualPreset.tenBasic().shellOpacity() < AuraVisualPreset.renBasic().shellOpacity());
-        assertTrue(AuraVisualPreset.tenBasic().flowIntensity() < AuraVisualPreset.renBasic().flowIntensity());
-        assertEquals(0.0F, AuraVisualPreset.zetsu().shellOpacity());
-        assertEquals(0.0F, AuraVisualPreset.zetsu().flowIntensity());
+    void oEstadoNaoCarregaNumeroDeArte() {
+        AuraVisualController c = new AuraVisualController();
+        c.receber(AuraVisualMode.REN, 1.0F);
+        for (int i = 0; i < 200; i++) {
+            c.avancar(1.0F);
+        }
+        assertEquals(AuraVisualMode.REN, c.atual().mode());
+        assertTrue(PerfilDoDisco.de(AuraVisualMode.REN).densidadeDeParticula()
+                        > PerfilDoDisco.de(AuraVisualMode.TEN).densidadeDeParticula(),
+                "o acabamento de Ren deixou de ser mais denso que o de Ten");
+        assertEquals(0.0F, PerfilDoDisco.de(AuraVisualMode.ZETSU).densidadeDeParticula(),
+                "Zetsu com particula e o oposto de supressao");
     }
 
     @Test

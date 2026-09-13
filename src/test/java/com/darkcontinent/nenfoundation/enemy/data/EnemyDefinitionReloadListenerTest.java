@@ -16,7 +16,10 @@ class EnemyDefinitionReloadListenerTest {
             "attack_damage":1.0,"armor":0.0,"follow_range":8.0,"knockback_resistance":0.0},
             "spawn":{"biome_tags":["#example:field_biomes"],"dimensions":["minecraft:overworld"],
             "min_light":0,"max_light":15,"require_ground":true,"allow_water":false,
-            "require_sky":false,"max_nearby_same_faction":4},"audio_id":"example:entity/stable"}
+            "require_sky":false,"max_nearby_same_faction":4},"audio_id":"example:entity/stable",
+            "timings":{"idle":{"windup_ticks":1,"active_ticks":1,"recovery_ticks":1,
+            "interruptible_windup":false,"interruptible_active":false,"interruptible_recovery":false}},
+            "schema_version":1}
             """;
 
     @Test
@@ -57,6 +60,7 @@ class EnemyDefinitionReloadListenerTest {
                 new EnemyAttributes(10, 0.2F, 1, 0, 8, 0),
                 new com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule(
                         java.util.Set.of("#example:field_biomes"), java.util.Set.of("minecraft:overworld"),
-                        0, 15, true, false, false, 4), ResourceLocation.parse(id));
+                        0, 15, true, false, false, 4), ResourceLocation.parse(id),
+                java.util.Map.of("idle", new EnemyTiming(1, 1, 1, false, false, false)), 1);
     }
 }

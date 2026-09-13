@@ -34,12 +34,26 @@ snapshot anterior.
     "require_sky": false,
     "max_nearby_same_faction": 4
   },
-  "audio_id": "example:entity/field_beast"
+  "audio_id": "example:entity/field_beast",
+  "timings": {
+    "strike": {
+      "windup_ticks": 8,
+      "active_ticks": 4,
+      "recovery_ticks": 12,
+      "interruptible_windup": true,
+      "interruptible_active": false,
+      "interruptible_recovery": true
+    }
+  },
+  "schema_version": 1
 }
 ```
 
 Enumerações usam os nomes Java atuais e são rejeitadas quando não existem.
 `biome_tags` exige `#namespace:path`; `dimensions` e `audio_id` exigem
-`namespace:path`. Os perfis existentes em `HunterExamProfiles` ainda são
+`namespace:path`. `timings` contém apenas janelas temporais; dano, knockback e
+regras de alvo não entram nele para evitar uma segunda fonte de balanceamento.
+`schema_version` é aceito como 1; versões futuras são rejeitadas e nunca
+aplicadas parcialmente. Os perfis existentes em `HunterExamProfiles` ainda são
 legado Java e usam `audio_id` derivado do próprio id até uma migração explícita;
 este schema não declara balanceamento final dos 23 encounters.

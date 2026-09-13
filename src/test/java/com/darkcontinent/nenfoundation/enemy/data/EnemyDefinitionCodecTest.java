@@ -22,7 +22,10 @@ class EnemyDefinitionCodecTest {
               "spawn": {"biome_tags":["#example:field_biomes"],"dimensions":["minecraft:overworld"],
                 "min_light":0,"max_light":15,"require_ground":true,"allow_water":false,
                 "require_sky":false,"max_nearby_same_faction":4},
-              "audio_id":"example:entity/field_beast"
+              "audio_id":"example:entity/field_beast",
+              "timings":{"strike":{"windup_ticks":8,"active_ticks":4,"recovery_ticks":12,
+                "interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+              "schema_version":1
             }
             """;
 
@@ -35,6 +38,8 @@ class EnemyDefinitionCodecTest {
         assertEquals(10.0F, definition.attributes().maxHealth());
         assertTrue(definition.spawnRule().biomeTags().contains("#example:field_biomes"));
         assertEquals(ResourceLocation.parse("example:entity/field_beast"), definition.audioId());
+        assertEquals(8, definition.timings().get("strike").windupTicks());
+        assertEquals(1, definition.schemaVersion());
         assertTrue(EnemyDefinitionValidator.problemas(definition).isEmpty());
     }
 
@@ -42,9 +47,11 @@ class EnemyDefinitionCodecTest {
     void codecRecusaEnumInvalidoECampoObrigatorioAusente() {
         var enumInvalido = JsonParser.parseString(JSON.toString().replace("\"LOW\"", "\"UNKNOWN\""));
         var semAudio = JsonParser.parseString(JSON.replace(",\n  \"audio_id\":\"example:entity/field_beast\"", ""));
+        var schemaFuturo = JsonParser.parseString(JSON.replace("\"schema_version\":1", "\"schema_version\":2"));
 
         assertFalse(EnemyDefinition.CODEC.parse(JsonOps.INSTANCE, enumInvalido).result().isPresent());
         assertFalse(EnemyDefinition.CODEC.parse(JsonOps.INSTANCE, semAudio).result().isPresent());
+        assertFalse(EnemyDefinition.CODEC.parse(JsonOps.INSTANCE, schemaFuturo).result().isPresent());
     }
 
     @Test

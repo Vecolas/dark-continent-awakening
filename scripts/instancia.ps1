@@ -302,7 +302,10 @@ function Gerador-Declarado {
     if (-not (Test-Path -LiteralPath $props)) { return $null }
     $linha = Select-String -Path $props -Pattern '^level-type=' -ErrorAction SilentlyContinue
     if (-not $linha) { return $null }
-    return ($linha.Line -replace '^level-type=', '') -replace '\', ''
+    # `.Replace` LITERAL, e nao `-replace`: o segundo e REGEX, e uma barra
+    # invertida sozinha nao e regex valida. O valor gravado no arquivo e
+    # `minecraft\:normal` -- com a barra -- entao ela precisa sair daqui.
+    return ($linha.Line -replace '^level-type=', '').Replace('\', '')
 }
 
 function Marca-Do-Mundo {

@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.function.ToIntBiFunction;
 
 /** Coloca todos os placements do posto no lado servidor. */
 public final class PostoAvancadoWorldPlacer {
@@ -16,12 +17,40 @@ public final class PostoAvancadoWorldPlacer {
     public static Resultado colocar(ServerLevel level, int centroX, int centroZ,
             PostoAvancadoPlacementTransform.Rotacao rotacao) {
         Objects.requireNonNull(level, "nivel ausente");
+        return colocar(level, centroX, centroZ, rotacao,
+                (x, z) -> level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1);
+    }
+
+    /**
+     * O mesmo, com a altura do terreno vindo de fora.
+     *
+     * <p>ELE EXISTE PARA O GAMETEST, e o motivo vale escrever. A versao que le a
+     * altura do nivel colocava o posto em coordenadas fixas do mundo e
+     * dependia de <b>a terra ali ser plana por sorte</b>: o
+     * {@code runGameTestServer} gera um mundo a cada execucao, e a variacao
+     * medida no ponto escolhido foi 6 contra um limite de 5. O teste reprovava
+     * sem nada ter mudado no codigo que ele testa.
+     *
+     * <p>Teste que depende de geracao de mundo em coordenada fixa nao e um
+     * teste ruim de vez em quando -- ele e um teste que <b>as vezes</b> diz a
+     * verdade, e nao ha como saber qual das vezes foi.
+     *
+     * <p>A producao continua chamando a versao de cima, sem mudanca nenhuma de
+     * comportamento: o que este metodo separa e "onde esta o chao" de "escreva
+     * os blocos", que sao duas perguntas diferentes e so uma delas e deste
+     * arquivo.
+     */
+    public static Resultado colocar(ServerLevel level, int centroX, int centroZ,
+            PostoAvancadoPlacementTransform.Rotacao rotacao,
+            ToIntBiFunction<Integer, Integer> alturaDoTerreno) {
+        Objects.requireNonNull(level, "nivel ausente");
+        Objects.requireNonNull(alturaDoTerreno, "altura do terreno ausente");
         if (!level.getBiome(new BlockPos(centroX, level.getMinBuildHeight(), centroZ))
                 .is(PostoAvancadoBiomes.HUNTER_OUTPOST_BIOMES)) {
             return Resultado.rejeitado(Resultado.Motivo.BIOMA);
         }
         var plano = PostoAvancadoPlacementPlanner.planejar(centroX, centroZ, rotacao,
-                (x, z) -> level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1);
+                alturaDoTerreno);
         if (plano.isEmpty()) {
             return Resultado.rejeitado(Resultado.Motivo.TERRENO);
         }

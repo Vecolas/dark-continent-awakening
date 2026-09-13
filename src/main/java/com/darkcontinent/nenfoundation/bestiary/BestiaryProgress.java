@@ -114,4 +114,15 @@ public record BestiaryProgress(
                 researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
                 behaviorFlags, captureFlags, specialDiscoveries, status);
     }
+
+    public BestiaryProgress withCaptureFlag(String captureFlag) {
+        if (captureFlag == null || captureFlag.isBlank()) {
+            throw new IllegalArgumentException("flag de captura vazio");
+        }
+        var flags = new java.util.HashSet<>(captureFlags);
+        flags.add(captureFlag);
+        return new BestiaryProgress(knowledgeLevel, timesSeen, timesFought, timesDefeated,
+                researchPoints, firstSeenTime, lastSeenTime, weakPointsDiscovered,
+                behaviorFlags, Set.copyOf(flags), specialDiscoveries, nenStatus);
+    }
 }

@@ -74,6 +74,11 @@ public final class BestiaryPlayerService {
         if (entry != null) atualizar(jogador, id, progresso(jogador, id).withNenStatus(status));
     }
 
+    public static void registrarCaptura(ServerPlayer jogador, ResourceLocation id, String condicao) {
+        var entry = BestiaryRegistry.get(id);
+        if (entry != null) atualizar(jogador, id, progresso(jogador, id).withCaptureFlag(condicao));
+    }
+
     private static void atualizar(ServerPlayer jogador, ResourceLocation id, BestiaryProgress progresso) {
         var antigo = ler(jogador);
         var novo = antigo.withProgress(id, progresso);

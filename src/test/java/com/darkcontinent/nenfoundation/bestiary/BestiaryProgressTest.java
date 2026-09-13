@@ -75,4 +75,10 @@ class BestiaryProgressTest {
                 .withWeakPoint("foxbear.opening_after_charge");
         assertEquals(1, progress.weakPointsDiscovered().size());
     }
+
+    @Test
+    void capturaRegistraCondicaoSemDuplicar() {
+        var progress = BestiaryProgress.UNKNOWN.withCaptureFlag("capture_condition");
+        assertEquals(1, progress.captureFlags().size());
+    }
 }

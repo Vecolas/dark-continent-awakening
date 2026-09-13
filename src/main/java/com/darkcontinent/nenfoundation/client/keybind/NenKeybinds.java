@@ -65,6 +65,23 @@ public final class NenKeybinds {
             GLFW.GLFW_KEY_R,
             CATEGORIA);
 
+    /**
+     * Liga e desliga o overlay de tuning do VISUAL da aura.
+     *
+     * <p>TECLA PROPRIA, e nao um modificador do overlay tecnico: os dois sao
+     * lidos em sessoes diferentes e por motivos diferentes -- um durante uma
+     * investigacao de rede, o outro durante uma sessao de direcao de arte.
+     *
+     * <p>{@code F6} porque esta livre no vanilla e fica ao lado do {@code F5}
+     * da troca de camera, que e a tecla mais apertada numa sessao de captura.
+     */
+    public static final KeyMapping OVERLAY_DE_VFX = new KeyMapping(
+            "key.nenfoundation.overlay_de_vfx",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_F6,
+            CATEGORIA);
+
     private NenKeybinds() {
     }
 
@@ -73,5 +90,6 @@ public final class NenKeybinds {
         evento.register(RODA_DE_NEN);
         evento.register(OVERLAY_DE_DEBUG);
         evento.register(AJUSTAR_OUTPUT);
+        evento.register(OVERLAY_DE_VFX);
     }
 }

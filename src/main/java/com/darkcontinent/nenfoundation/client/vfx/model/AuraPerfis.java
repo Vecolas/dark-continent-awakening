@@ -54,10 +54,15 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
      */
     public static AuraPerfilVisual de(AuraVisualMode modo) {
         if (modo == null || modo == AuraVisualMode.ZETSU || modo == AuraVisualMode.OFF) {
+            // O APAGADO NAO PASSA PELA SOBREPOSICAO, de proposito. Zetsu e
+            // ausencia total (direcao visual, secao 2); deixar um slider
+            // reacender a aura de quem esta suprimido faria a ferramenta de
+            // tuning contradizer a unica regra que o AV6 existe para provar.
             return AuraPerfilVisual.SEGURO.apagado();
         }
         AuraPerfilVisual perfil = CARREGADOS.get(modo);
-        return perfil != null ? perfil : AuraPerfilVisual.SEGURO;
+        return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
+                perfil != null ? perfil : AuraPerfilVisual.SEGURO);
     }
 
     /** Se algum perfil chegou a ser carregado. Falso antes do primeiro reload. */

@@ -1,6 +1,6 @@
 package com.darkcontinent.nenfoundation.client.render;
 
-import com.darkcontinent.nenfoundation.enemy.FoxbearEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 

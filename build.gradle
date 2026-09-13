@@ -245,8 +245,56 @@ tasks.register('bibliotecasDaInstancia', Copy) {
     into layout.buildDirectory.dir('bibliotecas-da-instancia')
 }
 
+/**
+ * O commit curto deste build, para o nome das capturas de aprovacao da trilha AV.
+ *
+ * <p>TODO GATE AV EXIGE "data, commit e nivel de bloom no nome do arquivo", e o
+ * Java em runtime nao tem como descobrir o commit sozinho. Sem isto, ou a
+ * pessoa renomeia catorze arquivos na mao a cada rodada -- e uma hora erra um
+ * --, ou a captura fica sem ligacao com codigo nenhum, que e o mesmo que nao
+ * ter captura.
+ *
+ * <p>E UM ValueSource, E NAO UM ProcessBuilder direto. Rodar processo externo
+ * no tempo de configuracao e proibido pelo configuration cache do Gradle 9 -- e
+ * a primeira versao disto quebrou o build por exatamente isso. Pelo
+ * ValueSource, o Gradle reexecuta o comando a cada build em vez de guardar o
+ * hash na configuracao cacheada; a alternativa silenciosa seria pior que o
+ * erro: capturas nomeadas com o commit de ontem.
+ *
+ * <p>FALHA PARA 'sem-git' EM VEZ DE QUEBRAR O BUILD. Um clone sem .git, um
+ * ambiente sem git no PATH ou um zip baixado precisam continuar compilando: o
+ * nome da captura degrada, e nada mais.
+ */
+abstract class CommitCurtoDeGit implements org.gradle.api.provider.ValueSource<String,
+        org.gradle.api.provider.ValueSourceParameters.None> {
+
+    @javax.inject.Inject
+    abstract org.gradle.process.ExecOperations getExecOperations()
+
+    @Override
+    String obtain() {
+        try {
+            def saida = new ByteArrayOutputStream()
+            def resultado = execOperations.exec { spec ->
+                spec.commandLine 'git', 'rev-parse', '--short', 'HEAD'
+                spec.standardOutput = saida
+                spec.errorOutput = new ByteArrayOutputStream()
+                spec.ignoreExitValue = true
+            }
+            def texto = saida.toString('UTF-8').trim()
+            if (resultado.exitValue == 0 && texto ==~ /[0-9a-f]{7,40}/) {
+                return texto
+            }
+        } catch (Exception ignorado) {
+            // Sem git, sem commit. O build segue.
+        }
+        return 'sem-git'
+    }
+}
+
 tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
+            git_commit             : providers.of(CommitCurtoDeGit) {}.get(),
             minecraft_version      : minecraft_version,
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
@@ -258,7 +306,7 @@ tasks.withType(ProcessResources).configureEach {
             mod_version            : mod_version,
     ]
     inputs.properties replaceProperties
-    filesMatching(['META-INF/neoforge.mods.toml']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'nenfoundation-build.properties']) {
         expand replaceProperties
     }
 }

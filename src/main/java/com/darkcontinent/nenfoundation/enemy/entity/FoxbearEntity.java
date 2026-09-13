@@ -1,6 +1,8 @@
-package com.darkcontinent.nenfoundation.enemy;
+package com.darkcontinent.nenfoundation.enemy.entity;
 
-import com.darkcontinent.nenfoundation.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.enemy.ai.FoxbearState;
+import com.darkcontinent.nenfoundation.enemy.ai.FoxbearTerritory;
+import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;

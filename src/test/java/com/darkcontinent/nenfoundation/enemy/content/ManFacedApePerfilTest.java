@@ -132,10 +132,15 @@ class ManFacedApePerfilTest {
                         .containsAll(Set.of("great_stamp", "frog_in_waiting", "man_faced_ape")),
                 "publicados() e a lista unica de mobs que este repositorio ja poe no mundo, e "
                         + "e ela que o portao de spawn varre: faltar aqui e sair do portao");
-        assertFalse(publicados.containsKey("foxbear"),
-                "o foxbear e de outra frente e ainda nao tem tag nem biome modifier; "
-                        + "inclui-lo aqui acenderia no portao de spawn um alarme que esta lane "
-                        + "nao pode apagar");
+        // ESTA LINHA JA ESTEVE INVERTIDA, e a inversao era correta enquanto durou: o
+        // foxbear nao tinha tag nem biome modifier, e lista-lo acenderia um alarme que
+        // ninguem podia apagar. A issue #266 apagou o motivo, nao o alarme -- ele ganhou
+        // os dois arquivos no mesmo PR. Agora a exigencia e a oposta, e ela e que importa:
+        // mob registrado e ausente daqui sai do portao de spawn em SILENCIO.
+        assertTrue(publicados.containsKey("foxbear"),
+                "o foxbear tem EntityType registrado, tag de bioma e biome modifier: fora de "
+                        + "publicados() ele fica sem o portao que confere os dois, e o sintoma "
+                        + "de uma tag errada passa a ser um bioma vazio que ninguem explica");
 
         for (Map.Entry<String, EnemyDefinition> entrada : publicados.entrySet()) {
             assertEquals("nenfoundation:" + entrada.getKey(),

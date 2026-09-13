@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
@@ -75,6 +76,20 @@ public final class EnemyEntityTypes {
             TYPES.register("kiriko",
                     () -> EntityType.Builder.of(KirikoEntity::new, MobCategory.CREATURE)
                             .sized(1.0F, 2.1F).build(NenFoundation.id("kiriko").toString()));
+
+    // O foxbear foi o PRIMEIRO mob deste repositorio, e por isso era o unico que
+    // nascia num DeferredRegister proprio, num pacote proprio, com atributos e
+    // placement proprios. As duas filas nao davam erro: elas davam um mob que
+    // ficava de fora de tudo que o resto da fila ganhava -- e foi exatamente o que
+    // aconteceu com a faixa de luz do perfil dele, morta por meses.
+    //
+    // Caixa inalterada (1.4 x 1.35): esta entrega muda ONDE ele e registrado, nunca
+    // o corpo. Mexer na caixa aqui trocaria em silencio o raio em que ele de fato
+    // leva flecha, e o gametest de territorio mede distancia, nao colisao.
+    public static final DeferredHolder<EntityType<?>, EntityType<FoxbearEntity>> FOXBEAR =
+            TYPES.register("foxbear",
+                    () -> EntityType.Builder.of(FoxbearEntity::new, MobCategory.CREATURE)
+                            .sized(1.4F, 1.35F).build(NenFoundation.id("foxbear").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

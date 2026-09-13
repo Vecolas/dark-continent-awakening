@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
+import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
@@ -30,6 +31,7 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
                 MasterOfTheSwampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.FOXBEAR.get(), FoxbearEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -90,6 +92,26 @@ public final class EnemyEntityEvents {
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+
+        // O foxbear fecha a fila, e chega aqui trocando de predicado. Ele usava
+        // Animal::checkAnimalSpawnRules -- bloco da lista de spawn de animais embaixo
+        // e luz BRUTA maior que 8 -- e o perfil dele nao entrava na conta: a faixa
+        // 0..12 de HunterExamProfiles.foxbear() nao chegava a lugar nenhum. Botao
+        // morto nao da erro; ele custa a tarde de quem gira o numero esperando ver
+        // diferenca. Agora ele le do perfil como os outros quatro terrestres, e a
+        // faixa entra em vigor COMO ESTA ESCRITA: 12, e nao 15 como os seis irmaos.
+        // Se 12 nao era a intencao, e uma linha no perfil -- e uma decisao de
+        // balanceamento, que nao e desta entrega.
+        //
+        // Operation.OR, e nao REPLACE: REPLACE so faz sentido para derrubar um
+        // placement que ja existe, e um tipo autoral nao tem nenhum. As duas formas
+        // se comportam igual aqui, e a divergencia de forma e o que faz a proxima
+        // pessoa achar que ha um motivo escondido.
+        event.register(EnemyEntityTypes.FOXBEAR.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

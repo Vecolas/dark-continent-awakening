@@ -371,6 +371,26 @@ AV0 Tech spike        shell inflada segue as animacoes     <- se falhar, PARA
 explicita, e nao comecar o AV(n+1) sem fechar o AV(n) — o AV0 existe
 precisamente para ser um ponto de parada barato.
 
+### Estado da trilha (2026-09-13)
+
+O codigo de AV0, AV1, AV2 e de quatro issues do AV3 esta na `main`. **Nenhum
+gate esta aprovado** — nem o #169, nem o #176 —, e nao ha nenhuma captura
+arquivada em `docs/testing/capturas/`.
+
+Duas coisas mudaram neste dia, e nenhuma das duas fecha gate:
+
+1. A **averiguacao dirigida** respondeu item a item a matriz de aderencia do
+   AV0, e nada reprovou. Ela tambem produziu dois achados de tuning (a borda
+   nao esta mais forte que o miolo; no Ten o ruido nao tem veios) e respondeu
+   um dos dois chutes registrados (o fluxo **sobe**).
+2. A **bancada de captura** da issue #168 existe: `/nenvfx`, overlay em F6,
+   sliders e lote de capturas nomeadas com data, commit e nivel de bloom. Ate
+   entao nenhuma captura desta trilha podia ser comparada com outra.
+
+O detalhe, com numero e linha de comando, esta em
+[`av-evidencias.md`](../testing/av-evidencias.md) secoes 4b e 4c. **Entrega nao
+se deduz de codigo compilavel, e gate nao se deduz de relato textual.**
+
 ---
 
 ## M5 — Framework de Hatsu / habilidades

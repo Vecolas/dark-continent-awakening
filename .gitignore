@@ -56,6 +56,19 @@ pack/*.zip
 .claude/settings.local.json
 .codex/
 
+### Cache de Gradle apontado para fora do padrao ###
+# Quem roda com -Dgradle.user.home=.gradle-local acaba com centenas de MB de
+# cache na raiz. E regeravel, e nao pertence ao historico.
+.gradle-local/
+
+### Area de transferencia entre arvores de trabalho ###
+# Copia solta de arquivos usada para mover trabalho entre worktrees. Ela fica
+# PARA TRAS da arvore de verdade em questao de horas, e o perigo e especifico:
+# um `git add -A` distraido a commitaria por cima do codigo atual, e o
+# resultado seria uma regressao que nao aparece como erro -- so como um
+# registro que sumiu. Ver docs/processo/fronteira-de-arquivos.md.
+/transfer/
+
 # Cache do Python dos geradores de arte em art-source/.
 __pycache__/
 *.pyc

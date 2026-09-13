@@ -5,8 +5,8 @@ import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
 import com.darkcontinent.nenfoundation.client.vfx.CorDaAura;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPlayerModel;
-import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellMaterial;
-import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellOpacity;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilVisual;
+import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
 import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraAnchor;
 import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraCurve;
@@ -100,8 +100,9 @@ public final class AuraPlayerRenderLayer
             return;
         }
 
-        AuraShellOpacity opacidade = opacidadeDe(estado);
-        AuraShellMaterial material = materialDe(estado);
+        // O PERFIL VEM DO DADO, e nao de constantes no codigo. Ele recarrega
+        // com F3+T, entao ajustar arte deixou de custar um `gradlew`.
+        AuraPerfilVisual perfil = AuraPerfis.de(estado.mode());
         RenderType tipo = AuraRenderTypes.shell();
 
         // O TEMPO E POR ENTIDADE, e nao global. `idadeEmTicks` conta desde que
@@ -112,7 +113,7 @@ public final class AuraPlayerRenderLayer
         float tempo = idadeEmTicks / 20.0F;
 
         for (AuraShellPass passe : AuraShellPass.values()) {
-            float alphaDoPasse = opacidade.alphaDe(passe) * estado.intensity();
+            float alphaDoPasse = perfil.alphaDe(passe) * estado.intensity();
             if (alphaDoPasse < ALPHA_MINIMO) {
                 continue;
             }
@@ -121,9 +122,9 @@ public final class AuraPlayerRenderLayer
             // o que acabou de ser copiado.
             this.getParentModel().copyPropertiesTo(modelo);
 
-            AuraShaders.configurar(tempo, material.fresnelDe(passe),
-                    material.velocidadeDeFluxo(), material.escalaDeRuido(),
-                    material.reforcoDaBorda());
+            AuraShaders.configurar(tempo, perfil.fresnelDe(passe),
+                    perfil.velocidadeDeFluxo(), perfil.escalaDeRuido(),
+                    perfil.reforcoDaBorda());
 
             VertexConsumer vertices = buffers.getBuffer(tipo);
             desenharPorRegiao(modelo, pilha, vertices, luzEmpacotada, estado, alphaDoPasse);
@@ -230,33 +231,6 @@ public final class AuraPlayerRenderLayer
         if (buffers instanceof MultiBufferSource.BufferSource lote) {
             lote.endBatch(tipo);
         }
-    }
-
-    /** O material do modo ativo. Ver {@link #opacidadeDe} para o par dele. */
-    static AuraShellMaterial materialDe(AuraVisualState estado) {
-        return estado.mode() == com.darkcontinent.nenfoundation.client.vfx.AuraVisualMode.REN
-                ? AuraShellMaterial.ren()
-                : AuraShellMaterial.ten();
-    }
-
-    /**
-     * A opacidade do modo ativo.
-     *
-     * <p>REN E TEN MAIS DENSO, e nao outro efeito -- e no AV0 essa diferenca
-     * existe SO no alpha. A espessura maior de Ren mora no perfil, mas as
-     * malhas sao construidas uma vez, no registro, com a geometria de Ten.
-     * <b>Limitacao declarada do spike:</b> no AV0, Ren e mais forte, e nao mais
-     * espesso. A shell propria de Ren e o AV4.
-     */
-    static AuraShellOpacity opacidadeDe(AuraVisualState estado) {
-        return switch (estado.mode()) {
-            case REN -> AuraShellOpacity.ren();
-            case TEN, CUSTOM -> AuraShellOpacity.ten();
-            // ZETSU e OFF nao chegam aqui -- `enabled()` ja barrou --, mas a
-            // ausencia e a informacao, e ela precisa estar escrita no switch e
-            // nao depender de uma guarda la em cima.
-            case ZETSU, OFF -> AuraShellOpacity.zero();
-        };
     }
 
     /**

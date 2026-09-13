@@ -1,0 +1,15 @@
+{
+  "_comentario": "Ten: a pelicula consciente. A borda carrega a leitura; o miolo da presenca. Numeros de direcao de arte -- nunca medidos em jogo. Recarrega com F3+T.",
+
+  "alpha_interno": 0.055,
+  "alpha_borda": 0.20,
+  "alpha_externo": 0.035,
+
+  "fresnel_interno": 3.4,
+  "fresnel_borda": 2.7,
+  "fresnel_externo": 2.0,
+
+  "velocidade_de_fluxo": 0.12,
+  "escala_de_ruido": 4.0,
+  "reforco_da_borda": 0.9
+}

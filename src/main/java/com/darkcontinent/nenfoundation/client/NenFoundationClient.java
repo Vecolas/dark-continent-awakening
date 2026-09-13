@@ -97,6 +97,13 @@ public final class NenFoundationClient {
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
         modEventBus.addListener(AuraShaders::registrar);
+        // O PERFIL VISUAL E RECURSO DE CLIENTE, e nao datapack: ele nao muda
+        // custo, alcance nem visibilidade -- e um datapack deixaria o servidor
+        // ditar como a aura aparece na tela de cada um.
+        modEventBus.addListener((net.neoforged.neoforge.client.event
+                .RegisterClientReloadListenersEvent evento) ->
+                evento.registerReloadListener(
+                        new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis()));
 
         // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
         // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a

@@ -5,13 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraGeometryProfile;
-import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellOpacity;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraShellPass;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * O que da para provar da shell SEM subir o jogo.
+ * O que da para provar da GEOMETRIA da shell sem subir o jogo.
+ *
+ * <p>As asercoes de alpha e de Fresnel saiam daqui no AV3: elas moram em
+ * {@code AuraPerfilVisualTest}, que le os JSON de verdade em vez de constantes.
+ * Geometria continua aqui porque ela e construida uma vez, no registro, e nao
+ * recarrega com o resource pack.
  *
  * <p>E POUCO, e isso esta declarado. Render nao e testavel em unidade: que a
  * shell ACOMPANHE a animacao so a captura em movimento responde, e isso e o
@@ -62,10 +66,6 @@ class AuraShellGeometriaTest {
                 () -> new AuraGeometryProfile(Float.NaN, 0.05F, 0.08F));
         assertThrows(IllegalArgumentException.class,
                 () -> new AuraGeometryProfile(0.0F, 0.05F, 0.08F));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AuraShellOpacity(Float.NaN, 0.2F, 0.03F));
-        assertThrows(IllegalArgumentException.class,
-                () -> new AuraShellOpacity(0.05F, 1.5F, 0.03F));
     }
 
     @Test
@@ -76,25 +76,7 @@ class AuraShellGeometriaTest {
         for (AuraShellPass passe : AuraShellPass.values()) {
             assertTrue(ren.espessuraDe(passe) > ten.espessuraDe(passe),
                     "Ren tem de ser mais espesso que Ten em " + passe);
-            assertTrue(AuraShellOpacity.ren().alphaDe(passe)
-                            > AuraShellOpacity.ten().alphaDe(passe),
-                    "Ren tem de ser mais forte que Ten em " + passe);
         }
     }
 
-    @Test
-    @DisplayName("a borda e a camada que carrega a leitura")
-    void bordaEAMaisForte() {
-        AuraShellOpacity ten = AuraShellOpacity.ten();
-        assertTrue(ten.alphaDe(AuraShellPass.BORDA) > ten.alphaDe(AuraShellPass.INTERNA));
-        assertTrue(ten.alphaDe(AuraShellPass.BORDA) > ten.alphaDe(AuraShellPass.EXTERNA));
-    }
-
-    @Test
-    @DisplayName("Zetsu e zero em todas as camadas: a ausencia e a informacao")
-    void zetsuEZero() {
-        for (AuraShellPass passe : AuraShellPass.values()) {
-            assertEquals(0.0F, AuraShellOpacity.zero().alphaDe(passe));
-        }
-    }
 }

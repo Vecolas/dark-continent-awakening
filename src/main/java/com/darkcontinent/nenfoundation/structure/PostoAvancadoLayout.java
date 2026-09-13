@@ -19,8 +19,8 @@ public record PostoAvancadoLayout(int footprint, int fenceHeight, int buildingHe
     }
 
     public static PostoAvancadoLayout referencia() {
-        return new PostoAvancadoLayout(37, 3, 7, 14, List.of(
-                new Modulo("portao_logistico", -4, 17, 9, 2),
+        return new PostoAvancadoLayout(41, 3, 7, 14, List.of(
+                new Modulo("portao_logistico", -4, 19, 9, 2),
                 new Modulo("patio_operacional", -7, -7, 15, 10),
                 new Modulo("comando", -8, 3, 17, 10),
                 new Modulo("torre_scaffold", -3, -17, 7, 7),

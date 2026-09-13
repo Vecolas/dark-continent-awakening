@@ -1,17 +1,29 @@
 package com.darkcontinent.nenfoundation.structure;
 
+import com.darkcontinent.nenfoundation.NenFoundation;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import java.util.function.ToIntBiFunction;
 
 /** Coloca todos os placements do posto no lado servidor. */
 public final class PostoAvancadoWorldPlacer {
+    private static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable>
+            SUPRIMENTOS_POSTO = ResourceKey.create(Registries.LOOT_TABLE,
+                    NenFoundation.id("chests/hunter_outpost_supply"));
+    private static final ResourceKey<net.minecraft.world.level.storage.loot.LootTable>
+            SEGREDO_POSTO = ResourceKey.create(Registries.LOOT_TABLE,
+                    NenFoundation.id("chests/hunter_outpost_secret"));
+
     private PostoAvancadoWorldPlacer() { }
 
     public static Resultado colocar(ServerLevel level, int centroX, int centroZ,
@@ -63,6 +75,24 @@ public final class PostoAvancadoWorldPlacer {
             BlockPos posicao = placement.posicao();
             if (unicos.add(posicao)) {
                 level.setBlock(posicao, estado, 3);
+                if (placement.material() == PostoAvancadoBlockout.Material.CRATE
+                        || placement.material() == PostoAvancadoBlockout.Material.SECRET_CACHE) {
+                    if (level.getBlockEntity(posicao) instanceof ChestBlockEntity chest) {
+                        var tabela = placement.material() == PostoAvancadoBlockout.Material.SECRET_CACHE
+                                ? SEGREDO_POSTO : SUPRIMENTOS_POSTO;
+                        chest.setLootTable(tabela, level.getRandom().nextLong());
+                    }
+                }
+            }
+        }
+        // Glass panes depend on their neighbours for the final shape. The
+        // blockout is emitted in one pass, so recalculate the window states
+        // after every adjacent wall/pane already exists.
+        for (var placement : plano.orElseThrow().placements()) {
+            if (placement.material() == PostoAvancadoBlockout.Material.WINDOW) {
+                BlockPos posicao = placement.posicao();
+                BlockState estado = level.getBlockState(posicao);
+                level.setBlock(posicao, Block.updateFromNeighbourShapes(estado, level, posicao), 3);
             }
         }
         return new Resultado(plano.orElseThrow().placements().size(), unicos.size(),

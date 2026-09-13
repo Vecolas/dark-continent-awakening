@@ -16,7 +16,9 @@ lonas e iluminação técnica; não é um asset de gameplay.
 - caixas, barris, mapas, mesas de pesquisa e amostras;
 - iluminação prática, concentrada em acesso, pátio, pesquisa e vigia;
 - torre de observação aberta, com plataformas e travamentos metálicos;
-- portão logístico largo e cercamento baixo/transparente;
+- portão logístico largo e cercamento baixo/transparente de iron bars;
+- concreto branco como material estrutural, sem blocos de ferro maciços, e
+  shroomlight como iluminação técnica;
 - irregularidade de uso sem transformar o posto em ruína.
 
 ## Leitura proibida

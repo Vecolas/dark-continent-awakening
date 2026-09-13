@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class PostoAvancadoTerrainCheckTest {
     @Test
     void terrenoPlanoEIdeal() {
-        var resultado = PostoAvancadoTerrainCheck.avaliar(100, 200, 37, (x, z) -> 70);
+        var resultado = PostoAvancadoTerrainCheck.avaliar(100, 200, 41, (x, z) -> 70);
 
         assertTrue(resultado.ideal());
         assertTrue(resultado.aceitavel());
@@ -18,8 +18,8 @@ class PostoAvancadoTerrainCheckTest {
 
     @Test
     void diferencaCincoAindaEAplicavelMasNaoIdeal() {
-        var resultado = PostoAvancadoTerrainCheck.avaliar(0, 0, 37,
-                (x, z) -> x == -18 ? 0 : 5);
+        var resultado = PostoAvancadoTerrainCheck.avaliar(0, 0, 41,
+                (x, z) -> x == -20 ? 0 : 5);
 
         assertFalse(resultado.ideal());
         assertTrue(resultado.aceitavel());
@@ -28,8 +28,8 @@ class PostoAvancadoTerrainCheckTest {
 
     @Test
     void footprintMuitoInclinadoERejeitado() {
-        var resultado = PostoAvancadoTerrainCheck.avaliar(0, 0, 37,
-                (x, z) -> x == -18 && z == 0 ? 0 : 6);
+        var resultado = PostoAvancadoTerrainCheck.avaliar(0, 0, 41,
+                (x, z) -> x == -20 && z == 0 ? 0 : 6);
 
         assertFalse(resultado.aceitavel());
     }

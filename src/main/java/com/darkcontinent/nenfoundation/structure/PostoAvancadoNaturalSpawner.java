@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -20,6 +21,9 @@ public final class PostoAvancadoNaturalSpawner {
     @SubscribeEvent
     public static void aoCarregarChunk(ChunkEvent.Load evento) {
         if (!(evento.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (level.dimension() != Level.OVERWORLD) {
             return;
         }
         ChunkPos chunk = evento.getChunk().getPos();

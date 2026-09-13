@@ -11,7 +11,7 @@ class PostoAvancadoPlacementPlannerTest {
     void terrenoAceitavelDefineFundacaoNaMenorCota() {
         var plano = PostoAvancadoPlacementPlanner.planejar(100, 200,
                 PostoAvancadoPlacementTransform.Rotacao.CLOCKWISE_90,
-                (x, z) -> x == 82 ? 70 : 74);
+                (x, z) -> x == 80 ? 70 : 74);
 
         assertTrue(plano.isPresent());
         assertEquals(70, plano.orElseThrow().origem().getY());
@@ -25,7 +25,7 @@ class PostoAvancadoPlacementPlannerTest {
     void terrenoRejeitadoNaoGeraPlacements() {
         var plano = PostoAvancadoPlacementPlanner.planejar(0, 0,
                 PostoAvancadoPlacementTransform.Rotacao.NONE,
-                (x, z) -> x == -18 && z == 0 ? 60 : 66);
+                (x, z) -> x == -20 && z == 0 ? 60 : 66);
 
         assertFalse(plano.isPresent());
     }

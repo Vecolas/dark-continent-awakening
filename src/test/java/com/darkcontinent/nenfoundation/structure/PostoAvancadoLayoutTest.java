@@ -10,7 +10,7 @@ class PostoAvancadoLayoutTest {
     @Test
     void layoutDeReferenciaMantemSilhuetaEModulosDentroDoFootprint() {
         PostoAvancadoLayout layout = PostoAvancadoLayout.referencia();
-        assertEquals(37, layout.footprint());
+        assertEquals(41, layout.footprint());
         assertEquals(14, layout.towerHeight());
         assertEquals(8, layout.modulos().size());
         assertTrue(layout.modulos().stream().allMatch(modulo -> modulo.cabeNo(layout.footprint())));
@@ -19,8 +19,8 @@ class PostoAvancadoLayoutTest {
     @Test
     void moduloForaDoFootprintERejeitadoAntesDoWorldgen() {
         assertThrows(IllegalArgumentException.class,
-                () -> new PostoAvancadoLayout(37, 4, 9, 16,
-                        java.util.List.of(new PostoAvancadoLayout.Modulo("torre", 18, -18, 2, 2))));
+                () -> new PostoAvancadoLayout(41, 4, 9, 16,
+                        java.util.List.of(new PostoAvancadoLayout.Modulo("torre", 20, -20, 2, 2))));
     }
 
     @Test

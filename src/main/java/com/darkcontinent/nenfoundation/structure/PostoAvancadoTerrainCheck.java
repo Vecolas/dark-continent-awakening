@@ -3,7 +3,7 @@ package com.darkcontinent.nenfoundation.structure;
 import java.util.Objects;
 import java.util.function.ToIntBiFunction;
 
-/** Regras de elegibilidade do terreno para o footprint 37x37 do posto. */
+/** Regras de elegibilidade do terreno para o footprint do posto. */
 public final class PostoAvancadoTerrainCheck {
     public static final int ALTURA_IDEAL_MAXIMA = 4;
     public static final int ALTURA_ACEITAVEL_MAXIMA = 5;

@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.structure.PostoAvancadoWorldPlacer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -37,8 +38,8 @@ public final class PostoAvancadoGameTest {
     /** Chao plano numa cota que existe em qualquer mundo. */
     private static final int COTA_PLANA = 64;
 
-    /** Metade do footprint 37x37. */
-    private static final int METADE = 18;
+    /** Metade do footprint 41x41, deixando dois blocos de folga interna. */
+    private static final int METADE = 20;
 
     /** Ate onde a varredura procura estrutura acima da fundacao. */
     private static final int ALTURA_PROCURADA = 20;
@@ -60,7 +61,7 @@ public final class PostoAvancadoGameTest {
         //
         // O nivel do gametest CONSTROI POSTOS SOZINHO -- a geracao natural
         // entrou em #255 -- e ja havia um exatamente aqui. A primeira versao
-        // desta varredura encontrou um `iron_block` acima da fundacao mesmo com
+        // desta varredura encontrou um bloco antigo acima da fundacao mesmo com
         // o placer sabotado para nao escrever nada: ela media o posto que a
         // geracao de mundo tinha feito, e teria aprovado um placer que nao
         // construisse coisa nenhuma.
@@ -82,6 +83,21 @@ public final class PostoAvancadoGameTest {
                 "blockout colocou poucos placements: " + resultado.placements());
         helper.assertTrue(resultado.blocosUnicos() > 500,
                 "blockout colocou poucos blocos unicos: " + resultado.blocosUnicos());
+
+        helper.assertTrue(contar(helper, Blocks.SHROOMLIGHT) > 0,
+                "o posto nao recebeu iluminacao tecnica");
+        helper.assertTrue(contar(helper, Blocks.WHITE_CONCRETE) > 0,
+                "a estrutura nao recebeu concreto branco");
+        helper.assertTrue(contar(helper, Blocks.IRON_BLOCK) == 0,
+                "o posto ainda usa bloco de ferro macico");
+        helper.assertTrue(contar(helper, Blocks.CHEST) > 0,
+                "o posto nao recebeu caixas de operacao");
+        helper.assertTrue(contar(helper, Blocks.LIGHTNING_ROD) > 0,
+                "a antena do posto nao foi escrita");
+        helper.assertTrue(contar(helper, Blocks.BLACK_WOOL) > 0,
+                "a infraestrutura de cabos nao foi escrita");
+        helper.assertTrue(contar(helper, Blocks.IRON_BARS) > 0,
+                "o cercamento ou portao nao foi escrito");
 
         BlockPos origem = resultado.origem();
         helper.assertTrue(!helper.getLevel().getBlockState(origem).isAir(),
@@ -111,8 +127,8 @@ public final class PostoAvancadoGameTest {
     /** Deixa a faixa varrida sem nenhum bloco, para que o teste meça o que ELE escreveu. */
     private static void esvaziar(GameTestHelper helper, int cota) {
         for (int dy = 1; dy <= ALTURA_PROCURADA; dy++) {
-            for (int dx = -METADE; dx <= METADE; dx += 3) {
-                for (int dz = -METADE; dz <= METADE; dz += 3) {
+            for (int dx = -METADE; dx <= METADE; dx++) {
+                for (int dz = -METADE; dz <= METADE; dz++) {
                     helper.getLevel().setBlock(new BlockPos(dx, cota + dy, dz),
                             net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
                 }
@@ -124,8 +140,8 @@ public final class PostoAvancadoGameTest {
     private static java.util.Set<BlockPos> naoVazios(GameTestHelper helper, int cota) {
         java.util.Set<BlockPos> ocupadas = new java.util.HashSet<>();
         for (int dy = 1; dy <= ALTURA_PROCURADA; dy++) {
-            for (int dx = -METADE; dx <= METADE; dx += 3) {
-                for (int dz = -METADE; dz <= METADE; dz += 3) {
+            for (int dx = -METADE; dx <= METADE; dx++) {
+                for (int dz = -METADE; dz <= METADE; dz++) {
                     BlockPos p = new BlockPos(dx, cota + dy, dz);
                     if (!helper.getLevel().getBlockState(p).isAir()) {
                         ocupadas.add(p);
@@ -134,6 +150,21 @@ public final class PostoAvancadoGameTest {
             }
         }
         return ocupadas;
+    }
+
+    private static int contar(GameTestHelper helper, net.minecraft.world.level.block.Block bloco) {
+        int encontrados = 0;
+        for (int dy = 0; dy <= ALTURA_PROCURADA; dy++) {
+            for (int dx = -METADE; dx <= METADE; dx++) {
+                for (int dz = -METADE; dz <= METADE; dz++) {
+                    if (helper.getLevel().getBlockState(new BlockPos(dx, COTA_PLANA + dy, dz))
+                            .is(bloco)) {
+                        encontrados++;
+                    }
+                }
+            }
+        }
+        return encontrados;
     }
 
     /**

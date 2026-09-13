@@ -23,8 +23,16 @@ class PostoAvancadoMaterialPaletteTest {
         var palette = PostoAvancadoMaterialPalette.vanilla();
 
         assertEquals("smooth_stone", palette.get(PostoAvancadoBlockout.Material.FOUNDATION).getPath());
-        assertEquals("iron_block", palette.get(PostoAvancadoBlockout.Material.METAL).getPath());
+        assertEquals("white_concrete", palette.get(PostoAvancadoBlockout.Material.CONCRETE).getPath());
+        assertEquals("white_concrete", palette.get(PostoAvancadoBlockout.Material.METAL).getPath());
+        assertEquals("shroomlight", palette.get(PostoAvancadoBlockout.Material.LIGHT).getPath());
+        assertEquals("iron_bars", palette.get(PostoAvancadoBlockout.Material.FRAME).getPath());
+        assertEquals("white_concrete", palette.get(PostoAvancadoBlockout.Material.GRATING).getPath());
+        assertEquals("red_concrete", palette.get(PostoAvancadoBlockout.Material.EMBLEM_RED).getPath());
         assertEquals("light_gray_wool", palette.get(PostoAvancadoBlockout.Material.CANVAS).getPath());
+        assertFalse(palette.values().stream().anyMatch(id -> id.getPath().equals("iron_block")));
+        assertFalse(palette.values().stream().anyMatch(id -> id.getPath().equals("sea_lantern")));
+        assertFalse(palette.values().stream().anyMatch(id -> id.getPath().equals("iron_trapdoor")));
         assertFalse(palette.values().stream().anyMatch(id -> id.getPath().contains("dark_oak")));
         assertFalse(palette.values().stream().anyMatch(id -> id.getPath().contains("stone_bricks")));
     }

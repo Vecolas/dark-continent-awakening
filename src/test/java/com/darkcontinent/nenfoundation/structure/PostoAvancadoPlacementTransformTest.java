@@ -21,15 +21,15 @@ class PostoAvancadoPlacementTransformTest {
     }
 
     @Test
-    void rotacaoDaEstruturaContinuaDentroDeUmQuadradoDe37() {
+    void rotacaoDaEstruturaContinuaDentroDeUmQuadradoDe41() {
         var original = PostoAvancadoBlockout.gerar();
         for (var rotacao : PostoAvancadoPlacementTransform.Rotacao.values()) {
             var transformado = PostoAvancadoPlacementTransform.aplicar(original, BlockPos.ZERO, rotacao);
             assertEquals(original.size(), transformado.size());
             var maxX = transformado.stream().mapToInt(p -> Math.abs(p.posicao().getX())).max().orElseThrow();
             var maxZ = transformado.stream().mapToInt(p -> Math.abs(p.posicao().getZ())).max().orElseThrow();
-            assertEquals(18, maxX);
-            assertEquals(18, maxZ);
+            assertEquals(20, maxX);
+            assertEquals(20, maxZ);
         }
     }
 }

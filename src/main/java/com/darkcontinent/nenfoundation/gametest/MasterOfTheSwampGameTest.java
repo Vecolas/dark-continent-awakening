@@ -81,20 +81,35 @@ public final class MasterOfTheSwampGameTest {
         MasterOfTheSwampEntity peixe = helper.spawn(
                 MasterOfTheSwampEntity.registeredType(), new BlockPos(4, FUNDO, 5));
         ServerPlayer pescador = pescadorComVara(helper, 9, FUNDO, 5);
-        // ENCOSTADO DE PROPOSITO. A boca alcanca bbWidth/2 + folga, e este peixe tem
-        // 2,4 de largura: a primeira versao deixou o anzol a 2,24 blocos e a bocada
-        // ficou por um dedo fora do alcance. Quem nada ate a isca e a navegacao, e
-        // navegacao aquatica em piscina de teste e outro problema -- este cenario mede
-        // a BOCADA, entao ele entrega a isca na boca.
-        FishingHook anzol = lancarAnzol(helper, pescador, 5, FUNDO, 5);
+        // NA BOCA DE PROPOSITO. Este cenario mede a fisgada e nao a navegacao
+        // aquatica: deixar a isca no bloco vizinho introduz uma corrida entre
+        // movimento, colisao e o relogio da mordida. A distancia zero garante que
+        // a entrada da bocada seja o comportamento observado, sem ampliar o raio
+        // da mecanica real.
+        FishingHook anzol = lancarAnzol(helper, pescador, 4, FUNDO, 5);
+        BlockPos boia = helper.absolutePos(new BlockPos(4, FUNDO, 5));
 
         helper.startSequence()
                 .thenExecute(() -> helper.assertFalse(anzol.isRemoved(),
                         "o anzol se descartou no primeiro tick -- o jogador de mentira esta sem"
                                 + " vara na mao, e o cenario nao chegou a medir o mob."))
-                .thenWaitUntil(() -> helper.assertTrue(peixe.estaFisgado(),
-                        "o anzol esta na agua, dentro do raio de isca do perfil, e o peixe nunca"
-                                + " fisgou. Sem esta bocada, o encontro inteiro e codigo morto."))
+                .thenWaitUntil(() -> {
+                    // A classe vanilla ainda pode atualizar a posicao do hook durante
+                    // o tick mesmo com noPhysics. O fixture o ancora para que este
+                    // teste meca somente descoberta, mordida e fisgada do mob.
+                    if (!anzol.isRemoved()) {
+                        anzol.moveTo(boia.getX() + 0.5D, boia.getY() + 0.5D,
+                                boia.getZ() + 0.5D, 0.0F, 0.0F);
+                        anzol.setDeltaMovement(0.0D, 0.0D, 0.0D);
+                    }
+                    helper.assertTrue(peixe.estaFisgado(),
+                            "o anzol esta na agua, dentro do raio de isca do perfil, e o peixe nunca"
+                                    + " fisgou. Sem esta bocada, o encontro inteiro e codigo morto.");
+                })
+                .thenExecute(() -> {
+                    peixe.discard();
+                    anzol.discard();
+                })
                 .thenSucceed();
     }
 
@@ -112,13 +127,21 @@ public final class MasterOfTheSwampGameTest {
         MasterOfTheSwampEntity peixe = helper.spawn(
                 MasterOfTheSwampEntity.registeredType(), new BlockPos(4, FUNDO, 5));
         ServerPlayer pescador = pescadorComVara(helper, 8, FUNDO, 5);
-        lancarAnzol(helper, pescador, 5, FUNDO, 5);
+        FishingHook anzol = lancarAnzol(helper, pescador, 4, FUNDO, 5);
+        BlockPos boia = helper.absolutePos(new BlockPos(4, FUNDO, 5));
 
         double[] partida = new double[1];
 
         helper.startSequence()
-                .thenWaitUntil(() -> helper.assertTrue(peixe.estaFisgado(),
-                        "o peixe nunca fisgou; o cenario nao chegou a medir a linha."))
+                .thenWaitUntil(() -> {
+                    if (!anzol.isRemoved()) {
+                        anzol.moveTo(boia.getX() + 0.5D, boia.getY() + 0.5D,
+                                boia.getZ() + 0.5D, 0.0F, 0.0F);
+                        anzol.setDeltaMovement(0.0D, 0.0D, 0.0D);
+                    }
+                    helper.assertTrue(peixe.estaFisgado(),
+                            "o peixe nunca fisgou; o cenario nao chegou a medir a linha.");
+                })
                 .thenExecute(() -> partida[0] = pescador.distanceTo(peixe))
                 .thenExecuteFor(120, () -> {
                     // Foge um pouco a cada tick, SEMPRE para longe do peixe: e o gesto de
@@ -135,6 +158,8 @@ public final class MasterOfTheSwampGameTest {
                     helper.assertFalse(peixe.estaCansado(),
                             "a linha arrebentou E o peixe ficou cansado: quem fugiu nao pode"
                                     + " ganhar a janela de captura de brinde.");
+                    peixe.discard();
+                    anzol.discard();
                 })
                 .thenSucceed();
     }
@@ -161,6 +186,8 @@ public final class MasterOfTheSwampGameTest {
                                     + " piscina, o teste nao esta medindo o que diz medir.");
                     helper.assertFalse(peixe.estaFisgado(),
                             "o peixe fisgou um anzol que nao esta na agua.");
+                    peixe.discard();
+                    anzol.discard();
                 })
                 .thenSucceed();
     }
@@ -194,7 +221,14 @@ public final class MasterOfTheSwampGameTest {
         BlockPos onde = helper.absolutePos(new BlockPos(x, y, z));
         anzol.moveTo(onde.getX() + 0.5D, onde.getY() + 0.5D, onde.getZ() + 0.5D, 0.0F, 0.0F);
         anzol.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        // Os cenarios aquaticos medem a regra de fisgada; a fisica de voo do
+        // FishingHook nao pode deslocar a isca para fora da janela do teste.
+        anzol.noPhysics = y == FUNDO;
         helper.getLevel().addFreshEntity(anzol);
+        // A vara vanilla tambem registra o anzol no jogador. Como este fixture cria
+        // o FishingHook diretamente, precisa reproduzir esse contrato explicitamente.
+        pescador.fishing = anzol;
         return anzol;
     }
+
 }

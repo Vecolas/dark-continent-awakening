@@ -60,9 +60,15 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout primeiro = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             WorldTreeLayout segundo = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+                // O CACHE E POR SEED: pedir duas vezes devolveria o mesmo objeto e
+                // nao provaria nada. `forCheckpoint` direto refaz a conta.
+                WorldTreeFoliagePlan copaA = WorldTreeFoliagePlan.of(primeiro,
+                        WorldTreeBranchNetwork.secondaryAndTertiary(primeiro));
+                WorldTreeFoliagePlan copaB = WorldTreeFoliagePlan.of(segundo,
+                        WorldTreeBranchNetwork.secondaryAndTertiary(segundo));
                 assertEquals(
-                        WorldTreeClimbingPost.forCheckpoint(primeiro, checkpoint.y()),
-                        WorldTreeClimbingPost.forCheckpoint(segundo, checkpoint.y()),
+                        WorldTreeClimbingPost.forCheckpoint(primeiro, checkpoint.y(), copaA),
+                        WorldTreeClimbingPost.forCheckpoint(segundo, checkpoint.y(), copaB),
                         "seed " + seed + ", " + checkpoint + ": duas consultas deram"
                                 + " cabanas diferentes.");
             }
@@ -85,7 +91,7 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 assertEquals(checkpoint, WorldTreeCheckpoint.nearest(post.anchorY()),
                         "seed " + seed + ", " + checkpoint + ": a ancora em y="
                                 + post.anchorY() + " e reconhecida como "
@@ -122,10 +128,10 @@ class CabanaDeCheckpointTest {
                     WorldTreeBranchNetwork.secondaryAndTertiary(layout));
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 total++;
 
-                int corte = post.yDoPoco(post.centerX(), post.centerZ());
+                int corte = post.baseDoPoco();
                 assertTrue(corte < post.floorY(),
                         "seed " + seed + ", " + checkpoint + ": o poco so limpa a partir"
                                 + " de y=" + corte + " e o piso esta em " + post.floorY()
@@ -151,6 +157,84 @@ class CabanaDeCheckpointTest {
     }
 
     @Test
+    @DisplayName("a TORRE emerge da folhagem local -- e e por isso que ela existe")
+    void aTorreEmerge() {
+        // O PEDIDO: "extenda um pouco a cabana para ela ficar naturalmente acima
+        // das folhas tambem, possuir estrutura la".
+        //
+        // A cabana sozinha nao resolve: ela fica na altura do checkpoint, que e
+        // onde o galho esta -- dentro do andar de folhagem daquele galho. Mesmo
+        // com o poco aberto, ela e uma caixa no fundo de um buraco.
+        //
+        // Este caso mede contra o plano de copa REAL: nenhuma prateleira do andar
+        // local pode terminar acima do mirante.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            WorldTreeFoliagePlan plano = WorldTreeFoliagePlan.of(layout,
+                    WorldTreeBranchNetwork.secondaryAndTertiary(layout));
+            for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+                WorldTreeClimbingPost post =
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
+                int limiteLocal = post.roofY() + WorldTreeClimbingPost.ALCANCE_DO_POCO;
+                for (WorldTreeFoliageShelf shelf : plano.shelves()) {
+                    double dx = post.centerX() - shelf.centerX();
+                    double dz = post.centerZ() - shelf.centerZ();
+                    double alcance = shelf.radius() + WorldTreeClimbingPost.RAIO_DA_CLAREIRA;
+                    if (dx * dx + dz * dz > alcance * alcance) {
+                        continue;
+                    }
+                    if (shelf.maxY() > limiteLocal) {
+                        // Folha de OUTRO andar: deliberadamente fora do alcance.
+                        continue;
+                    }
+                    assertTrue(shelf.maxY() <= post.topoDaTorre(),
+                            "seed " + seed + ", " + checkpoint + ": folha do andar local"
+                                    + " sobe ate y=" + (int) shelf.maxY() + " e o mirante"
+                                    + " para em " + post.topoDaTorre()
+                                    + ". A torre nasce enterrada.");
+                }
+                assertTrue(post.topoDaTorre() > post.roofY(),
+                        "seed " + seed + ", " + checkpoint + ": torre de altura zero.");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("o poco tem TETO -- ele furava a copa inteira, de baixo a cima")
+    void oPocoNaoAtravessaACopa() {
+        // O DEFEITO RELATADO: "atualmente ela abre um buraco ate o bloco mais
+        // alto, ou seja uma cabana em 500 mantem o buraco ate um galho em 1000 ou
+        // 1500; deve influenciar apenas no seu proprio galho".
+        //
+        // O poco nao tinha teto: limpava do piso para cima, sem limite. Sete
+        // cabanas viravam sete tubos atravessando a copa de baixo a cima, levando
+        // junto a folhagem de galhos que nao tem nada a ver com elas.
+        int maior = 0;
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+                WorldTreeClimbingPost post =
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
+                int altura = post.topoDoPoco() - post.baseDoPoco();
+                maior = Math.max(maior, altura);
+                assertTrue(post.topoDoPoco() < post.floorY()
+                                + WorldTreeClimbingPost.ALCANCE_DO_POCO + 20,
+                        "seed " + seed + ", " + checkpoint + ": o poco tem " + altura
+                                + " blocos de altura. Ele so pode alcancar o andar de"
+                                + " folhagem do PROPRIO galho.");
+            }
+        }
+        // E ele tem de alcancar alguma coisa: um poco de altura minima em todas as
+        // cabanas significa que ele parou de limpar folha.
+        assertTrue(maior > 20,
+                "o maior poco tem " + maior + " blocos. Se ele encolheu ate isto,"
+                        + " ele parou de abrir a folhagem local -- confira antes de"
+                        + " afrouxar o limite acima.");
+    }
+
+    @Test
     @DisplayName("o poco cobre a cabana INTEIRA, e nao so o centro")
     void pocoCobreACabanaInteira() {
         // ALIMENTAR O PORTAO COM O DEFEITO: encolher RAIO_DA_CLAREIRA para menos
@@ -161,21 +245,19 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 for (int dx = -WorldTreeClimbingPost.RAIO;
                         dx <= WorldTreeClimbingPost.RAIO; dx++) {
                     for (int dz = -WorldTreeClimbingPost.RAIO;
                             dz <= WorldTreeClimbingPost.RAIO; dz++) {
-                        int corte = post.yDoPoco(post.centerX() + dx, post.centerZ() + dz);
-                        assertTrue(corte <= post.floorY(),
+                        assertTrue(post.colunaNoPoco(post.centerX() + dx, post.centerZ() + dz),
                                 "seed " + seed + ", " + checkpoint + ": a coluna ("
                                         + dx + "," + dz + ") da cabana esta FORA do poco."
                                         + " A folha encosta na parede.");
                     }
                 }
                 // E o poco acaba: ele nao pode virar uma cratera na copa.
-                assertEquals(Integer.MAX_VALUE,
-                        post.yDoPoco(post.centerX() + 40, post.centerZ()),
+                assertTrue(!post.colunaNoPoco(post.centerX() + 40, post.centerZ()),
                         "o poco alcanca 40 blocos de lado -- isso e cratera, e nao"
                                 + " clareira.");
             }
@@ -199,7 +281,7 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 assertTrue(post.floorY() > layout.trunk().baseY(),
                         "seed " + seed + ", " + checkpoint + ": piso em y="
                                 + post.floorY() + " e a arvore comeca em y="
@@ -219,7 +301,7 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 if (post.suporte() == WorldTreeClimbingPost.Suporte.GALHO) {
                     // IGUAL AO PISO E VALIDO: o galho raspa a cabana e o pilar
                     // tem comprimento zero. Acima do piso nao e: o laco do pilar
@@ -285,7 +367,7 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 if (checkpoint == WorldTreeCheckpoint.SUMMIT) {
                     // O SUMMIT E O UNICO QUE PODE IR PARA QUALQUER UM DOS DOIS, e
                     // a razao e geometrica: os galhos da zona do topo NASCEM em
@@ -318,7 +400,7 @@ class CabanaDeCheckpointTest {
             WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
             for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
                 WorldTreeClimbingPost post =
-                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                        WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
                 int x = (int) Math.floor(post.spawnX());
                 int z = (int) Math.floor(post.spawnZ());
                 assertTrue(post.naPegada(x, z) && !post.naParede(x, z),

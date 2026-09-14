@@ -170,6 +170,8 @@ public final class WorldTreeCanopyGenerator {
         // A coluna mais alta que esta prateleira pode produzir, com folga de dois
         // blocos para o arredondamento das bordas do laco de y.
         int[] coluna = new int[(int) Math.ceil(shelf.topThickness() + shelf.bottomThickness()) + 4];
+        // Duas posicoes por cabana: (base, topo) de cada faixa de poco.
+        int[] faixas = new int[cabanas.size() * 2];
 
         for (int x = fromX; x < toX; x++) {
             for (int z = fromZ; z < toZ; z++) {
@@ -205,9 +207,10 @@ public final class WorldTreeCanopyGenerator {
                 // linhas.
                 double termoDaCasca = cascaNaColuna(x, z, seed);
                 double termoDoBrilho = WorldTreeFoliageTexture.termoDaColuna(x, z, seed);
-                // O POCO E DECIDIDO POR COLUNA, e nao por bloco: uma comparacao a
-                // mais aqui, e nenhuma no laco de y.
-                int tetoDoPoco = WorldTreeClimbingPosts.yDoPoco(cabanas, x, z);
+                // O POCO E APURADO POR COLUNA, e nao por bloco. Na esmagadora
+                // maioria das colunas `quantasFaixas` e zero e o laco de y nao
+                // paga nada.
+                int quantasFaixas = WorldTreeClimbingPosts.faixasNaColuna(cabanas, x, z, faixas);
 
                 // A COLUNA E COLETADA ANTES DE SER ESCRITA, e o motivo e a folha
                 // luminosa.
@@ -224,7 +227,11 @@ public final class WorldTreeCanopyGenerator {
                 // justamente onde a erosao morde mais. Entao a coluna e coletada
                 // e so depois escrita.
                 int quantos = 0;
-                for (int y = fromY; y < toY && y < tetoDoPoco; y++) {
+                for (int y = fromY; y < toY; y++) {
+                    if (quantasFaixas > 0
+                            && WorldTreeClimbingPosts.dentroDeFaixa(faixas, quantasFaixas, y)) {
+                        continue;
+                    }
                     double normalized = shelf.normalizedInColumn(horizontalSquared, y);
                     if (normalized > 1.0 || !keep(normalized, termoDaCasca, x, y, z, seed)) {
                         continue;
@@ -327,7 +334,14 @@ public final class WorldTreeCanopyGenerator {
             // dentro da clareira fechariam de novo a unica coisa que denuncia a
             // cabana -- e o poco continuaria "aberto" em toda medida que so
             // olhasse prateleira.
-            if (y >= WorldTreeClimbingPosts.yDoPoco(cabanas, x, z)) {
+            boolean noPoco = false;
+            for (int indice = 0; indice < cabanas.size(); indice++) {
+                if (cabanas.get(indice).noPoco(x, y, z)) {
+                    noPoco = true;
+                    break;
+                }
+            }
+            if (noPoco) {
                 continue;
             }
             position.set(x, y, z);

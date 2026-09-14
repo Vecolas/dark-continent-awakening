@@ -1,7 +1,9 @@
 package com.darkcontinent.nenfoundation.worldtree.checkpoint;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliagePlan;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBranchNetwork;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +43,15 @@ public final class WorldTreeClimbingPosts {
         if (atual != null && atual.seed() == layout.seed()) {
             return atual.postos();
         }
+        // A COPA ENTRA NA CONTA porque a altura da torre depende dela: ela sobe
+        // ate emergir da folhagem LOCAL, e esse mesmo numero e o teto do poco.
+        // Dois numeros separados divergiriam, e ai ou a torre nasce enterrada ou
+        // o buraco sobra acima dela.
+        WorldTreeFoliagePlan copa = WorldTreeFoliagePlan.of(layout,
+                WorldTreeBranchNetwork.secondaryAndTertiary(layout));
         List<WorldTreeClimbingPost> postos = new ArrayList<>();
         for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
-            postos.add(WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y()));
+            postos.add(WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y(), copa));
         }
         List<WorldTreeClimbingPost> congelada = List.copyOf(postos);
         cache = new Cache(layout.seed(), congelada);
@@ -61,20 +69,43 @@ public final class WorldTreeClimbingPosts {
     }
 
     /**
-     * O menor y limpo de folha nesta coluna, considerando TODAS as cabanas.
+     * As FAIXAS de poco que cortam esta coluna.
      *
-     * <p>E o ponto unico que a copa consulta. Se cada gerador fizesse a propria
-     * varredura, um deles esqueceria uma cabana e ela voltaria a ser enterrada --
-     * sem erro, e so numa seed.
+     * <p><b>FAIXAS, E NAO UM MINIMO.</b> A versao anterior devolvia "o menor y
+     * limpo da coluna", e isso juntava pocos de cabanas diferentes: BASE em y=49
+     * e CROWN em y=1249 na mesma coluna limpariam de 46 a 1252 -- exatamente o
+     * tubo atravessando a copa inteira que este conserto veio matar. Cada cabana
+     * responde pela sua faixa, e so por ela.
+     *
+     * <p>O resultado vai num buffer reaproveitado porque isto e consultado uma
+     * vez por coluna de prateleira -- alocar ali seria lixo por coluna.
+     *
+     * @param destino par {@code (base, topo)} por faixa; precisa caber 2x o
+     *                numero de cabanas
+     * @return quantas faixas foram escritas
      */
-    public static int yDoPoco(List<WorldTreeClimbingPost> postos, int x, int z) {
-        int menor = Integer.MAX_VALUE;
+    public static int faixasNaColuna(List<WorldTreeClimbingPost> postos,
+            int x, int z, int[] destino) {
+        int quantas = 0;
         for (int indice = 0; indice < postos.size(); indice++) {
-            int candidato = postos.get(indice).yDoPoco(x, z);
-            if (candidato < menor) {
-                menor = candidato;
+            WorldTreeClimbingPost posto = postos.get(indice);
+            if (!posto.colunaNoPoco(x, z)) {
+                continue;
+            }
+            destino[quantas * 2] = posto.baseDoPoco();
+            destino[quantas * 2 + 1] = posto.topoDoPoco();
+            quantas++;
+        }
+        return quantas;
+    }
+
+    /** Se este bloco cai em alguma das faixas ja apuradas para a coluna. */
+    public static boolean dentroDeFaixa(int[] faixas, int quantas, int y) {
+        for (int indice = 0; indice < quantas; indice++) {
+            if (y >= faixas[indice * 2] && y <= faixas[indice * 2 + 1]) {
+                return true;
             }
         }
-        return menor;
+        return false;
     }
 }

@@ -89,8 +89,10 @@ public final class WorldTreeCheckpointService {
             return false;
         }
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(destination.getSeed(), 0, 0);
-        var posto = com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost
-                .forCheckpoint(layout, target.y());
+        // PELO CACHE, e nao por uma busca solta: `forCheckpoint` precisa do plano
+        // de copa para saber a altura da torre, e recalcular os dois aqui seria
+        // refazer todo o trabalho a cada viagem.
+        var posto = WorldTreeClimbingPosts.of(layout).get(target.ordinal());
         player.teleportTo(destination, posto.spawnX(), posto.floorY() + 1, posto.spawnZ(),
                 player.getYRot(), player.getXRot());
         return true;
@@ -118,8 +120,7 @@ public final class WorldTreeCheckpointService {
             return false;
         }
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(player.serverLevel().getSeed(), 0, 0);
-        var posto = com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost
-                .forCheckpoint(layout, checkpoint.y());
+        var posto = WorldTreeClimbingPosts.of(layout).get(checkpoint.ordinal());
         double dx = player.getX() - posto.spawnX();
         double dz = player.getZ() - posto.spawnZ();
         return dx * dx + dz * dz <= 64.0D;

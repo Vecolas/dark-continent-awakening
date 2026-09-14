@@ -46,7 +46,8 @@ import java.util.List;
 public record WorldTreeClimbingPost(
         int centerX, int floorY, int centerZ,
         WorldTreeClimbingPost.Suporte suporte,
-        int topoDoSuporte) {
+        int topoDoSuporte,
+        int topoDaTorre) {
 
     /** O que segura a cabana. */
     public enum Suporte {
@@ -124,7 +125,8 @@ public record WorldTreeClimbingPost(
      * cabana pousa sobre ele. Um galho acima do piso atravessaria o interior, e
      * como o interior e esvaziado, isso abriria um buraco no proprio galho.
      */
-    public static WorldTreeClimbingPost forCheckpoint(WorldTreeLayout layout, int checkpointY) {
+    public static WorldTreeClimbingPost forCheckpoint(WorldTreeLayout layout, int checkpointY,
+            WorldTreeFoliagePlan copa) {
         // O PISO NUNCA FICA ABAIXO DO PE DA ARVORE, e este caso e o BASE.
         //
         // BASE mora em y=48 e o tronco COMECA em y=48: o piso em `y - 1` caia em
@@ -186,11 +188,53 @@ public record WorldTreeClimbingPost(
             // zero. `topoDoSuporte` acima do piso faria o laco do pilar escrever
             // dentro do comodo.
             int topoDoSuporte = Math.min((int) Math.floor(melhor.y() + melhorRaio), floorY);
-            return new WorldTreeClimbingPost(
-                    (int) Math.round(melhor.x()), floorY, (int) Math.round(melhor.z()),
-                    Suporte.GALHO, topoDoSuporte);
+            int centerX = (int) Math.round(melhor.x());
+            int centerZ = (int) Math.round(melhor.z());
+            return new WorldTreeClimbingPost(centerX, floorY, centerZ,
+                    Suporte.GALHO, topoDoSuporte,
+                    topoDaTorre(copa, centerX, centerZ, tetoDe(floorY)));
         }
-        return noEixoCentral(layout, floorY);
+        return noEixoCentral(layout, floorY, copa);
+    }
+
+    /** O y do telhado para um piso dado -- antes de haver um posto construido. */
+    private static int tetoDe(int floorY) {
+        return floorY + ALTURA_INTERNA + 1;
+    }
+
+    /**
+     * Ate onde a torre precisa subir para EMERGIR da folhagem local.
+     *
+     * <p>Este e o numero que junta os dois pedidos: a cabana tem estrutura acima
+     * das folhas, e o poco deixa de furar a copa inteira. O topo da torre e o
+     * teto do poco -- se fossem dois numeros separados, um dia divergiriam e a
+     * torre nasceria enterrada ou o buraco sobraria acima dela.
+     *
+     * <p>So contam as prateleiras que cobrem a clareira E terminam dentro de
+     * {@link #ALCANCE_DO_POCO} acima do telhado. Folha acima disso e de outro
+     * galho: a torre nao tenta vence-la e o poco nao a toca.
+     */
+    static int topoDaTorre(WorldTreeFoliagePlan copa, int centerX, int centerZ, int roofY) {
+        int limite = roofY + ALCANCE_DO_POCO;
+        int topo = roofY + TORRE_MINIMA;
+        for (WorldTreeFoliageShelf shelf : copa.shelves()) {
+            double dx = centerX - shelf.centerX();
+            double dz = centerZ - shelf.centerZ();
+            double alcance = shelf.radius() + RAIO_DA_CLAREIRA;
+            if (dx * dx + dz * dz > alcance * alcance) {
+                continue;
+            }
+            // O LIMITE OLHA A FOLHA, e nao a folha MAIS A MARGEM. Comparando o
+            // valor ja somado, uma prateleira que acaba dois blocos abaixo do
+            // alcance era descartada -- e a torre parava embaixo dela. Foram
+            // quatro das 140 cabanas: torre construida, e folha por cima mesmo
+            // assim.
+            int folha = (int) Math.ceil(shelf.maxY());
+            if (folha <= limite && folha + 2 > topo) {
+                topo = folha + 2;
+            }
+        }
+        return topo;
     }
 
     /**
@@ -206,19 +250,24 @@ public record WorldTreeClimbingPost(
      * qualquer altura -- acima de 1200 a cabana teria nascido no ar, no raio
      * errado, que e literalmente o defeito que esta rodada veio consertar.
      */
-    private static WorldTreeClimbingPost noEixoCentral(WorldTreeLayout layout, int floorY) {
+    private static WorldTreeClimbingPost noEixoCentral(WorldTreeLayout layout, int floorY,
+            WorldTreeFoliagePlan copa) {
+        int centerX;
+        int centerZ;
         if (floorY > layout.trunk().topY()) {
             WorldTreePoint eixo = WorldTreeTrunkSurface.leaderCenter(floorY, layout.seed());
             double raio = WorldTreeTrunkSurface.leaderRadius(floorY);
-            return new WorldTreeClimbingPost(
-                    (int) Math.ceil(eixo.x() + raio) + RAIO, floorY,
-                    (int) Math.round(eixo.z()), Suporte.TRONCO, floorY);
+            centerX = (int) Math.ceil(eixo.x() + raio) + RAIO;
+            centerZ = (int) Math.round(eixo.z());
+        } else {
+            int y = Math.max(layout.trunk().baseY(), floorY);
+            double casca = WorldTreeTrunkSurface.naDirecaoX(
+                    layout.trunk().radiusAt(y), y, layout.seed());
+            centerX = (int) Math.ceil(casca) + RAIO;
+            centerZ = 0;
         }
-        int y = Math.max(layout.trunk().baseY(), floorY);
-        double casca = WorldTreeTrunkSurface.naDirecaoX(
-                layout.trunk().radiusAt(y), y, layout.seed());
-        return new WorldTreeClimbingPost(
-                (int) Math.ceil(casca) + RAIO, floorY, 0, Suporte.TRONCO, floorY);
+        return new WorldTreeClimbingPost(centerX, floorY, centerZ, Suporte.TRONCO, floorY,
+                topoDaTorre(copa, centerX, centerZ, tetoDe(floorY)));
     }
 
     /**
@@ -232,11 +281,14 @@ public record WorldTreeClimbingPost(
      */
     public static WorldTreeClimbingPost atTreeFoot(WorldTreeLayout layout,
             double cascaDoFuste, int floorY) {
+        // NO PE DA ARVORE NAO HA COPA: a torre fica na altura minima, e o poco
+        // dela nao limpa nada porque nao ha folha ali. Ela existe pela leitura --
+        // as oito cabanas sao a mesma construcao.
         return new WorldTreeClimbingPost(
                 layout.overworldOriginX() + (int) Math.ceil(cascaDoFuste) + RAIO,
                 floorY,
                 layout.overworldOriginZ(),
-                Suporte.TRONCO, floorY);
+                Suporte.TRONCO, floorY, tetoDe(floorY) + TORRE_MINIMA);
     }
 
     /** Se este bloco pertence a pegada da cabana (paredes incluidas). */
@@ -273,27 +325,54 @@ public record WorldTreeClimbingPost(
     private static final int FOLGA_ABAIXO = 3;
 
     /**
-     * A partir de que altura esta coluna fica limpa de folha.
+     * Ate onde acima do telhado o poco pode limpar folha.
      *
-     * <p><b>O POCO NAO TEM TETO, e isso e a decisao.</b> Limpar so uma bolha em
-     * volta da cabana deixaria ela num vazio fechado dentro da copa -- melhor que
-     * enterrada, e ainda invisivel de fora. Sem teto, a clareira vira uma coluna
-     * aberta ate o ceu: de cima se ve um buraco na copa com uma luz no fundo, de
-     * dentro entra claridade, e a folha luminosa do forro tem por onde escapar.
+     * <p><b>O POCO TINHA TETO INFINITO, E ISSO ERA UM DEFEITO.</b> Ele limpava
+     * tudo do piso para cima, sem limite: uma cabana em y=500 abria um buraco que
+     * ia ate a folhagem de um galho em y=1000 ou y=1500 -- galhos que nao tem
+     * nada a ver com ela. Sete cabanas assim viravam sete tubos atravessando a
+     * copa inteira de baixo a cima.
      *
-     * <p>DECIDIDO POR COLUNA, e nao por bloco. O laco da copa ja varre coluna por
-     * coluna; isto e uma comparacao a mais por coluna, e nenhuma por bloco.
-     *
-     * @return o menor y limpo, ou {@link Integer#MAX_VALUE} se a coluna nao toca
-     *         o poco
+     * <p>Quarenta e o alcance de um andar de copa: a prateleira mais grossa tem
+     * ~10 blocos de meia-altura e as do mesmo galho se empilham em duas ou tres.
+     * Folha acima disso pertence a OUTRO galho, e o poco a deixa em paz -- o que
+     * significa, dito em voz alta, que uma cabana pode ter copa alheia muito
+     * acima dela. Isso e deliberado: o alvo e a folha que a esconde, e nao toda
+     * folha que por acaso esteja no mesmo eixo vertical.
      */
-    public int yDoPoco(int x, int z) {
+    public static final int ALCANCE_DO_POCO = 40;
+
+    /** Minimo de torre, quando nao ha folha nenhuma para vencer. */
+    public static final int TORRE_MINIMA = 5;
+
+    /** Folga entre o mirante e o teto do poco, para a torre respirar. */
+    private static final int FOLGA_ACIMA = 3;
+
+    /** Se esta coluna cai dentro do poco desta cabana. */
+    public boolean colunaNoPoco(int x, int z) {
         int dx = x - centerX;
         int dz = z - centerZ;
-        if (dx * dx + dz * dz > RAIO_DA_CLAREIRA * RAIO_DA_CLAREIRA) {
-            return Integer.MAX_VALUE;
-        }
+        return dx * dx + dz * dz <= RAIO_DA_CLAREIRA * RAIO_DA_CLAREIRA;
+    }
+
+    /** O primeiro y que o poco limpa. */
+    public int baseDoPoco() {
         return floorY - FOLGA_ABAIXO;
+    }
+
+    /** O ultimo y que o poco limpa -- e o que faltava. */
+    public int topoDoPoco() {
+        return topoDaTorre + FOLGA_ACIMA;
+    }
+
+    /**
+     * Se este bloco cai dentro do poco.
+     *
+     * <p>DECIDIDO POR COLUNA na chamada de quem desenha: o laco da copa ja varre
+     * coluna por coluna, e a faixa vertical sai de uma consulta por coluna.
+     */
+    public boolean noPoco(int x, int y, int z) {
+        return colunaNoPoco(x, z) && y >= baseDoPoco() && y <= topoDoPoco();
     }
 
     /** Se a cabana encosta neste chunk. */

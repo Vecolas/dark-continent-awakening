@@ -64,12 +64,23 @@ public final class WorldTreeCheckpointGenerator {
         if (!post.tocaChunk(minX, minZ)) {
             return;
         }
-        BlockState piso = nobre
-                ? WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState()
-                : WorldTreeBlocks.WORLD_TREE_DEADWOOD.get().defaultBlockState();
-        BlockState parede = WorldTreeBlocks.WORLD_TREE_BARK.get().defaultBlockState();
-        BlockState canto = WorldTreeBlocks.WORLD_TREE_BARK_DARK.get().defaultBlockState();
-        BlockState teto = WorldTreeBlocks.WORLD_TREE_SAPWOOD.get().defaultBlockState();
+        // NOTA: `tocaChunk` usa RAIO (3), e o mirante tem 5x5 -- ele cabe dentro
+        // da mesma pegada. Se ele crescer, este corte precisa crescer junto, ou o
+        // mirante sai cortado na fronteira de chunk.
+        // DARK OAK, e nao os blocos da arvore. A cabana precisa ler como coisa
+        // CONSTRUIDA, e nao como um pedaco da propria arvore que por acaso ficou
+        // quadrado. Casca e cerne da World Tree tem exatamente a cor e a textura
+        // do que esta em volta dela -- era isso que fazia a estrutura sumir na
+        // massa mesmo depois de ela estar bem-feita.
+        //
+        // A folha luminosa fica: e o unico bloco daqui que a cabana usa, e ela e
+        // o farol.
+        BlockState piso = Blocks.DARK_OAK_PLANKS.defaultBlockState();
+        BlockState parede = Blocks.DARK_OAK_PLANKS.defaultBlockState();
+        BlockState canto = Blocks.DARK_OAK_LOG.defaultBlockState();
+        BlockState teto = nobre
+                ? Blocks.DARK_OAK_LOG.defaultBlockState()
+                : Blocks.DARK_OAK_PLANKS.defaultBlockState();
         BlockState lampada = WorldTreeBlocks.WORLD_TREE_LEAVES_LUMINOUS.get().defaultBlockState();
         BlockState ar = Blocks.AIR.defaultBlockState();
 
@@ -137,6 +148,59 @@ public final class WorldTreeCheckpointGenerator {
 
         escrever(chunk, posicao, post.centerX(), post.anchorY(), post.centerZ(),
                 WorldTreeBlocks.HUNTER_CLIMBING_ANCHOR.get().defaultBlockState());
+
+        levantarTorre(chunk, posicao, post, canto, piso, lampada, ar);
+    }
+
+    /**
+     * O MASTRO e o MIRANTE, acima do telhado.
+     *
+     * <p><b>POR QUE A CABANA NAO BASTA.</b> Ela fica na altura do checkpoint, e o
+     * checkpoint fica onde o galho esta -- que e dentro do andar de folhagem
+     * daquele galho. Mesmo com o poco aberto em volta, a cabana e uma caixa no
+     * fundo de um buraco: quem passa POR CIMA da copa nao ve nada, e quem passa
+     * ao lado tambem nao.
+     *
+     * <p>A torre sobe ate {@code topoDaTorre}, que e calculado para EMERGIR da
+     * folhagem local -- e esse mesmo numero e o teto do poco. Em cima dela, um
+     * mirante de 5x5 com os quatro cantos luminosos: e a silhueta que se ve de
+     * longe, e de noite e uma luz acima do mar de folhas.
+     *
+     * <p>A escada e uma espiral de um degrau por nivel em volta do mastro. Sem
+     * ela o mirante seria decoracao inalcancavel, e quem chega pela viagem rapida
+     * ficaria preso no comodo de baixo.
+     */
+    private static void levantarTorre(ChunkAccess chunk, BlockPos.MutableBlockPos posicao,
+            WorldTreeClimbingPost post, BlockState tronco, BlockState tabua,
+            BlockState lampada, BlockState ar) {
+        int centroX = post.centerX();
+        int centroZ = post.centerZ();
+        int topo = post.topoDaTorre();
+
+        // A ESCOTILHA: sem ela o comodo nao tem saida para cima e a torre vira
+        // enfeite pregado no telhado.
+        escrever(chunk, posicao, centroX + 1, post.roofY(), centroZ, ar);
+
+        int[][] volta = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        for (int y = post.roofY() + 1; y < topo; y++) {
+            escrever(chunk, posicao, centroX, y, centroZ, tronco);
+            // Um degrau por nivel, girando em volta do mastro.
+            int[] passo = volta[Math.floorMod(y - post.roofY() - 1, volta.length)];
+            escrever(chunk, posicao, centroX + passo[0], y, centroZ + passo[1], tabua);
+        }
+
+        // O MIRANTE, 5x5 com os cantos acesos.
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                boolean cantoDoMirante = Math.abs(dx) == 2 && Math.abs(dz) == 2;
+                escrever(chunk, posicao, centroX + dx, topo, centroZ + dz,
+                        cantoDoMirante ? lampada : tabua);
+                // Espaco livre acima, para caber gente em pe.
+                for (int nivel = 1; nivel <= 2; nivel++) {
+                    escrever(chunk, posicao, centroX + dx, topo + nivel, centroZ + dz, ar);
+                }
+            }
+        }
     }
 
     /**

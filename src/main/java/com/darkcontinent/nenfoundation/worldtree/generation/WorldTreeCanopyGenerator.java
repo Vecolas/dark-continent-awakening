@@ -42,6 +42,26 @@ public final class WorldTreeCanopyGenerator {
     private static final double INICIO_DA_CASCA = 0.72;
 
     /**
+     * Quantos blocos de profundidade a folha LUMINOSA alcanca, a partir de cada
+     * face da massa.
+     *
+     * <p><b>DOIS, E O NUMERO E DE ILUMINACAO, NAO DE ESTILO.</b> A copa e macica
+     * no miolo: luz nao atravessa bloco solido, entao uma folha luminosa
+     * enterrada a dez blocos de profundidade nao clareia nada que alguem veja.
+     * Ela continua custando uma propagacao de luz inteira na engine -- que e um
+     * BFS por fonte --, e a copa tem dezenas de milhoes de folhas.
+     *
+     * <p>Dois e o que sobra quando se pergunta "quantas camadas um observador
+     * chega a ver": a de fora, e a que aparece pelos buracos da erosao de casca.
+     * A TERCEIRA nunca e vista e nunca ilumina.
+     *
+     * <p>Isto NAO mexe na cobertura: o campo que sorteia quais folhas brilham
+     * continua o mesmo, e a mancha na superficie continua do tamanho que era. O
+     * que sai e so o que estava enterrado.
+     */
+    private static final int PROFUNDIDADE_LUMINOSA = 2;
+
+    /**
      * O ultimo plano calculado, guardado pela seed.
      *
      * <p><b>SEM ISTO, O PLANO INTEIRO ERA REFEITO A CADA CHUNK.</b> Sao ~700
@@ -136,6 +156,9 @@ public final class WorldTreeCanopyGenerator {
         double raio2 = shelf.radius() * shelf.radius();
         BlockState leaf = leafState(shelf.tier());
         BlockState luminous = WorldTreeBlocks.WORLD_TREE_LEAVES_LUMINOUS.get().defaultBlockState();
+        // A coluna mais alta que esta prateleira pode produzir, com folga de dois
+        // blocos para o arredondamento das bordas do laco de y.
+        int[] coluna = new int[(int) Math.ceil(shelf.topThickness() + shelf.bottomThickness()) + 4];
 
         for (int x = fromX; x < toX; x++) {
             for (int z = fromZ; z < toZ; z++) {
@@ -172,18 +195,40 @@ public final class WorldTreeCanopyGenerator {
                 double termoDaCasca = cascaNaColuna(x, z, seed);
                 double termoDoBrilho = WorldTreeFoliageTexture.termoDaColuna(x, z, seed);
 
+                // A COLUNA E COLETADA ANTES DE SER ESCRITA, e o motivo e a folha
+                // luminosa.
+                //
+                // Ela so pode existir na CASCA da massa -- os dois blocos mais
+                // externos de cada coluna. Luz 15 atravessa no maximo 15 blocos
+                // de ar e para no primeiro solido: uma folha luminosa a dez
+                // blocos de profundidade nao ilumina nada que alguem veja, e
+                // mesmo assim paga uma propagacao inteira na engine.
+                //
+                // "Os dois mais externos" nao da para saber varrendo de baixo
+                // para cima: quais blocos ficam depende de `keep`, que esgarca a
+                // borda. Os limites geometricos da coluna nao servem -- eles sao
+                // justamente onde a erosao morde mais. Entao a coluna e coletada
+                // e so depois escrita.
+                int quantos = 0;
                 for (int y = fromY; y < toY; y++) {
                     double normalized = shelf.normalizedInColumn(horizontalSquared, y);
                     if (normalized > 1.0 || !keep(normalized, termoDaCasca, x, y, z, seed)) {
                         continue;
                     }
+                    coluna[quantos++] = y;
+                }
+                for (int indice = 0; indice < quantos; indice++) {
+                    int y = coluna[indice];
                     position.set(x, y, z);
-                    if (chunk.getBlockState(position).isAir()) {
-                        chunk.setBlockState(position,
-                                WorldTreeFoliageTexture.brilha(termoDoBrilho, x, y, z, seed)
-                                        ? luminous : leaf,
-                                false);
+                    if (!chunk.getBlockState(position).isAir()) {
+                        continue;
                     }
+                    boolean naCasca = indice < PROFUNDIDADE_LUMINOSA
+                            || indice >= quantos - PROFUNDIDADE_LUMINOSA;
+                    chunk.setBlockState(position,
+                            naCasca && WorldTreeFoliageTexture.brilha(termoDoBrilho, x, y, z, seed)
+                                    ? luminous : leaf,
+                            false);
                 }
             }
         }

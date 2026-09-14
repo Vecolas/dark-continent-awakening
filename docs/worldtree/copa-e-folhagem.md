@@ -422,6 +422,37 @@ larga de propósito.
 textura, e um bloco que emite luz 15 pintado de verde escuro perde a única coisa
 que o distingue em tela.
 
+### A textura, e a profundidade de 2
+
+Duas correções pedidas depois de a folha luminosa existir.
+
+**A textura é autoral** (`art-source/worldtree/folha_luminosa.py`, ADR-007), e
+não mais uma folha do vanilla recolorida: verde escuro com manchas douradas de 2
+a 4 pixels, como glow lichen. O verde é escuro de propósito — o bloco emite luz
+15, então chega na tela já no brilho máximo, e uma textura clara estoura para
+branco e perde o desenho.
+
+O gerador errou uma vez, e o erro virou portão: a primeira versão concentrava
+buraco na **borda** do quadro, o que parece razoável para uma folha que se desfaz
+nas pontas. O bloco **ladrilha** — duas bordas vizinhas encostam, e o resultado
+foi uma **grade preta de um pixel** cortando a copa a cada 16 blocos. Olhar o
+quadro sozinho não mostra; só ladrilhar mostra. `semEmendaAoLadrilhar` existe por
+causa disso.
+
+**A folha luminosa só existe nos 2 blocos mais externos de cada coluna.** Luz não
+atravessa bloco sólido: uma folha luminosa enterrada a dez blocos de
+profundidade não clareia nada que alguém veja, e continua pagando uma propagação
+de luz inteira na engine — que é um BFS por fonte, numa copa de dezenas de
+milhões de folhas.
+
+O campo que sorteia **não mudou**: a mancha na superfície continua do tamanho que
+era. O que saiu é só o que estava enterrado.
+
+"Os dois mais externos" não dá para saber varrendo de baixo para cima — quais
+blocos ficam depende de `keep`, que esgarça a borda, e os limites *geométricos*
+da coluna são justamente onde a erosão morde mais. Por isso o laço agora **coleta
+a coluna antes de escrevê-la**.
+
 ### O índice espacial
 
 O corte por chunk sempre existiu e sempre esteve **certo** — só que era um `if`

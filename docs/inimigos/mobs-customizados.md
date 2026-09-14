@@ -104,33 +104,33 @@ conseguem medir, e arte não trava IA.
 
 ## Dívida aberta hoje
 
-| Inimigo | O que empresta | Comportamento próprio |
-| --- | --- | --- |
-| Kiriko | **nada** — duas silhuetas próprias desde o primeiro dia | julgamento: aprova quem espera, reprova quem bate |
-| Master of the Swamp | **nada** — corpo próprio desde o primeiro dia | fisgada, cabo de guerra, captura |
-| Foxbear | **nada** — modelo, esqueleto, animações, textura e renderer próprios | territorial, em jogo |
-| Great Stamp | **nada** — modelo, esqueleto, animações, textura e renderer próprios | carga, testa, manada |
-| Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
-| Man-faced Ape | **nada** — duas silhuetas próprias (disfarce humano e forma revelada) | disfarce, bando |
-| Spider Eagle | **nada** — modelo, esqueleto, animações, textura e renderer próprios | ninho, mergulho, coleira |
+**Nenhuma.** As 24 criaturas registradas têm modelo, esqueleto, animações,
+textura, renderer e voz próprios. `PlaceholderDeclaradoTest` varre a fonte e não
+encontra um único `PLACEHOLDER` de identidade — e ele morde dos dois lados, então
+o vazio desta tabela é uma afirmação verificada, e não uma tabela que ninguém
+atualizou.
 
-A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
-tabela é para leitura humana e pode envelhecer; aquela não pode.
+| Grupo | Criaturas | Corpo próprio | Comportamento próprio |
+| --- | --- | --- | --- |
+| Exame Hunter | Kiriko, Master of the Swamp, Foxbear, Great Stamp, Frog-In-Waiting, Man-faced Ape, Spider Eagle | 7 de 7 | julgamento, fisgada, território, carga, emboscada, disfarce, ninho |
+| Greed Island | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, King White Stag Beetle, Wolf Pack Hunter | 7 de 7 | cone de visão, esporo, camuflagem, alarme, fuga viva, tombo, matilha |
+| Chimera (peões) | Crab Heavy, Bat Scout, Wolf Runner | 3 de 3 | linha de frente, relato, flanco |
+| Chimera (oficiais) | Spider Webber, Mosquito Officer, Multiarm Centipede, Cheetah Leader, Scorpion Leader, Avian Commander | 6 de 6 | teia, dreno, sequência, arranque, ferrão, comando aéreo |
+| Ferramenta | Boneco de Treino | 1 de 1 | fases visíveis, sem IA de propósito |
 
-**A dívida visual fechou: os sete têm corpo próprio.** Nenhum deles, porém, é
-DONE pela ficha acima: faltam **sons próprios**. Os sete são silenciosos — não
-emprestam som de vanilla, simplesmente não emitem.
+**A dívida de som fechou, e vale dizer como.** A frase que ficou aqui por meses —
+"bloqueado por ferramenta" — envelheceu sem que nada acusasse, e uma dívida com a
+causa errada escrita ao lado dela não é lembrete: é desculpa. O bloqueio real
+nunca foi `ffmpeg`: era escopo. Hoje as 24 criaturas têm cinco momentos cada
+(ambiente, alerta, ataque, dano, morte), 120 arquivos Ogg Vorbis sintetizados por
+`art-source/sons/`, validados no cabeçalho e **reproduzíveis byte a byte** —
+`art-source/verificar.py` regera tudo e compara md5.
 
-**O bloqueio de ferramenta CAIU, e a dívida continua.** A máquina segue sem
-`ffmpeg` e sem `oggenc`, mas `pip install soundfile` traz o `libsndfile`, e ele
-escreve OGG Vorbis de verdade — conferido no cabeçalho (`OggS…vorbis`). O que
-impedia era ambiente; agora o que falta é ESCOPO: identidade sonora é EN13
-(#148), e um `.wav` renomeado continuaria carregando mudo, que é o falso verde
-que este projeto passa o dia evitando.
-
-Registrar isso aqui importa porque a frase anterior — "bloqueado por
-ferramenta" — envelheceu sem que nada acusasse. Uma dívida com a causa errada
-escrita ao lado dela não é lembrete: é desculpa.
+Esse "byte a byte" também custou uma correção: a primeira versão afirmava
+determinismo total e estava **errada** em 120 arquivos. O `libsndfile` sorteia o
+serial do fluxo Ogg a cada escrita, então 24 bytes por arquivo mudavam enquanto o
+áudio decodificado era idêntico. Quem descobriu foi a régua, não a revisão — e é
+por isso que a régua roda.
 
 **Uma fila, e não duas.** Até a issue #266 o Foxbear era registrado num
 `DeferredRegister` próprio, num pacote paralelo ao dos outros seis. As duas filas
@@ -141,6 +141,26 @@ modifier, ou seja, **sem nascer no mundo**, sem que nada reprovasse. Hoje o
 registro é um só, e `FilaUnicaDeInimigosTest` reprova o segundo — e também o mob
 que entre na fila sem atributos, placement, perfil publicado, loot ou tradução.
 
-A coerência do que ele ganhou é cobrada por `CoerenciaDeGeckoLibTest`, que
-descobre os mobs no disco: quem ganhar um `.geo.json` entra na varredura sem
-que ninguém precise lembrar.
+---
+
+## Os dois portões de corpo, e por que são dois
+
+`CoerenciaDeGeckoLibTest` descobre os mobs **no disco**: ele varre os
+`.geo.json` existentes e cobra, para cada um, animação, textura, ossos e clipes
+coerentes. É a escolha certa para o que ele mede — quem ganhar um `.geo.json`
+entra na varredura sem que ninguém precise lembrar.
+
+Mas ela tem uma consequência que só aparece do outro lado: **uma criatura sem geo
+nenhum não é varrida.** Ela some da conta, o portão fica verde, e o mob é
+invisível em jogo. Foi exatamente o estado em que as dezesseis criaturas novas
+existiram por um tempo: registradas, com atributos, loot, tradução, voz, ficha de
+bestiário e perfil publicado — e sem corpo. Todos os portões aprovavam, porque
+cada um media a coluna dele e **nenhum media a ausência**.
+
+`CorpoDeTodoInimigoTest` fecha isso varrendo a lista de **publicados**, e não o
+disco. A diferença é a regra inteira:
+
+> A fonte da varredura tem de ser **o que deveria existir**, e não o que existe.
+
+Ele também trava a contagem em 24: um mob removido por engano aparece como
+reprovação, e não como uma varredura menor.

@@ -15,11 +15,13 @@ medir.
 | Eixo | Estado |
 | --- | --- |
 | Ids registrados | **24** (7 do exame + 7 de Greed Island + 9 de Chimera + o Boneco de Treino) |
-| Corpo próprio (geo + animação + textura) | os 7 do exame, o boneco, e os 7 de Greed Island |
+| Corpo próprio (geo + animação + textura) | **24 de 24** |
 | Voz (5 sons cada) | **24 de 24**, todos Ogg Vorbis validados byte a byte |
-| Comportamento da própria ficha | os 7 do exame, o boneco, os 7 de Greed Island |
-| Loot, tradução, perfil publicado, renderer | 24 de 24 |
-| Testes JUnit | 1.087 executados |
+| Comportamento da própria ficha | **24 de 24** |
+| Loot, tradução, perfil publicado, renderer, ficha de bestiário | 24 de 24 |
+| Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
+| Assets reproduzíveis byte a byte | **199 de 199** |
+| Testes JUnit | **1.377 executados, 0 falhas** |
 | GameTests escritos / **executados** | 11 / **0** |
 
 ---
@@ -39,11 +41,19 @@ provados por ida e volta **em memória**. O gate de EN4 — *reiniciar o servido
 meio de um encontro sem duplicar entidade nem recompensa* — é exatamente o que
 esses testes não podem fazer.
 
-### 3. Os nove de Chimera não têm corpo nem comportamento
+### 3. ~~Os nove de Chimera não têm corpo nem comportamento~~ — FECHADO
 
-Estão registrados, com voz, loot, tradução, perfil e molde genético — e o
-javadoc de cada entidade diz, em maiúsculas, que ela é andaime. Em jogo eles são
-invisíveis.
+Os nove ganharam geo, esqueleto, animações, textura, renderer e comportamento
+próprio. Nenhum `PLACEHOLDER` de identidade sobrou no repositório, e nenhum
+javadoc diz mais "ANDAIME DECLARADO".
+
+**O que esse bloqueio ensinou fica:** enquanto durou, *todos* os portões
+aprovavam aqueles nove. Cada régua media a coluna dela — tradução, loot, perfil,
+voz, fila única — e **nenhuma media a ausência de corpo**, porque
+`CoerenciaDeGeckoLibTest` descobre os mobs varrendo o disco e quem não tem
+`.geo.json` simplesmente não entra na varredura. `CorpoDeTodoInimigoTest` fecha
+isso varrendo a lista de publicados. A regra geral que sobra é maior que o caso:
+**a fonte de uma varredura tem de ser o que deveria existir, não o que existe.**
 
 ### 4. Nenhuma criatura nova nasce sozinha
 
@@ -84,11 +94,11 @@ Da lista da issue `#151`:
 | Item | Pode marcar? |
 | --- | --- |
 | 23 definitions | ✅ 24 ids, todos com ficha completa |
-| 23 assets | 🟡 15 de 24 têm corpo; **todos** têm voz |
+| 23 assets | ✅ 24 de 24 com corpo e voz próprios, 199 assets reproduzíveis byte a byte |
 | 23 recompensas | ⬜ há loot e card; não há recompensa de quest nem de bestiário por criatura |
 | descoberta natural | ⬜ não há gatilho de mundo |
 | GI isolada | ✅ dimensão própria, perfil `ENCOUNTER_ONLY`, portão amarrando constante e datapack |
-| Chimera com colônia | ⬜ domínio completo, sem entidade |
+| Chimera com colônia | 🟡 as nove entidades existem; o domínio da colônia continua sem produtor |
 | Nen real | 🟡 decide, não ativa |
 | Bestiário progressivo | ✅ entregue por outra frente |
 | sem dupe | 🟡 provado por regra, não por restart real |
@@ -97,6 +107,27 @@ Da lista da issue `#151`:
 | new/existing world, três restarts, dimensão/unload/death/relog | ⬜ nenhum executado |
 | 4 players | ⬜ |
 | smoke dedicado de 2h | ⬜ |
+
+---
+
+---
+
+## O oitavo bloqueio que este documento não previa
+
+Ele não estava na lista porque ninguém sabia dele: **quatorze dos dezessete
+perfis de interrupção nunca disparavam.** Não por um bug de código — por
+aritmética. O decaimento entre dois golpes comia mais do que um golpe somava, e o
+acumulado subia e voltava a zero para sempre.
+
+Isso não deu erro, não apareceu em teste unitário (eles alimentam o acumulador
+direto, e provam que a *máquina* funciona) e não apareceria em playtest, porque
+ninguém reporta "o stagger não funciona" — reporta-se "esse bicho é chato".
+
+Está corrigido, com régua (`StaggerAlcancavelTest`) e com a derivação movida para
+`StaggerPorPapel`, onde um perfil morto deixou de ser possível de **escrever**.
+Mas ele fica registrado aqui pelo que diz sobre os outros sete: **esta lista é o
+que sabemos que falta, e não o que falta.** Um oitavo item apareceu depois de a
+lista estar escrita, achado por uma régua nova e não por revisão.
 
 ---
 

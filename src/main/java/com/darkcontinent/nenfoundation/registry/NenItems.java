@@ -28,6 +28,17 @@ public final class NenItems {
     public static final DeferredHolder<Item, Item> SWAMP_FIELD_NOTE = note("master_of_the_swamp_field_note", "master_of_the_swamp");
     public static final DeferredHolder<Item, Item> SPIDER_EAGLE_FIELD_NOTE = note("spider_eagle_field_note", "spider_eagle");
 
+    /**
+     * UM item para os vinte e tres cards, e a identidade mora no dado.
+     *
+     * <p>Um registro por criatura daria vinte e tres entradas aqui, e cada card
+     * novo exigiria tocar neste arquivo -- que e hostil a merge. Com um item so,
+     * acrescentar um card e acrescentar um dado.</p>
+     */
+    public static final DeferredHolder<Item, Item> GREED_ISLAND_CARD = ITEMS.register(
+            "greed_island_card",
+            () -> new com.darkcontinent.nenfoundation.item.GreedIslandCardItem(new Item.Properties()));
+
     private static DeferredHolder<Item, Item> note(String itemId, String entryId) {
         return ITEMS.register(itemId, () -> new FieldNoteItem(new Item.Properties(),
                 NenFoundation.id(entryId), 3));
@@ -50,6 +61,7 @@ public final class NenItems {
             evento.accept(APE_FIELD_NOTE.get());
             evento.accept(SWAMP_FIELD_NOTE.get());
             evento.accept(SPIDER_EAGLE_FIELD_NOTE.get());
+            evento.accept(GREED_ISLAND_CARD.get());
         }
         if (evento.getTabKey() == net.minecraft.world.item.CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             evento.accept(NenBlocks.RESEARCH_TABLE_ITEM.get());

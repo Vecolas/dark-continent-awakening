@@ -2,6 +2,13 @@ package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CyclopsEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.HyperPuffballEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MelaninLizardEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.RadioRatEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BubbleHorseEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KingWhiteStagBeetleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfPackHunterEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -106,6 +113,53 @@ public final class EnemyEntityTypes {
             TYPES.register("dummy_enemy",
                     () -> EntityType.Builder.of(DummyEnemyEntity::new, MobCategory.MISC)
                             .sized(0.8F, 1.9F).build(NenFoundation.id("dummy_enemy").toString()));
+
+
+    // ------------------------------------------------- Greed Island (EN6)
+    //
+    // As sete usam MobCategory.MISC, e isso e a SEGUNDA tranca do mesmo cadeado
+    // que SpawnProfile.ENCOUNTER_ONLY ja fecha: MISC nao tem lista de spawn de
+    // bioma para o biome modifier alimentar. Duas trancas porque o vazamento
+    // nao daria erro nenhum -- encheria o Overworld de criatura da ilha, e cada
+    // uma seria uma entidade legitima.
+    //
+    // As caixas saem da ficha de cada bicho e MANDAM no modelo: o gerador de
+    // geometria reprova um corpo que estoure a hitbox declarada aqui.
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CyclopsEntity>> CYCLOPS =
+            TYPES.register("cyclops",
+                    () -> EntityType.Builder.of(CyclopsEntity::new, MobCategory.MISC)
+                            .sized(1.8F, 4.2F).build(NenFoundation.id("cyclops").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HyperPuffballEntity>> HYPER_PUFFBALL =
+            TYPES.register("hyper_puffball",
+                    () -> EntityType.Builder.of(HyperPuffballEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.2F).build(NenFoundation.id("hyper_puffball").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MelaninLizardEntity>> MELANIN_LIZARD =
+            TYPES.register("melanin_lizard",
+                    () -> EntityType.Builder.of(MelaninLizardEntity::new, MobCategory.MISC)
+                            .sized(1.6F, 0.8F).build(NenFoundation.id("melanin_lizard").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<RadioRatEntity>> RADIO_RAT =
+            TYPES.register("radio_rat",
+                    () -> EntityType.Builder.of(RadioRatEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 0.5F).build(NenFoundation.id("radio_rat").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BubbleHorseEntity>> BUBBLE_HORSE =
+            TYPES.register("bubble_horse",
+                    () -> EntityType.Builder.of(BubbleHorseEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.8F).build(NenFoundation.id("bubble_horse").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KingWhiteStagBeetleEntity>> KING_WHITE_STAG_BEETLE =
+            TYPES.register("king_white_stag_beetle",
+                    () -> EntityType.Builder.of(KingWhiteStagBeetleEntity::new, MobCategory.MISC)
+                            .sized(1.6F, 1.4F).build(NenFoundation.id("king_white_stag_beetle").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WolfPackHunterEntity>> WOLF_PACK_HUNTER =
+            TYPES.register("wolf_pack_hunter",
+                    () -> EntityType.Builder.of(WolfPackHunterEntity::new, MobCategory.MISC)
+                            .sized(0.9F, 0.9F).build(NenFoundation.id("wolf_pack_hunter").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

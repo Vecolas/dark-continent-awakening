@@ -1,7 +1,15 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
+import com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CyclopsEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.HyperPuffballEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MelaninLizardEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.RadioRatEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BubbleHorseEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KingWhiteStagBeetleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfPackHunterEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -35,6 +43,13 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FOXBEAR.get(), FoxbearEntity.createAttributes().build());
         event.put(EnemyEntityTypes.DUMMY_ENEMY.get(), DummyEnemyEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.CYCLOPS.get(), CyclopsEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.HYPER_PUFFBALL.get(), HyperPuffballEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MELANIN_LIZARD.get(), MelaninLizardEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.RADIO_RAT.get(), RadioRatEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.BUBBLE_HORSE.get(), BubbleHorseEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(), KingWhiteStagBeetleEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.WOLF_PACK_HUNTER.get(), WolfPackHunterEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -101,6 +116,25 @@ public final class EnemyEntityEvents {
         // DECIDIU isso, em vez de ver um id simplesmente ausente.
         semPlacementNatural(EnemyEntityTypes.DUMMY_ENEMY.get(),
                 HunterExamProfiles.dummyEnemy().spawnRule());
+
+        // As sete da ilha fecham a fila pelo MESMO caminho declarado: nenhuma
+        // delas nasce pelo mundo, e a linha existe para o portao poder ver que
+        // alguem DECIDIU isso, em vez de ver sete ids simplesmente ausentes.
+        semPlacementNatural(EnemyEntityTypes.CYCLOPS.get(),
+                GreedIslandProfiles.cyclops().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.HYPER_PUFFBALL.get(),
+                GreedIslandProfiles.hyperPuffball().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MELANIN_LIZARD.get(),
+                GreedIslandProfiles.melaninLizard().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.RADIO_RAT.get(),
+                GreedIslandProfiles.radioRat().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.BUBBLE_HORSE.get(),
+                GreedIslandProfiles.bubbleHorse().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(),
+                GreedIslandProfiles.kingWhiteStagBeetle().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.WOLF_PACK_HUNTER.get(),
+                GreedIslandProfiles.wolfPackHunter().spawnRule());
+
     }
 
 

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
+import com.darkcontinent.nenfoundation.enemy.content.EnemyCatalog;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import java.nio.charset.StandardCharsets;
@@ -128,7 +129,7 @@ class SpawnProfileTest {
     @Test
     @DisplayName("PORTAO: quem nao entra na lista de bioma nao tem biome modifier")
     void quemNaoNasceSozinhoNaoTemModifier() {
-        Map<String, EnemyDefinition> publicados = HunterExamProfiles.publicados();
+        Map<String, EnemyDefinition> publicados = EnemyCatalog.publicados();
         assertFalse(publicados.isEmpty(), "Varredura vazia nao e aprovacao.");
 
         List<Path> modificadores = Repo.varrer(MODIFICADORES.toString(), ".json");
@@ -151,7 +152,7 @@ class SpawnProfileTest {
     @Test
     @DisplayName("PORTAO: todo perfil publicado declara explicitamente o seu SpawnProfile")
     void todoPublicadoDeclaraPerfil() {
-        for (Map.Entry<String, EnemyDefinition> entrada : HunterExamProfiles.publicados().entrySet()) {
+        for (Map.Entry<String, EnemyDefinition> entrada : EnemyCatalog.publicados().entrySet()) {
             SpawnProfile perfil = entrada.getValue().spawnRule().profile();
             assertTrue(perfil != null, entrada.getKey() + " sem perfil de spawn");
             // Coerencia minima que o compilador nao pega: quem exige agua no ambiente

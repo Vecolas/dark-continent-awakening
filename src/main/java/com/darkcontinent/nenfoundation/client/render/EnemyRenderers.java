@@ -19,5 +19,16 @@ public final class EnemyRenderers {
         evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity.registeredType(), MasterOfTheSwampRenderer::new);
         evento.registerEntityRenderer(com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity.registeredType(), KirikoRenderer::new);
         evento.registerEntityRenderer(EnemyEntityTypes.DUMMY_ENEMY.get(), DummyEnemyRenderer::new);
+        // As sete de Greed Island. Todas com renderer proprio desde o primeiro
+        // dia: o ADR-017 e claro que mob vestindo corpo vanilla e andaime, e
+        // andaime que nasce depois da regra ja nasce divida.
+        evento.registerEntityRenderer(EnemyEntityTypes.CYCLOPS.get(), CyclopsRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.HYPER_PUFFBALL.get(), HyperPuffballRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.MELANIN_LIZARD.get(), MelaninLizardRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.RADIO_RAT.get(), RadioRatRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.BUBBLE_HORSE.get(), BubbleHorseRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(), KingWhiteStagBeetleRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.WOLF_PACK_HUNTER.get(), WolfPackHunterRenderer::new);
+
     }
 }

@@ -65,8 +65,7 @@ public final class WorldTreeBaseChunkEvents {
         if (data.isBaseChunkGenerated(chunk.toLong())) {
             return;
         }
-        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(level.getSeed(),
-                data.overworldOriginX(), data.overworldOriginZ());
+        WorldTreeLayout layout = data.layoutForGeneration(level.getSeed());
         WorldTreeBaseGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
         WorldTreeGroveGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);
         WorldTreeCampGenerator.generateChunk(level.getChunk(chunk.x, chunk.z), layout);

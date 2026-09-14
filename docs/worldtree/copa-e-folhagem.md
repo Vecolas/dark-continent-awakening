@@ -211,6 +211,36 @@ diferentes, e confundir as duas afrouxa portão bom.**
 
 ---
 
+## 5-C. A integração com a outra frente
+
+Este trabalho e o da outra frente atacaram o **mesmo problema em paralelo**, sem
+saber um do outro. A branch `feature/world-tree-dimension` recebeu, no mesmo dia,
+um sistema próprio de folhagem: `WorldTreeFoliageAnchor`,
+`WorldTreeFoliageAnchorGenerator` e `WorldTreeFoliageValidation`.
+
+O que ficou, e por quê:
+
+| Peça | De quem | Motivo |
+| --- | --- | --- |
+| geometria da copa (prateleiras) | desta frente | tem silhueta renderizada e 16 portões em 20 seeds |
+| hierarquia de galhos (`branchNodes`) | da outra frente | é uma árvore de verdade, e melhor que a derivação anterior |
+| modelos de item, loot, aba do criativo, cor da folha | da outra frente | ortogonal, e esta frente não tinha |
+| correções de checkpoint e de viagem | da outra frente | ortogonais |
+
+> **Fica uma decisão em aberto, e ela é das duas pessoas, não de quem integrou:**
+> `WorldTreeFoliageAnchor` + `AnchorGenerator` + `FoliageValidation` continuam no
+> repositório e **ninguém os chama** — o caminho de geração usa o plano de
+> prateleiras. Duas autoridades sobre a mesma coisa é o que o `CLAUDE.md` proíbe
+> na primeira página. Uma das duas tem de sair, e apagar o código de outra pessoa
+> unilateralmente seria pior do que deixar isso escrito aqui.
+
+E uma correção que veio de graça na integração: `WorldTreeBranchNetwork` chamava
+`WorldTreeRootGenerator.bezier`, arrastando `ChunkAccess` para dentro da
+matemática de layout. O desenhador de silhueta morria com
+`NoClassDefFoundError`. Agora ele chama a própria spline.
+
+---
+
 ## 6. O que este documento NÃO promete
 
 - **Aparência não vira verde.** O portão mede geometria, não beleza. A aprovação

@@ -3,6 +3,8 @@ package com.darkcontinent.nenfoundation.worldtree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBranchNetwork;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeFoliageAnchorGenerator;
 
 /** Gera o contrato de layout sem estado global ou dependencia de chunks. */
 public final class WorldTreeLayoutGenerator {
@@ -25,6 +27,9 @@ public final class WorldTreeLayoutGenerator {
         WorldTreeTrunkProfile trunk = new WorldTreeTrunkProfile(48, 1200, 30.0, 14.0);
         List<WorldTreeSpline> roots = generateRoots(random);
         List<WorldTreeSpline> branches = generateBranches(random);
+        List<WorldTreeBranchNode> branchNodes = WorldTreeBranchNetwork.generateGraph(seed, trunk, branches);
+        List<WorldTreeFoliageAnchor> foliageAnchors = WorldTreeFoliageAnchorGenerator.generate(
+                seed, branchNodes);
         List<WorldTreeHollow> hollows = generateHollows(random);
         List<WorldTreeLandmark> landmarks = List.of(
                 new WorldTreeLandmark("base", 48, 0.0, 0.0),
@@ -33,7 +38,7 @@ public final class WorldTreeLayoutGenerator {
                 new WorldTreeLandmark("crown", 1250, 0.0, 0.0),
                 new WorldTreeLandmark("summit", 1450, 0.0, 0.0));
         return new WorldTreeLayout(seed, generationVersion, overworldOriginX, overworldOriginZ,
-                trunk, roots, branches, hollows, landmarks);
+                trunk, roots, branches, branchNodes, foliageAnchors, hollows, landmarks);
     }
 
     private static List<WorldTreeSpline> generateRoots(SplittableRandom random) {
@@ -71,20 +76,30 @@ public final class WorldTreeLayoutGenerator {
                 double y = zone == WorldTreeZone.SUMMIT
                         ? 1450.0
                         : random.nextDouble(zone.minY() + 20.0, zone.maxYExclusive() - 20.0);
-            double length = random.nextDouble(80.0, 201.0);
-            double dx = Math.cos(angle);
-            double dz = Math.sin(angle);
-                double startDistance = zone == WorldTreeZone.SUMMIT ? 0.0 : 12.0;
+                double length = random.nextDouble(80.0, 201.0);
+                double dx = Math.cos(angle);
+                double dz = Math.sin(angle);
+                double localTrunkRadius = trunkRadiusAt(y);
+                double startDistance = Math.max(0.0, localTrunkRadius * 0.45);
+                double startRadius = localTrunkRadius * (zone == WorldTreeZone.SUMMIT
+                        ? 0.48 : 0.56);
+                double endRadius = Math.max(WorldTreeBranchNetwork.MIN_TIP_RADIUS,
+                        startRadius * random.nextDouble(0.18, 0.32));
                 branches.add(new WorldTreeSpline(List.of(
                         new WorldTreePoint(dx * startDistance, y, dz * startDistance),
-                        new WorldTreePoint(dx * 35.0, y + random.nextDouble(-12.0, 18.0), dz * 35.0),
-                        new WorldTreePoint(dx * length * 0.65, y + random.nextDouble(8.0, 42.0),
-                                dz * length * 0.65),
-                        new WorldTreePoint(dx * length, y + random.nextDouble(12.0, 55.0), dz * length)),
-                        random.nextDouble(12.0, 30.0), random.nextDouble(4.0, 9.0)));
+                        new WorldTreePoint(dx * (startDistance + length * 0.26), y + random.nextDouble(-8.0, 12.0), dz * (startDistance + length * 0.26)),
+                        new WorldTreePoint(dx * (startDistance + length * 0.62), y + random.nextDouble(8.0, 34.0),
+                                dz * (startDistance + length * 0.62)),
+                        new WorldTreePoint(dx * (startDistance + length), y + random.nextDouble(12.0, 48.0), dz * (startDistance + length))),
+                        startRadius, endRadius));
             }
         }
         return branches;
+    }
+
+    private static double trunkRadiusAt(double y) {
+        double t = Math.max(0.0, Math.min(1.0, (y - 48.0) / (1200.0 - 48.0)));
+        return 30.0 + (14.0 - 30.0) * t;
     }
 
     private static List<WorldTreeHollow> generateHollows(SplittableRandom random) {

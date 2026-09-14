@@ -30,7 +30,7 @@ public final class WorldTreeFoliagePlan {
      * e a sobreposicao caia para 0,20 -- dedos. A contagem e o que controla o
      * espacamento, porque os t sao distribuidos entre o primeiro e o ultimo.
      */
-    private static final int PRATELEIRAS_POR_GALHO_MAIOR = 9;
+    private static final int PRATELEIRAS_POR_GALHO_MAIOR = 11;
 
     /**
      * Prateleiras por subgalho.
@@ -40,7 +40,7 @@ public final class WorldTreeFoliagePlan {
      * sobreposicao caia para 0,30. Cada contagem aqui e um espacamento, porque os
      * t sao distribuidos entre o primeiro e o ultimo.
      */
-    private static final int PRATELEIRAS_POR_SUBGALHO = 4;
+    private static final int PRATELEIRAS_POR_SUBGALHO = 5;
 
     /**
      * Onde a primeira prateleira do galho maior nasce.
@@ -179,7 +179,7 @@ public final class WorldTreeFoliagePlan {
             // iguais" de "coroa concentrada no alto", e foi a projecao lateral
             // que mostrou -- nenhum dos portoes numericos reprovava o pinheiro,
             // porque cada prateleira, sozinha, estava correta.
-            double radius = (27.0 + branchRadius * 2.1 + unit(mixed) * 9.0)
+            double radius = (31.0 + branchRadius * 2.1 + unit(mixed) * 9.0)
                     * taper * scale * escalaPorAltitude(axis.y());
 
             // O PISO E RELATIVO AO GALHO, e nao um numero fixo -- e este foi o
@@ -235,7 +235,7 @@ public final class WorldTreeFoliagePlan {
             // Um deslocamento lateral pequeno, para a fila de discos nao ficar
             // reta demais. Limitado a uma fracao do raio para nao criar ilha.
             double heading = branch.headingRadians();
-            double lateral = signed(mixed >>> 24) * radius * 0.22;
+            double lateral = signed(mixed >>> 24) * radius * 0.30;
             double centerX = axis.x() - Math.sin(heading) * lateral;
             double centerZ = axis.z() + Math.cos(heading) * lateral;
 

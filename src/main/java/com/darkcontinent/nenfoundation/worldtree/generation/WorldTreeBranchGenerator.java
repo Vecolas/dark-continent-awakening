@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.worldtree.generation;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeBranchNode;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeSpline;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkProfile;
@@ -9,7 +10,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 
 /** Gera galhos major por splines cubicas, somente no chunk solicitado. */
 public final class WorldTreeBranchGenerator {
-    private static final int SAMPLE_COUNT = 96;
+    private static final int MAX_SAMPLE_COUNT = 96;
     /**
      * Ate onde a MADEIRA e desenhada, a partir do eixo.
      *
@@ -38,10 +39,13 @@ public final class WorldTreeBranchGenerator {
             if (!chunkIntersectsSpline(minX, maxX, minZ, maxZ, spline)) {
                 continue;
             }
-            generateAttachment(chunk, position, minX, minZ, maxX, maxZ, spline, layout);
             generateSpline(chunk, position, minX, minZ, maxX, maxZ, spline, layout);
         }
-        for (WorldTreeSpline spline : WorldTreeBranchNetwork.secondaryAndTertiary(layout)) {
+        for (WorldTreeBranchNode node : layout.branchNodes()) {
+            if (node.isPrimary()) {
+                continue;
+            }
+            WorldTreeSpline spline = node.spline();
             if (!chunkIntersectsSpline(minX, maxX, minZ, maxZ, spline)) {
                 continue;
             }
@@ -49,13 +53,15 @@ public final class WorldTreeBranchGenerator {
         }
     }
 
-    private static void generateSpline(ChunkAccess chunk, BlockPos.MutableBlockPos position,
+        private static void generateSpline(ChunkAccess chunk, BlockPos.MutableBlockPos position,
             int minX, int minZ, int maxX, int maxZ, WorldTreeSpline spline,
             WorldTreeLayout layout) {
-            for (int sample = 0; sample <= SAMPLE_COUNT; sample++) {
-                double t = (double) sample / SAMPLE_COUNT;
+            int sampleCount = sampleCount(spline);
+            int sectionCount = sectionCount(spline);
+            for (int sample = 0; sample <= sampleCount; sample++) {
+                double t = (double) sample / sampleCount;
                 WorldTreePoint point = bezier(spline, t);
-                double radius = radiusAt(spline, t);
+                double radius = sectionedRadiusAt(spline, t, sectionCount);
                 int fromX = Math.max(minX, (int) Math.floor(point.x() - radius - 1.0));
                 int toX = Math.min(maxX, (int) Math.ceil(point.x() + radius + 1.0));
                 int fromZ = Math.max(minZ, (int) Math.floor(point.z() - radius - 1.0));
@@ -63,8 +69,11 @@ public final class WorldTreeBranchGenerator {
                 int verticalRadius = (int) Math.ceil(radius * 0.72) + 1;
                 for (int x = fromX; x < toX; x++) {
                     for (int z = fromZ; z < toZ; z++) {
-                        double horizontal = Math.hypot(x - point.x(), z - point.z());
-                        if (horizontal > radius + 1.0) {
+                        double horizontalX = x - point.x();
+                        double horizontalZ = z - point.z();
+                        double horizontalSquared = horizontalX * horizontalX
+                                + horizontalZ * horizontalZ;
+                        if (horizontalSquared > (radius + 1.0) * (radius + 1.0)) {
                             continue;
                         }
                         int bottom = Math.max(chunk.getMinBuildHeight(),
@@ -73,8 +82,10 @@ public final class WorldTreeBranchGenerator {
                                 (int) Math.ceil(point.y()) + verticalRadius + 1);
                         for (int y = bottom; y < top; y++) {
                             double irregular = 1.0 + 0.08 * Math.sin(x * 0.37 + z * 0.19 + y * 0.11);
-                            double normalized = Math.pow(horizontal / (radius * irregular), 2.0)
-                                    + Math.pow((y - point.y()) / (radius * 0.72 * irregular), 2.0);
+                            double normalizedX = horizontalX / (radius * irregular);
+                            double normalizedY = (y - point.y()) / (radius * 0.72 * irregular);
+                            double normalized = normalizedX * normalizedX
+                                    + normalizedY * normalizedY;
                             if (normalized <= 1.0) {
                                 position.set(x, y, z);
                                 var state = WorldTreeTrunkGenerator.stateForNormalized(
@@ -88,6 +99,59 @@ public final class WorldTreeBranchGenerator {
                 }
             }
         }
+
+    private static int sampleCount(WorldTreeSpline spline) {
+        double length = 0.0;
+        var points = spline.controlPoints();
+        for (int i = 1; i < points.size(); i++) {
+            WorldTreePoint previous = points.get(i - 1);
+            WorldTreePoint current = points.get(i);
+            length += Math.sqrt(square(current.x() - previous.x())
+                    + square(current.y() - previous.y())
+                    + square(current.z() - previous.z()));
+        }
+        // A cross-section every ~1.5 blocks overlaps the previous one even at
+        // the minimum radius, preventing disconnected voxel tips.
+        return Math.max(16, Math.min(MAX_SAMPLE_COUNT, (int) Math.ceil(length / 1.5)));
+    }
+
+    private static int sectionCount(WorldTreeSpline spline) {
+        double length = 0.0;
+        var points = spline.controlPoints();
+        for (int i = 1; i < points.size(); i++) {
+            WorldTreePoint previous = points.get(i - 1);
+            WorldTreePoint current = points.get(i);
+            length += Math.sqrt(square(current.x() - previous.x())
+                    + square(current.y() - previous.y())
+                    + square(current.z() - previous.z()));
+        }
+        return Math.max(6, (int) Math.ceil(length / 10.0));
+    }
+
+    /**
+     * Keeps short sections at a readable thickness instead of producing a
+     * triangular taper. The profile still narrows overall, but each section
+     * behaves like a deformed cylinder and overlaps its neighbors.
+     */
+    private static double sectionedRadiusAt(WorldTreeSpline spline, double t, int sections) {
+        if (t >= 1.0) {
+            return spline.endRadius();
+        }
+        double scaled = t * sections;
+        int section = Math.min(sections - 1, (int) Math.floor(scaled));
+        double sectionStart = section / (double) sections;
+        double within = scaled - section;
+        double smooth = within * within * (3.0 - 2.0 * within) * 0.55;
+        double current = radiusAt(spline, sectionStart);
+        double next = radiusAt(spline, (section + 1.0) / sections);
+        double radius = current + (next - current) * smooth;
+        double deformation = 1.0 + 0.035 * Math.sin(section * 12.9898 + spline.startRadius());
+        return Math.max(spline.endRadius(), radius * deformation);
+    }
+
+    private static double square(double value) {
+        return value * value;
+    }
 
     /**
      * Liga cada galho ao eixo vivo da árvore. Galhos da Crown/Summit podem

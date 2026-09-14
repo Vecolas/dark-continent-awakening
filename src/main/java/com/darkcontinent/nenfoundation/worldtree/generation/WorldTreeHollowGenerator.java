@@ -64,15 +64,17 @@ public final class WorldTreeHollowGenerator {
         WorldTreeTrunkProfile trunk = layout.trunk();
         for (int x = fromX; x < toX; x++) {
             for (int z = fromZ; z < toZ; z++) {
+                double dx = x - centerX;
+                double dz = z - centerZ;
                 boolean inside = hollow == null
-                        ? Math.hypot(x - centerX, z - centerZ) <= radiusX
+                        ? dx * dx + dz * dz <= radiusX * radiusX
                         : hollow.contains(x, y, z);
                 if (!inside) {
                     continue;
                 }
                 double trunkRadius = WorldTreeTrunkGenerator.irregularRadius(
                         trunk.radiusAt(y), x, y, z, layout.seed());
-                if (Math.hypot(x, z) + 0.75 >= trunkRadius) {
+                if (Math.sqrt(x * (double) x + z * (double) z) + 0.75 >= trunkRadius) {
                     continue;
                 }
                 position.set(x, y, z);

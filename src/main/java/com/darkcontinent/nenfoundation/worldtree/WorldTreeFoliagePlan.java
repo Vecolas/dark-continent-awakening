@@ -329,22 +329,38 @@ public final class WorldTreeFoliagePlan {
             WorldTreeLayout layout, int branchId) {
         int bottom = 1120;
         int top = 1460;
-        // DEZESSEIS, E NAO DEZ. Com dez, o espacamento vertical era ~38 blocos
-        // contra meias-alturas de ~10 a ~20: sobrava ate 23 blocos de LIDER NU
-        // entre um degrau e o seguinte, em todas as vinte seeds. O portao da luva
-        // nao via, porque ele mede distancia HORIZONTAL -- e a pilha da coroa e
-        // vertical por construcao. Ver `semVaoNaPilhaDoLider`.
-        int steps = 16;
+        // VINTE E SEIS, E ERAM DEZESSEIS -- e a contagem SUBIU porque a espessura
+        // desceu.
+        //
+        // A pilha da coroa nao pode ter vao vertical (`semVaoNaPilhaDoLider`), e
+        // e isso que amarra os dois numeros: com 16 degraus o espacamento e 22,7
+        // blocos, e para fecha-lo cada prateleira precisava de ~30 de meia-altura.
+        // Trinta de meia-altura sobre um raio de 180 e uma LAJE, nao uma copa --
+        // era o que se via em jogo como "grandes camadas de folhas no tronco".
+        //
+        // Com 26 degraus o espacamento cai para 13,6, e prateleiras bem mais
+        // finas ja se tocam. Mais prateleiras, menos volume.
+        int steps = 26;
         for (int order = 0; order < steps; order++) {
             double t = (double) order / (steps - 1);
             double y = bottom + (top - bottom) * t;
             long mixed = mix(layout.seed(), branchId, order);
-            double radius = (168.0 - 118.0 * t) * (0.9 + unit(mixed) * 0.2);
-            // ESPESSA O BASTANTE PARA OS DEGRAUS SE TOCAREM. O vao vertical da
-            // pilha da coroa e a diferenca entre uma cupula e um chapeu de
-            // degraus separados.
-            double topThickness = Math.max(9.0, radius * 0.30);
-            double bottomThickness = Math.max(8.0, topThickness * 0.80);
+            // A COROA ESTAVA FORA DA REFORMA DA COPA, e isso e o defeito.
+            //
+            // Quando a folhagem dos galhos migrou para a ponta e encolheu 64%,
+            // estas dezesseis prateleiras ficaram como estavam -- e passaram a
+            // ser 64% do volume da copa com 3% das prateleiras. Cada uma era 58
+            // VEZES maior que uma de galho: raio ate 182 e espessura ate 98.
+            //
+            // Os numeros aqui sao os de galho, na escala da coroa: ela e o chapeu
+            // central e continua sendo a maior massa unica da arvore, mas deixa
+            // de ser uma laje.
+            double radius = (95.0 - 62.0 * t) * (0.9 + unit(mixed) * 0.2);
+            // ESPESSA O BASTANTE PARA OS DEGRAUS SE TOCAREM, e nada alem disso.
+            // A razao 0,26 e a mesma faixa que os galhos usam (0,29 a 0,39);
+            // antes era 0,30 sobre um raio tres vezes maior.
+            double topThickness = Math.max(6.0, radius * 0.26);
+            double bottomThickness = Math.max(5.0, topThickness * 0.80);
             double centerX = signed(mixed >>> 16) * 4.0;
             double centerZ = signed(mixed >>> 32) * 4.0;
             // O LIDER CENTRAL tem raio proprio, que estreita com a altura --

@@ -60,10 +60,31 @@ class WorldTreeFoliagePlanTest {
     void coberturaProjetada() {
         // O DEFEITO 1.1 E 1.2: prateleira dentro da madeira mais ruido branco a
         // 38% davam uma copa que, vista de cima, era quase toda buraco.
+        //
+        // O LIMITE DESCEU DE 0,55 PARA 0,45, e afrouxar portao exige motivo
+        // escrito. O motivo e que o 0,55 media outra arvore:
+        //
+        // 1. A COROA ESTAVA CARREGANDO ESTE PORTAO. As dezesseis prateleiras do
+        //    lider tinham raio ate 185 -- um disco de 107 mil blocos de area
+        //    dentro de um disco de copa de 188 mil. Sozinhas, elas cobriam 57%
+        //    do que este teste mede. O verde vinha da laje que o jogador reclamou
+        //    de ver no tronco, e nao da copa.
+        //
+        // 2. A COPA ENCOLHEU DE PROPOSITO, duas vezes e a pedido: 64% menos folha
+        //    para a madeira dos galhos aparecer, e agora a coroa em linha com o
+        //    resto. Uma copa concentrada na ponta dos galhos DEIXA ceu entre os
+        //    tufos -- e esse ceu e o pedido, nao o defeito.
+        //
+        // O que 0,45 ainda reprova e o que este portao nasceu para pegar: copa
+        // que, vista de cima, e quase toda buraco. O defeito original media 38%
+        // de ruido branco no volume inteiro, e produzia cobertura bem abaixo
+        // disto.
+        //
+        // Medido hoje: 0,513 no pior caso das vinte seeds.
         for (int index = 0; index < SEEDS; index++) {
             long seed = seedAt(index);
             double cobertura = coberturaProjetada(plan(seed));
-            assertTrue(cobertura >= 0.55,
+            assertTrue(cobertura >= 0.45,
                     "seed " + seed + ": a copa cobre so " + String.format("%.0f%%", cobertura * 100)
                             + " do proprio disco. Vista de cima, isso e peneira, e nao arvore.");
         }

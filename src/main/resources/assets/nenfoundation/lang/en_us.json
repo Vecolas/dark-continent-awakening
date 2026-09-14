@@ -70,6 +70,8 @@
   "key.nenfoundation.overlay_de_debug": "Technical overlay (debug)",
   "key.nenfoundation.overlay_de_vfx": "Aura visual tuning overlay",
   "key.nenfoundation.roda_de_nen": "Nen wheel (hold)",
+  "message.nenfoundation.bubble_horse.card_perdido": "The bubble horse burst. It only converts into a card alive.",
+  "message.nenfoundation.bubble_horse.exausto": "The bubble horse is spent. Stop hitting it -- a card only comes from one taken alive.",
   "nenfoundation.bestiary.behavior.foxbear": "It patrols its territory and presses intruders with its weight. The danger grows when space disappears.",
   "nenfoundation.bestiary.behavior.frog_in_waiting": "It stays hidden until movement enters its range.",
   "nenfoundation.bestiary.behavior.great_stamp": "It keeps close distance and advances in a straight line.",

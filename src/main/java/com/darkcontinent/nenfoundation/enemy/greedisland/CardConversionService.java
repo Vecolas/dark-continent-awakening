@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -70,6 +71,31 @@ public final class CardConversionService {
      */
     public Optional<CardSpec> converter(EncounterInstance encontro, ResourceLocation monsterId,
             DefeatResult resultado) {
+        return converterInterno(encontro, monsterId, null, resultado);
+    }
+
+    /**
+     * Converte uma entidade especifica. O UUID faz parte da trava para que uma
+     * matilha possa emitir um card por criatura, sem abrir uma segunda vez para
+     * a mesma entidade.
+     */
+    public Optional<CardSpec> converter(EncounterInstance encontro, ResourceLocation monsterId,
+            UUID entityId, DefeatResult resultado) {
+        Objects.requireNonNull(entityId, "entidade ausente");
+        if (!encontro.desfechos().containsKey(entityId)) {
+            throw new IllegalArgumentException("entidade nao tem desfecho no encontro: " + entityId);
+        }
+        // Saves anteriores usavam uma trava por especie. Se ela existir, o
+        // primeiro pagamento daquela versao ja ocorreu; nao reabrimos a porta
+        // no upgrade e duplicamos o card no restart.
+        if (ledger.jaPago(encontro.id(), chaveDeRecompensa(monsterId))) {
+            return Optional.empty();
+        }
+        return converterInterno(encontro, monsterId, entityId, resultado);
+    }
+
+    private synchronized Optional<CardSpec> converterInterno(EncounterInstance encontro,
+            ResourceLocation monsterId, UUID entityId, DefeatResult resultado) {
         Objects.requireNonNull(encontro, "encontro ausente");
         Objects.requireNonNull(monsterId, "criatura ausente");
         Objects.requireNonNull(resultado, "resultado ausente");
@@ -94,7 +120,10 @@ public final class CardConversionService {
         // A trava e o unico ponto de exclusao, e ela e atomica. O contador de
         // copias so avanca DEPOIS dela: incrementar antes faria a tentativa
         // recusada consumir uma copia do mundo, e a escassez viraria erosao.
-        if (!ledger.travar(encontro.id(), chaveDeRecompensa(monsterId))) return Optional.empty();
+        String chave = entityId == null
+                ? chaveDeRecompensa(monsterId)
+                : chaveDeRecompensa(monsterId, entityId);
+        if (!ledger.travar(encontro.id(), chave)) return Optional.empty();
 
         emitidas.merge(monsterId, 1, Integer::sum);
         return Optional.of(spec);
@@ -103,13 +132,20 @@ public final class CardConversionService {
     /**
      * A chave de transacao dentro do ledger.
      *
-     * <p>Ela inclui a criatura porque um episodio pode converter mais de um alvo
-     * -- um Wolf Pack derrubado inteiro paga um card por lobo. Uma chave generica
-     * ("card") faria o primeiro lobo bloquear os outros, e o sintoma seria uma
-     * matilha inteira valendo um card so.</p>
+     * <p>A forma legada inclui a criatura porque um episodio pode converter mais de
+     * um tipo de alvo. Para o caminho de producao, use a sobrecarga com UUID: um
+     * Wolf Pack derrubado inteiro paga um card por lobo sem permitir repetir o
+     * mesmo individuo.</p>
      */
     public static String chaveDeRecompensa(ResourceLocation monsterId) {
         return "gi_card/" + monsterId;
+    }
+
+    /** Chave estável por criatura; UUID evita colidir dentro de uma matilha. */
+    public static String chaveDeRecompensa(ResourceLocation monsterId, UUID entityId) {
+        Objects.requireNonNull(monsterId, "criatura ausente");
+        return chaveDeRecompensa(monsterId) + "/" + Objects.requireNonNull(entityId,
+                "entidade ausente");
     }
 
     /** Carga do save: substitui a contagem inteira, nunca soma. */

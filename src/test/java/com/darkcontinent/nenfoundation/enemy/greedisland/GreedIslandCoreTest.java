@@ -91,6 +91,27 @@ class GreedIslandCoreTest {
     }
 
     @Test
+    @DisplayName("duas criaturas da mesma especie pagam um card por UUID")
+    void criaturasIguaisNoMesmoEpisodio() {
+        CardConversionService servico = servico(new RewardLedger(), 0);
+        EncounterInstance encontro = concluido();
+        UUID primeiro = UUID.randomUUID();
+        UUID segundo = UUID.randomUUID();
+        encontro.registrarEntidade(primeiro);
+        encontro.registrarEntidade(segundo);
+        encontro.registrarDesfecho(primeiro, DefeatResult.CAPTURADO, UUID.randomUUID());
+        encontro.registrarDesfecho(segundo, DefeatResult.CAPTURADO, UUID.randomUUID());
+
+        assertTrue(servico.converter(encontro, CYCLOPS, primeiro,
+                DefeatResult.CAPTURADO).isPresent());
+        assertTrue(servico.converter(encontro, CYCLOPS, segundo,
+                DefeatResult.CAPTURADO).isPresent());
+        assertEquals(2, servico.emitidas(CYCLOPS));
+        assertTrue(servico.converter(encontro, CYCLOPS, primeiro,
+                DefeatResult.CAPTURADO).isEmpty());
+    }
+
+    @Test
     @DisplayName("o limite de copias do MUNDO e cobrado, e a recusada nao consome copia")
     void limiteDeCopiasECobrado() {
         RewardLedger ledger = new RewardLedger();

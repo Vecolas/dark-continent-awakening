@@ -23,7 +23,7 @@ avançam por dependência técnica própria.
 | EN3 | Foxbear, Frog-In-Waiting, GrabController | ✅ **código completo**; gate (#123) pendente de jogo |
 | EN4 | fundação de encontro persistente | ✅ código completo; gate pendente de restart real |
 | EN5 | Greed Island core, captura, card | ✅ código completo; gate pendente de corrida com dois jogadores |
-| EN6 | sete criaturas de Greed Island | 🟡 registradas; **corpo e comportamento em andamento** |
+| EN6 | sete criaturas de Greed Island | ✅ **código completo**; gates visuais e multiplayer pendentes |
 | EN7 | Squad e Pack | ✅ código completo; sem consumidor em jogo |
 | EN8 | Chimera core + três peons | 🟡 domínio completo; **sem entidade** |
 | EN9 | colônia persistente e simulação offline | 🟡 domínio completo; **sem SavedData e sem entidade** |

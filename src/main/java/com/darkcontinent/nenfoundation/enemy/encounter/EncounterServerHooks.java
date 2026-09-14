@@ -101,7 +101,7 @@ public final class EncounterServerHooks {
     }
 
     /**
-     * Paga cards de derrotas letais depois que o controlador fechou o episodio.
+     * Paga cards de derrotas/capturas depois que o controlador fechou o episodio.
      * A ordem e importante: antes de COMPLETED o servico recusa por contrato.
      * Capturas nao-letais entram por uma etapa propria quando a interacao de
      * captura for ligada; elas nunca sao inferidas a partir de um cadaver.
@@ -130,7 +130,8 @@ public final class EncounterServerHooks {
                             .filter(java.util.Objects::nonNull).findFirst().orElse(null);
                 }
                 if (jogador == null) continue;
-                var card = cards.converter(instancia, receita.tipo(), desfecho.getValue());
+                var card = cards.converter(instancia, receita.tipo(), desfecho.getKey(),
+                        desfecho.getValue());
                 if (card.isEmpty()) continue;
                 jogador.getInventory().placeItemBackInInventory(
                         com.darkcontinent.nenfoundation.item.GreedIslandCardItem.de(

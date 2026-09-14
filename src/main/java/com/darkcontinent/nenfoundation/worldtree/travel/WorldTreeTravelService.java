@@ -1,7 +1,6 @@
 package com.darkcontinent.nenfoundation.worldtree.travel;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeDebugCommands;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +13,8 @@ import net.minecraft.world.level.Level;
 public final class WorldTreeTravelService {
     private static final int COOLDOWN_TICKS = 60;
     private static final int BASE_TRANSITION_Y = 284;
+    /** Altura em que o portal do Overworld reencontra a continuação da árvore. */
+    private static final int WORLD_TREE_ENTRY_Y = 200;
     private static final Map<UUID, Long> COOLDOWNS = new HashMap<>();
 
     private WorldTreeTravelService() {
@@ -43,6 +44,10 @@ public final class WorldTreeTravelService {
         return BASE_TRANSITION_Y;
     }
 
+    static int worldTreeEntryY() {
+        return WORLD_TREE_ENTRY_Y;
+    }
+
     private static void tryEnterWorldTree(ServerPlayer player) {
         ServerLevel overworld = player.serverLevel();
         WorldTreeSavedData data = overworld.getDataStorage().computeIfAbsent(
@@ -56,12 +61,12 @@ public final class WorldTreeTravelService {
         if (destination == null) {
             return;
         }
-        WorldTreeLayout layout = data.layoutForGeneration(overworld.getSeed());
         double localX = player.getX() - data.overworldOriginX();
         double localZ = player.getZ() - data.overworldOriginZ();
-        double localY = 48.0 + (player.getY() - BASE_TRANSITION_Y);
-        teleport(player, destination, localX, Math.max(layout.trunk().baseY() + 2.0, localY),
-                localZ);
+        // A entrada reencontra a árvore em altura intermediária. O portal
+        // inferior da dimensão continua em Y=48 para preservar a rota já
+        // escalada e o caminho de retorno ao Overworld.
+        teleport(player, destination, localX, WORLD_TREE_ENTRY_Y, localZ);
         data.markDiscovered();
     }
 

@@ -32,6 +32,7 @@ public final class EnemyCatalog {
         Map<String, EnemyDefinition> tudo = new LinkedHashMap<>();
         juntar(tudo, "HunterExamProfiles", HunterExamProfiles.publicados());
         juntar(tudo, "GreedIslandProfiles", GreedIslandProfiles.publicados());
+        juntar(tudo, "ChimeraProfiles", ChimeraProfiles.publicados());
         return Map.copyOf(tudo);
     }
 

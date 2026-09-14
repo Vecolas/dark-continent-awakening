@@ -30,5 +30,16 @@ public final class EnemyRenderers {
         evento.registerEntityRenderer(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(), KingWhiteStagBeetleRenderer::new);
         evento.registerEntityRenderer(EnemyEntityTypes.WOLF_PACK_HUNTER.get(), WolfPackHunterRenderer::new);
 
+        // As nove formigas quimera, todas com renderer proprio desde o
+        // primeiro dia (ADR-017).
+        evento.registerEntityRenderer(EnemyEntityTypes.CRAB_HEAVY.get(), CrabHeavyRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.BAT_SCOUT.get(), BatScoutRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.WOLF_RUNNER.get(), WolfRunnerRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.SPIDER_WEBBER.get(), SpiderWebberRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.MOSQUITO_OFFICER.get(), MosquitoOfficerRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.MULTIARM_CENTIPEDE.get(), MultiarmCentipedeRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.CHEETAH_LEADER.get(), CheetahLeaderRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.SCORPION_LEADER.get(), ScorpionLeaderRenderer::new);
+        evento.registerEntityRenderer(EnemyEntityTypes.AVIAN_COMMANDER.get(), AvianCommanderRenderer::new);
     }
 }

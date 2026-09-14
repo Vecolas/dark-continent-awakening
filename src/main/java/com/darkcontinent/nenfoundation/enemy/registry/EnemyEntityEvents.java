@@ -1,8 +1,18 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
+import com.darkcontinent.nenfoundation.enemy.content.ChimeraProfiles;
 import com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CrabHeavyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BatScoutEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfRunnerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderWebberEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MosquitoOfficerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MultiarmCentipedeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CheetahLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.ScorpionLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.AvianCommanderEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.CyclopsEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.HyperPuffballEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MelaninLizardEntity;
@@ -50,6 +60,17 @@ public final class EnemyEntityEvents {
         event.put(EnemyEntityTypes.BUBBLE_HORSE.get(), BubbleHorseEntity.createAttributes().build());
         event.put(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(), KingWhiteStagBeetleEntity.createAttributes().build());
         event.put(EnemyEntityTypes.WOLF_PACK_HUNTER.get(), WolfPackHunterEntity.createAttributes().build());
+
+        // As nove formigas quimera (EN8 e EN11).
+        event.put(EnemyEntityTypes.CRAB_HEAVY.get(), CrabHeavyEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.BAT_SCOUT.get(), BatScoutEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.WOLF_RUNNER.get(), WolfRunnerEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.SPIDER_WEBBER.get(), SpiderWebberEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MOSQUITO_OFFICER.get(), MosquitoOfficerEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MULTIARM_CENTIPEDE.get(), MultiarmCentipedeEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.CHEETAH_LEADER.get(), CheetahLeaderEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.SCORPION_LEADER.get(), ScorpionLeaderEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.AVIAN_COMMANDER.get(), AvianCommanderEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -134,6 +155,29 @@ public final class EnemyEntityEvents {
                 GreedIslandProfiles.kingWhiteStagBeetle().spawnRule());
         semPlacementNatural(EnemyEntityTypes.WOLF_PACK_HUNTER.get(),
                 GreedIslandProfiles.wolfPackHunter().spawnRule());
+
+        // As nove formigas fecham a fila pelo mesmo caminho
+        // declarado: nenhuma nasce pelo mundo, e a linha existe para o
+        // portao ver que alguem DECIDIU isso, em vez de ver nove ids
+        // simplesmente ausentes.
+        semPlacementNatural(EnemyEntityTypes.CRAB_HEAVY.get(),
+                ChimeraProfiles.crabHeavy().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.BAT_SCOUT.get(),
+                ChimeraProfiles.batScout().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.WOLF_RUNNER.get(),
+                ChimeraProfiles.wolfRunner().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.SPIDER_WEBBER.get(),
+                ChimeraProfiles.spiderWebber().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MOSQUITO_OFFICER.get(),
+                ChimeraProfiles.mosquitoOfficer().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MULTIARM_CENTIPEDE.get(),
+                ChimeraProfiles.multiarmCentipede().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.CHEETAH_LEADER.get(),
+                ChimeraProfiles.cheetahLeader().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.SCORPION_LEADER.get(),
+                ChimeraProfiles.scorpionLeader().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.AVIAN_COMMANDER.get(),
+                ChimeraProfiles.avianCommander().spawnRule());
 
     }
 

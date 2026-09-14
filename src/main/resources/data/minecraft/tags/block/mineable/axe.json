@@ -1,0 +1,19 @@
+{
+  "replace": false,
+  "values": [
+    "nenfoundation:world_tree_bark",
+    "nenfoundation:world_tree_bark_dark",
+    "nenfoundation:world_tree_bark_mossy",
+    "nenfoundation:world_tree_bark_scarred",
+    "nenfoundation:world_tree_sapwood",
+    "nenfoundation:world_tree_heartwood",
+    "nenfoundation:world_tree_root",
+    "nenfoundation:world_tree_root_mossy",
+    "nenfoundation:world_tree_deadwood",
+    "nenfoundation:world_tree_vine",
+    "nenfoundation:world_tree_thick_vine",
+    "nenfoundation:world_tree_resin",
+    "nenfoundation:world_tree_resin_vein",
+    "nenfoundation:research_table"
+  ]
+}

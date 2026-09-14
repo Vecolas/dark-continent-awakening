@@ -198,3 +198,39 @@ a plataforma impõe — `onActivate`, `getSerializedName`, nomes de API do
 NeoForge — fica como é.
 
 Consistência importa mais que a escolha. Não misture no mesmo arquivo.
+
+### 12. Caminho de datapack é singular, e um bloco só dropa com DUAS coisas
+
+O Minecraft 1.21 renomeou os diretórios de datapack para o **singular**, e
+**ignora os antigos em silêncio** — sem erro, sem aviso no build, com o arquivo
+bem formado e versionado:
+
+| 1.20 | 1.21 |
+| --- | --- |
+| `loot_tables/` | `loot_table/` |
+| `recipes/` | `recipe/` |
+| `advancements/` | `advancement/` |
+| `predicates/` | `predicate/` |
+| `tags/blocks/`, `tags/items/` | `tags/block/`, `tags/item/` |
+
+> Este repositório viveu meses com 21 loot tables de bloco e 2 receitas nas
+> pastas de 1.20, **enquanto metade do repositório já estava migrada**
+> (`tags/block`, `structure`, `loot_table/chests`). Metade certa e metade errada
+> leem igual num `ls`.
+
+E um bloco com `requiresCorrectToolForDrops()` precisa de **duas** coisas para
+dropar:
+
+1. a loot table no caminho vivo (`data/<ns>/loot_table/blocks/<id>.json`);
+2. o id numa tag `minecraft:mineable/*` — em
+   **`data/minecraft/tags/block/mineable/`**, e não no nosso namespace.
+
+Sem a tag, nenhuma ferramenta é a correta, `hasCorrectToolForDrops` devolve
+falso e `dropResources` nunca roda. **Consertar só uma das duas move arquivos e
+não muda um drop** — é um conserto que parece conserto.
+
+Escrever as mesmas tags em `data/nenfoundation/tags/block/mineable/` é aceito
+sem reclamação: cria uma tag nova, `nenfoundation:mineable/axe`, que ferramenta
+nenhuma consulta.
+
+O portão é `CaminhosDeDatapackTest`, e ele verifica o **par**.

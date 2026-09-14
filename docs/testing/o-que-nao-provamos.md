@@ -22,6 +22,7 @@ descoberto.
 | `ProtocoloCongeladoTest` | codigo e documento concordam sobre id, direcao e versao | que o handler valida o que devia |
 | `IndiceDeAdrTest` | nenhum ADR esta fora do indice | que as decisoes estao sendo seguidas |
 | `PacotesDeclaradosTest` | todo pacote se declara; o nucleo nao importa cliente por `import` | violacao por reflexao, por nome de classe em string ou por classe interna |
+| `CaminhosDeDatapackTest` | que nenhum diretório de datapack ficou com nome de 1.20 (o jogo os ignora em silêncio), e que todo bloco com loot table está numa tag `minecraft:mineable/*` -- as duas coisas que um bloco precisa para dropar | **que o drop acontece**. Ele cruza arquivo com arquivo; não quebra um bloco em jogo, não sabe se a ferramenta escolhida é a certa para o material, e não vê um bloco que exista em código e não tenha loot table nenhuma |
 | `HudAssetsTest` | os cinco PNGs modulares da HUD existem sem sobra, preservam transparencia e mantem as dimensoes esperadas | qualidade visual em jogo, recorte da cabeca, legibilidade do badge ou alinhamento com cada GUI Scale |
 | `runClient` | o mod carrega num cliente, os listeners sobem, e — com `-PentrarEm=host:porta` — ele entra num servidor sozinho e recebe payload de verdade | comportamento com DOIS jogadores; latencia real; qualquer coisa desenhada na tela, que ninguem olhou |
 | `runServer` | o mod carrega num servidor dedicado | comportamento com dois jogadores, que e onde desync aparece |

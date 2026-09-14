@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "nenfoundation:world_tree_leaves",
+    "nenfoundation:world_tree_leaves_dense",
+    "nenfoundation:world_tree_leaves_pale",
+    "nenfoundation:world_tree_leaves_luminous",
+    "nenfoundation:world_tree_moss",
+    "nenfoundation:world_tree_moss_carpet"
+  ]
+}

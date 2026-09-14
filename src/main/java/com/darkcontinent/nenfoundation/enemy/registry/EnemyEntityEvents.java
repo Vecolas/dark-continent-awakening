@@ -8,6 +8,7 @@ import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -35,30 +36,21 @@ public final class EnemyEntityEvents {
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
-        event.register(EnemyEntityTypes.GREAT_STAMP.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.greatStamp().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.GREAT_STAMP.get(),
+                HunterExamProfiles.greatStamp().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.greatStamp().spawnRule()));
 
         // O sapo tambem nasce no chao: ele emboscada ENTERRADO, e nao ha "enterrar"
         // sem um bloco solido embaixo. A faixa de luz e a do perfil dele, que vai ate
         // 15 justamente porque exigir escuridao faria a emboscada nunca nascer.
-        event.register(EnemyEntityTypes.FROG_IN_WAITING.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.FROG_IN_WAITING.get(),
+                HunterExamProfiles.frogInWaiting().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()));
 
         // O macaco tambem nasce no chao, e com a MESMA forma de predicado: a faixa de
         // luz dele vai ate 15 porque ele se disfarca de gente, e ninguem e enganado no
         // escuro. Copiar o corpo do predicado aqui faria o terceiro lugar onde a mesma
         // regra pode divergir do perfil -- por isso ele e lido, nao repetido.
-        event.register(EnemyEntityTypes.MAN_FACED_APE.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.MAN_FACED_APE.get(),
+                HunterExamProfiles.manFacedApe().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()));
 
         // A ave VOA, e mesmo assim nasce no chao: o ninho e o lugar dela, e ela nasce
         // POUSADA nele. Registrar um placement de ar aqui faria a ave aparecer
@@ -66,21 +58,15 @@ public final class EnemyEntityEvents {
         // da erro nenhum, so faz a coleira medir a partir de um ponto que ninguem
         // consegue alcancar. Chao solido continua valendo, e a faixa de luz e a do
         // perfil, lida e nao repetida.
-        event.register(EnemyEntityTypes.SPIDER_EAGLE.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.SPIDER_EAGLE.get(),
+                HunterExamProfiles.spiderEagle().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()));
 
         // O PRIMEIRO PLACEMENT DE AGUA DO REPOSITORIO. O predicado de chao nao serve
         // aqui: ele exige face solida embaixo, e isso reprovaria todo ponto de agua
         // funda -- o mob simplesmente nunca nasceria, e nada acusaria. A faixa de luz
         // continua sendo a DO PERFIL, lida e nao repetida, pelo mesmo motivo de sempre.
-        event.register(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
-                SpawnPlacementTypes.IN_WATER,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
+                HunterExamProfiles.masterOfTheSwamp().spawnRule(), naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()));
 
         // O kiriko nasce no chao e de dia, com a MESMA forma de predicado dos outros
         // tres terrestres -- reusada, e nao copiada, pelo motivo de sempre: numero de
@@ -88,11 +74,8 @@ public final class EnemyEntityEvents {
         // porque o mob inteiro depende de ser VISTO: um disfarce de gente no escuro nao
         // engana ninguem, e o encontro simplesmente nao aconteceria. Nada acusaria --
         // apareceria como um bioma vazio.
-        event.register(EnemyEntityTypes.KIRIKO.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.KIRIKO.get(),
+                HunterExamProfiles.kiriko().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()));
 
         // O foxbear fecha a fila, e chega aqui trocando de predicado. Ele usava
         // Animal::checkAnimalSpawnRules -- bloco da lista de spawn de animais embaixo
@@ -108,10 +91,39 @@ public final class EnemyEntityEvents {
         // placement que ja existe, e um tipo autoral nao tem nenhum. As duas formas
         // se comportam igual aqui, e a divergencia de forma e o que faz a proxima
         // pessoa achar que ha um motivo escondido.
-        event.register(EnemyEntityTypes.FOXBEAR.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()),
+        registrarPeloPerfil(event, EnemyEntityTypes.FOXBEAR.get(),
+                HunterExamProfiles.foxbear().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()));
+    }
+
+
+    /**
+     * Registra o placement LENDO o perfil -- placement, heightmap e a pergunta
+     * "isto pode nascer sozinho?" saem todos de {@link SpawnProfile}.
+     *
+     * <p>Antes cada linha repetia o par {@code SpawnPlacementTypes.X} +
+     * {@code Heightmap.Types.Y}, e repetir e como o peixe quase ganhou placement
+     * de chao: a linha compila, o registro carrega, e o mob simplesmente nunca
+     * nasce. Aqui a escolha vem do dado, e a divergencia deixa de ser possivel.</p>
+     *
+     * <p>ENCOUNTER_ONLY e RECUSADO com todas as letras. Um chefe que chegue aqui
+     * por engano ganharia placement natural e passaria a nascer no meio do mato
+     * -- e nada acusaria, porque cada bicho seria uma entidade legitima. A
+     * excecao no carregamento e barata; o encontro unico virando farm, nao.</p>
+     */
+    private static <T extends net.minecraft.world.entity.Mob> void registrarPeloPerfil(
+            RegisterSpawnPlacementsEvent event, net.minecraft.world.entity.EntityType<T> tipo,
+            SpawnRule regra, SpawnPlacements.SpawnPredicate<T> predicado) {
+        SpawnProfile perfil = regra.profile();
+        if (!perfil.registraPlacement()) {
+            throw new IllegalStateException(tipo.getDescriptionId() + " usa o perfil " + perfil
+                    + ", que nao nasce pelo caminho natural. Registrar placement para ele e"
+                    + " exatamente o vazamento que o perfil existe para impedir.");
+        }
+        event.register(tipo, perfil.placement(), perfil.heightmap(), predicado,
+                // Operation.OR, e nao REPLACE: REPLACE so faz sentido para derrubar
+                // um placement que ja existe, e tipo autoral nao tem nenhum. As duas
+                // se comportam igual aqui, e a divergencia de forma e o que faz a
+                // proxima pessoa achar que ha motivo escondido.
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

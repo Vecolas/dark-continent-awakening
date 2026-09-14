@@ -17,6 +17,8 @@ import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeFisgada;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeJulgamento;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnCaps;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +35,8 @@ public final class HunterExamProfiles {
         // nenhum, aparece como um bioma vazio que ninguem consegue explicar.
         return new EnemyDefinition(metadata("great_stamp", ThreatTier.HUNTER, true, true),
                 new EnemyAttributes(70, 0.23F, 11, 7, 28, 0.55F),
-                spawn("#nenfoundation:great_stamp_biomes", 0, 15, true, false, 4));
+                spawn("#nenfoundation:great_stamp_biomes", 0, 15, true, false, 4,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(4, 64, 24)));
     }
 
     /**
@@ -82,7 +85,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition frogInWaiting() {
         return new EnemyDefinition(metadata("frog_in_waiting", ThreatTier.DANGEROUS, true, false),
                 new EnemyAttributes(50, 0.12F, 10, 3, 20, 0.35F),
-                spawn("#nenfoundation:swamp_predator_biomes", 0, 15, false, true, 2));
+                spawn("#nenfoundation:swamp_predator_biomes", 0, 15, false, true, 2,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(2, 32, 16)));
     }
 
     /**
@@ -143,7 +147,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition manFacedApe() {
         return new EnemyDefinition(metadata("man_faced_ape", ThreatTier.DANGEROUS, false, true),
                 new EnemyAttributes(24, 0.29F, 4, 1, 24, 0.1F),
-                spawn("#nenfoundation:jungle_ambusher_biomes", 0, 15, true, false, 4));
+                spawn("#nenfoundation:jungle_ambusher_biomes", 0, 15, true, false, 4,
+                        SpawnProfile.ON_GROUND, SpawnCaps.fauna()));
     }
 
     /**
@@ -198,7 +203,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition spiderEagle() {
         return new EnemyDefinition(metadata("spider_eagle", ThreatTier.HUNTER, true, false),
                 new EnemyAttributes(28, 0.35F, 6, 2, 32, 0.0F),
-                spawn("#nenfoundation:canyon_nest_biomes", 0, 15, true, false, 2));
+                spawn("#nenfoundation:canyon_nest_biomes", 0, 15, true, false, 2,
+                        SpawnProfile.FLYING_SURFACE_ANCHOR, new SpawnCaps(2, 96, 24)));
     }
 
     /**
@@ -264,7 +270,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition masterOfTheSwamp() {
         return new EnemyDefinition(metadata("master_of_the_swamp", ThreatTier.DANGEROUS, false, false),
                 new EnemyAttributes(60, 0.6F, 6, 4, 24, 0.6F),
-                spawn("#nenfoundation:swamp_water_biomes", 0, 15, false, true, 1));
+                spawn("#nenfoundation:swamp_water_biomes", 0, 15, false, true, 1,
+                        SpawnProfile.IN_WATER, SpawnCaps.raro()));
     }
 
     /**
@@ -345,7 +352,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition kiriko() {
         return new EnemyDefinition(metadata("kiriko", ThreatTier.ELITE, false, false),
                 new EnemyAttributes(40, 0.32F, 7, 3, 24, 0.2F),
-                spawn("#nenfoundation:magical_beast_biomes", 0, 15, true, false, 1));
+                spawn("#nenfoundation:magical_beast_biomes", 0, 15, true, false, 1,
+                        SpawnProfile.ON_GROUND, SpawnCaps.raro()));
     }
 
     /**
@@ -431,7 +439,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition foxbear() {
         return new EnemyDefinition(metadata("foxbear", ThreatTier.HUNTER, true, false),
                 new EnemyAttributes(44, 0.25F, 6, 2, 20, 0.25F),
-                spawn("#nenfoundation:foxbear_biomes", 0, 12, true, false, 3));
+                spawn("#nenfoundation:foxbear_biomes", 0, 12, true, false, 3,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(3, 64, 24)));
     }
 
     private static EnemyMetadata metadata(String id, ThreatTier tier, boolean territorial, boolean social) {
@@ -439,9 +448,18 @@ public final class HunterExamProfiles {
                 EnemyFaction.WILDLIFE, tier, territorial, social, id);
     }
 
+    /**
+     * Monta a regra de spawn de um perfil.
+     *
+     * <p>O {@link SpawnProfile} e os {@link SpawnCaps} sao PARAMETROS, e nao um
+     * padrao escondido aqui dentro: um default faria todo mob novo herdar
+     * "natural, no chao, sem teto" sem que ninguem decidisse isso -- e a conta so
+     * chegaria como um chefe nascendo no meio do mato ou como uma manada de
+     * quarenta num vale. Nenhuma das duas coisas aparece em log.</p>
+     */
     private static SpawnRule spawn(String biome, int minLight, int maxLight, boolean ground,
-            boolean water, int groupLimit) {
+            boolean water, int groupLimit, SpawnProfile perfil, SpawnCaps tetos) {
         return new SpawnRule(Set.of(biome), Set.of("minecraft:overworld"), minLight, maxLight,
-                ground, water, false, groupLimit);
+                ground, water, false, groupLimit, perfil, tetos);
     }
 }

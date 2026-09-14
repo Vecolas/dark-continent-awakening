@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class SpawnRuleTest {
     private static final SpawnRule RULE = new SpawnRule(
             Set.of("nenfoundation:great_stamp_biomes"), Set.of("minecraft:overworld"),
-            0, 10, true, false, false, 4);
+            0, 10, true, false, false, 4, SpawnProfile.ON_GROUND, SpawnCaps.fauna());
 
     @Test
     void validaBiomeDimensaoSoloLuzAguaELimiteDeGrupo() {
@@ -29,7 +29,8 @@ class SpawnRuleTest {
     @Test
     void regrasImpossiveisSaoRejeitadas() {
         assertThrows(IllegalArgumentException.class, () -> new SpawnRule(
-                Set.of("x"), Set.of("y"), 12, 4, true, false, false, 1));
+                Set.of("x"), Set.of("y"), 12, 4, true, false, false, 1,
+                SpawnProfile.ON_GROUND, SpawnCaps.fauna()));
         assertThrows(IllegalArgumentException.class, () -> new SpawnContext(
                 "x", "y", 16, true, false, true, 0));
     }

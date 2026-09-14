@@ -81,7 +81,9 @@ executá-los, e também o limite dele.
 
 O gate de EN4 é *"reiniciar o servidor durante um encontro sem duplicar entidade
 nem recompensa"*. O de EN5 é *"o dummy de GI converte em card exatamente uma vez
-sob corrida multiplayer"*. **Nenhum dos dois foi executado.**
+sob corrida multiplayer"*. **Nenhum dos dois foi executado.** A dimensão de GI
+agora carrega com terreno próprio, mas a validação de conversão e reinício ainda
+depende de sessão manual.
 
 O que está provado é a regra que os dois vão exercitar:
 

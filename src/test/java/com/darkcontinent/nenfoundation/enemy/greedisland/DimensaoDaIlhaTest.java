@@ -88,4 +88,20 @@ class DimensaoDaIlhaTest {
                 "Uma ilha nao-natural desliga clima e ciclo de dia; o encontro que depende de"
                         + " ser visto de dia deixaria de acontecer.");
     }
+
+    @Test
+    @DisplayName("a ilha nao reutiliza o gerador do Overworld")
+    void aIlhaTemGeradorProprio() {
+        var id = GreedIslandRegion.DIMENSAO.location();
+        JsonObject gerador = JsonParser.parseString(
+                Repo.texto(DIMENSOES + "/" + id.getPath() + ".json"))
+                .getAsJsonObject().getAsJsonObject("generator");
+
+        assertEquals("minecraft:flat", gerador.get("type").getAsString(),
+                "Greed Island nao pode apontar para o noise generator do Overworld: isso"
+                        + " produz uma copia do terreno e nao uma regiao jogavel propria.");
+        assertEquals("minecraft:plains",
+                gerador.getAsJsonObject("settings").get("biome").getAsString(),
+                "A ilha precisa declarar seu bioma-base no gerador proprio.");
+    }
 }

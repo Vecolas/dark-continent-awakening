@@ -22,11 +22,10 @@ import net.minecraft.world.level.Level;
  * em que a ilha ganhar uma segunda dimensao -- e o que diverge nao reclama, so
  * deixa um dos quatro caminhos aberto.</p>
  *
- * <p><b>PONTO CEGO DECLARADO:</b> a dimensao ainda nao existe como datapack. Esta
- * classe ja e a autoridade, e hoje ela responde "nao" para tudo que nao seja a
- * chave declarada -- ou seja, ela ja PROIBE corretamente, mesmo antes de haver
- * um lugar para permitir. Essa e a ordem segura: proibir primeiro, abrir depois.
- * O inverso deixaria o conteudo de GI solto no Overworld ate alguem lembrar.</p>
+ * <p>A dimensao existe como datapack proprio e possui terreno dedicado. Esta
+ * classe continua sendo a autoridade: ela responde "nao" para tudo que nao
+ * seja a chave declarada, impedindo que o conteudo de GI escape para o
+ * Overworld.</p>
  */
 public final class GreedIslandRegion {
 

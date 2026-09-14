@@ -1,11 +1,17 @@
 {
   "type": "nenfoundation:greed_island_type",
   "generator": {
-    "type": "minecraft:noise",
-    "settings": "minecraft:overworld",
-    "biome_source": {
-      "type": "minecraft:multi_noise",
-      "preset": "minecraft:overworld"
+    "type": "minecraft:flat",
+    "settings": {
+      "layers": [
+        { "height": 1, "block": "minecraft:bedrock" },
+        { "height": 3, "block": "minecraft:dirt" },
+        { "height": 1, "block": "minecraft:grass_block" }
+      ],
+      "biome": "minecraft:plains",
+      "lakes": false,
+      "features": true,
+      "structure_overrides": []
     }
   }
 }

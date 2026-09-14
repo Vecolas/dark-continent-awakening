@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.client.vfx.debug;
 
+import com.darkcontinent.nenfoundation.client.particle.AuraSparkParticle;
 import com.darkcontinent.nenfoundation.client.vfx.AuraBodyRegion;
 import com.darkcontinent.nenfoundation.client.vfx.AuraDistribution;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
@@ -125,7 +126,7 @@ public final class AuraDebugRenderer {
                 SobreposicaoDeVfx.ribbonsForcadas(),
                 MedidorDeVfx.chamadasDeDesenho(),
                 MedidorDeVfx.filamentos(),
-                MedidorDeVfx.particulas(),
+                AuraSparkParticle.totalAtivas(),
                 MedidorDeVfx.jogadoresComAura(),
                 captura.ligado(),
                 captura.emLote() ? captura.progressoDoLote() : null,
@@ -167,7 +168,7 @@ public final class AuraDebugRenderer {
                 + " | desenho: " + (d.desenhoLigado() ? "on" : "OFF"));
 
         l.add("custo do ultimo quadro: " + d.chamadasDeDesenho() + " chamadas | "
-                + d.filamentos() + " filamentos | " + d.particulas() + " particulas | "
+                + d.filamentos() + " filamentos | " + d.particulas() + " faiscas ativas | "
                 + d.jogadoresComAura() + " com aura");
 
         l.add("regioes: " + regioes(d.distribuicao()));

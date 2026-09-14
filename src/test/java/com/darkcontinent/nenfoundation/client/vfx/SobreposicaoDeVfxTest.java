@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 class SobreposicaoDeVfxTest {
 
     private static final AuraPerfilVisual BASE = new AuraPerfilVisual(
-            0.055F, 0.20F, 0.035F, 3.4F, 2.7F, 2.0F, 0.12F, 4.0F, 0.9F, 0.03F, 0.18F,
+            0.055F, 0.20F, 0.035F, 3.4F, 2.7F, 2.0F, 0.12F, 4.0F, 0.9F, 0.4F, 0.18F,
             new AuraRibbonProfile(8, 0.15F, 0.60F, 0.009F, 1.1F));
 
     @BeforeEach

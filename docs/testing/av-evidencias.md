@@ -281,7 +281,7 @@ O que mudou:
 | O que | Para onde |
 | --- | --- |
 | `AuraVisualPreset`, `AuraVisualProfile` | **removidos** |
-| `particleIntensity` | `densidade_de_particula`, em `nen_vfx/*.json` |
+| `particleIntensity` | `taxa_de_faiscas`, em `nen_vfx/*.json` |
 | `shellOpacity` (que dimensionava **partícula**, apesar do nome) | `tamanho_de_particula`, no mesmo arquivo |
 | `AuraVisualState` | perdeu o componente `preset`; quem desenha busca o perfil por `AuraPerfis.de(estado.mode())` |
 

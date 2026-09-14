@@ -1,7 +1,6 @@
 package com.darkcontinent.nenfoundation.client.vfx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
@@ -109,12 +108,11 @@ class AlocacaoAteATelaTest {
         AuraDistribution naCabeca = AuraDistribution.daAlocacao(
                 AlocacaoDeAura.concentrando(RegiaoDoCorpo.CABECA, 0.9F));
 
-        // Com 90% na cabeca, quase todo sorteio cai nela.
-        double alta = EmissorDeParticulasDeAura.alturaSorteada(naCabeca, 0.1F);
-        assertTrue(alta > 1.4D,
-                "a particula saiu a " + alta + " blocos com a aura concentrada na"
-                        + " cabeca. Se a altura nao seguir a alocacao, Gyo na"
-                        + " cabeca e Gyo na perna ficam identicos na tela.");
+        var ancora = EmissorDeParticulasDeAura.ancoraSorteada(naCabeca, 0.1F, 0);
+        assertEquals(AuraBodyRegion.HEAD, ancora.regiao(),
+                "a ancora " + ancora + " nao pertence a cabeca com a aura concentrada nela.");
+        assertTrue(EmissorDeParticulasDeAura.pontoLocalDa(ancora, false).y() > 1.45D,
+                "a faisca da cabeca nao nasceu no alto do modelo");
     }
 
     @Test
@@ -122,23 +120,20 @@ class AlocacaoAteATelaTest {
     void particulaSegueAsPernas() {
         AuraDistribution naPerna = AuraDistribution.daAlocacao(
                 AlocacaoDeAura.concentrando(RegiaoDoCorpo.PERNA_DIREITA, 0.9F));
-        double baixa = EmissorDeParticulasDeAura.alturaSorteada(naPerna, 0.95F);
-        assertTrue(baixa < 1.0D, "a particula saiu a " + baixa + " com a aura na perna");
 
-        assertNotEquals(
-                EmissorDeParticulasDeAura.alturaSorteada(
-                        AuraDistribution.daAlocacao(
-                                AlocacaoDeAura.concentrando(RegiaoDoCorpo.CABECA, 0.9F)), 0.1F),
-                baixa,
-                "cabeca e perna produziram a MESMA altura; a alocacao nao chegou"
-                        + " ao desenho.");
+        var ancora = EmissorDeParticulasDeAura.ancoraSorteada(naPerna, 0.95F, 0);
+        assertEquals(AuraBodyRegion.RIGHT_LEG, ancora.regiao(),
+                "a ancora " + ancora + " nao pertence a perna direita");
+        assertTrue(EmissorDeParticulasDeAura.pontoLocalDa(ancora, false).y() < 0.8D,
+                "a faisca da perna nao nasceu embaixo no modelo");
     }
 
     @Test
-    @DisplayName("distribuicao toda zero nao produz altura NaN")
-    void alturaNuncaEhNaN() {
-        double h = EmissorDeParticulasDeAura.alturaSorteada(AuraDistribution.zetsu(), 0.5F);
-        assertTrue(Double.isFinite(h), "altura NaN: a particula nao apareceria nunca");
+    @DisplayName("distribuicao toda zero usa ancora segura")
+    void distribuicaoZeroTemAncoraSegura() {
+        var ancora = EmissorDeParticulasDeAura.ancoraSorteada(
+                AuraDistribution.zetsu(), 0.5F, 0);
+        assertEquals(AuraBodyRegion.TORSO, ancora.regiao());
     }
 
 

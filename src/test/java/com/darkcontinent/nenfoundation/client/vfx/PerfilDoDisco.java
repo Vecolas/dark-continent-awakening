@@ -13,7 +13,7 @@ import com.mojang.serialization.JsonOps;
  * dos numeros de arte, que sairam do codigo e viraram
  * {@code assets/nenfoundation/nen_vfx/*.json}. Um perfil inventado aqui dentro
  * provaria que a aritmetica do emissor funciona com NUMEROS QUE NINGUEM
- * CARREGA -- e o dia em que alguem zerasse {@code densidade_de_particula} no
+ * CARREGA -- e o dia em que alguem zerasse {@code taxa_de_faiscas} no
  * JSON, o verde continuaria igual e Ten sumiria em jogo.
  *
  * <p>{@code AuraPerfis} nao serve aqui: ele estende

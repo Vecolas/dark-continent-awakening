@@ -14,7 +14,7 @@
   "reforco_da_borda": 0.9,
 
   "_particula": "ACABAMENTO, e nao a aura. Estes dois numeros moravam em AuraVisualPreset.tenBasic(), no codigo, ao lado de cinco irmaos que ninguem lia.",
-  "densidade_de_particula": 0.03,
+  "taxa_de_faiscas": 0.4,
   "tamanho_de_particula": 0.18,
 
   "_filamentos": "Poucos, curtos, trocando devagar. Moravam em AuraRibbonProfile.ten(), no codigo, com um javadoc dizendo que sairiam quando o perfil existisse.",

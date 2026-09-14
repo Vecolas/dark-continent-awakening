@@ -1,0 +1,189 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.multiarm_centipede",
+        "texture_width": 128,
+        "texture_height": 64,
+        "visible_bounds_width": 2.5,
+        "visible_bounds_height": 3.0,
+        "visible_bounds_offset": [0, 1.5, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0]
+        },
+        {
+          "name": "hip",
+          "parent": "root",
+          "pivot": [0, 7, 5],
+          "cubes": [
+            {
+              "origin": [-6, 5, 2],
+              "size": [12, 8, 6],
+              "uv": [32, 0]
+            }
+          ]
+        },
+        {
+          "name": "tail",
+          "parent": "hip",
+          "pivot": [0, 6, 8],
+          "cubes": [
+            {
+              "origin": [-5, 0, 8],
+              "size": [10, 7, 6],
+              "uv": [68, 0]
+            }
+          ]
+        },
+        {
+          "name": "thorax",
+          "parent": "hip",
+          "pivot": [0, 12, 3],
+          "cubes": [
+            {
+              "origin": [-5, 12, -4],
+              "size": [10, 17, 6],
+              "uv": [0, 0]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "thorax",
+          "pivot": [0, 28, -4],
+          "cubes": [
+            {
+              "origin": [-5, 26, -8],
+              "size": [10, 8, 4],
+              "uv": [100, 0]
+            }
+          ]
+        },
+        {
+          "name": "mandible_left",
+          "parent": "head",
+          "pivot": [2, 27, -8],
+          "cubes": [
+            {
+              "origin": [1, 26, -11],
+              "size": [3, 2, 3],
+              "uv": [104, 23]
+            }
+          ]
+        },
+        {
+          "name": "mandible_right",
+          "parent": "head",
+          "pivot": [-2, 27, -8],
+          "cubes": [
+            {
+              "origin": [-4, 26, -11],
+              "size": [3, 2, 3],
+              "uv": [104, 28]
+            }
+          ]
+        },
+        {
+          "name": "arm_front_left",
+          "parent": "thorax",
+          "pivot": [5, 28, -3],
+          "cubes": [
+            {
+              "origin": [5, 3, -5],
+              "size": [3, 26, 3],
+              "uv": [0, 23]
+            }
+          ]
+        },
+        {
+          "name": "arm_front_right",
+          "parent": "thorax",
+          "pivot": [-5, 28, -3],
+          "cubes": [
+            {
+              "origin": [-8, 3, -5],
+              "size": [3, 26, 3],
+              "uv": [12, 23]
+            }
+          ]
+        },
+        {
+          "name": "arm_mid_left",
+          "parent": "thorax",
+          "pivot": [5, 24, -1],
+          "cubes": [
+            {
+              "origin": [5, 2, -2],
+              "size": [3, 23, 3],
+              "uv": [24, 23]
+            }
+          ]
+        },
+        {
+          "name": "arm_mid_right",
+          "parent": "thorax",
+          "pivot": [-5, 24, -1],
+          "cubes": [
+            {
+              "origin": [-8, 2, -2],
+              "size": [3, 23, 3],
+              "uv": [36, 23]
+            }
+          ]
+        },
+        {
+          "name": "arm_rear_left",
+          "parent": "thorax",
+          "pivot": [5, 20, 1],
+          "cubes": [
+            {
+              "origin": [5, 1, 1],
+              "size": [3, 20, 3],
+              "uv": [48, 23]
+            }
+          ]
+        },
+        {
+          "name": "arm_rear_right",
+          "parent": "thorax",
+          "pivot": [-5, 20, 1],
+          "cubes": [
+            {
+              "origin": [-8, 1, 1],
+              "size": [3, 20, 3],
+              "uv": [60, 23]
+            }
+          ]
+        },
+        {
+          "name": "leg_rear_left",
+          "parent": "hip",
+          "pivot": [6, 6, 5],
+          "cubes": [
+            {
+              "origin": [6, 0, 3],
+              "size": [4, 7, 4],
+              "uv": [72, 23]
+            }
+          ]
+        },
+        {
+          "name": "leg_rear_right",
+          "parent": "hip",
+          "pivot": [-6, 6, 5],
+          "cubes": [
+            {
+              "origin": [-10, 0, 3],
+              "size": [4, 7, 4],
+              "uv": [88, 23]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

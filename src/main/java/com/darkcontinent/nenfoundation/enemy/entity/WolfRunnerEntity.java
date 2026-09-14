@@ -627,6 +627,12 @@ public final class WolfRunnerEntity extends BaseChimeraAnt
         if (!levou || level().isClientSide || !Float.isFinite(amount) || amount <= 0.0F) {
             return levou;
         }
+        // O golpe que MATA ja passou por die(), que apagou o runtime e publicou o
+        // repouso. Acumular stagger depois disso ligaria CAMBALEANDO num cadaver,
+        // logo apos o proprio ciclo de vida te-lo desligado -- estado publicado
+        // por cima da limpeza que acabou de acontecer, e sem erro nenhum.
+        if (isDeadOrDying()) return true;
+
         EnemyRuntime runtime = runtimeExigido();
         StaggerResult resultado = runtime.sofrerStagger(runtime.ataques().attackInstanceId(),
                 amount, WolfRunnerTuning.RECARGA_APOS_INTERRUPCAO);

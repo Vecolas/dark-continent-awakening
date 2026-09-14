@@ -10,6 +10,7 @@ import com.darkcontinent.nenfoundation.enemy.ai.NestGuardRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
+import com.darkcontinent.nenfoundation.enemy.balance.StaggerPorPapel;
 import com.darkcontinent.nenfoundation.enemy.combat.StaggerRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPoint;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
@@ -534,19 +535,27 @@ public final class HunterExamProfiles {
     }
 
     /**
-     * Limiar 12, resistencia 1, decaimento 0.4 por tick, 30 ticks de cambaleio.
+     * Cai em 2 acertos seguidos: o boneco existe para MOSTRAR a interrupcao
+     * acontecendo, entao ela tem de ser facil.
      *
-     * <p>Os quatro se leem JUNTOS, e a conta e a licao do boneco: com 30 de vida
-     * e resistencia 1, tres golpes de 5 (quatro efetivos cada) chegam ao limiar
-     * -- ou UM golpe no alvo, que vale o dobro. Acertar o alvo interrompe mais
-     * depressa do que bater em qualquer lugar, e e isso que o boneco ensina.</p>
+     * <p><b>Esta entrada e a lapide de um defeito, e vale ler o porque.</b> Os
+     * numeros antigos eram limiar 12, resistencia 1, decaimento 0.4 -- e o javadoc
+     * que os acompanhava fazia a conta assim: "tres golpes de 5 (quatro efetivos
+     * cada) chegam ao limiar". A conta esta certa e a conclusao estava errada,
+     * porque ela somava os tres golpes como se caissem no mesmo tick. No ritmo real
+     * de uma espada (12,5 ticks entre golpes) o decaimento de 0.4 comia 5 do
+     * acumulado entre um golpe e o proximo -- mais do que os 4 que o golpe somava.
+     * O acumulado subia e voltava a zero para sempre.</p>
      *
-     * <p>O decaimento de 0.4 esvazia o acumulado em 30 ticks. Menor que isso e o
-     * stagger viraria um contador de vida inteira; maior, e acumular seria
-     * impossivel e o mob nunca cambalearia -- e nenhum dos dois daria erro.</p>
+     * <p>O paragrafo seguinte daquele mesmo javadoc dizia, com todas as letras, que
+     * um decaimento grande demais faria o mob nunca cambalear "e nenhum dos dois
+     * daria erro". O texto CONHECIA a falha e os numeros cairam nela assim mesmo --
+     * porque descrever um risco em prosa nao e o mesmo que ter uma regua que o
+     * mede. Hoje quem deriva e {@link StaggerPorPapel}, e quem reprova e
+     * {@code StaggerAlcancavelTest}.</p>
      */
     public static StaggerRules dummyEnemyStagger() {
-        return new StaggerRules(12.0F, 1.0F, 0.4F, 30);
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 30);
     }
 
     private static EnemyMetadata metadata(String id, ThreatTier tier, boolean territorial, boolean social) {

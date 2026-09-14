@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraDefinition;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraOfficerDefinitions;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraPeonDefinitions;
+import com.darkcontinent.nenfoundation.enemy.balance.StaggerPorPapel;
 import com.darkcontinent.nenfoundation.enemy.combat.StaggerRules;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
@@ -63,9 +64,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int crabHeavyRecarga() { return 50; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 5 acertos seguidos: ele e a linha de frente: interromper o que segura a linha tem de custar.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules crabHeavyStagger() {
-        return new StaggerRules(28.0F, 6.0F, 0.5F, 40);
+        return StaggerPorPapel.de(ThreatTier.DANGEROUS, 5, 40);
     }
 
     /**
@@ -90,9 +98,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int batScoutRecarga() { return 30; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos seguidos: o olho da colonia e fragil de proposito -- ele vence por voltar, nao por aguentar.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules batScoutStagger() {
-        return new StaggerRules(8.0F, 0.5F, 0.3F, 20);
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 20);
     }
 
     /**
@@ -117,9 +132,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int wolfRunnerRecarga() { return 35; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 3 acertos seguidos: o flanqueador troca resistencia por chegada.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules wolfRunnerStagger() {
-        return new StaggerRules(14.0F, 1.5F, 0.4F, 25);
+        return StaggerPorPapel.de(ThreatTier.HUNTER, 3, 25);
     }
 
     /**
@@ -144,9 +166,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int spiderWebberRecarga() { return 55; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 5 acertos seguidos: interromper e a resposta ao lancamento da teia, e precisa ser trabalho.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules spiderWebberStagger() {
-        return new StaggerRules(34.0F, 5.0F, 0.5F, 40);
+        return StaggerPorPapel.de(ThreatTier.ELITE, 5, 40);
     }
 
     /**
@@ -171,9 +200,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int mosquitoOfficerRecarga() { return 40; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 4 acertos seguidos: a ficha dela promete corpo fraco -- quatro, e nao cinco, e o que cumpre a promessa.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules mosquitoOfficerStagger() {
-        return new StaggerRules(26.0F, 3.0F, 0.5F, 30);
+        return StaggerPorPapel.de(ThreatTier.ELITE, 4, 30);
     }
 
     /**
@@ -198,9 +234,24 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int multiarmCentipedeRecarga() { return 65; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 8 acertos seguidos: cortar a sequencia e conquista, nao acidente.
+     *
+     * <p><b>Aqui houve decisao, e ela vale escrita.</b> O perfil original exigia
+     * cerca de 20 de dano por acerto para acumular qualquer coisa -- nenhuma arma
+     * vanilla chega la, so um golpe de Nen. A intencao ("so golpe pesado corta o
+     * combo") era legitima; a execucao produzia um sistema que nao dispara nunca, e
+     * um sistema que nao dispara nunca e indistinguivel de um sistema quebrado.</p>
+     *
+     * <p>A mesma intencao continua VIVA dita assim: oito acertos seguidos, sem
+     * errar um unico. Tres espadadas nao cortam nada -- que era o medo escrito no
+     * teste antigo -- e a interrupcao existe para quem sustentar a pressao. Este
+     * mob nao tem ponto fraco (a carapaca e uniforme, e isso esta em
+     * MultiarmCentipedeTuning), entao o caminho do Cyclops e do besouro nao serve
+     * para ele.</p>
+     */
     public static StaggerRules multiarmCentipedeStagger() {
-        return new StaggerRules(40.0F, 8.0F, 0.6F, 50);
+        return StaggerPorPapel.de(ThreatTier.ELITE, 8, 50);
     }
 
     /**
@@ -225,9 +276,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int cheetahLeaderRecarga() { return 35; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 5 acertos seguidos: a ficha promete armadura fina; ela paga a velocidade com isso.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules cheetahLeaderStagger() {
-        return new StaggerRules(30.0F, 4.0F, 0.5F, 35);
+        return StaggerPorPapel.de(ThreatTier.SQUADRON, 5, 35);
     }
 
     /**
@@ -252,9 +310,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int scorpionLeaderRecarga() { return 60; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 6 acertos seguidos: carapaca pesada: o preco de abrir a guarda dela e alto.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules scorpionLeaderStagger() {
-        return new StaggerRules(42.0F, 8.0F, 0.6F, 50);
+        return StaggerPorPapel.de(ThreatTier.SQUADRON, 6, 50);
     }
 
     /**
@@ -279,9 +344,16 @@ public final class ChimeraProfiles {
     /** Ticks de recarga entre golpes. */
     public static int avianCommanderRecarga() { return 50; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 6 acertos seguidos: derrubar quem comanda e o objetivo da luta, e nao um acidente.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules avianCommanderStagger() {
-        return new StaggerRules(44.0F, 9.0F, 0.6F, 45);
+        return StaggerPorPapel.de(ThreatTier.SQUADRON, 6, 45);
     }
 
     /**

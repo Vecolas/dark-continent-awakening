@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.enemy.api.CanonLevel;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyFaction;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.api.ThreatTier;
+import com.darkcontinent.nenfoundation.enemy.balance.StaggerPorPapel;
 import com.darkcontinent.nenfoundation.enemy.combat.StaggerRules;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
@@ -60,9 +61,23 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int cyclopsRecarga() { return 50; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos NO OLHO -- e em nenhum numero de acertos na perna.
+     *
+     * <p>A absorcao do golpe comum agora e declarada, e nao obtida de lado. O
+     * javadoc antigo dizia que a perna "entra com 4 e precisaria de sete acertos";
+     * a conta que ficou de fora era o decaimento, que comia 6 entre duas espadadas
+     * -- a perna nunca chegaria a lugar nenhum e os sete acertos eram folclore. O
+     * comportamento em jogo estava certo pelo motivo errado, e motivo errado nao
+     * sobrevive ao proximo ajuste.</p>
+     *
+     * <p>O multiplicador vem de {@link CyclopsTuning#MULTIPLICADOR_DO_OLHO}, e nao
+     * de uma copia: os dois girando juntos e o que impede a regua de medir um olho
+     * que mudou de valor.</p>
+     */
     public static StaggerRules cyclopsStagger() {
-        return new StaggerRules(26.0F, 3.0F, 0.5F, 40);
+        return StaggerPorPapel.porPontoFraco(ThreatTier.ELITE,
+                CyclopsTuning.MULTIPLICADOR_DO_OLHO, 2, 40);
     }
 
     /**
@@ -84,9 +99,16 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int hyperPuffballRecarga() { return 60; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos seguidos: ele nao anda e nao persegue; a unica defesa dele e o esporo.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules hyperPuffballStagger() {
-        return new StaggerRules(8.0F, 0.5F, 0.2F, 20);
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 20);
     }
 
     /**
@@ -108,9 +130,16 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int melaninLizardRecarga() { return 45; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 3 acertos seguidos: ele vale vivo, entao a interrupcao e a ferramenta de captura.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules melaninLizardStagger() {
-        return new StaggerRules(14.0F, 1.5F, 0.4F, 30);
+        return StaggerPorPapel.de(ThreatTier.HUNTER, 3, 30);
     }
 
     /**
@@ -132,9 +161,16 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int radioRatRecarga() { return 40; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos seguidos: calar o mensageiro depressa e a leitura certa do encontro.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules radioRatStagger() {
-        return new StaggerRules(5.0F, 0.0F, 0.3F, 20);
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 20);
     }
 
     /**
@@ -156,9 +192,16 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int bubbleHorseRecarga() { return 70; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos seguidos: ele so vale vivo: interromper a fuga e o jogo inteiro.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules bubbleHorseStagger() {
-        return new StaggerRules(10.0F, 1.0F, 0.4F, 25);
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 25);
     }
 
     /**
@@ -180,9 +223,18 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int kingWhiteStagBeetleRecarga() { return 55; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 2 acertos NO VENTRE; a carapaca nao acumula nada, nunca.
+     *
+     * <p>"Vire-o. O ventre e a unica coisa que vale acertar" so e verdade se bater
+     * na casca somar ZERO -- e agora soma zero por construcao, em vez de somar
+     * quase nada e ser apagado pelo decaimento. A diferenca nao aparece em jogo
+     * hoje; ela aparece no dia em que alguem girar o decaimento e a casca voltar a
+     * contar sem que nada reprove.</p>
+     */
     public static StaggerRules kingWhiteStagBeetleStagger() {
-        return new StaggerRules(30.0F, 6.0F, 0.5F, 45);
+        return StaggerPorPapel.porPontoFraco(ThreatTier.DANGEROUS,
+                KingWhiteStagBeetleTuning.MULTIPLICADOR_DO_VENTRE, 2, 45);
     }
 
     /**
@@ -204,9 +256,16 @@ public final class GreedIslandProfiles {
     /** Ticks de recarga entre golpes deste bicho. */
     public static int wolfPackHunterRecarga() { return 35; }
 
-    /** Limiar, resistencia, decaimento e janela de cambaleio. */
+    /**
+     * Cai em 3 acertos seguidos: sozinho ele recua; o que sustenta a matilha e o numero, nao o individuo.
+     *
+     * <p>Os quatro numeros saem de {@link StaggerPorPapel}, e nao da mao de
+     * ninguem. Escritos a mao eles passavam no construtor e a interrupcao nunca
+     * acontecia em jogo -- o decaimento entre dois golpes comia mais do que um
+     * golpe somava, e nada reprovava.</p>
+     */
     public static StaggerRules wolfPackHunterStagger() {
-        return new StaggerRules(12.0F, 1.0F, 0.4F, 25);
+        return StaggerPorPapel.de(ThreatTier.HUNTER, 3, 25);
     }
 
     /**

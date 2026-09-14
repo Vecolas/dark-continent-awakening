@@ -11,6 +11,8 @@ import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -58,6 +60,14 @@ public final class EncounterGameTest {
         return instancia;
     }
 
+    /** Jogador conectado de verdade: o controlador consulta a lista do servidor. */
+    private static ServerPlayer jogadorNoAncoradouro(GameTestHelper helper) {
+        ServerPlayer jogador = helper.makeMockServerPlayerInLevel();
+        jogador.setGameMode(GameType.SURVIVAL);
+        jogador.moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(5, 2, 5)));
+        return jogador;
+    }
+
     /**
      * Armado + jogador perto = criaturas NO MUNDO.
      *
@@ -74,8 +84,7 @@ public final class EncounterGameTest {
                 new BlockPos(5, 2, 5));
         controlador.dados().registrar(encontro);
 
-        helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL)
-                .moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(5, 2, 5)));
+        jogadorNoAncoradouro(helper);
 
         controlador.tick(helper.getLevel().getServer(), new EncounterSpawnerPadrao());
 
@@ -105,8 +114,7 @@ public final class EncounterGameTest {
                 new BlockPos(5, 2, 5));
         controlador.dados().registrar(encontro);
 
-        helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL)
-                .moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(5, 2, 5)));
+        jogadorNoAncoradouro(helper);
         controlador.tick(helper.getLevel().getServer(), new EncounterSpawnerPadrao());
 
         helper.assertTrue(encontro.estado() == EncounterState.ACTIVE, "o encontro nao ativou");
@@ -147,8 +155,7 @@ public final class EncounterGameTest {
                 new BlockPos(5, 2, 5));
         controlador.dados().registrar(encontro);
 
-        helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL)
-                .moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(5, 2, 5)));
+        jogadorNoAncoradouro(helper);
         controlador.tick(helper.getLevel().getServer(), new EncounterSpawnerPadrao());
 
         int antes = encontro.entidades().size();
@@ -184,8 +191,7 @@ public final class EncounterGameTest {
                 new BlockPos(5, 2, 5));
         controlador.dados().registrar(encontro);
 
-        var jogador = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-        jogador.moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(5, 2, 5)));
+        ServerPlayer jogador = jogadorNoAncoradouro(helper);
         controlador.tick(helper.getLevel().getServer(), new EncounterSpawnerPadrao());
         helper.assertTrue(encontro.estado() == EncounterState.ACTIVE, "o encontro nao ativou");
 

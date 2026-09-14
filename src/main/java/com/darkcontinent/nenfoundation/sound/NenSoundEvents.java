@@ -24,6 +24,9 @@ public final class NenSoundEvents {
 
     /** Mantem a chamada de registro num lugar so. */
     public static void register(IEventBus modEventBus) {
+        // Inicializa os holders dos inimigos antes do RegisterEvent; tocar um
+        // mob nao pode tentar expandir a fila depois que o registro congelou.
+        EnemySoundEvents.inicializarDuranteBootstrap();
         SOUND_EVENTS.register(modEventBus);
     }
 }

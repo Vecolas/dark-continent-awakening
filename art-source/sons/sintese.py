@@ -13,9 +13,17 @@ libsndfile que vem no wheel escreve Vorbis de verdade -- conferido no cabecalho
 reclama, nao loga nada, e o mob simplesmente nao emite som. E o falso verde mais
 barato deste dominio, e por isso `valida_vorbis` existe e roda sempre.
 
-DETERMINISMO. Nenhuma chamada a `random` sem semente. O `.ogg` e binario
-versionado: sem determinismo, cada execucao produz um arquivo diferente, todo
-diff vira ruido, e no dia em que o som mudar de verdade ninguem repara.
+DETERMINISMO, E ELE TEM DUAS METADES. A primeira e obvia: nenhuma chamada a
+`random` sem semente. A segunda so apareceu quando `art-source/verificar.py`
+regerou tudo e comparou -- o libsndfile SORTEIA o numero de serie do fluxo Ogg a
+cada codificacao, e ele vai no cabecalho de toda pagina, com o CRC junto. O audio
+decodificado saia identico; o BINARIO nao.
+
+Isso nao dava erro nenhum, e o preco era de historico: cada regeneracao marcava
+os 120 arquivos como alterados, todo diff virava ruido, e no dia em que um som
+mudasse DE VERDADE ninguem repararia. `determinizar` fixa o serial (derivado do
+nome do arquivo) e recalcula o CRC de cada pagina; regenerar sem mexer no som
+passou a nao produzir diff nenhum.
 
 Uso:
     from comum_sons import sintese as s
@@ -23,6 +31,7 @@ Uso:
     onda = voz.rugido(base=90, aspereza=0.5, semente=7)
     s.escrever('rugido.ogg', onda, taxa=22050)
 """
+import hashlib
 import math
 import os
 import struct
@@ -219,15 +228,94 @@ def normalizar(onda):
 
 # --------------------------------------------------------------------- saida
 
-def escrever(destino, onda, taxa=TAXA_PADRAO):
-    """Grava OGG Vorbis e CONFERE o que gravou."""
+def escrever(destino, onda, taxa=TAXA_PADRAO, serial=None):
+    """Grava OGG Vorbis, torna o binario REPRODUTIVEL e confere o que gravou."""
     pasta = os.path.dirname(destino)
     if pasta and not os.path.isdir(pasta):
         os.makedirs(pasta)
     sf.write(destino, np.asarray(onda, dtype='float32'), int(taxa),
              format='OGG', subtype='VORBIS')
+    determinizar(destino, serial)
     valida_vorbis(destino)
     return destino
+
+
+# --------------------------------------------------------------- reproducao
+
+# CRC do Ogg: polinomio 0x04c11db7, SEM reflexao de entrada ou saida, inicio 0 e
+# sem xor final. Nao e o CRC-32 comum (o do zip/png): usar aquele produz um
+# arquivo que o decodificador RECUSA, e o sintoma seria um som que some depois de
+# passar por aqui -- com o gerador dizendo que escreveu.
+def _tabela_crc():
+    tabela = []
+    for i in range(256):
+        r = i << 24
+        for _ in range(8):
+            r = ((r << 1) ^ 0x04C11DB7) & 0xFFFFFFFF if r & 0x80000000 else (r << 1) & 0xFFFFFFFF
+        tabela.append(r)
+    return tuple(tabela)
+
+
+_CRC = _tabela_crc()
+
+
+def _crc_ogg(dados):
+    r = 0
+    for byte in dados:
+        r = ((r << 8) & 0xFFFFFFFF) ^ _CRC[((r >> 24) & 0xFF) ^ byte]
+    return r
+
+
+def determinizar(caminho, serial=None):
+    """Fixa o SERIAL do fluxo Ogg e recalcula o CRC de cada pagina.
+
+    POR QUE ISTO PRECISA EXISTIR. O libsndfile sorteia o numero de serie do
+    fluxo a cada codificacao, e ele aparece no cabecalho de TODA pagina -- com o
+    CRC junto. O resultado: o mesmo audio, codificado duas vezes, produz arquivos
+    com bytes diferentes. O audio decodificado e identico; o BINARIO nao e.
+
+    Isso nao da erro nenhum, e o custo e de historico: cada regeneracao marca os
+    120 arquivos como alterados, todo diff vira ruido, e no dia em que um som
+    mudar DE VERDADE ninguem repara. Com o serial fixo, regenerar sem mexer no
+    som nao produz diff nenhum -- e o diff que aparecer significa alguma coisa.
+
+    O serial padrao sai do NOME do arquivo: dois sons diferentes continuam com
+    fluxos distintos (o formato espera isso de fluxos multiplexados), e o mesmo
+    som sai igual sempre.
+    """
+    if serial is None:
+        semente = os.path.basename(os.path.dirname(caminho)) + '/' + os.path.basename(caminho)
+        serial = int(hashlib.sha1(semente.encode('utf-8')).hexdigest()[:8], 16)
+    serial &= 0xFFFFFFFF
+
+    with open(caminho, 'rb') as arquivo:
+        dados = bytearray(arquivo.read())
+
+    i = 0
+    paginas = 0
+    while i + 27 <= len(dados):
+        if dados[i:i + 4] != b'OggS':
+            raise ErroDeSom("pagina Ogg malformada em %s (offset %d): o arquivo nao pode ser "
+                            "reescrito com seguranca, e reescrever assim mesmo produziria um "
+                            "som que o jogo recusa sem dizer por que" % (caminho, i))
+        segmentos = dados[i + 26]
+        cabecalho = 27 + segmentos
+        corpo = sum(dados[i + 27:i + 27 + segmentos])
+        total = cabecalho + corpo
+
+        dados[i + 14:i + 18] = struct.pack('<I', serial)
+        dados[i + 22:i + 26] = bytes(4)
+        dados[i + 22:i + 26] = struct.pack('<I', _crc_ogg(dados[i:i + total]))
+
+        i += total
+        paginas += 1
+
+    if paginas == 0:
+        raise ErroDeSom("%s nao tem nenhuma pagina Ogg" % caminho)
+
+    with open(caminho, 'wb') as arquivo:
+        arquivo.write(dados)
+    return paginas
 
 
 def valida_vorbis(caminho):

@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:master_of_the_swamp","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"DANGEROUS","territorial":false,"social":false,"visual_id":"master_of_the_swamp"},
+  "attributes": {"max_health":60.0,"movement_speed":0.6,"attack_damage":6.0,"armor":4.0,"follow_range":24.0,"knockback_resistance":0.6},
+  "spawn": {"biome_tags":["#nenfoundation:swamp_water_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":false,"allow_water":true,"require_sky":false,"max_nearby_same_faction":1},
+  "audio_id":"nenfoundation:entity/master_of_the_swamp",
+  "timings": {"bite": {"windup_ticks":12,"active_ticks":4,"recovery_ticks":16,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

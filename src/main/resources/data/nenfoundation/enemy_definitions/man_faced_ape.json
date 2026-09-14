@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:man_faced_ape","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"DANGEROUS","territorial":false,"social":true,"visual_id":"man_faced_ape"},
+  "attributes": {"max_health":24.0,"movement_speed":0.29,"attack_damage":4.0,"armor":1.0,"follow_range":24.0,"knockback_resistance":0.1},
+  "spawn": {"biome_tags":["#nenfoundation:jungle_ambusher_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":4},
+  "audio_id":"nenfoundation:entity/man_faced_ape",
+  "timings": {"strike": {"windup_ticks":8,"active_ticks":4,"recovery_ticks":12,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

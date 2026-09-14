@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:spider_eagle","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"HUNTER","territorial":true,"social":false,"visual_id":"spider_eagle"},
+  "attributes": {"max_health":28.0,"movement_speed":0.35,"attack_damage":6.0,"armor":2.0,"follow_range":32.0,"knockback_resistance":0.0},
+  "spawn": {"biome_tags":["#nenfoundation:canyon_nest_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":2},
+  "audio_id":"nenfoundation:entity/spider_eagle",
+  "timings": {"dive": {"windup_ticks":14,"active_ticks":6,"recovery_ticks":18,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

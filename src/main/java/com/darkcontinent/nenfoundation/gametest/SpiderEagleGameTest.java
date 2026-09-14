@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
+import com.darkcontinent.nenfoundation.registry.NenBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -34,6 +35,20 @@ public final class SpiderEagleGameTest {
     private static final String ARENA_ALTA = "arena_alta";
 
     private SpiderEagleGameTest() { }
+
+    /** O spawn cria o ninho no mundo uma vez, sem reescrever um bloco existente. */
+    @GameTest(template = ARENA_ALTA, timeoutTicks = 100)
+    @PrefixGameTestTemplate(false)
+    public static void oSpawnCriaONinho(GameTestHelper helper) {
+        SpiderEagleEntity ave = helper.spawn(
+                SpiderEagleEntity.registeredType(), new BlockPos(3, 2, 3));
+
+        helper.startSequence()
+                .thenExecuteAfter(3, () -> helper.assertTrue(
+                        helper.getLevel().getBlockState(ave.ninho()).is(NenBlocks.SPIDER_EAGLE_NEST.get()),
+                        "a ave ancorou a coordenada, mas nao criou o bloco de ninho no mundo."))
+                .thenSucceed();
+    }
 
     /**
      * O NINHO NAO ANDA. E o unico estado deste mob que precisa sobreviver ao save.

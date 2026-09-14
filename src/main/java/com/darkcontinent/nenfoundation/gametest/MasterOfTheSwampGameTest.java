@@ -2,14 +2,18 @@ package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
+import com.darkcontinent.nenfoundation.registry.NenItems;
+import com.darkcontinent.nenfoundation.server.BestiaryPlayerService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -61,6 +65,8 @@ public final class MasterOfTheSwampGameTest {
     private static final String LOTE_BOCADA = "master_of_the_swamp_bocada";
     private static final String LOTE_LINHA = "master_of_the_swamp_linha";
     private static final String LOTE_SECO = "master_of_the_swamp_seco";
+    private static final String LOTE_CAPTURA = "master_of_the_swamp_captura";
+    private static final String LOTE_MORTE = "master_of_the_swamp_morte";
 
     /** O piso do template chega em y=1; a agua vai de y=2 para cima. */
     private static final int FUNDO = 2;
@@ -188,6 +194,77 @@ public final class MasterOfTheSwampGameTest {
                             "o peixe fisgou um anzol que nao esta na agua.");
                     peixe.discard();
                     anzol.discard();
+                })
+                .thenSucceed();
+    }
+
+    /** Peixe cansado pode ser recolhido com a mao vazia, sem contar como morte. */
+    @GameTest(template = ARENA, timeoutTicks = 500, batch = LOTE_CAPTURA)
+    @PrefixGameTestTemplate(false)
+    public static void capturarPeixeCansadoRegistraCondicao(GameTestHelper helper) {
+        encherPiscina(helper);
+        MasterOfTheSwampEntity peixe = helper.spawn(
+                MasterOfTheSwampEntity.registeredType(), new BlockPos(4, FUNDO, 5));
+        ServerPlayer pescador = pescadorComVara(helper, 9, FUNDO, 5);
+        FishingHook anzol = lancarAnzol(helper, pescador, 4, FUNDO, 5);
+        BlockPos boia = helper.absolutePos(new BlockPos(4, FUNDO, 5));
+
+        helper.startSequence()
+                .thenWaitUntil(() -> {
+                    if (!anzol.isRemoved()) {
+                        anzol.moveTo(boia.getX() + 0.5D, boia.getY() + 0.5D,
+                                boia.getZ() + 0.5D, 0.0F, 0.0F);
+                        anzol.setDeltaMovement(0.0D, 0.0D, 0.0D);
+                    }
+                    helper.assertTrue(peixe.estaFisgado(),
+                            "a captura nao chegou a fisgar o peixe");
+                })
+                .thenWaitUntil(() -> helper.assertTrue(peixe.estaCansado(),
+                        "o peixe nunca abriu a janela de captura"))
+                .thenExecute(() -> {
+                    pescador.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                    helper.assertTrue(peixe.interact(pescador, InteractionHand.MAIN_HAND).consumesAction(),
+                            "a mao vazia nao foi aceita para recolher o peixe cansado");
+                    helper.assertTrue(peixe.isRemoved(),
+                            "recolher o peixe nao o removeu do mundo");
+                    helper.assertTrue(BestiaryPlayerService.ler(pescador)
+                                    .progress(NenFoundation.id("master_of_the_swamp"))
+                                    .captureFlags().contains("captured_by_fishing"),
+                            "a captura nao registrou a condicao de pesca no bestiario");
+                    boolean notaNoInventario = pescador.getInventory().contains(
+                            new ItemStack(NenItems.SWAMP_FIELD_NOTE.get()));
+                    boolean notaNoChao = !helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                                    new AABB(pescador.position(), pescador.position()).inflate(8.0D),
+                                    item -> item.getItem().is(NenItems.SWAMP_FIELD_NOTE.get()))
+                                    .isEmpty();
+                    helper.assertTrue(notaNoInventario || notaNoChao,
+                            "a captura nao entregou a nota de campo propria do Master");
+                })
+                .thenSucceed();
+    }
+
+    /** O caminho de morte não concede a nota exclusiva da captura. */
+    @GameTest(template = ARENA, timeoutTicks = 100, batch = LOTE_MORTE)
+    @PrefixGameTestTemplate(false)
+    public static void matarPeixeNaoConcedeNotaDeCaptura(GameTestHelper helper) {
+        MasterOfTheSwampEntity peixe = helper.spawnWithNoFreeWill(
+                MasterOfTheSwampEntity.registeredType(), new BlockPos(4, FUNDO, 5));
+        ServerPlayer caçador = helper.makeMockServerPlayerInLevel();
+        BlockPos onde = helper.absolutePos(new BlockPos(4, FUNDO, 5));
+        caçador.teleportTo(onde.getX() + 0.5D, onde.getY(), onde.getZ() + 0.5D);
+
+        helper.startSequence()
+                .thenExecute(() -> helper.assertTrue(peixe.hurt(
+                                helper.getLevel().damageSources().playerAttack(caçador), 1000.0F),
+                        "o golpe letal foi recusado pelo Master do Swamp"))
+                .thenExecuteAfter(21, () -> {
+                    helper.assertTrue(peixe.isRemoved(),
+                            "um tick depois, o golpe letal não encerrou o Master do Swamp");
+                    helper.assertTrue(helper.getLevel().getEntitiesOfClass(ItemEntity.class,
+                                    new AABB(caçador.position(), caçador.position()).inflate(8.0D),
+                                    item -> item.getItem().is(NenItems.SWAMP_FIELD_NOTE.get()))
+                                    .isEmpty(),
+                            "a morte concedeu a nota exclusiva da captura");
                 })
                 .thenSucceed();
     }

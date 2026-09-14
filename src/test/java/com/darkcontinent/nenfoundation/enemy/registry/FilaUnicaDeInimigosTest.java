@@ -167,6 +167,24 @@ class FilaUnicaDeInimigosTest {
     }
 
     @Test
+    @DisplayName("placement acompanha a natureza da entidade")
+    void placementNaoTrocaTerraPorAgua() {
+        String placements = corpoDe(Repo.texto(EVENTOS), "public static void spawnPlacements(");
+
+        assertTrue(placements.contains("EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),\n"
+                        + "                SpawnPlacementTypes.IN_WATER"),
+                "Master of the Swamp precisa usar placement aquatico; um ON_GROUND o deixa"
+                        + " invisivelmente incapaz de nascer em agua profunda");
+
+        for (String constante : List.of("GREAT_STAMP", "FROG_IN_WAITING", "MAN_FACED_APE",
+                "SPIDER_EAGLE", "KIRIKO", "FOXBEAR")) {
+            assertTrue(placements.contains("EnemyEntityTypes." + constante + ".get(),\n"
+                            + "                SpawnPlacementTypes.ON_GROUND"),
+                    constante + " precisa usar placement terrestre");
+        }
+    }
+
+    @Test
     @DisplayName("todo id registrado tem perfil publicado, loot e traducao")
     void oQueEstaNoMundoTemFichaCompleta() {
         Map<String, String> ids = idPorConstante();

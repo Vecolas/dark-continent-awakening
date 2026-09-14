@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:dummy_enemy","canon_level":"ORIGINAL_COMPATIBLE","faction":"CUSTOM","threat_tier":"LOW","territorial":false,"social":false,"visual_id":"dummy_enemy"},
+  "attributes": {"max_health":20.0,"movement_speed":0.25,"attack_damage":4.0,"armor":0.0,"follow_range":16.0,"knockback_resistance":0.0},
+  "spawn": {"biome_tags":["#nenfoundation:dummy_enemy_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":8},
+  "audio_id":"nenfoundation:entity/dummy_enemy",
+  "timings": {"strike": {"windup_ticks":4,"active_ticks":3,"recovery_ticks":6,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

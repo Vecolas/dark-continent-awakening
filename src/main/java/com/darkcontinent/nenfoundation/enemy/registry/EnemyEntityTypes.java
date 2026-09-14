@@ -8,6 +8,7 @@ import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -90,6 +91,11 @@ public final class EnemyEntityTypes {
             TYPES.register("foxbear",
                     () -> EntityType.Builder.of(FoxbearEntity::new, MobCategory.CREATURE)
                             .sized(1.4F, 1.35F).build(NenFoundation.id("foxbear").toString()));
+
+    /** Entidade de contrato do EN1; permanece pequena para GameTests e cenas de depuracao. */
+    public static final DeferredHolder<EntityType<?>, EntityType<DummyEnemyEntity>> DUMMY_ENEMY = TYPES.register(
+            "dummy_enemy", () -> EntityType.Builder.of(DummyEnemyEntity::new, MobCategory.CREATURE)
+                    .sized(0.8F, 1.4F).build(NenFoundation.id("dummy_enemy").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

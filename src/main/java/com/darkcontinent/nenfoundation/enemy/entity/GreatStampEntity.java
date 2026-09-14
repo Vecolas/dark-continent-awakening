@@ -11,6 +11,9 @@ import com.darkcontinent.nenfoundation.enemy.combat.AttackHit;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackHitbox;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
+import com.darkcontinent.nenfoundation.enemy.combat.StaggerController;
+import com.darkcontinent.nenfoundation.enemy.combat.StaggerDefinition;
+import com.darkcontinent.nenfoundation.enemy.combat.StaggerResult;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
@@ -67,6 +70,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     /** Fase do ataque; o unico estado de combate que o cliente precisa conhecer. */
     private static final EntityDataAccessor<Integer> FASE_DE_ATAQUE =
+            SynchedEntityData.defineId(GreatStampEntity.class, EntityDataSerializers.INT);
+    /** Id da instância de ataque; muda só no início, nunca a cada tick. */
+    private static final EntityDataAccessor<Integer> INSTANCIA_DE_ATAQUE =
             SynchedEntityData.defineId(GreatStampEntity.class, EntityDataSerializers.INT);
 
     private static final AttackDefinition CARGA = HunterExamProfiles.greatStampCharge();
@@ -126,7 +132,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     private boolean cargaEmAndamento;
     private Vec3 direcaoDaCarga = Vec3.ZERO;
     private int esperaRestante;
-    private int atordoamentoRestante;
+    private final StaggerController controladorDeStagger = new StaggerController(
+            new StaggerDefinition(1.0F, 0.0F, 0.0F, REGRAS.ticksDeAtordoamento()));
 
     // Sensores do cerebro.
     private int memoriaDeAlvo;
@@ -154,6 +161,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(FASE_DE_ATAQUE, AttackPhase.IDLE.ordinal());
+        builder.define(INSTANCIA_DE_ATAQUE, 0);
     }
 
     /** Fase corrente da carga; vale nos dois lados, porque vem do SynchedEntityData. */
@@ -165,6 +173,9 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     /** Verdadeiro so na fase que de fato machuca; o windup ainda nao e carga. */
     public boolean estaCarregando() { return faseDeAtaque() == AttackPhase.ACTIVE; }
+
+    /** Action id que o cliente usa para distinguir cargas consecutivas. */
+    public int instanciaDeAtaque() { return this.entityData.get(INSTANCIA_DE_ATAQUE); }
 
     @Override
     protected void registerGoals() {
@@ -183,7 +194,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
         super.customServerAiStep();
         if (level().isClientSide) return;
         if (esperaRestante > 0) esperaRestante--;
-        if (atordoamentoRestante > 0) tickDeAtordoamento();
+        if (controladorDeStagger.active()) tickDeAtordoamento();
         EnemyAwarenessState consciencia = enemyBrain().tick(lerSensores());
         alinharEstadoDeCombate(consciencia);
     }
@@ -217,6 +228,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
         // Quem liga, desliga: morrer no meio da carga nao pode deixar a fase presa em ACTIVE.
         if (!level().isClientSide) {
             encerrarCarga();
+            controladorDeStagger.reset();
             combatState(EnemyCombatState.DYING);
         }
         super.die(source);
@@ -224,7 +236,10 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     @Override
     public void remove(Entity.RemovalReason reason) {
-        if (!level().isClientSide) encerrarCarga();
+        if (!level().isClientSide) {
+            encerrarCarga();
+            controladorDeStagger.reset();
+        }
         super.remove(reason);
     }
 
@@ -288,7 +303,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     private void iniciarCarga() {
         cargaEmAndamento = true;
         direcaoDaCarga = Vec3.ZERO;
-        controladorDeAtaque.start(CARGA);
+        long instancia = controladorDeAtaque.start(CARGA);
+        this.entityData.set(INSTANCIA_DE_ATAQUE, (int) instancia);
         getNavigation().stop();
         combatState(EnemyCombatState.WINDUP);
         sincronizarFase();
@@ -351,7 +367,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     /** Bateu na parede correndo: esta e a janela em que o jogador alcanca a testa. */
     private void atordoar() {
-        atordoamentoRestante = REGRAS.ticksDeAtordoamento();
+        StaggerResult resultado = controladorDeStagger.apply(1.0F);
+        if (resultado.outcome() != StaggerResult.Outcome.APPLIED) return;
         combatState(EnemyCombatState.STAGGERED);
         getNavigation().stop();
         setDeltaMovement(Vec3.ZERO);
@@ -359,10 +376,10 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     }
 
     private void tickDeAtordoamento() {
-        atordoamentoRestante--;
+        controladorDeStagger.tick();
         getNavigation().stop();
         setDeltaMovement(getDeltaMovement().multiply(0.0D, 1.0D, 0.0D));
-        if (atordoamentoRestante == 0 && combatState() == EnemyCombatState.STAGGERED) {
+        if (!controladorDeStagger.active() && combatState() == EnemyCombatState.STAGGERED) {
             combatState(getTarget() != null ? EnemyCombatState.AGGRO : estadoOcioso());
         }
     }
@@ -458,7 +475,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     /** A fase da carga manda; fora dela quem manda e a consciencia. */
     private void alinharEstadoDeCombate(EnemyAwarenessState consciencia) {
-        if (cargaEmAndamento || atordoamentoRestante > 0 || combatState() == EnemyCombatState.DYING) return;
+        if (cargaEmAndamento || controladorDeStagger.active()
+                || combatState() == EnemyCombatState.DYING) return;
         if (consciencia == EnemyAwarenessState.FLEE) {
             combatState(EnemyCombatState.RETREAT);
             return;
@@ -486,7 +504,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
         }
 
         @Override public boolean canUse() {
-            if (stamp.level().isClientSide || stamp.atordoamentoRestante > 0) return false;
+            if (stamp.level().isClientSide || stamp.controladorDeStagger.active()) return false;
             if (stamp.awarenessState() == EnemyAwarenessState.FLEE) return false;
             LivingEntity alvo = stamp.getTarget();
             if (alvo == null || !alvo.isAlive()) return false;
@@ -518,7 +536,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
         }
 
         private boolean corpoLivre() {
-            return !stamp.cargaEmAndamento && stamp.atordoamentoRestante == 0;
+            return !stamp.cargaEmAndamento && !stamp.controladorDeStagger.active();
         }
 
         @Override public boolean canUse() { return corpoLivre() && super.canUse(); }

@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:foxbear","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"HUNTER","territorial":true,"social":false,"visual_id":"foxbear"},
+  "attributes": {"max_health":44.0,"movement_speed":0.25,"attack_damage":6.0,"armor":2.0,"follow_range":20.0,"knockback_resistance":0.25},
+  "spawn": {"biome_tags":["#nenfoundation:foxbear_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":12,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":3},
+  "audio_id":"nenfoundation:entity/foxbear",
+  "timings": {},
+  "schema_version":1
+}

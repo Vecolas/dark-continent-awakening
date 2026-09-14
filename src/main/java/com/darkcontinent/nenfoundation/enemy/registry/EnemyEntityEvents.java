@@ -8,6 +8,7 @@ import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -32,6 +33,7 @@ public final class EnemyEntityEvents {
                 MasterOfTheSwampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FOXBEAR.get(), FoxbearEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.DUMMY_ENEMY.get(), DummyEnemyEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -112,6 +114,11 @@ public final class EnemyEntityEvents {
                 SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()),
+                RegisterSpawnPlacementsEvent.Operation.OR);
+        event.register(EnemyEntityTypes.DUMMY_ENEMY.get(),
+                SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                noChaoComLuzDoPerfil(HunterExamProfiles.dummyEnemy().spawnRule()),
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

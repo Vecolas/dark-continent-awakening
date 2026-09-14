@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:kiriko","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"ELITE","territorial":false,"social":false,"visual_id":"kiriko"},
+  "attributes": {"max_health":40.0,"movement_speed":0.32,"attack_damage":7.0,"armor":3.0,"follow_range":24.0,"knockback_resistance":0.2},
+  "spawn": {"biome_tags":["#nenfoundation:magical_beast_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":1},
+  "audio_id":"nenfoundation:entity/kiriko",
+  "timings": {"strike": {"windup_ticks":10,"active_ticks":5,"recovery_ticks":14,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

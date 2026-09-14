@@ -68,7 +68,7 @@ class PlaceholderDeclaradoTest {
      * Enquanto o nome estiver aqui, o inimigo NAO conta como entregue, por mais
      * verde que o build esteja.
      *
-     * <p>HOJE ELA ESTA VAZIA: os cinco inimigos principais tem corpo proprio. Isso
+ * <p>HOJE ELA ESTA VAZIA: os inimigos principais tem corpo proprio. Isso
      * nao aposenta o portao nem a lista -- a metade que reprova emprestimo NAO
      * DECLARADO continua sendo a que morde, e e ela que pega o proximo mob que
      * nascer vestindo vanilla. Divida visual zerada tambem nao e o mesmo que mob

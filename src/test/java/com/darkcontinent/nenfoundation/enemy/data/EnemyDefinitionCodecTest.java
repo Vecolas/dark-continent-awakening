@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import java.util.List;
 import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
@@ -70,5 +73,24 @@ class EnemyDefinitionCodecTest {
 
         List<String> problemas = EnemyDefinitionValidator.problemas(definition);
         assertEquals(3, problemas.size());
+    }
+
+    @Test
+    void catalogoDosSeteInimigosPublicadosEValido() throws Exception {
+        Path pasta = Path.of("src/main/resources/data/nenfoundation/enemy_definitions");
+        List<Path> arquivos = Files.list(pasta).sorted().toList();
+
+        assertEquals(8, arquivos.size());
+        for (Path arquivo : arquivos) {
+            EnemyDefinition definition = EnemyDefinition.CODEC.parse(JsonOps.INSTANCE,
+                    JsonParser.parseString(Files.readString(arquivo))).getOrThrow();
+            assertEquals(0, EnemyDefinitionValidator.problemas(definition).size(), arquivo.toString());
+            assertEquals(1, definition.schemaVersion());
+            EnemyDefinition legado = HunterExamProfiles.publicados().get(
+                    arquivo.getFileName().toString().replace(".json", ""));
+            assertEquals(legado.metadata(), definition.metadata(), arquivo.toString());
+            assertEquals(legado.attributes(), definition.attributes(), arquivo.toString());
+            assertEquals(legado.spawnRule(), definition.spawnRule(), arquivo.toString());
+        }
     }
 }

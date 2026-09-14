@@ -82,7 +82,7 @@ O teste final não é um portão: é alguém olhando para o bicho e pensando
 ```
 placeholder vanilla
       ↓
-comportamento próprio, medido em gametest      ← é onde os cinco estão hoje
+comportamento próprio, medido em gametest      ← é onde os oito estão hoje
       ↓
 modelo + skeleton próprios
       ↓
@@ -113,12 +113,13 @@ conseguem medir, e arte não trava IA.
 | Frog-In-Waiting | **nada** — modelo, esqueleto, animações, textura e renderer próprios | emboscada, agarrão |
 | Man-faced Ape | **nada** — duas silhuetas próprias (disfarce humano e forma revelada) | disfarce, bando |
 | Spider Eagle | **nada** — modelo, esqueleto, animações, textura e renderer próprios | ninho, mergulho, coleira |
+| DummyEnemy | **nada** — modelo, esqueleto, animações, textura e renderer próprios | percepção, ataque telegrafado, stagger |
 
 A lista viva — a que reprova o build — é a de `PlaceholderDeclaradoTest`. Esta
 tabela é para leitura humana e pode envelhecer; aquela não pode.
 
-**A dívida visual fechou: os sete têm corpo próprio.** Nenhum deles, porém, é
-DONE pela ficha acima: faltam **sons próprios**. Os sete são silenciosos — não
+**A dívida visual fechou: os oito têm corpo próprio.** Nenhum deles, porém, é
+DONE pela ficha acima: faltam **sons próprios**. Os oito são silenciosos — não
 emprestam som de vanilla, simplesmente não emitem. E isso hoje está **bloqueado
 por ferramenta**, não por esforço: o Minecraft só toca `.ogg` Vorbis e esta
 máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav` renomeado carregaria

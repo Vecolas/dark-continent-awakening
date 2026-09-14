@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.gametest;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.enemy.api.EnemyCombatState;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
 import net.minecraft.core.BlockPos;
@@ -10,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -118,6 +120,37 @@ public final class GreatStampGameTest {
                 .thenExecuteAfter(90, () -> helper.assertTrue(stamp.faseDeAtaque() == AttackPhase.IDLE,
                         "noventa ticks depois do inicio a fase ainda e " + stamp.faseDeAtaque()
                                 + ". A carga inteira dura 62 ticks: ela ficou presa."))
+                .thenSucceed();
+    }
+
+    /** Uma parede durante o windup interrompe a carga e deixa o stamp atordoado. */
+    @GameTest(template = ARENA, timeoutTicks = 300)
+    @PrefixGameTestTemplate(false)
+    public static void aParedeAtordoaDuranteACarga(GameTestHelper helper) {
+        GreatStampEntity stamp = helper.spawn(GreatStampEntity.registeredType(), new BlockPos(5, 2, 2));
+        IronGolem vitima = helper.spawnWithNoFreeWill(EntityType.IRON_GOLEM, new BlockPos(5, 2, 9));
+        encarar(stamp);
+        stamp.setTarget(vitima);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> helper.assertTrue(stamp.faseDeAtaque() == AttackPhase.WINDUP,
+                        "o stamp não entrou no windup antes da parede ser erguida"))
+                .thenExecute(() -> helper.assertTrue(stamp.instanciaDeAtaque() > 0,
+                        "a carga nao publicou um action id para o cliente"))
+                .thenExecute(() -> {
+                    for (int x = 4; x <= 6; x++) {
+                        for (int y = 2; y <= 4; y++) {
+                            helper.setBlock(new BlockPos(x, y, 5), Blocks.STONE);
+                        }
+                    }
+                })
+                .thenWaitUntil(() -> helper.assertTrue(
+                        stamp.combatState() == EnemyCombatState.STAGGERED,
+                        "a carga atravessou a parede sem atordoar o Great Stamp"))
+                .thenExecute(() -> {
+                    stamp.discard();
+                    vitima.discard();
+                })
                 .thenSucceed();
     }
 

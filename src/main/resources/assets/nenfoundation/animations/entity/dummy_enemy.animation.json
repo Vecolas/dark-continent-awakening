@@ -1,0 +1,12 @@
+{
+  "format_version":"1.8.0",
+  "animations": {
+    "animation.dummy_enemy.idle":{"loop":true,"animation_length":2.0,"bones":{"body":{"position":{"0.0":[0,0,0],"1.0":[0,0.3,0],"2.0":[0,0,0]}}}},
+    "animation.dummy_enemy.walk":{"loop":true,"animation_length":1.0,"bones":{"left_leg":{"rotation":{"0.0":[20,0,0],"0.5":[-20,0,0],"1.0":[20,0,0]}},"right_leg":{"rotation":{"0.0":[-20,0,0],"0.5":[20,0,0],"1.0":[-20,0,0]}}}},
+    "animation.dummy_enemy.windup":{"loop":false,"animation_length":0.25,"bones":{"body":{"rotation":{"0.0":[0,0,0],"0.25":[-12,0,0]}}}},
+    "animation.dummy_enemy.active":{"loop":false,"animation_length":0.2,"bones":{"left_arm":{"rotation":{"0.0":[-20,0,0],"0.2":[70,0,0]}},"right_arm":{"rotation":{"0.0":[-20,0,0],"0.2":[70,0,0]}}}},
+    "animation.dummy_enemy.recovery":{"loop":false,"animation_length":0.3,"bones":{"body":{"rotation":{"0.0":[-12,0,0],"0.3":[0,0,0]}}}},
+    "animation.dummy_enemy.stagger":{"loop":true,"animation_length":0.4,"bones":{"head":{"rotation":{"0.0":[0,0,-8],"0.2":[0,0,8],"0.4":[0,0,-8]}}}},
+    "animation.dummy_enemy.death":{"loop":false,"animation_length":0.5,"bones":{"body":{"rotation":{"0.0":[0,0,0],"0.5":[0,0,90]}}}}
+  }
+}

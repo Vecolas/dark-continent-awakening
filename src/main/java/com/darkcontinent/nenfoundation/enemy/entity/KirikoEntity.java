@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.enemy.entity;
 
+import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.ai.AwarenessInput;
 import com.darkcontinent.nenfoundation.enemy.ai.AwarenessTuning;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyAwarenessState;
@@ -13,6 +14,8 @@ import com.darkcontinent.nenfoundation.enemy.combat.AttackTimeline;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeJulgamento;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.registry.NenItems;
+import com.darkcontinent.nenfoundation.server.BestiaryPlayerService;
 import java.util.EnumSet;
 import java.util.UUID;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -24,6 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -35,6 +39,7 @@ import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -736,21 +741,34 @@ public final class KirikoEntity extends BaseHxHMob implements GeoEntity {
     /**
      * A RECOMPENSA de quem venceu o encontro NAO LUTANDO.
      *
-     * <p>PONTO CEGO DECLARADO: hoje ela e a MESMA tabela de loot que cairia de
-     * quem o matasse a pancada -- o que separa os dois caminhos e o trabalho, nao
-     * o premio. A tabela propria da aprovacao, o bestiario e a quest amarrados a
-     * este ponto sao de outra frente, e estao anotados. O
-     * {@code lastHurtByPlayer} e escrito para a tabela enxergar sorte e
-     * encantamento de saque de quem passou, que e o mesmo caminho que o master of
-     * the swamp usa na captura.</p>
+     * <p>A aprovacao nao usa a loot table de morte: ela entrega uma nota de campo
+     * propria, que pesquisa a entrada da Kiriko. Assim o caminho bom deixa uma
+     * recompensa diferente e nao duplica o loot de abate.</p>
      */
     private void entregarRecompensa() {
         if (jogadorAprovado == null || !jogadorAprovado.isAlive()) {
             return;
         }
-        this.lastHurtByPlayer = jogadorAprovado;
-        this.lastHurtByPlayerTime = 100;
-        dropFromLootTable(damageSources().playerAttack(jogadorAprovado), true);
+        if (jogadorAprovado instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            BestiaryPlayerService.registrarCaptura(serverPlayer,
+                    NenFoundation.id("kiriko"), "approved_by_patience");
+        }
+        ItemStack nota = new ItemStack(NenItems.KIRIKO_FIELD_NOTE.get());
+        boolean entrouNoInventario = jogadorAprovado.addItem(nota)
+                && jogadorAprovado.getInventory().contains(
+                        new ItemStack(NenItems.KIRIKO_FIELD_NOTE.get()));
+        if (!entrouNoInventario) {
+            if (nota.isEmpty()) {
+                nota = new ItemStack(NenItems.KIRIKO_FIELD_NOTE.get());
+            }
+            ItemEntity drop = jogadorAprovado.drop(nota, false);
+            if (drop == null && !nota.isEmpty()) {
+                ItemEntity fallback = new ItemEntity(level(), jogadorAprovado.getX(),
+                        jogadorAprovado.getY(), jogadorAprovado.getZ(), nota);
+                fallback.setDefaultPickUpDelay();
+                level().addFreshEntity(fallback);
+            }
+        }
     }
 
     // ------------------------------------------------------------ reprovado

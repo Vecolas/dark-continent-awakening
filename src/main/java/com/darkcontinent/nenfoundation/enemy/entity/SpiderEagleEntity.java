@@ -11,6 +11,7 @@ import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackTimeline;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.registry.NenBlocks;
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -59,7 +60,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  * medida que decide comportamento sai do NINHO, nunca do corpo da ave, e a
  * {@link NestGuardRules#desiste} devolve a ave para casa assim que o intruso
  * sai do raio de aviso ou assim que ela mesma passa da coleira. E isso, e so
- * isso, que vai permitir -- quando existir um bloco de ninho, em outro PR --
+ * isso, que permite o bloco de ninho persistente da propria ave,
  * roubar os ovos sem matar a mae. Um mob que persegue ate matar nao tem esse
  * encounter, e a diferenca nao aparece como erro: aparece como uma promessa de
  * design que o codigo silenciosamente nao cumpre.</p>
@@ -320,7 +321,12 @@ public final class SpiderEagleEntity extends BaseHxHMob implements GeoEntity {
 
     /** O ninho nasce na posicao de spawn, e so quando o save nao trouxe um. */
     private void ancorarNinhoUmaVez() {
-        if (ninho == null) ninho = blockPosition();
+        if (ninho != null) return;
+        BlockPos candidato = blockPosition();
+        if (level().getBlockState(candidato).canBeReplaced()) {
+            level().setBlock(candidato, NenBlocks.SPIDER_EAGLE_NEST.get().defaultBlockState(), 3);
+        }
+        ninho = candidato;
     }
 
     /**

@@ -145,6 +145,8 @@ public final class NenCommands {
                         .then(Commands.argument("alvo", EntityArgument.player())
                                 .executes(ctx -> mostrarDump(ctx, alvoDoArgumento(ctx))))));
 
+        EnemyDebugCommands.anexar(raiz);
+
         raiz.then(Commands.literal("technique")
                 .then(Commands.literal("unlock")
                         .then(Commands.argument("tecnica", ResourceLocationArgument.id())

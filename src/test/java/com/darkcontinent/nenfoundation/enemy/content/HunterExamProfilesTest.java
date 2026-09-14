@@ -22,4 +22,13 @@ class HunterExamProfilesTest {
         assertEquals(com.darkcontinent.nenfoundation.enemy.api.EnemyFaction.WILDLIFE,
                 HunterExamProfiles.foxbear().metadata().faction());
     }
+
+    @Test
+    void dummyTemWeakPointCoerenteComOResolver() {
+        var resolver = HunterExamProfiles.dummyEnemyWeakPoint();
+        assertEquals("eye", resolver.regiaoVulneravel());
+        assertEquals(2.0F, HunterExamProfiles.dummyEnemyWeakPoints().multiplier("eye"));
+        assertEquals(resolver.regiaoVulneravel(), resolver.resolver(0.9D, 1.0D));
+        assertEquals(1.0F, HunterExamProfiles.dummyEnemyWeakPoints().multiplier(resolver.regiaoPadrao()));
+    }
 }

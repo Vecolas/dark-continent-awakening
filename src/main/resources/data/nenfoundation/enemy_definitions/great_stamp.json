@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:great_stamp","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"HUNTER","territorial":true,"social":true,"visual_id":"great_stamp"},
+  "attributes": {"max_health":70.0,"movement_speed":0.23,"attack_damage":11.0,"armor":7.0,"follow_range":28.0,"knockback_resistance":0.55},
+  "spawn": {"biome_tags":["#nenfoundation:great_stamp_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":true,"allow_water":false,"require_sky":false,"max_nearby_same_faction":4},
+  "audio_id":"nenfoundation:entity/great_stamp",
+  "timings": {"charge": {"windup_ticks":18,"active_ticks":20,"recovery_ticks":24,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

@@ -84,7 +84,8 @@ class PacotesDeclaradosTest {
             boolean ehNucleo = caminho.contains("/nenfoundation/nen/")
                     || caminho.contains("/nenfoundation/api/")
                     || caminho.contains("/nenfoundation/network/")
-                    || caminho.contains("/nenfoundation/server/");
+                    || caminho.contains("/nenfoundation/server/")
+                    || caminho.contains("/nenfoundation/enemy/");
             if (!ehNucleo) {
                 continue;
             }

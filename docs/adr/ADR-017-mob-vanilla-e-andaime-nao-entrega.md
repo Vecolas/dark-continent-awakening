@@ -5,7 +5,7 @@
 
 ## Contexto
 
-Os cinco inimigos que existem hoje renderizam com geometria e textura VANILLA
+Os cinco inimigos que originaram esta ADR renderizavam com geometria e textura VANILLA
 emprestadas: Foxbear veste urso-polar, Great Stamp veste hoglin, Frog-In-Waiting
 veste sapo, Man-faced Ape veste aldeao e piglin, Spider Eagle veste phantom.
 

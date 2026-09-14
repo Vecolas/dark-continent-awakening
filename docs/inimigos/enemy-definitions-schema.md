@@ -57,3 +57,8 @@ regras de alvo não entram nele para evitar uma segunda fonte de balanceamento.
 aplicadas parcialmente. Os perfis existentes em `HunterExamProfiles` ainda são
 legado Java e usam `audio_id` derivado do próprio id até uma migração explícita;
 este schema não declara balanceamento final dos 23 encounters.
+
+O repositório publica uma definição inicial para cada um dos oito inimigos
+registrados em `data/nenfoundation/enemy_definitions/`. Enquanto os perfis Java
+continuarem legados, os testes comparam metadata, atributos e spawn dos dois
+catálogos para impedir divergência silenciosa.

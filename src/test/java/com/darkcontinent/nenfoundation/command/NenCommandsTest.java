@@ -117,6 +117,14 @@ class NenCommandsTest {
 
         assertTrue(caminhos.contains("nen debug profile"), caminhos.toString());
         assertTrue(caminhos.contains("nen debug dump"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy spawn <id>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy state <inimigo>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy ai freeze <inimigo>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy hitboxes <inimigo>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy weakpoints <inimigo>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy animation <inimigo> <nome>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy target <inimigo> <alvo>"), caminhos.toString());
+        assertTrue(caminhos.contains("nen enemy arena"), caminhos.toString());
         assertTrue(caminhos.contains("nen technique unlock <tecnica>"), caminhos.toString());
         assertTrue(caminhos.contains("nen technique lock <tecnica>"), caminhos.toString());
 

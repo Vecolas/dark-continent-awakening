@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.registry;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.item.HunterBestiaryItem;
 import com.darkcontinent.nenfoundation.item.FieldNoteItem;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEggItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
@@ -27,6 +28,8 @@ public final class NenItems {
     public static final DeferredHolder<Item, Item> APE_FIELD_NOTE = note("man_faced_ape_field_note", "man_faced_ape");
     public static final DeferredHolder<Item, Item> SWAMP_FIELD_NOTE = note("master_of_the_swamp_field_note", "master_of_the_swamp");
     public static final DeferredHolder<Item, Item> SPIDER_EAGLE_FIELD_NOTE = note("spider_eagle_field_note", "spider_eagle");
+    public static final DeferredHolder<Item, Item> SPIDER_EAGLE_EGG = ITEMS.register(
+            "spider_eagle_egg", () -> new SpiderEagleEggItem(new Item.Properties()));
 
     private static DeferredHolder<Item, Item> note(String itemId, String entryId) {
         return ITEMS.register(itemId, () -> new FieldNoteItem(new Item.Properties(),
@@ -50,9 +53,11 @@ public final class NenItems {
             evento.accept(APE_FIELD_NOTE.get());
             evento.accept(SWAMP_FIELD_NOTE.get());
             evento.accept(SPIDER_EAGLE_FIELD_NOTE.get());
+            evento.accept(SPIDER_EAGLE_EGG.get());
         }
         if (evento.getTabKey() == net.minecraft.world.item.CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             evento.accept(NenBlocks.RESEARCH_TABLE_ITEM.get());
+            evento.accept(NenBlocks.SPIDER_EAGLE_NEST_ITEM.get());
         }
     }
 

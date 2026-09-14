@@ -1,0 +1,5 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#nenfoundation:dummy_enemy_biomes",
+  "spawners": [{"type":"nenfoundation:dummy_enemy","weight":1,"minCount":1,"maxCount":1}]
+}

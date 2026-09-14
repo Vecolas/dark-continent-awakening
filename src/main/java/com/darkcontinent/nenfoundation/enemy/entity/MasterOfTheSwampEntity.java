@@ -1,5 +1,6 @@
 package com.darkcontinent.nenfoundation.enemy.entity;
 
+import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.enemy.ai.AwarenessInput;
 import com.darkcontinent.nenfoundation.enemy.ai.AwarenessTuning;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyAwarenessState;
@@ -11,6 +12,8 @@ import com.darkcontinent.nenfoundation.enemy.combat.AttackTimeline;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeFisgada;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.registry.NenItems;
+import com.darkcontinent.nenfoundation.server.BestiaryPlayerService;
 import java.util.EnumSet;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -22,6 +25,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -35,6 +39,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.pathfinder.PathType;
@@ -690,20 +695,33 @@ public final class MasterOfTheSwampEntity extends BaseHxHMob implements GeoEntit
     }
 
     /**
-     * Recolher deixa a recompensa e tira o peixe do mundo.
+     * Recolher entrega a nota de campo e tira o peixe do mundo.
      *
      * <p>Ele sai por {@code remove}, e nao por {@code die}: capturar nao e
-     * matar, e a diferenca importa para quem for pendurar bestiario, conquista
-     * ou quest neste ponto. PONTO CEGO DECLARADO: hoje a recompensa e a MESMA
-     * tabela de loot que cai de quem mata a pancada -- o que separa os dois
-     * caminhos e o trabalho, nao o premio. Amarrar bestiario e conquista a
-     * captura e trabalho de outra frente, e esta anotado.</p>
+     * matar, e a diferenca importa para o bestiario e futuras quests. O flag de
+     * captura e registrado antes da nota, e a loot table de morte nao e usada:
+     * os dois caminhos tem recompensas deliberadamente diferentes.</p>
      */
     private void recolher(Player jogador) {
         soltarLinha();
         this.lastHurtByPlayer = jogador;
         this.lastHurtByPlayerTime = 100;
-        dropFromLootTable(damageSources().playerAttack(jogador), true);
+        if (jogador instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            BestiaryPlayerService.registrarCaptura(serverPlayer,
+                    NenFoundation.id("master_of_the_swamp"), "captured_by_fishing");
+        }
+        ItemStack nota = new ItemStack(NenItems.SWAMP_FIELD_NOTE.get());
+        boolean entrouNoInventario = jogador.addItem(nota)
+                && jogador.getInventory().contains(new ItemStack(NenItems.SWAMP_FIELD_NOTE.get()));
+        if (!entrouNoInventario) {
+            if (nota.isEmpty()) {
+                nota = new ItemStack(NenItems.SWAMP_FIELD_NOTE.get());
+            }
+            ItemEntity drop = new ItemEntity(level(), jogador.getX(), jogador.getY(),
+                    jogador.getZ(), nota);
+            drop.setDefaultPickUpDelay();
+            level().addFreshEntity(drop);
+        }
         // TODO: PLACEHOLDER -- som de vara do VANILLA (FISHING_BOBBER_RETRIEVE) no
         // recolhimento. Sai quando o mob ganhar banco de sons proprio; a secao 10 da
         // diretriz permite o emprestimo durante o desenvolvimento, e hoje ele e

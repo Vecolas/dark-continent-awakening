@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.bestiary;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Set;
 
@@ -20,7 +21,7 @@ public record BestiaryProgress(
         BestiaryNenStatus nenStatus) {
 
     public static final Codec<BestiaryProgress> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.xmap(BestiaryKnowledgeLevel::valueOf, Enum::name)
+            Codec.STRING.comapFlatMap(BestiaryProgress::parseKnowledgeLevel, Enum::name)
                     .optionalFieldOf("knowledge_level", BestiaryKnowledgeLevel.UNKNOWN)
                     .forGetter(BestiaryProgress::knowledgeLevel),
             Codec.INT.optionalFieldOf("times_seen", 0).forGetter(BestiaryProgress::timesSeen),
@@ -37,13 +38,29 @@ public record BestiaryProgress(
                     .optionalFieldOf("capture_flags", Set.of()).forGetter(BestiaryProgress::captureFlags),
             Codec.STRING.listOf().xmap(list -> Set.copyOf(list), set -> java.util.List.copyOf(set))
                     .optionalFieldOf("special_discoveries", Set.of()).forGetter(BestiaryProgress::specialDiscoveries),
-            Codec.STRING.xmap(BestiaryNenStatus::valueOf, Enum::name)
+            Codec.STRING.comapFlatMap(BestiaryProgress::parseNenStatus, Enum::name)
                     .optionalFieldOf("nen_status", BestiaryNenStatus.NONE).forGetter(BestiaryProgress::nenStatus)
     ).apply(instance, BestiaryProgress::new));
 
     public static final BestiaryProgress UNKNOWN = new BestiaryProgress(
             BestiaryKnowledgeLevel.UNKNOWN, 0, 0, 0, 0, 0L, 0L,
             Set.of(), Set.of(), Set.of(), Set.of(), BestiaryNenStatus.NONE);
+
+    private static DataResult<BestiaryKnowledgeLevel> parseKnowledgeLevel(String value) {
+        try {
+            return DataResult.success(BestiaryKnowledgeLevel.valueOf(value));
+        } catch (IllegalArgumentException error) {
+            return DataResult.error(() -> "nivel de conhecimento do bestiario desconhecido: " + value);
+        }
+    }
+
+    private static DataResult<BestiaryNenStatus> parseNenStatus(String value) {
+        try {
+            return DataResult.success(BestiaryNenStatus.valueOf(value));
+        } catch (IllegalArgumentException error) {
+            return DataResult.error(() -> "status de Nen do bestiario desconhecido: " + value);
+        }
+    }
 
     public BestiaryProgress {
         if (timesSeen < 0 || timesFought < 0 || timesDefeated < 0 || researchPoints < 0) {

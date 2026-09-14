@@ -13,7 +13,7 @@ package com.darkcontinent.nenfoundation.enemy.ai;
  * "quem recua e poupado" ser verdade: o intruso que sai do raio de aviso e
  * largado, e a ave volta para o ninho. Sem essa regra o mob vira mais um
  * perseguidor, e o encounter que o plano quer -- roubar os ovos sem matar a
- * mae, mais tarde, quando existir bloco de ninho -- deixa de ser possivel.</p>
+ * mae, agora ancorada no bloco de ninho persistente -- deixa de ser possivel.</p>
  *
  * <p>"Quando ela avisa", "quando ela bota" e "quando ela desiste" sao UMA
  * fonte so, testavel sozinha. Espalhadas pela Goal e pelo tick da entidade,
@@ -82,7 +82,7 @@ public record NestGuardRules(double raioDeAviso, double raioDeBote, double raioD
      * <p>Duas razoes largam o alvo, e as duas devolvem a ave ao ninho: ela
      * passou da coleira (foi longe demais do ninho) ou o intruso saiu do raio
      * de aviso (recuou). A segunda e a promessa do mob inteiro -- QUEM RECUA E
-     * POUPADO -- e e o que vai permitir, quando existir um bloco de ninho,
+     * POUPADO -- e e o que permite, agora que existe um bloco de ninho,
      * roubar os ovos sem matar a mae.</p>
      *
      * <p>Distancia nao finita DESISTE, e nao o contrario: o lado seguro de uma

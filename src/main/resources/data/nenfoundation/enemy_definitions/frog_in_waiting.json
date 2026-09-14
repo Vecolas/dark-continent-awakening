@@ -1,0 +1,8 @@
+{
+  "metadata": {"id":"nenfoundation:frog_in_waiting","canon_level":"CANON_EXACT","faction":"WILDLIFE","threat_tier":"DANGEROUS","territorial":true,"social":false,"visual_id":"frog_in_waiting"},
+  "attributes": {"max_health":50.0,"movement_speed":0.12,"attack_damage":10.0,"armor":3.0,"follow_range":20.0,"knockback_resistance":0.35},
+  "spawn": {"biome_tags":["#nenfoundation:swamp_predator_biomes"],"dimensions":["minecraft:overworld"],"min_light":0,"max_light":15,"require_ground":false,"allow_water":true,"require_sky":false,"max_nearby_same_faction":2},
+  "audio_id":"nenfoundation:entity/frog_in_waiting",
+  "timings": {"swallow": {"windup_ticks":10,"active_ticks":4,"recovery_ticks":20,"interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
+  "schema_version":1
+}

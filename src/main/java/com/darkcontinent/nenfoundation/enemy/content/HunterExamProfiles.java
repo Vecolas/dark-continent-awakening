@@ -425,7 +425,29 @@ public final class HunterExamProfiles {
                 "spider_eagle", spiderEagle(),
                 "master_of_the_swamp", masterOfTheSwamp(),
                 "kiriko", kiriko(),
-                "foxbear", foxbear());
+                "foxbear", foxbear(),
+                "dummy_enemy", dummyEnemy());
+    }
+
+    /** Perfil neutro do DummyEnemy: infraestrutura exercitavel, sem fingir ser criatura canonica. */
+    public static EnemyDefinition dummyEnemy() {
+        return new EnemyDefinition(new EnemyMetadata(ResourceLocation.fromNamespaceAndPath(MOD, "dummy_enemy"),
+                        CanonLevel.ORIGINAL_COMPATIBLE, EnemyFaction.CUSTOM, ThreatTier.LOW,
+                        false, false, "dummy_enemy"),
+                new EnemyAttributes(20, 0.25F, 4, 0, 16, 0.0F),
+                spawn("#nenfoundation:dummy_enemy_biomes", 0, 15, true, false, 8));
+    }
+
+    public static AttackDefinition dummyEnemyStrike() {
+        return new AttackDefinition("strike", 4, 3, 6, 4.0F, 0.2F, true, false, true);
+    }
+
+    public static WeakPointRegistry dummyEnemyWeakPoints() {
+        return new WeakPointRegistry(Map.of("eye", new WeakPoint("eye", "head", 2.0F, true)));
+    }
+
+    public static WeakPointResolver dummyEnemyWeakPoint() {
+        return new WeakPointResolver("eye", "body", 0.70D, 0.45D);
     }
 
     public static EnemyDefinition foxbear() {

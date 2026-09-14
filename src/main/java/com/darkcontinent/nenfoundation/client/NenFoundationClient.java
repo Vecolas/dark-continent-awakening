@@ -7,6 +7,7 @@ import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
 import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
+import com.darkcontinent.nenfoundation.client.particle.AuraSparkParticle;
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
@@ -24,6 +25,7 @@ import net.neoforged.fml.config.ModConfig;
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S;
+import com.darkcontinent.nenfoundation.registry.NenParticleTypes;
 import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.Minecraft;
@@ -33,6 +35,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +105,9 @@ public final class NenFoundationClient {
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
         modEventBus.addListener(AuraShaders::registrar);
+        modEventBus.addListener((RegisterParticleProvidersEvent evento) ->
+                evento.registerSpriteSet(
+                        NenParticleTypes.AURA_SPARK.get(), AuraSparkParticle.Provider::new));
         // O PERFIL VISUAL E RECURSO DE CLIENTE, e nao datapack: ele nao muda
         // custo, alcance nem visibilidade -- e um datapack deixaria o servidor
         // ditar como a aura aparece na tela de cada um.
@@ -155,6 +161,7 @@ public final class NenFoundationClient {
         // porque o jogador nao despertou la, para sempre.
         this.vfx.limpar();
         this.audioDeAura.limpar(Minecraft.getInstance());
+        AuraSparkParticle.limparContagem();
         // A FONTE DO AuraVisualSystem NAO E DESLIGADA AQUI, e isso e
         // deliberado. `ligar` acontece uma vez, no construtor, e este objeto
         // vive tanto quanto o mod; desligar no logout deixaria a aura morta

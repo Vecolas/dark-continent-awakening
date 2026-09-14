@@ -388,7 +388,7 @@ Duas coisas mudaram neste dia, e nenhuma das duas fecha gate:
    entao nenhuma captura desta trilha podia ser comparada com outra.
 3. Os **ultimos numeros de arte sairam do codigo** (issue #98):
    `AuraVisualPreset` e `AuraVisualProfile` foram removidos, e os dois campos
-   deles que alguem lia viraram `densidade_de_particula` e
+   deles que alguem lia viraram `taxa_de_faiscas` e
    `tamanho_de_particula` no perfil de resource pack. Cinco campos nao tinham
    leitor nenhum. Nao muda um pixel: muda de onde o pixel vem.
 

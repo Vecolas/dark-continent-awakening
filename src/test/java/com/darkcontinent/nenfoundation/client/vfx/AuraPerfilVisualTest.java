@@ -104,7 +104,7 @@ class AuraPerfilVisualTest {
                 {"alpha_interno": 0.05, "alpha_borda": 0.2, "alpha_externo": 0.03,
                  "fresnel_interno": %s, "fresnel_borda": %s, "fresnel_externo": %s,
                  "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
-                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18, %s}
+                 "taxa_de_faiscas": 0.4, "tamanho_de_particula": 0.18, %s}
                 """.formatted(f[0], f[1], f[2], FILAMENTOS));
         return AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, json);
     }
@@ -117,7 +117,7 @@ class AuraPerfilVisualTest {
                 {"alpha_interno": 5.0, "alpha_borda": 0.2, "alpha_externo": 0.03,
                  "fresnel_interno": 3.4, "fresnel_borda": 2.7, "fresnel_externo": 2.0,
                  "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
-                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18, %s}
+                 "taxa_de_faiscas": 0.4, "tamanho_de_particula": 0.18, %s}
                 """.formatted(FILAMENTOS));
         assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, torto).error().isPresent(),
                 "alpha acima de 1 passou. Corrigir em silencio esconderia um pack quebrado"
@@ -163,7 +163,7 @@ class AuraPerfilVisualTest {
         // sairam do codigo. Zerar so os alphas apagaria a shell e deixaria a
         // nuvem de poeira acesa -- ou seja, Zetsu vira "poeira desligada", que e
         // exatamente a leitura que o ADR-015 existe para nao produzir.
-        assertEquals(0.0F, apagado.densidadeDeParticula(),
+        assertEquals(0.0F, apagado.taxaDeFaiscas(),
                 "Zetsu com faisca nao e supressao");
         assertEquals(0, apagado.filamentos().quantidade(),
                 "Zetsu com filamento tambem nao");
@@ -199,7 +199,7 @@ class AuraPerfilVisualTest {
                 {"alpha_interno": 0.05, "alpha_borda": 0.2, "alpha_externo": 0.03,
                  "fresnel_interno": 3.4, "fresnel_borda": 2.7, "fresnel_externo": 2.0,
                  "velocidade_de_fluxo": 0.12, "escala_de_ruido": 4.0, "reforco_da_borda": 0.9,
-                 "densidade_de_particula": 0.03, "tamanho_de_particula": 0.18}
+                 "taxa_de_faiscas": 0.4, "tamanho_de_particula": 0.18}
                 """);
         assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, semBloco).error().isPresent(),
                 "perfil sem o bloco `filamentos` passou");
@@ -234,19 +234,15 @@ class AuraPerfilVisualTest {
         AuraPerfilVisual ten = ler("ten.json");
         AuraPerfilVisual ren = ler("ren.json");
 
-        assertTrue(ten.densidadeDeParticula() > 0.0F,
+        assertEquals(0.4F, ten.taxaDeFaiscas(), 1.0e-6F,
                 "Ten sem faisca nenhuma; acabamento discreto nao e acabamento ausente");
-        assertTrue(ren.densidadeDeParticula() > ten.densidadeDeParticula(),
-                "Ren emite " + ren.densidadeDeParticula() + " contra " + ten.densidadeDeParticula()
+        assertTrue(ren.taxaDeFaiscas() > ten.taxaDeFaiscas(),
+                "Ren emite " + ren.taxaDeFaiscas() + " contra " + ten.taxaDeFaiscas()
                         + " de Ten -- deixou de ser mais denso");
         assertTrue(ren.tamanhoDeParticula() > ten.tamanhoDeParticula(),
                 "a faisca de Ren deixou de ser maior que a de Ten");
 
-        // O TETO E BAIXO DE PROPOSITO. A particula e ACABAMENTO desde o #186:
-        // com densidade perto de 1 a nuvem volta a competir com a shell, e a
-        // aura volta a ser lida como pocao.
-        assertTrue(ren.densidadeDeParticula() <= 0.25F,
-                "densidade " + ren.densidadeDeParticula() + " devolve a particula ao papel"
-                        + " de aura, que o ADR-015 tirou dela");
+        assertEquals(4.0F, ren.taxaDeFaiscas(), 1.0e-6F,
+                "a taxa de Ren saiu do perfil aprovado");
     }
 }

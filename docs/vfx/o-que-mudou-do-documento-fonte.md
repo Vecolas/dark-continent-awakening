@@ -62,7 +62,7 @@ precisa de qualquer jeito.
 | `AuraVisualState` | **fica, enxugado** | o plano dizia "ganha campos de shell/ribbon/bloom/pressão". **O código foi para o outro lado, e ele ganha:** o estado PERDEU o único campo de arte que tinha. Ele carrega o que muda por tick e por jogador — modo, intensidade, transição, distribuição, cores; os números de arte moram no perfil e se buscam por `AuraPerfis.de(estado.mode())`. Duplicá-los dentro do estado criaria duas fontes para o mesmo Ren |
 | `AuraVisualController` | **fica** | a correção de interpolação (origem congelada, e não `atual`) continua valendo e não se toca |
 | `AuraVisualMode` | **fica** | inalterado |
-| `AuraVisualPreset` | **REMOVIDO** (AV0) | cinco dos sete campos (`shellScale`, `edgeIntensity`, `flowIntensity`, `pulseAmplitude`, `pulseFrequency`) nunca tiveram um leitor sequer. Os dois que tinham — contagem e tamanho de partícula — viraram `densidade_de_particula` e `tamanho_de_particula` no perfil de _resource pack_ |
+| `AuraVisualPreset` | **REMOVIDO** (AV0) | cinco dos sete campos (`shellScale`, `edgeIntensity`, `flowIntensity`, `pulseAmplitude`, `pulseFrequency`) nunca tiveram um leitor sequer. Os dois que tinham — contagem e tamanho de partícula — viraram `taxa_de_faiscas` e `tamanho_de_particula` no perfil de _resource pack_ |
 | `AuraVisualProfile` | **REMOVIDO** (AV0) | o perfil de JSON nasceu com outro nome no AV3 — `model/AuraPerfilVisual` — e este record ficou para trás sem nenhum construtor fora do próprio teste dele. Um record que só o teste dele constrói prova a si mesmo |
 | `AuraVisualQuality` | **fica** | ganha `ULTRA` e os interruptores separados |
 | `AuraRenderLod` | **fica, recalibrado** | os cortes 8/20/40 passam para a tabela de cinco níveis no AV3 |
@@ -96,23 +96,22 @@ Registrado aqui, e nao corrigido dentro do ADR-014, porque ADR e registro
 historico de decisao e porque aquele arquivo e da outra lane. O ajuste da frase
 e dela.
 
-### A janela em que o jogo fica pior antes de ficar melhor
+### A janela de transição fechou no AV3
 
-**Isto precisa estar escrito antes de alguém abrir o jogo e estranhar.**
+Na issue #186, a nuvem cilíndrica de partícula vanilla foi removida. A shell e
+os filamentos agora sustentam a identidade da aura; `AuraSpark` é somente uma
+faísca autoral ocasional, emitida junto das mesmas âncoras dos filamentos.
 
-Entre o merge do AV0 e o fechamento do AV3, o efeito em jogo é:
+Assim, terminou a janela temporária em que o jogo mostrava a nuvem antiga junto
+da shell nova. `vfx.densidadeDeParticulas = 0.0` continua disponível, agora como
+controle do acabamento: zerá-lo não apaga nem enfraquece a leitura de Ten.
 
-- a nuvem de partícula antiga, que continua ligada (ela é o único efeito que
-  desenha hoje), **mais**
-- uma shell crua, sem shader próprio, que aparece a partir do AV0.
-
-A nuvem antiga só é reduzida ao seu papel final — faísca ocasional — no **AV3**,
-quando a shell e as ribbons já sustentam a identidade sozinhas. Cortar as
-partículas antes disso deixaria o jogo com menos efeito do que ele tem hoje, e
-por vários gates.
-
-Quem quiser ver só o novo, durante a transição:
-`vfx.densidadeDeParticulas = 0.0`.
+O rascunho da issue nomeava `textures/vfx/nen/aura_spark.png`. No cliente real,
+esse caminho não entra automaticamente no atlas `minecraft:particles` e gerou
+`Missing particle sprites`. O asset final fica em
+`textures/particle/aura_spark.png`, com o descritor em
+`particles/aura_spark.json`; o segundo carregamento do cliente confirmou o
+sprite no atlas sem o aviso.
 
 ---
 

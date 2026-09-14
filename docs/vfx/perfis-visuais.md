@@ -329,7 +329,7 @@ informação e o código responde com o perfil apagado.
 | `velocidade_de_fluxo` | ≥ 0 | com que rapidez a energia sobe |
 | `escala_de_ruido` | > 0 | repetições do ruído na superfície |
 | `reforco_da_borda` | ≥ 0 | quanto o Fresnel soma à intensidade |
-| `densidade_de_particula` | 0–1 | **acabamento**: quantas faíscas acompanham a shell |
+| `taxa_de_faiscas` | ≥ 0 | **acabamento**: quantas faíscas acompanham a shell por segundo |
 | `tamanho_de_particula` | 0–1 | **acabamento**: o quanto cada faísca cresce com a intensidade |
 | `filamentos` | objeto | o bloco das ribbons, abaixo |
 

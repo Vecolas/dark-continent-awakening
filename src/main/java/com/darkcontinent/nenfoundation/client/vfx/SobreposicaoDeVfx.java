@@ -309,7 +309,7 @@ public final class SobreposicaoDeVfx {
                 // `/nenvfx densidade`, que multiplica a config e ja tem slider.
                 // Um segundo caminho para a mesma coisa aqui daria dois botoes
                 // que se sobrepoem, e a captura nao diria qual dos dois valia.
-                base.densidadeDeParticula(),
+                base.taxaDeFaiscas(),
                 base.tamanhoDeParticula(),
                 // O BLOCO DE FILAMENTO PASSA INTACTO pelo mesmo motivo: quem
                 // quer mais ou menos filamento usa `/nenvfx ribbons`, que ja

@@ -29,10 +29,10 @@ class AuraVisualControllerTest {
             c.avancar(1.0F);
         }
         assertEquals(AuraVisualMode.REN, c.atual().mode());
-        assertTrue(PerfilDoDisco.de(AuraVisualMode.REN).densidadeDeParticula()
-                        > PerfilDoDisco.de(AuraVisualMode.TEN).densidadeDeParticula(),
+        assertTrue(PerfilDoDisco.de(AuraVisualMode.REN).taxaDeFaiscas()
+                        > PerfilDoDisco.de(AuraVisualMode.TEN).taxaDeFaiscas(),
                 "o acabamento de Ren deixou de ser mais denso que o de Ten");
-        assertEquals(0.0F, PerfilDoDisco.de(AuraVisualMode.ZETSU).densidadeDeParticula(),
+        assertEquals(0.0F, PerfilDoDisco.de(AuraVisualMode.ZETSU).taxaDeFaiscas(),
                 "Zetsu com particula e o oposto de supressao");
     }
 

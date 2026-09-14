@@ -2,25 +2,24 @@ package com.darkcontinent.nenfoundation.client.vfx;
 
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilVisual;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis;
+import com.darkcontinent.nenfoundation.client.vfx.ribbon.AuraAnchor;
+import com.darkcontinent.nenfoundation.registry.AuraSparkParticleOptions;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
-import org.joml.Vector3f;
 
 /**
- * Transforma o estado visual em particulas em volta do jogador.
+ * Transforma o estado visual em faiscas ocasionais na superficie do jogador.
  *
- * <p>PARTICULA VANILLA, COLORIDA POR PARAMETRO. {@link DustParticleOptions}
- * aceita a cor como argumento, entao o efeito muda de cor por tecnica sem
- * nenhum sprite novo -- e sprite novo exigiria arte autoral (ADR-007), que nao
- * existe. E aparece em primeira <b>e</b> terceira pessoa, ao contrario de um
- * efeito preso ao renderer do jogador.
+ * <p>ELA NAO E A AURA. A shell e as ribbons sustentam a leitura; esta classe
+ * acrescenta pequenas faiscas autorais perto da origem dos filamentos. Zerar a
+ * densidade do jogador remove apenas esse acabamento.
  *
- * <p>A CONTAGEM E SORTEADA, e nao arredondada. Com intensidade baixa, Ten pede
- * algo como 0,3 particula por tick; arredondar daria zero para sempre, e Ten
- * ficaria invisivel. Sortear faz sair uma particula a cada tres ticks, em
- * media -- que e o efeito discreto que Ten deve ter.
+ * <p>A CONTAGEM E SORTEADA, e nao arredondada. Ten pede 0,4 faisca por segundo,
+ * ou 0,02 por tick; arredondar daria zero para sempre. O resto fracionario vira
+ * chance e preserva essa media sem transformar acabamento em nuvem.
  *
  * <p>NADA AQUI DECIDE REGRA. Ele le um snapshot imutavel e desenha. Nao toca em
  * aura, custo, tecnica nem servidor.
@@ -36,29 +35,7 @@ public final class EmissorDeParticulasDeAura {
      * uma densidade errada nao trave o cliente.
      */
     private static final int TETO_POR_TICK = 12;
-
-    /**
-     * Quanto da densidade configurada sobra depois que a shell existe.
-     *
-     * <p>A PARTICULA FOI REBAIXADA A ACABAMENTO (AV3, issue #186). Ate o AV0 ela
-     * ERA a aura -- era o unico efeito que desenhava. Agora a shell e os
-     * filamentos sustentam a identidade sozinhos, e a nuvem de poeira que
-     * bastava antes passaria a competir com eles.
-     *
-     * <p>O NUMERO NAO E UM BOTAO: quem quer menos particula mexe em
-     * {@code vfx.densidadeDeParticulas}, que e config. Este fator existe para
-     * que a densidade 1.0 -- o padrao, escolhido quando a particula era tudo --
-     * passe a significar "faisca ocasional" em vez de "nuvem".
-     *
-     * <p>Com Ten em intensidade cheia isto da algo perto de meia particula por
-     * tick; com Ren, cerca de tres. A direcao de arte pede 0-4 em Ten e 10-24
-     * em Ren considerando TODAS as fontes, e o resto vem dos filamentos.
-     */
-    private static final double FATOR_DE_ACABAMENTO = 0.25D;
-
-    /** Altura e largura da nuvem, em blocos, relativas ao corpo. */
-    private static final double RAIO_HORIZONTAL = 0.45D;
-    private static final double ALTURA = 1.9D;
+    private static final double TICKS_POR_SEGUNDO = 20.0D;
 
     private EmissorDeParticulasDeAura() {
     }
@@ -82,8 +59,11 @@ public final class EmissorDeParticulasDeAura {
         if (perfil == null || estado == null || !estado.enabled() || densidade <= 0.0D) {
             return 0;
         }
-        double bruto = perfil.densidadeDeParticula() * estado.intensity() * densidade
-                * FATOR_DE_ACABAMENTO * TETO_POR_TICK;
+        // A TAXA E POR SEGUNDO NO PERFIL. Nao a confundir com o teto: uma e
+        // tuning de arte; o outro so impede que um resource pack hostil ou
+        // quebrado congele o cliente.
+        double particulasPorTick = perfil.taxaDeFaiscas() / TICKS_POR_SEGUNDO;
+        double bruto = particulasPorTick * estado.intensity() * densidade;
         int inteiras = (int) bruto;
         double resto = bruto - inteiras;
         // O RESTO VIRA CHANCE. Sem isto, toda intensidade abaixo de 1/TETO
@@ -100,10 +80,6 @@ public final class EmissorDeParticulasDeAura {
         if (nivel == null || jogador == null || estado == null || !estado.enabled()) {
             return;
         }
-        // O MESMO PERFIL DO MESMO MODO que a shell desenha, e nao uma copia:
-        // `AuraPerfis.de` ja aplica a sobreposicao de tuning, entao mexer no
-        // slider muda a shell E a faisca juntas. Duas fontes aqui produziriam
-        // uma captura em que a poeira nao acompanha o ajuste, sem erro nenhum.
         AuraPerfilVisual perfil = AuraPerfis.de(estado.mode());
         RandomSource aleatorio = nivel.getRandom();
         int quantas = quantasEmitir(perfil, estado, densidade, aleatorio.nextFloat());
@@ -112,52 +88,64 @@ public final class EmissorDeParticulasDeAura {
         }
         MedidorDeVfx.particulas(quantas);
 
-        DustParticleOptions poeira = new DustParticleOptions(
-                corComo(estado.primaryColor()), tamanhoDe(perfil, estado));
+        float tamanho = tamanhoDe(perfil, estado);
+        AuraSparkParticleOptions faisca = new AuraSparkParticleOptions(
+                jogador.getId(), estado.primaryColor(), tamanho, maximoAtivas(estado.mode()));
+        boolean slim = jogador instanceof AbstractClientPlayer cliente
+                && cliente.getSkin().model() == PlayerSkin.Model.SLIM;
 
         for (int i = 0; i < quantas; i++) {
-            double angulo = aleatorio.nextDouble() * Math.PI * 2.0D;
-            double raio = RAIO_HORIZONTAL * (0.75D + aleatorio.nextDouble() * 0.35D);
-            double x = jogador.getX() + Math.cos(angulo) * raio;
-            double z = jogador.getZ() + Math.sin(angulo) * raio;
-            // A ALTURA SAI DA ALOCACAO, e nao de um sorteio uniforme. E o que
-            // faz Gyo na cabeca parecer Gyo na cabeca: a aura adensa onde o
-            // servidor disse que ela esta.
-            double y = jogador.getY()
-                    + alturaSorteada(estado.distribution(), aleatorio.nextFloat())
-                    + (aleatorio.nextDouble() - 0.5D) * 0.25D;
+            AuraAnchor ancora = ancoraSorteada(estado.distribution(), aleatorio.nextFloat(),
+                    aleatorio.nextInt());
+            PontoDaAncora local = pontoLocalDa(ancora, slim);
+            double yaw = Math.toRadians(-jogador.yBodyRot);
+            double rotX = local.x() * Math.cos(yaw) - local.z() * Math.sin(yaw);
+            double rotZ = local.x() * Math.sin(yaw) + local.z() * Math.cos(yaw);
 
-            // VELOCIDADE PARA CIMA, E CURTA. Aura sobe junto do corpo; deriva
-            // lateral com rastro longo vira fumaca, que a issue #100 proibe com
-            // todas as letras.
-            nivel.addParticle(poeira, x, y, z, 0.0D, 0.02D + aleatorio.nextDouble() * 0.03D, 0.0D);
+            nivel.addParticle(faisca,
+                    jogador.getX() + rotX,
+                    jogador.getY() + local.y(),
+                    jogador.getZ() + rotZ,
+                    0.0D, 0.015D + aleatorio.nextDouble() * 0.015D, 0.0D);
         }
     }
 
     /**
-     * Sorteia uma altura no corpo, com peso pela alocacao.
+     * Sorteia uma ancora no corpo, com peso pela alocacao.
      *
      * <p>SORTEIO POR PESO, e nao a regiao mais concentrada. Pegar so o maior
      * faria a aura sumir do resto do corpo de uma vez -- e a alocacao nunca e
-     * tudo num lugar so, nem em Ko. O peso preserva a proporcao: concentrar 45%
-     * na cabeca poe quase metade das particulas la, e o resto continua
-     * aparecendo.
+     * tudo num lugar so, nem em Ko. O peso preserva a proporcao.
      *
-     * <p>PURO E TESTAVEL: o sorteio entra como argumento, e nao como chamada a
-     * um gerador escondido.
-     *
-     * @param sorteio de 0 (inclusive) a 1 (exclusive)
-     * @return altura em blocos a partir dos pes
+     * <p>PURO E TESTAVEL: os dois sorteios entram como valores, sem precisar
+     * fingir uma implementacao inteira de {@link RandomSource} no teste.
      */
-    static double alturaSorteada(AuraDistribution distribuicao, float sorteio) {
+    static AuraAnchor ancoraSorteada(AuraDistribution distribuicao, float sorteio,
+            int sorteioDaAncora) {
         float acumulado = 0.0F;
+        AuraBodyRegion regiaoEscolhida = AuraBodyRegion.TORSO;
+        float total = totalDe(distribuicao);
+
         for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
-            acumulado += distribuicao.intensidade(regiao) / totalDe(distribuicao);
+            acumulado += distribuicao.intensidade(regiao) / total;
             if (sorteio < acumulado) {
-                return alturaDe(regiao);
+                regiaoEscolhida = regiao;
+                break;
             }
         }
-        return alturaDe(AuraBodyRegion.TORSO);
+        int quantidade = 0;
+        for (AuraAnchor a : AuraAnchor.values()) {
+            if (a.regiao() == regiaoEscolhida) {
+                quantidade++;
+            }
+        }
+        int indice = Math.floorMod(sorteioDaAncora, quantidade);
+        for (AuraAnchor a : AuraAnchor.values()) {
+            if (a.regiao() == regiaoEscolhida && indice-- == 0) {
+                return a;
+            }
+        }
+        return AuraAnchor.CHEST_LEFT;
     }
 
     private static float totalDe(AuraDistribution distribuicao) {
@@ -165,35 +153,58 @@ public final class EmissorDeParticulasDeAura {
         for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
             total += distribuicao.intensidade(regiao);
         }
-        // TOTAL ZERO ACONTECE: e a distribuicao de Zetsu. Dividir por ele daria
-        // NaN, e NaN numa coordenada de particula nao lanca -- ela so nao
-        // aparece, em lugar nenhum, para sempre.
         return total > 0.0F ? total : 1.0F;
     }
 
-    /** Onde cada regiao fica, em blocos a partir dos pes de um jogador de pe. */
-    private static double alturaDe(AuraBodyRegion regiao) {
+    /**
+     * Origem aproximada da mesma ancora usada pela ribbon, em blocos locais.
+     *
+     * <p>O tick nao possui a matriz final de {@code ModelPart}; por isso a
+     * faisca acompanha a guinada do corpo e nasce na superficie contratada da
+     * parte, mas nao tenta reconstruir oscilacao de braco/perna. Fazer essa
+     * reconstrucao aqui duplicaria o renderer e divergiria de animacoes de
+     * outros mods. A vida curta limita essa aproximacao a poucos quadros.
+     */
+    static PontoDaAncora pontoLocalDa(AuraAnchor ancora, boolean slim) {
+        double psi = ancora.psiInicial();
+        double xModelo = pivoX(ancora.regiao()) + ancora.centroX(slim)
+                + Math.cos(psi) * ancora.raioX(slim);
+        double yModelo = pivoY(ancora.regiao()) + ancora.alturaBase();
+        double zModelo = Math.sin(psi) * ancora.raioZ();
+        return new PontoDaAncora(xModelo / 16.0D, 1.501D - yModelo / 16.0D,
+                zModelo / 16.0D);
+    }
+
+    private static double pivoX(AuraBodyRegion regiao) {
         return switch (regiao) {
-            case HEAD -> 1.60D;
-            case TORSO -> 1.10D;
-            case LEFT_ARM, RIGHT_ARM -> 1.20D;
-            case LEFT_LEG, RIGHT_LEG -> 0.45D;
+            case LEFT_ARM -> 5.0D;
+            case RIGHT_ARM -> -5.0D;
+            case LEFT_LEG -> 1.9D;
+            case RIGHT_LEG -> -1.9D;
+            case HEAD, TORSO -> 0.0D;
         };
     }
 
-    /** Um ARGB de inteiro para o vetor de cor que a poeira vanilla espera. */
-    static Vector3f corComo(int argb) {
-        return new Vector3f(
-                ((argb >> 16) & 0xFF) / 255.0F,
-                ((argb >> 8) & 0xFF) / 255.0F,
-                (argb & 0xFF) / 255.0F);
+    private static double pivoY(AuraBodyRegion regiao) {
+        return switch (regiao) {
+            case LEFT_ARM, RIGHT_ARM -> 2.0D;
+            case LEFT_LEG, RIGHT_LEG -> 12.0D;
+            case HEAD, TORSO -> 0.0D;
+        };
+    }
+
+    static int maximoAtivas(AuraVisualMode modo) {
+        return modo == AuraVisualMode.TEN ? 4 : 24;
+    }
+
+    record PontoDaAncora(double x, double y, double z) {
     }
 
     /**
      * Particula maior quando a aura esta mais forte, dentro do que o vanilla aceita.
      *
      * <p>O PISO E O VAO SAO ESTRUTURA, e nao botao de arte: abaixo de 0,6 a
-     * poeira vanilla some em qualquer luz, e acima de 1,5 ela vira mancha. O que
+     * faisca some em qualquer luz, e acima de 1,5 ela vira mancha. O que
      * a sessao de arte gira e {@code tamanho_de_particula}, no perfil.
      */
     static float tamanhoDe(AuraPerfilVisual perfil, AuraVisualState estado) {

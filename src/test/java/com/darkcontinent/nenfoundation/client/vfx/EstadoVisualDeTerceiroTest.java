@@ -67,8 +67,8 @@ class EstadoVisualDeTerceiroTest {
         // Antes este teste lia `preset().particleIntensity()`, um numero que
         // viajava dentro do estado -- e que podia divergir do arquivo sem que
         // nada acusasse.
-        assertTrue(PerfilDoDisco.de(ren.mode()).densidadeDeParticula()
-                        > PerfilDoDisco.de(ten.mode()).densidadeDeParticula(),
+        assertTrue(PerfilDoDisco.de(ren.mode()).taxaDeFaiscas()
+                        > PerfilDoDisco.de(ten.mode()).taxaDeFaiscas(),
                 "Ren nao emite mais que Ten a distancia.");
     }
 

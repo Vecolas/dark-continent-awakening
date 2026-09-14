@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
+import com.darkcontinent.nenfoundation.registry.NenParticleTypes;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
 import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import com.darkcontinent.nenfoundation.sound.NenSoundEvents;
@@ -62,6 +63,7 @@ public final class NenFoundation {
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
         NenSoundEvents.register(modEventBus);
+        NenParticleTypes.register(modEventBus);
         // UMA fila de inimigos, e so uma. Ate aqui eram duas -- um DeferredRegister
         // para o foxbear e outro para os seis irmaos -- e a linha abaixo tinha de
         // escrever o pacote inteiro para desviar da colisao de nome. Duas filas nao

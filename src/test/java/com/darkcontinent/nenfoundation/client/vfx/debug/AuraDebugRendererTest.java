@@ -86,7 +86,7 @@ class AuraDebugRendererTest {
         String texto = juntar(AuraDebugRenderer.linhas(comCusto));
         assertTrue(texto.contains("6 chamadas"), texto);
         assertTrue(texto.contains("48 filamentos"), texto);
-        assertTrue(texto.contains("12 particulas"), texto);
+        assertTrue(texto.contains("12 faiscas ativas"), texto);
         assertTrue(texto.contains("2 com aura"), texto);
     }
 

@@ -1,7 +1,6 @@
 package com.darkcontinent.nenfoundation.client.vfx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
@@ -261,6 +260,15 @@ class VfxDeAuraLigadoTest {
     }
 
     @Test
+    @DisplayName("Ten limita o acabamento a quatro faiscas ativas")
+    void tenTemNoMaximoQuatroAtivas() {
+        assertEquals(4, EmissorDeParticulasDeAura.maximoAtivas(AuraVisualMode.TEN));
+        assertEquals(1, EmissorDeParticulasDeAura.quantasEmitir(
+                PerfilDoDisco.de(AuraVisualMode.TEN),
+                estadoDe(AuraVisualMode.TEN, 1.0F), 2.0D, 0.0F));
+    }
+
+    @Test
     @DisplayName("o tamanho da faisca vem do PERFIL, e Ren tem a maior")
     void tamanhoVemDoPerfil() {
         // ESTE NUMERO MORAVA NO CODIGO. Era `AuraVisualPreset.shellOpacity()`,
@@ -274,18 +282,8 @@ class VfxDeAuraLigadoTest {
         assertTrue(ren > ten, "a faisca de Ren (" + ren + ") nao e maior que a de Ten ("
                 + ten + ")");
         assertTrue(ten >= 0.6F && ren <= 1.5F,
-                "fora de 0,6..1,5 a poeira vanilla ou some ou vira mancha; saiu "
+                "fora de 0,6..1,5 a faisca ou some ou vira mancha; saiu "
                         + ten + " e " + ren);
-    }
-
-    @Test
-    @DisplayName("a cor sai inteira para o vetor da poeira")
-    void corViraVetor() {
-        var v = EmissorDeParticulasDeAura.corComo(0xFF_FF_80_00);
-        assertEquals(1.0F, v.x(), 1.0e-3F);
-        assertEquals(0.502F, v.y(), 1.0e-2F);
-        assertEquals(0.0F, v.z(), 1.0e-3F);
-        assertNotEquals(v.x(), v.z(), "o canal vermelho e o azul sairam iguais");
     }
 
     private static AuraVisualState estadoDe(AuraVisualMode modo, float intensidade) {

@@ -93,6 +93,91 @@ public abstract class BaseHxHMob extends PathfinderMob implements HxHEnemy {
         return runtime;
     }
 
+    // ------------------------------------------------------------------- voz
+
+    /**
+     * A voz deste mob, resolvida do id da metadata. Vazia enquanto ele nao tiver.
+     *
+     * <p>Ela e buscada por ID e nao instalada pela subclasse DE PROPOSITO: a
+     * instalacao manual seria mais uma linha que o decimo mob esqueceria, e o
+     * esquecido nao daria erro -- deixaria o bicho mudo, que e exatamente o
+     * estado em que os sete primeiros passaram meses.</p>
+     */
+    private java.util.Optional<com.darkcontinent.nenfoundation.sound.EnemyVoice> voz() {
+        return com.darkcontinent.nenfoundation.sound.EnemySoundEvents
+                .voz(enemyMetadata().id().getPath());
+    }
+
+    @Override
+    protected net.minecraft.sounds.SoundEvent getAmbientSound() {
+        return voz().map(com.darkcontinent.nenfoundation.sound.EnemyVoice::ambienteResolvido)
+                .orElse(null);
+    }
+
+    @Override
+    protected net.minecraft.sounds.SoundEvent getHurtSound(DamageSource source) {
+        return voz().map(com.darkcontinent.nenfoundation.sound.EnemyVoice::dorResolvida)
+                .orElse(null);
+    }
+
+    @Override
+    protected net.minecraft.sounds.SoundEvent getDeathSound() {
+        return voz().map(com.darkcontinent.nenfoundation.sound.EnemyVoice::morteResolvida)
+                .orElse(null);
+    }
+
+    /** Estado de combate do tick anterior; e a borda dele que dispara som. */
+    private EnemyCombatState estadoSonoroAnterior = EnemyCombatState.IDLE;
+
+    /**
+     * ALERTA e ATAQUE saem daqui, lendo a BORDA do estado de combate.
+     *
+     * <p><b>Por que na base, e nao em cada mob.</b> Tocar o som dentro da Goal de
+     * cada bicho e mais direto e garante que o vigesimo esqueca -- e um mob sem
+     * alerta ataca do nada, sem que nada reprove. Aqui a regra e uma so: todo mob
+     * que MUDA para AGGRO avisa, e todo mob que MUDA para WINDUP telegrafa.</p>
+     *
+     * <p><b>Borda, e nao estado.</b> Tocar enquanto o estado VALE repetiria o som
+     * a cada tick -- vinte grunhidos por segundo, que o jogador ouve como
+     * zumbido e nao como aviso.</p>
+     */
+    @Override
+    public void tick() {
+        super.tick();
+        if (level().isClientSide) return;
+        EnemyCombatState agora = combatState();
+        if (agora != estadoSonoroAnterior) {
+            voz().ifPresent(voz -> {
+                if (agora == EnemyCombatState.AGGRO
+                        && estadoSonoroAnterior != EnemyCombatState.WINDUP
+                        && estadoSonoroAnterior != EnemyCombatState.ACTIVE
+                        && estadoSonoroAnterior != EnemyCombatState.RECOVERY) {
+                    // So avisa ao ENTRAR em combate, e nao ao voltar de um golpe:
+                    // sem esta condicao o mob grita o alerta depois de cada
+                    // ataque, e o aviso perde o significado.
+                    playSound(voz.alertaResolvido(), 1.0F, vozGrave());
+                } else if (agora == EnemyCombatState.WINDUP) {
+                    playSound(voz.ataqueResolvido(), 1.0F, vozGrave());
+                }
+            });
+            estadoSonoroAnterior = agora;
+        }
+    }
+
+    /**
+     * Tom da voz deste individuo.
+     *
+     * <p>Derivado do uuid, e nao sorteado: uma manada de great stamps com a voz
+     * exatamente igual soa como um mob so tocando varias vezes. A variacao e
+     * pequena (+-6%) porque acima disso a altura deixa de dizer o TAMANHO do
+     * bicho, e o ouvido usa altura para estimar tamanho antes de qualquer outra
+     * coisa.</p>
+     */
+    private float vozGrave() {
+        int mistura = getUUID().hashCode();
+        return 1.0F + ((mistura & 0xFF) / 255.0F - 0.5F) * 0.12F;
+    }
+
     /**
      * Morte apaga o runtime ANTES de virar loot e evento.
      *

@@ -68,11 +68,11 @@ public final class WorldTreeFoliagePlan {
      * galhos de baixo ficam com madeira quase nua -- o que a referencia tambem
      * mostra --, e a massa vai para o alto.
      */
-    private static final double ALTURA_DO_PE_DA_COPA = 420.0;
+    private static final double ALTURA_DO_PE_DA_COPA = 330.0;
     private static final double ALTURA_DO_AUGE = 1240.0;
 
     /** Quanto a prateleira encolhe no pe da copa, e cresce no auge. */
-    private static final double ESCALA_NO_PE = 0.30;
+    private static final double ESCALA_NO_PE = 0.52;
     private static final double ESCALA_NO_AUGE = 2.45;
 
     /**
@@ -257,14 +257,22 @@ public final class WorldTreeFoliagePlan {
             WorldTreeLayout layout, int branchId) {
         int bottom = 1120;
         int top = 1460;
-        int steps = 10;
+        // DEZESSEIS, E NAO DEZ. Com dez, o espacamento vertical era ~38 blocos
+        // contra meias-alturas de ~10 a ~20: sobrava ate 23 blocos de LIDER NU
+        // entre um degrau e o seguinte, em todas as vinte seeds. O portao da luva
+        // nao via, porque ele mede distancia HORIZONTAL -- e a pilha da coroa e
+        // vertical por construcao. Ver `semVaoNaPilhaDoLider`.
+        int steps = 16;
         for (int order = 0; order < steps; order++) {
             double t = (double) order / (steps - 1);
             double y = bottom + (top - bottom) * t;
             long mixed = mix(layout.seed(), branchId, order);
             double radius = (168.0 - 118.0 * t) * (0.9 + unit(mixed) * 0.2);
-            double topThickness = Math.max(3.0, radius * 0.22);
-            double bottomThickness = Math.max(2.5, topThickness * 0.66);
+            // ESPESSA O BASTANTE PARA OS DEGRAUS SE TOCAREM. O vao vertical da
+            // pilha da coroa e a diferenca entre uma cupula e um chapeu de
+            // degraus separados.
+            double topThickness = Math.max(9.0, radius * 0.30);
+            double bottomThickness = Math.max(8.0, topThickness * 0.80);
             double centerX = signed(mixed >>> 16) * 4.0;
             double centerZ = signed(mixed >>> 32) * 4.0;
             // O LIDER CENTRAL tem raio proprio, que estreita com a altura --
@@ -287,7 +295,12 @@ public final class WorldTreeFoliagePlan {
             // NASCEM PERTO DA BORDA, e nao no centro: cortina saindo do meio da
             // massa fica escondida dentro da propria prateleira.
             double angle = unit(mixed) * Math.PI * 2.0;
-            double fraction = 0.55 + unit(mixed >>> 12) * 0.4;
+            // MAIS PARA FORA que antes (era 0,55..0,95). Perto do centro, a
+            // cortina nasce dentro da massa das prateleiras de baixo e os
+            // primeiros blocos dela nunca viram nada -- desenho pago e invisivel.
+            // No anel externo ha menos sobreposicao, e e de la que a referencia
+            // pendura as cortinas.
+            double fraction = 0.72 + unit(mixed >>> 12) * 0.26;
             double distance = shelf.radius() * fraction;
             double originX = shelf.centerX() + Math.cos(angle) * distance;
             double originZ = shelf.centerZ() + Math.sin(angle) * distance;
@@ -308,8 +321,14 @@ public final class WorldTreeFoliagePlan {
                             * (WorldTreeVineStrand.COMPRIMENTO_MAXIMO
                                     - WorldTreeVineStrand.COMPRIMENTO_MINIMO));
             boolean thick = Math.floorMod(mixed >>> 40, 7L) == 0L;
+            // OS DOIS DESVIOS SAIAM DE BITS SOBREPOSTOS. `unit` le os 16 bits
+            // baixos, entao `>>> 44` e `>>> 48` compartilhavam doze deles: a
+            // deriva nao era um sorteio em duas dimensoes, era quase uma diagonal.
+            // O efeito em tela: cortinas caindo todas para o mesmo lado.
+            long mixDeriva = mix(mixed, shelfIndex, strand + 7919);
             out.add(new WorldTreeVineStrand(originX, originY, originZ, length,
-                    signed(mixed >>> 44) * 2.5, signed(mixed >>> 48) * 2.5, thick, shelfIndex));
+                    signed(mixDeriva) * 2.5, signed(mixDeriva >>> 32) * 2.5,
+                    thick, shelfIndex));
         }
     }
 
@@ -376,6 +395,14 @@ public final class WorldTreeFoliagePlan {
                     && minZ <= shelf.centerZ() + r && maxZ >= shelf.centerZ() - r) {
                 visits += shelf.estimatedVisitsInChunk(minX, minZ);
             }
+        }
+        // AS VINHAS ENTRAM NA CONTA, e nao entravam. Enquanto elas ficaram de
+        // fora, esta funcao devolvia ZERO para um chunk distante -- justamente o
+        // chunk que pagava o custo integral delas, porque o laco de vinhas nao
+        // tinha corte espacial nenhum. A regua media uma coisa e o gerador pagava
+        // outra, que e o pior estado possivel para um portao de custo.
+        for (WorldTreeVineStrand vine : vines) {
+            visits += vine.estimatedVisitsInChunk(minX, minZ);
         }
         return visits;
     }

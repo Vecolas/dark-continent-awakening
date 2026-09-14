@@ -51,4 +51,44 @@ public record WorldTreeVineStrand(
     public double endY() {
         return originY - length;
     }
+
+    /**
+     * Se esta cortina pode escrever alguma coisa num chunk.
+     *
+     * <p><b>ELA NAO EXISTIA, E A FALTA DELA CUSTAVA EM TODO CHUNK DA DIMENSAO.</b>
+     * O laco de prateleiras sempre teve um corte por chunk na frente; o de vinhas
+     * nao tinha nada -- o corte de bounds morava dentro do desenho, por PASSO.
+     * Com ~6.000 cortinas de ~23 passos, isso era ~140.000 iteracoes por chunk,
+     * pagas igualmente por um chunk a 5.000 blocos do tronco, onde nao ha uma
+     * folha sequer. Medido: ~1,2 ms por chunk, escrevendo zero blocos.
+     *
+     * <p>Nao dava erro. Dava mundo demorando para carregar -- o mesmo sintoma que
+     * motivou o cache do plano, e que ninguem atribuiria a folhagem.
+     *
+     * <p>A caixa e generosa em um bloco para cada lado, porque a deriva e
+     * interpolada e o arredondamento pode cair na coluna vizinha.
+     */
+    public boolean touchesChunk(int minX, int minZ) {
+        double x0 = Math.min(originX, originX + driftX) - 1.0;
+        double x1 = Math.max(originX, originX + driftX) + 1.0;
+        double z0 = Math.min(originZ, originZ + driftZ) - 1.0;
+        double z1 = Math.max(originZ, originZ + driftZ) + 1.0;
+        return minX <= x1 && minX + 16 >= x0 && minZ <= z1 && minZ + 16 >= z0;
+    }
+
+    /** Quantos blocos o desenho visitaria desta cortina, dentro de um chunk. */
+    public long estimatedVisitsInChunk(int minX, int minZ) {
+        if (!touchesChunk(minX, minZ)) {
+            return 0L;
+        }
+        long visits = 0;
+        for (int step = 0; step < length; step++) {
+            int x = (int) Math.floor(xAt(step));
+            int z = (int) Math.floor(zAt(step));
+            if (x >= minX && x < minX + 16 && z >= minZ && z < minZ + 16) {
+                visits++;
+            }
+        }
+        return visits;
+    }
 }

@@ -367,6 +367,121 @@ class WorldTreeFoliagePlanTest {
                         + " custo aparece como engasgo ao voar, e nao como erro.");
     }
 
+    @Test
+    @DisplayName("chunk longe da arvore nao paga NADA -- nem por vinha")
+    void chunkDistanteNaoPaga() {
+        // ESTE PORTAO NASCEU DE UM ACHADO DE REVISAO, e o defeito era caro e
+        // invisivel: o laco de vinhas nao tinha corte por chunk. Todo chunk da
+        // dimensao percorria as ~6.000 cortinas passo a passo -- ~140.000
+        // iteracoes, ~1,2 ms medidos -- mesmo a milhares de blocos do tronco.
+        //
+        // E a regua de custo era CEGA a isso: `estimatedVisitsForChunk` so
+        // somava prateleiras, entao devolvia ZERO exatamente para os chunks que
+        // pagavam o preco inteiro. Medir uma coisa enquanto o gerador paga outra
+        // e o pior estado possivel para um portao.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeFoliagePlan plano = plan(seed);
+            for (int[] longe : new int[][] {{300, 300}, {-400, 120}, {0, 260}, {900, -900}}) {
+                assertEquals(0L, plano.estimatedVisitsForChunk(longe[0], longe[1]),
+                        "seed " + seed + ": o chunk (" + longe[0] + "," + longe[1]
+                                + ") esta fora da copa e mesmo assim custa algo.");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a pilha do LIDER nao tem vao vertical -- o portao da luva e cego a ela")
+    void semVaoNaPilhaDoLider() {
+        // A REVISAO MOSTROU QUE `semDedos` E VAZIO PARA A COROA, e ela tem razao:
+        // aquele teste mede `hypot(dx, dz)`, e os discos do lider central ficam
+        // todos a menos de 11 blocos do eixo por construcao. A sobreposicao
+        // horizontal deles da ~0,95 aconteca o que acontecer -- a assercao nao
+        // pode reprovar.
+        //
+        // O espacamento real da coroa e VERTICAL, e ali havia de 16 a 23 blocos
+        // de lider NU entre um degrau e o seguinte, em todas as vinte seeds, com
+        // a suite verde. Um chapeu de degraus separados, que e exatamente o que
+        // a copa da coroa existe para nao ser.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            List<WorldTreeFoliageShelf> pilha = new ArrayList<>(plan(seed).shelves().stream()
+                    .filter(shelf -> shelf.suporte() == WorldTreeFoliageShelf.Suporte.LIDER)
+                    .toList());
+            pilha.sort((a, b) -> Double.compare(a.centerY(), b.centerY()));
+            assertTrue(pilha.size() >= 4, "seed " + seed + ": pilha do lider quase vazia");
+            for (int i = 1; i < pilha.size(); i++) {
+                double topoDoAnterior = pilha.get(i - 1).maxY();
+                double baseDoAtual = pilha.get(i).minY();
+                assertTrue(baseDoAtual <= topoDoAnterior,
+                        "seed " + seed + ": " + (int) (baseDoAtual - topoDoAnterior)
+                                + " blocos de lider nu entre o degrau em y="
+                                + (int) pilha.get(i - 1).centerY() + " e o de y="
+                                + (int) pilha.get(i).centerY()
+                                + ". Degraus separados leem como chapeu, e nao como cupula.");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("nao ha faixa longa de altitude sem uma folha, dentro da copa")
+    void semFaixaVaziaDeAltitude() {
+        // Outro achado de revisao. `multiplasCamadas` conta faixas de 60 blocos
+        // que TEM folha, e nunca pergunta se alguma faixa ficou vazia -- um vao
+        // de 200 blocos passa por ele sem reclamar.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            List<WorldTreeFoliageShelf> shelves = plan(seed).shelves();
+            double base = shelves.stream().mapToDouble(WorldTreeFoliageShelf::minY).min().orElse(0);
+            double topo = shelves.stream().mapToDouble(WorldTreeFoliageShelf::maxY).max().orElse(0);
+            int maiorVao = 0;
+            int vaoAtual = 0;
+            for (int y = (int) base; y <= (int) topo; y++) {
+                final int altura = y;
+                boolean temFolha = shelves.stream()
+                        .anyMatch(shelf -> altura >= shelf.minY() && altura <= shelf.maxY());
+                vaoAtual = temFolha ? 0 : vaoAtual + 1;
+                maiorVao = Math.max(maiorVao, vaoAtual);
+            }
+            assertTrue(maiorVao <= 120,
+                    "seed " + seed + ": " + maiorVao + " blocos de altitude sem uma folha,"
+                            + " dentro da faixa que a copa ocupa.");
+        }
+    }
+
+    @Test
+    @DisplayName("a deriva da vinha e um sorteio em DUAS dimensoes")
+    void derivaNaoEDiagonal() {
+        // `unit` le os 16 bits baixos; os dois desvios saiam de `>>> 44` e
+        // `>>> 48`, compartilhando doze deles. O resultado nao era um sorteio em
+        // duas dimensoes, e sim quase uma diagonal -- cortinas caindo todas para
+        // o mesmo lado. A correlacao mede isso.
+        double somaX = 0;
+        double somaZ = 0;
+        double somaXZ = 0;
+        double somaX2 = 0;
+        double somaZ2 = 0;
+        int n = 0;
+        for (int index = 0; index < SEEDS; index++) {
+            for (WorldTreeVineStrand vine : plan(seedAt(index)).vines()) {
+                somaX += vine.driftX();
+                somaZ += vine.driftZ();
+                somaXZ += vine.driftX() * vine.driftZ();
+                somaX2 += vine.driftX() * vine.driftX();
+                somaZ2 += vine.driftZ() * vine.driftZ();
+                n++;
+            }
+        }
+        double cov = somaXZ / n - (somaX / n) * (somaZ / n);
+        double desvio = Math.sqrt((somaX2 / n - Math.pow(somaX / n, 2.0))
+                * (somaZ2 / n - Math.pow(somaZ / n, 2.0)));
+        double correlacao = Math.abs(cov / desvio);
+        assertTrue(correlacao < 0.15,
+                "a deriva em X e em Z esta correlacionada em "
+                        + String.format("%.2f", correlacao)
+                        + ": as cortinas caem todas para o mesmo lado.");
+    }
+
     // ------------------------------------------------------- invariantes
 
     @Test

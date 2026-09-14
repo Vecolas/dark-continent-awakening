@@ -80,6 +80,36 @@ class WorldTreeCanopyGeneratorTest {
     }
 
     @Test
+    @DisplayName("o ruido da casca NAO apaga lajes inteiras de X")
+    void ruidoNaoEProdutoSeparavel() {
+        // ACHADO DE REVISAO, e o artefato era o pior possivel aqui.
+        //
+        // O ruido era `sin(x) * cos(z) * sin(y)` -- um produto SEPARAVEL. Quando
+        // o primeiro fator passa por zero, a cada ~15 blocos em X, o produto
+        // inteiro zera para TODO z e TODO y, e a borda da folhagem some numa LAJE
+        // inteira. Em tela isso le como COSTURA DE CHUNK: quem visse iria
+        // procurar o defeito na geracao por chunk, que esta certa.
+        //
+        // Este teste varre X e exige que nenhuma laje fique quase vazia.
+        for (int x = -80; x <= 80; x++) {
+            int fica = 0;
+            int total = 0;
+            for (int z = -20; z <= 20; z++) {
+                for (int y = 890; y <= 910; y++) {
+                    total++;
+                    if (WorldTreeCanopyGenerator.keep(0.86, x, y, z, 42L)) {
+                        fica++;
+                    }
+                }
+            }
+            double fracao = (double) fica / total;
+            assertTrue(fracao > 0.15,
+                    "a laje x=" + x + " ficou com " + String.format("%.0f%%", fracao * 100)
+                            + " da casca. Uma laje apagada le como costura de chunk.");
+        }
+    }
+
+    @Test
     @DisplayName("a casca esgarca: nem tudo fica, e nem tudo sai")
     void cascaIrregular() {
         int fica = 0;

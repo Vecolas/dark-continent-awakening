@@ -51,27 +51,35 @@ public final class WorldTreeCanopyGenerator {
      * <p>UMA ENTRADA SO, e nao um mapa: existe uma World Tree por mundo. Um mapa
      * aqui seria um vazamento lento, porque nada o esvaziaria.
      *
-     * <p>{@code volatile} porque a geracao de chunk e paralela. A corrida
-     * possivel e benigna -- duas threads calculam o mesmo plano deterministico e
-     * uma sobrescreve a outra com um valor igual.
+     * <p><b>UM CAMPO SO, E NAO TRES.</b> Havia aqui {@code planoDaSeed},
+     * {@code planoValido} e {@code planoEmCache} em tres {@code volatile}
+     * separados. Cada um era atomico sozinho, e o CONJUNTO nao: {@code forget()}
+     * podia zerar o plano entre a leitura da bandeira e a leitura da referencia
+     * na thread de worldgen, devolvendo {@code null} -- e {@code null} ali vira
+     * NPE dentro da geracao de chunk, que nao e um efeito visual falhando, e sim
+     * o chunk inteiro falhando.
+     *
+     * <p>Com um registro imutavel num campo so, a leitura e atomica por
+     * construcao. A corrida que sobra e benigna: duas threads calculam o mesmo
+     * plano deterministico e uma sobrescreve a outra com um valor igual.
      */
-    private static volatile long planoDaSeed;
-    private static volatile boolean planoValido;
-    private static volatile WorldTreeFoliagePlan planoEmCache;
+    private record PlanoEmCache(long seed, WorldTreeFoliagePlan plan) {
+    }
+
+    private static volatile PlanoEmCache cache;
 
     private WorldTreeCanopyGenerator() {
     }
 
     /** O plano desta seed, calculado uma vez. */
     static WorldTreeFoliagePlan planFor(WorldTreeLayout layout) {
-        if (planoValido && planoDaSeed == layout.seed()) {
-            return planoEmCache;
+        PlanoEmCache atual = cache;
+        if (atual != null && atual.seed() == layout.seed()) {
+            return atual.plan();
         }
         WorldTreeFoliagePlan plan = WorldTreeFoliagePlan.of(layout,
                 WorldTreeBranchNetwork.secondaryAndTertiary(layout));
-        planoEmCache = plan;
-        planoDaSeed = layout.seed();
-        planoValido = true;
+        cache = new PlanoEmCache(layout.seed(), plan);
         return plan;
     }
 
@@ -84,8 +92,7 @@ public final class WorldTreeCanopyGenerator {
      * resto da sessao, e um plano tem milhares de objetos.
      */
     public static void forget() {
-        planoValido = false;
-        planoEmCache = null;
+        cache = null;
     }
 
     public static void generate(ChunkAccess chunk, WorldTreeLayout layout) {
@@ -104,6 +111,16 @@ public final class WorldTreeCanopyGenerator {
             placeShelf(chunk, position, minX, minZ, maxX, maxZ, shelf, layout.seed());
         }
         for (WorldTreeVineStrand vine : plan.vines()) {
+            // O CORTE POR CHUNK VEM ANTES, e nao dentro do desenho.
+            //
+            // Sem ele, TODO chunk da dimensao percorria as ~6.000 cortinas passo
+            // a passo -- ~140.000 iteracoes, ~1,2 ms -- mesmo a 5.000 blocos do
+            // tronco, onde nao ha uma folha para desenhar. O laco de prateleiras
+            // sempre teve esse corte; o de vinhas nunca teve, e a regua de custo
+            // nao contava vinha nenhuma, entao nada acusava.
+            if (!vine.touchesChunk(minX, minZ)) {
+                continue;
+            }
             placeVine(chunk, position, minX, minZ, maxX, maxZ, vine);
         }
     }
@@ -181,9 +198,20 @@ public final class WorldTreeCanopyGenerator {
             return true;
         }
         double borda = (normalized - INICIO_DA_CASCA) / (1.0 - INICIO_DA_CASCA);
-        double ruido = 0.5 + 0.5 * (Math.sin(x * 0.21 + seed * 0.0000013)
-                * Math.cos(z * 0.19 - seed * 0.0000017)
-                * Math.sin(y * 0.27 + x * 0.05));
+        // SOMA, E NAO PRODUTO -- e esta troca conserta um artefato visivel.
+        //
+        // O ruido era `sin(x) * cos(z) * sin(y)`: um produto SEPARAVEL. Quando o
+        // primeiro fator passa por zero -- a cada ~15 blocos em X --, o produto
+        // inteiro zera para TODO z e TODO y, e a borda da folhagem desaparece numa
+        // LAJE inteira. Em tela isso le como costura de chunk, que e o pior
+        // artefato possivel aqui: quem visse iria procurar o defeito na geracao
+        // por chunk, que esta certa.
+        //
+        // Numa soma, um termo no zero nao apaga os outros. As frequencias sao
+        // incomensuraveis de proposito, para o padrao nao se repetir em grade.
+        double ruido = 0.5 + (Math.sin(x * 0.21 + z * 0.13 + seed * 0.0000013)
+                + Math.sin(z * 0.19 - y * 0.11 - seed * 0.0000017)
+                + Math.sin(y * 0.27 + x * 0.057)) / 6.0;
         return ruido > borda * 0.92;
     }
 

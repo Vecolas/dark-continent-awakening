@@ -73,9 +73,26 @@ public final class WorldTreeLayoutGenerator {
             int count = 3 + random.nextInt(5);
             for (int i = 0; i < count; i++) {
                 double angle = Math.PI * 2.0 * i / count + random.nextDouble(-0.25, 0.25);
-                double y = zone == WorldTreeZone.SUMMIT
-                        ? 1450.0
-                        : random.nextDouble(zone.minY() + 20.0, zone.maxYExclusive() - 20.0);
+                // A ALTURA E ESTRATIFICADA DENTRO DA ZONA, e nao sorteada livre.
+                //
+                // ISTO FOI UM DEFEITO REAL, achado pelo portao da copa. Com
+                // sorteio livre, os galhos de uma zona se amontoam: na seed 1000
+                // a zona MID_BOUGHS punha os seus entre y=576 e y=697 e a
+                // HIGH_CANOPY comecava em y=957 -- 260 blocos de tronco sem UM
+                // galho, e a copa com um vao de 179 blocos no meio, que le como
+                // duas arvores empilhadas.
+                //
+                // Estratificar da a cada galho uma FATIA da zona e sorteia dentro
+                // dela: a distribuicao continua irregular, e deixa de ter buraco.
+                double y;
+                if (zone == WorldTreeZone.SUMMIT) {
+                    y = 1450.0;
+                } else {
+                    double baixo = zone.minY() + 20.0;
+                    double alto = zone.maxYExclusive() - 20.0;
+                    double fatia = (alto - baixo) / count;
+                    y = baixo + fatia * i + random.nextDouble(fatia * 0.15, fatia * 0.85);
+                }
                 double length = random.nextDouble(80.0, 201.0);
                 double dx = Math.cos(angle);
                 double dz = Math.sin(angle);

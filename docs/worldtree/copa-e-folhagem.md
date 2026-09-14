@@ -241,6 +241,78 @@ matemática de layout. O desenhador de silhueta morria com
 
 ---
 
+## 5-D. A revisão adversarial, e o que ela achou
+
+Depois de a implementação estar verde, ela passou por uma revisão adversarial com
+três lentes independentes — correção e falha silenciosa, fronteira de chunk e
+determinismo, resultado visual — e cada achado foi submetido a um agente
+encarregado de **refutá-lo**. Só o que sobreviveu à refutação entrou aqui.
+
+Nove achados sobreviveram. Estes são os que mudaram código:
+
+### O laço de vinhas não tinha corte por chunk
+
+O laço de prateleiras sempre teve; o de vinhas nunca teve — o corte de *bounds*
+morava dentro do desenho, **por passo**. Todo chunk da dimensão percorria as
+~6.000 cortinas: ~140.000 iterações, **~1,2 ms medidos**, mesmo a 5.000 blocos do
+tronco, onde não há uma folha para desenhar.
+
+**E a régua de custo era cega a isso.** `estimatedVisitsForChunk` só somava
+prateleiras, então devolvia **zero** exatamente para os chunks que pagavam o preço
+inteiro. Medir uma coisa enquanto o gerador paga outra é o pior estado possível
+para um portão — pior que não ter portão, porque dá confiança.
+
+### O ruído da casca era um produto separável
+
+`sin(x) * cos(z) * sin(y)`. Quando o primeiro fator passa por zero — a cada ~15
+blocos em X — o produto inteiro zera para **todo z e todo y**, e a borda da
+folhagem some numa **laje inteira**.
+
+Em tela isso lê como **costura de chunk**: quem visse iria procurar o defeito na
+geração por chunk, que está certa. Virou uma **soma** de senoides com frequências
+incomensuráveis — num soma, um termo no zero não apaga os outros.
+
+### O portão da luva é vazio para a pilha da coroa
+
+`semDedos` mede `hypot(dx, dz)`, e os discos do líder central ficam todos a menos
+de 11 blocos do eixo **por construção**: a sobreposição horizontal dá ~0,95
+aconteça o que acontecer. A assertiva não *podia* reprovar.
+
+O espaçamento real da coroa é **vertical**, e ali havia de 16 a 23 blocos de líder
+**nu** entre um degrau e o seguinte, em todas as vinte seeds, **com a suíte
+verde**. Nasceu `semVaoNaPilhaDoLider`, que mede o eixo certo.
+
+### O cache do plano tinha uma corrida que dava NPE
+
+`forget()` e `planFor()` conversavam por **três** `volatile` separados. Cada um
+atômico sozinho; o conjunto, não. `forget()` podia zerar a referência entre a
+leitura da bandeira e a do plano na thread de worldgen — e `null` ali não é um
+efeito visual falhando, é o **chunk inteiro** falhando. Virou um registro imutável
+num campo só.
+
+### E um defeito que não era da folhagem: o layout amontoava os galhos
+
+O portão novo `semFaixaVaziaDeAltitude` acusou **179 blocos de altitude sem uma
+folha** na seed 1000. A causa não estava na copa: `generateBranches` sorteava a
+altura **livre** dentro de cada zona, e na seed 1000 a `MID_BOUGHS` pôs os seus
+entre y=576 e y=697 enquanto a `HIGH_CANOPY` começava em y=957 — **260 blocos de
+tronco sem um galho**. A copa não tinha onde nascer.
+
+A altura passou a ser **estratificada**: cada galho recebe uma fatia da zona e
+sorteia dentro dela. A distribuição continua irregular, e deixa de ter buraco.
+**179 → 25 blocos.** É o único ponto em que este trabalho tocou o layout, e foi
+porque a régua apontou a causa raiz em vez do sintoma.
+
+### Um achado que já estava resolvido
+
+A revisão apontou que a copa renderizaria **cinza com buracos pretos** — sem
+`render_type` e sem tint. Verdade no código que ela leu; **já corrigido pela outra
+frente** no mesmo dia (modelo herdando `minecraft:block/leaves` e
+`WorldTreeColorHandlers`). É a evidência mais concreta de que integrar valeu a
+pena em vez de escolher um dos dois.
+
+---
+
 ## 6. O que este documento NÃO promete
 
 - **Aparência não vira verde.** O portão mede geometria, não beleza. A aprovação

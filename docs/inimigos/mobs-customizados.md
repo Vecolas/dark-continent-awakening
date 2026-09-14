@@ -119,12 +119,18 @@ tabela é para leitura humana e pode envelhecer; aquela não pode.
 
 **A dívida visual fechou: os sete têm corpo próprio.** Nenhum deles, porém, é
 DONE pela ficha acima: faltam **sons próprios**. Os sete são silenciosos — não
-emprestam som de vanilla, simplesmente não emitem. E isso hoje está **bloqueado
-por ferramenta**, não por esforço: o Minecraft só toca `.ogg` Vorbis e esta
-máquina não tem `ffmpeg` nem encoder Vorbis. Um `.wav` renomeado carregaria
-mudo, que é o falso verde que este projeto passa o dia evitando. Isso não
-reprova nenhum portão, e é justamente por isso que está escrito aqui e em
-`o-que-nao-provamos.md`.
+emprestam som de vanilla, simplesmente não emitem.
+
+**O bloqueio de ferramenta CAIU, e a dívida continua.** A máquina segue sem
+`ffmpeg` e sem `oggenc`, mas `pip install soundfile` traz o `libsndfile`, e ele
+escreve OGG Vorbis de verdade — conferido no cabeçalho (`OggS…vorbis`). O que
+impedia era ambiente; agora o que falta é ESCOPO: identidade sonora é EN13
+(#148), e um `.wav` renomeado continuaria carregando mudo, que é o falso verde
+que este projeto passa o dia evitando.
+
+Registrar isso aqui importa porque a frase anterior — "bloqueado por
+ferramenta" — envelheceu sem que nada acusasse. Uma dívida com a causa errada
+escrita ao lado dela não é lembrete: é desculpa.
 
 **Uma fila, e não duas.** Até a issue #266 o Foxbear era registrado num
 `DeferredRegister` próprio, num pacote paralelo ao dos outros seis. As duas filas

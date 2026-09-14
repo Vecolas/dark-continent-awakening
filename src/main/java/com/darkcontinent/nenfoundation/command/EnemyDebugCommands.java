@@ -180,7 +180,11 @@ public final class EnemyDebugCommands {
         /** O servidor recusou criar a entidade. */
         SPAWN_FALHOU("nenfoundation.enemy.debug.spawn_falhou"),
         /** Varredura vazia: dizer "removi 0" seria deixar o operador supor sucesso. */
-        NADA_PARA_REMOVER("nenfoundation.enemy.debug.nada_para_remover");
+        NADA_PARA_REMOVER("nenfoundation.enemy.debug.nada_para_remover"),
+        /** Id sem receita de encontro: nao ha o que colocar no mundo. */
+        SEM_RECEITA("nenfoundation.enemy.debug.sem_receita"),
+        /** Nao ha servidor com controlador de encontro vivo. */
+        SEM_CONTROLADOR("nenfoundation.enemy.debug.sem_controlador");
 
         private final String chave;
 
@@ -225,6 +229,17 @@ public final class EnemyDebugCommands {
         raiz.then(Commands.literal("freeze")
                 .then(Commands.literal("on").executes(ctx -> congelar(ctx, true)))
                 .then(Commands.literal("off").executes(ctx -> congelar(ctx, false))));
+
+        // O ENCONTRO COMPLETO, pelo MESMO caminho de producao.
+        //
+        // Ele existe aqui, e nao como um spawner de teste proprio, pelo motivo de
+        // sempre: um segundo caminho de spawn nunca exercita o primeiro. Quem
+        // digita isto arma um EncounterInstance de verdade, que o controlador vai
+        // ativar quando o operador chegar perto -- com reconciliacao, trava de
+        // recompensa e cooldown iguais aos de um encontro nascido no mundo.
+        raiz.then(Commands.literal("encounter")
+                .then(Commands.argument("definicao", ResourceLocationArgument.id())
+                        .executes(EnemyDebugCommands::armarEncontro)));
 
         raiz.then(Commands.literal("clear")
                 .executes(ctx -> limpar(ctx, RAIO_PADRAO))
@@ -426,6 +441,55 @@ public final class EnemyDebugCommands {
 
     private static Component semNada() {
         return Component.translatable("nenfoundation.enemy.debug.info_nenhum");
+    }
+
+    /**
+     * Arma um encontro no ponto mirado pelo operador.
+     *
+     * <p>Ele NAO spawna nada: quem spawna e o controlador, quando alguem entrar
+     * no raio de ativacao. A diferenca importa -- spawnar aqui pularia a
+     * reconciliacao, a trava de recompensa e o cooldown, e o comando passaria a
+     * testar um caminho que o jogo nao usa.</p>
+     */
+    private static int armarEncontro(CommandContext<CommandSourceStack> ctx) {
+        net.minecraft.resources.ResourceLocation id =
+                ResourceLocationArgument.getId(ctx, "definicao");
+
+        Optional<Recusa> namespace = validarNamespace(id);
+        if (namespace.isPresent()) return recusar(ctx, namespace.get(), id.toString());
+
+        if (com.darkcontinent.nenfoundation.enemy.encounter.EncounterBlueprints
+                .de(id.toString()).isEmpty()) {
+            return recusar(ctx, Recusa.SEM_RECEITA, id.toString());
+        }
+
+        var controlador = com.darkcontinent.nenfoundation.enemy.encounter
+                .EncounterServerHooks.controlador().orElse(null);
+        if (controlador == null) return recusar(ctx, Recusa.SEM_CONTROLADOR);
+
+        net.minecraft.server.level.ServerPlayer operador = ctx.getSource().getPlayer();
+        if (operador == null) return recusar(ctx, Recusa.SEM_JOGADOR);
+
+        net.minecraft.world.phys.HitResult mira =
+                operador.pick(ALCANCE_DA_MIRA, 0.0F, false);
+        if (mira.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) {
+            return recusar(ctx, Recusa.SEM_MIRA, texto(ALCANCE_DA_MIRA));
+        }
+        net.minecraft.core.BlockPos ancora =
+                net.minecraft.core.BlockPos.containing(mira.getLocation()).above();
+
+        var instancia = new com.darkcontinent.nenfoundation.enemy.encounter.EncounterInstance(
+                java.util.UUID.randomUUID(), id.toString(),
+                operador.level().dimension(), ancora);
+        instancia.estado(com.darkcontinent.nenfoundation.enemy.encounter
+                .EncounterState.ARMED);
+        controlador.dados().registrar(instancia);
+
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "nenfoundation.enemy.debug.encontro_armado", id.toString(),
+                ancora.getX() + " " + ancora.getY() + " " + ancora.getZ(),
+                texto(controlador.regras().raioDeAtivacao())), true);
+        return 1;
     }
 
     private static int congelar(CommandContext<CommandSourceStack> ctx, boolean congelar) {

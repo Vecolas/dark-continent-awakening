@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.enemy.encounter;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import java.util.Optional;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -38,6 +39,7 @@ public final class EncounterServerHooks {
     private static com.darkcontinent.nenfoundation.server.NenTickScheduler.Registro
             registroNoScheduler;
     private static final EncounterSpawner SPAWNER = new EncounterSpawnerPadrao();
+    private static com.darkcontinent.nenfoundation.enemy.greedisland.CardConversionService cards;
 
     private EncounterServerHooks() { }
 
@@ -51,6 +53,10 @@ public final class EncounterServerHooks {
         MinecraftServer servidor = evento.getServer();
         controlador = new EncounterController(EncounterSavedData.de(servidor),
                 EncounterRules.campo());
+        cards = new com.darkcontinent.nenfoundation.enemy.greedisland.CardConversionService(
+                controlador.dados().ledger(),
+                com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles.cards());
+        cards.carregarEmitidas(controlador.dados().cardsEmitidos());
         registroNoScheduler = com.darkcontinent.nenfoundation.server.NenTickScheduler
                 .registrarDoMundo(EncounterServerHooks::tickDosEncontros);
         int corrigidos = controlador.reconciliarAoIniciar(servidor);
@@ -70,6 +76,7 @@ public final class EncounterServerHooks {
             registroNoScheduler = null;
         }
         controlador = null;
+        cards = null;
     }
 
     /**
@@ -89,5 +96,45 @@ public final class EncounterServerHooks {
     private static void tickDosEncontros(MinecraftServer servidor) {
         if (controlador == null) return;
         controlador.tick(servidor, SPAWNER);
+        pagarCardsDeEncontrosConcluidos(servidor);
+    }
+
+    /**
+     * Paga cards de derrotas letais depois que o controlador fechou o episodio.
+     * A ordem e importante: antes de COMPLETED o servico recusa por contrato.
+     * Capturas nao-letais entram por uma etapa propria quando a interacao de
+     * captura for ligada; elas nunca sao inferidas a partir de um cadaver.
+     */
+    private static void pagarCardsDeEncontrosConcluidos(MinecraftServer servidor) {
+        if (cards == null || controlador == null) return;
+        for (EncounterInstance instancia : controlador.dados().instancias().values()) {
+            if (instancia.estado() != EncounterState.COMPLETED
+                    || !com.darkcontinent.nenfoundation.enemy.greedisland.GreedIslandRegion
+                            .dentro(instancia.dimensao())) continue;
+            var receita = EncounterBlueprints.de(instancia.definitionId()).orElse(null);
+            if (receita == null) continue;
+            var condicao = com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles
+                    .capturas().get(receita.tipo().getPath());
+            if (condicao == null || condicao.exigeNaoLetal()) continue;
+
+            // Resolve o destinatario ANTES da trava. Se o ultimo participante
+            // sair no mesmo tick da conclusao, converter primeiro consumiria a
+            // copia e deixaria o card sem dono -- perda silenciosa.
+            ServerPlayer jogador = instancia.participantes().stream()
+                    .map(id -> servidor.getPlayerList().getPlayer(id))
+                    .filter(java.util.Objects::nonNull)
+                    .findFirst().orElse(null);
+            if (jogador == null) continue;
+
+            var card = cards.converter(instancia, receita.tipo(),
+                    com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult.CAPTURADO);
+            if (card.isEmpty()) continue;
+            jogador.getInventory().placeItemBackInInventory(
+                    com.darkcontinent.nenfoundation.item.GreedIslandCardItem.de(
+                            card.get().monsterId(), card.get().rank()));
+            controlador.dados().registrarCardsEmitidos(cards.emitidas());
+            jogador.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                    "Greed Island: card " + card.get().monsterId().getPath() + " recebido."));
+        }
     }
 }

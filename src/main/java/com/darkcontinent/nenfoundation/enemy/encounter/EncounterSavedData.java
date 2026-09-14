@@ -44,6 +44,7 @@ public final class EncounterSavedData extends SavedData {
     private static final String VERSION = "version";
     private static final String INSTANCIAS = "instances";
     private static final String TRAVAS = "reward_locks";
+    private static final String CARDS = "greed_island_cards";
 
     private static final String ID = "id";
     private static final String DEFINICAO = "definition";
@@ -56,6 +57,7 @@ public final class EncounterSavedData extends SavedData {
 
     private final Map<UUID, EncounterInstance> instancias = new LinkedHashMap<>();
     private final RewardLedger ledger = new RewardLedger();
+    private final Map<ResourceLocation, Integer> cardsEmitidos = new LinkedHashMap<>();
 
     public static SavedData.Factory<EncounterSavedData> factory() {
         return new SavedData.Factory<>(EncounterSavedData::new, EncounterSavedData::carregar, null);
@@ -75,6 +77,20 @@ public final class EncounterSavedData extends SavedData {
     public Map<UUID, EncounterInstance> instancias() { return Map.copyOf(instancias); }
 
     public RewardLedger ledger() { return ledger; }
+
+    /** Contagem mundial de cards emitidos, parte do mesmo save do ledger. */
+    public Map<ResourceLocation, Integer> cardsEmitidos() { return Map.copyOf(cardsEmitidos); }
+
+    public void registrarCardsEmitidos(Map<ResourceLocation, Integer> contagem) {
+        cardsEmitidos.clear();
+        contagem.forEach((id, valor) -> {
+            if (id == null || valor == null || valor < 0) {
+                throw new IllegalArgumentException("contagem de cards invalida: " + id + " = " + valor);
+            }
+            cardsEmitidos.put(id, valor);
+        });
+        setDirty();
+    }
 
     public EncounterInstance registrar(EncounterInstance instancia) {
         EncounterInstance anterior = instancias.putIfAbsent(instancia.id(), instancia);
@@ -124,6 +140,15 @@ public final class EncounterSavedData extends SavedData {
         ListTag travas = new ListTag();
         for (String chave : ledger.chaves()) travas.add(net.minecraft.nbt.StringTag.valueOf(chave));
         tag.put(TRAVAS, travas);
+
+        ListTag cards = new ListTag();
+        for (Map.Entry<ResourceLocation, Integer> entrada : cardsEmitidos.entrySet()) {
+            CompoundTag card = new CompoundTag();
+            card.putString("id", entrada.getKey().toString());
+            card.putInt("count", entrada.getValue());
+            cards.add(card);
+        }
+        tag.put(CARDS, cards);
         return tag;
     }
 
@@ -168,6 +193,16 @@ public final class EncounterSavedData extends SavedData {
         ListTag salvas = tag.getList(TRAVAS, Tag.TAG_STRING);
         for (int i = 0; i < salvas.size(); i++) travas.add(salvas.getString(i));
         dados.ledger.carregar(travas);
+        ListTag cards = tag.getList(CARDS, Tag.TAG_COMPOUND);
+        for (int i = 0; i < cards.size(); i++) {
+            CompoundTag card = cards.getCompound(i);
+            ResourceLocation id = ResourceLocation.tryParse(card.getString("id"));
+            int count = card.getInt("count");
+            if (id == null || count < 0) {
+                throw new IllegalArgumentException("card salvo invalido: " + card);
+            }
+            dados.cardsEmitidos.put(id, count);
+        }
         return dados;
     }
 }

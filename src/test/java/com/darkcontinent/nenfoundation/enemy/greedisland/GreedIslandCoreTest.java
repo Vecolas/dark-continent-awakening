@@ -106,6 +106,18 @@ class GreedIslandCoreTest {
     }
 
     @Test
+    @DisplayName("a contagem de cards restaurada continua cobrando o limite mundial")
+    void contagemRestauradaNaoResetaEscassez() {
+        CardConversionService servico = servico(new RewardLedger(), 2);
+        servico.carregarEmitidas(Map.of(CYCLOPS, 2));
+
+        assertTrue(servico.converter(concluido(), CYCLOPS, DefeatResult.CAPTURADO).isEmpty(),
+                "reiniciar o contador em memoria faria uma copia finita voltar a sair depois"
+                        + " do restart, mesmo com um save valido");
+        assertEquals(2, servico.emitidas(CYCLOPS));
+    }
+
+    @Test
     @DisplayName("converter antes de COMPLETED recusa COM MOTIVO")
     void converterAntesDoFimRecusa() {
         CardConversionService servico = servico(new RewardLedger(), 0);

@@ -9,6 +9,9 @@ import com.darkcontinent.nenfoundation.enemy.base.BaseHxHMob;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackTimeline;
+import com.darkcontinent.nenfoundation.enemy.combat.GrabController;
+import com.darkcontinent.nenfoundation.enemy.combat.GrabRefusal;
+import com.darkcontinent.nenfoundation.enemy.combat.GrabRelease;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
@@ -16,6 +19,7 @@ import java.util.EnumSet;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -106,6 +110,22 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
      */
     private static final int TICKS_DE_RETIRADA = 40;
 
+    /**
+     * O maior alvo que cabe na boca: 3.0 de altura por 1.6 de largura.
+     *
+     * <p>NAO e botao de balanceamento -- e a boca. O sapo engole INTEIRO, e um
+     * predador assim precisa de um limite declarado, senao ele engole qualquer
+     * coisa que consiga montar nele. A largura e o numero que morde: um Great
+     * Stamp tem 1.9 e e recusado, enquanto um golem de ferro (1.4 x 2.7) passa
+     * -- e e com o golem que os gametests medem a janela de escape.</p>
+     *
+     * <p>Sem o limite, a recusa nao existiria e o sintoma seria comico e
+     * silencioso: uma manada inteira desaparecendo dentro de um sapo de 1.4
+     * bloco, sem uma linha de log.</p>
+     */
+    private static final double ALTURA_MAXIMA_DA_PRESA = 3.0D;
+    private static final double LARGURA_MAXIMA_DA_PRESA = 1.6D;
+
     // ------------------------------------------------------------- animacao
     // Os nomes abaixo sao um CONTRATO com frog_in_waiting.animation.json. Errar um
     // deles nao da erro: o GeckoLib simplesmente nao acha o clipe e deixa o osso
@@ -137,9 +157,22 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
     // deixar essa dependencia escondida.
     private AttackTimeline linhaDoTempoDaBocada = new AttackTimeline();
     private boolean bocadaEmAndamento;
-    private LivingEntity vitimaAgarrada;
-    private int ticksAgarrado;
-    private float danoDesdeOAgarrao;
+    /**
+     * O agarrao deixou de ser tres campos soltos e virou UM controlador.
+     *
+     * <p>Ele nasceu aqui dentro e resolveu bem o problema do sapo. O motivo da
+     * mudanca (issue #140) e o SEGUNDO bicho: Melanin Lizard e Crab Heavy
+     * precisam do mesmo contrato, e copiar do sapo produziria tres
+     * implementacoes parecidas que divergem na primeira correcao -- e a que
+     * esquecer um ponto de saida deixa um jogador preso ate o restart. O
+     * CLAUDE.md e explicito: um unico ciclo de vida por familia.</p>
+     *
+     * <p>O corpo do agarrao continua sendo a MONTARIA do vanilla; o que saiu
+     * daqui foi a contabilidade -- relogio, dano acumulado e a decisao de
+     * soltar. O controlador nao toca em mundo.</p>
+     */
+    private final GrabController agarrao = new GrabController(HunterExamProfiles.frogGrabRules(),
+            ALTURA_MAXIMA_DA_PRESA, LARGURA_MAXIMA_DA_PRESA);
     private int recargaRestante;
     private int ticksSemAlvo;
     private int retiradaRestante;
@@ -195,7 +228,7 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
      * recusa a desmontagem, e essa regra so vale no servidor. No cliente ela
      * responde {@code false}, e o cliente e corrigido pelo pacote de veiculo.</p>
      */
-    public boolean estaAgarrando() { return vitimaAgarrada != null; }
+    public boolean estaAgarrando() { return agarrao.agarrando(); }
 
     @Override
     protected void registerGoals() {
@@ -246,7 +279,7 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
         boolean aplicou = super.hurt(source, amount);
         if (aplicou && !level().isClientSide && agarrandoAntes
                 && Float.isFinite(amount) && amount > 0.0F) {
-            danoDesdeOAgarrao += amount;
+            agarrao.registrarDanoNoPredador(amount);
         }
         return aplicou;
     }
@@ -422,15 +455,20 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
             // zerado e hurt() devolve false, e durante os ticks de invulnerabilidade
             // de um golpe anterior tambem. Nos dois o sapo morderia para sempre sem
             // nunca engolir ninguem -- sem erro nenhum no log.
-            if (!vitima.startRiding(this, true)) {
+            // A RECUSA VEM ANTES DO EFEITO, e ela tem motivo. Tentar montar
+            // primeiro e descobrir depois que o alvo nao cabe funcionaria, mas
+            // deixaria o porque invisivel: o relato de bug seria "as vezes o
+            // sapo me morde e nao me engole", e ninguem descobriria que a
+            // diferenca era o tamanho do alvo.
+            GrabRefusal recusa = agarrao.podeAgarrar(vitima.getBbHeight(), vitima.getBbWidth(),
+                    vitima.isPassenger(), true);
+            if (recusa != GrabRefusal.NENHUMA || !vitima.startRiding(this, true)) {
                 // Nao coube na boca: leva a mordida e o empurrao, e a bocada segue vazia.
                 vitima.hurt(damageSources().mobAttack(this), BOCADA.damage());
                 vitima.knockback(BOCADA.knockback(), getX() - vitima.getX(), getZ() - vitima.getZ());
                 return;
             }
-            vitimaAgarrada = vitima;
-            ticksAgarrado = 0;
-            danoDesdeOAgarrao = 0.0F;
+            agarrao.agarrar(vitima.getUUID());
             vitima.hurt(damageSources().mobAttack(this), BOCADA.damage());
             return;
         }
@@ -443,8 +481,8 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
      * so, com as quatro razoes juntas.
      */
     private void tickDoAgarrao() {
-        LivingEntity vitima = vitimaAgarrada;
-        if (vitima == null) {
+        LivingEntity vitima = vitimaAgarradaAgora();
+        if (!agarrao.agarrando()) {
             // RELOAD. O vanilla restaura passageiros salvos, mas o agarrao inteiro --
             // vitima, relogio e dano acumulado -- e runtime e nao sobrevive ao save.
             // Sem esta linha o jogador volta montado num sapo que nao sabe que o
@@ -455,17 +493,39 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
         // A vitima pode sumir por fora do nosso ciclo (logout, /kill, outro mod a
         // desmontou). Sem esta checagem o sapo ficaria "agarrando" um fantasma e a
         // regra de desmontagem recusaria a desmontagem de todo mundo depois dela.
-        if (vitima.isRemoved() || vitima.getVehicle() != this) {
-            soltar();
-            return;
-        }
         getNavigation().stop();
         setDeltaMovement(getDeltaMovement().multiply(0.0D, 1.0D, 0.0D));
-        ticksAgarrado++;
-        if (AGARRAO.aplicaDano(ticksAgarrado)) {
+
+        // "Ainda presa" e medido no MUNDO e entregue ao controlador; ele nao
+        // consulta nada. A vitima pode sumir por fora do nosso ciclo (logout,
+        // /kill, outro mod a desmontou), e sem esta medida o sapo ficaria
+        // agarrando um fantasma -- e a regra de desmontagem recusaria a
+        // desmontagem de todo mundo depois dela.
+        boolean aindaPresa = vitima != null && !vitima.isRemoved() && vitima.getVehicle() == this;
+        GrabController.GrabTick resultado = agarrao.tick(
+                vitima != null && vitima.isAlive(), aindaPresa, isAlive());
+
+        if (resultado.pulsoDeDano() && vitima != null) {
             vitima.hurt(damageSources().mobAttack(this), AGARRAO.danoPorPulso());
         }
-        if (AGARRAO.solta(ticksAgarrado, danoDesdeOAgarrao, !vitima.isAlive(), !isAlive())) soltar();
+        if (resultado.soltou()) soltar();
+    }
+
+    /**
+     * A vitima AGORA, reconstruida do uuid a cada uso.
+     *
+     * <p>Guardar a entidade num campo nao dava erro; so impedia o objeto de
+     * morrer, e mantinha viva uma referencia que o servidor ja tinha descartado.
+     * Reconstruir devolve {@code null} quando ela deixou de existir, que e
+     * exatamente a resposta que o tick precisa.</p>
+     */
+    private LivingEntity vitimaAgarradaAgora() {
+        if (!(level() instanceof ServerLevel servidor)) return null;
+        return agarrao.vitima()
+                .map(servidor::getEntity)
+                .filter(LivingEntity.class::isInstance)
+                .map(LivingEntity.class::cast)
+                .orElse(null);
     }
 
     /**
@@ -479,12 +539,13 @@ public final class FrogInWaitingEntity extends BaseHxHMob implements GeoEntity {
      * impossivel de reproduzir.</p>
      */
     private void soltar() {
-        LivingEntity vitima = vitimaAgarrada;
-        // A referencia cai ANTES da desmontagem de proposito: EnemyGameEvents recusa
-        // desmontar enquanto o sapo disser que ainda agarra, e isso incluiria esta.
-        vitimaAgarrada = null;
-        ticksAgarrado = 0;
-        danoDesdeOAgarrao = 0.0F;
+        LivingEntity vitima = vitimaAgarradaAgora();
+        // O controlador e zerado ANTES da desmontagem de proposito: EnemyGameEvents
+        // recusa desmontar enquanto o sapo disser que ainda agarra, e isso incluiria
+        // esta desmontagem. O motivo UNLOAD e o generico de saida externa: o sapo
+        // nao diferencia as consequencias, e inventar um motivo por chamador aqui
+        // seria detalhe sem consumidor.
+        if (agarrao.agarrando()) agarrao.soltar(GrabRelease.UNLOAD);
         if (vitima != null && vitima.getVehicle() == this) vitima.stopRiding();
         ejectPassengers();
 

@@ -22,7 +22,9 @@ class EnemyDefinitionRegistryTest {
                 new EnemyAttributes(10, 0.2F, 1, 0, 8, 0),
                 new com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule(
                         Set.of("#nenfoundation:test"), Set.of("minecraft:overworld"), 0, 15,
-                        true, false, false, 4));
+                        true, false, false, 4,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile.ON_GROUND,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnCaps.fauna()));
     }
 
     @Test

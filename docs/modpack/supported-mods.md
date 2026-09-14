@@ -77,3 +77,35 @@ redistribuir ([ADR-007](../adr/ADR-007-assets-autorais.md)).
 5. **Nenhum script valida regra de Nen.** KubeJS mexe em conteudo do pack.
 6. **Bug do nucleo se reproduz em dev-minimal primeiro.** Ver
    [perfis-de-execucao.md](perfis-de-execucao.md).
+
+---
+
+## Ferramentas de AUTORIA, que não entram no JAR
+
+Estas não são dependências do mod: o `nenfoundation.jar` não as contém e o jogo
+nunca as carrega. Elas são o que uma pessoa precisa ter instalado para
+**regerar** os assets autorais a partir da fonte em `art-source/`.
+
+| Ferramenta | Versão usada | Para quê | Sem ela |
+| --- | --- | --- | --- |
+| Python | 3.10 | todos os geradores de `art-source/` | os `.geo.json`, `.animation.json`, `.png` e `.ogg` continuam no git e funcionam; só não dá para **mudar** nenhum deles |
+| Pillow | 9.4 | escrever as texturas `.png` | idem, para textura |
+| NumPy | (vem com `soundfile`) | a síntese de áudio | idem, para som |
+| `soundfile` (libsndfile) | 0.14 | escrever **OGG Vorbis** de verdade | idem, para som |
+
+**Por que `soundfile` e não `ffmpeg`.** O Minecraft só toca OGG Vorbis, e esta
+máquina não tem `ffmpeg` nem `oggenc` — foi por isso que a identidade sonora dos
+mobs ficou registrada por meses como *"bloqueada por ferramenta"*. O
+`libsndfile` que vem no wheel do `soundfile` escreve Vorbis, e isso foi
+conferido no cabeçalho do arquivo (`OggS…vorbis`), não suposto.
+
+**O risco que isso NÃO tem.** Um `.wav` renomeado para `.ogg` carrega mudo: o
+jogo aceita o arquivo, não reclama e o mob não emite som. É o falso verde mais
+barato deste domínio, e por isso `VozDeInimigoTest` confere a assinatura de cada
+um dos 120 arquivos — em Java, no build, sem depender de nenhuma destas
+ferramentas.
+
+**Reprodutibilidade.** `python art-source/verificar.py` regera tudo e reprova o
+que não bate byte a byte com o git. Foi ele que descobriu que o `libsndfile`
+sorteava o número de série do fluxo Ogg a cada codificação; hoje o serial é
+fixado e os 181 assets gerados reproduzem exatamente.

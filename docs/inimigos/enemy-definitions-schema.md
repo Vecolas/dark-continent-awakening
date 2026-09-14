@@ -32,7 +32,13 @@ snapshot anterior.
     "require_ground": true,
     "allow_water": false,
     "require_sky": false,
-    "max_nearby_same_faction": 4
+    "max_nearby_same_faction": 4,
+    "profile": "on_ground",
+    "caps": {
+      "max_por_chunk": 4,
+      "distancia_entre_grupos": 48,
+      "distancia_de_jogador": 24
+    }
   },
   "audio_id": "example:entity/field_beast",
   "timings": {
@@ -57,3 +63,82 @@ regras de alvo não entram nele para evitar uma segunda fonte de balanceamento.
 aplicadas parcialmente. Os perfis existentes em `HunterExamProfiles` ainda são
 legado Java e usam `audio_id` derivado do próprio id até uma migração explícita;
 este schema não declara balanceamento final dos 23 encounters.
+
+## `profile` e `caps` (issue #112)
+
+Os dois campos são **obrigatórios**, e um valor padrão aqui seria cômodo e caro:
+quem escrevesse a regra de um chefe sem pensar no assunto ganharia "natural" de
+graça, e o chefe entraria na lista de bioma sem que nada acusasse.
+
+`profile` responde a uma pergunta só, e é a que decide se a criatura chega ao
+mundo sozinha:
+
+| valor | entra na lista de bioma | placement registrado | para quem |
+| --- | --- | --- | --- |
+| `on_ground` | sim | `ON_GROUND` | fauna terrestre |
+| `in_water` | sim | `IN_WATER` | vida aquática |
+| `flying_surface_anchor` | sim | `ON_GROUND` | voadora que **nasce pousada** |
+| `structure_only` | **não** | `ON_GROUND` | habitante de estrutura |
+| `encounter_only` | **não** | **nenhum** | chefe e alvo de encontro |
+
+As três colunas existem porque as três falhas são silenciosas:
+
+- **Lista de bioma errada.** Um `encounter_only` que vaze para o pool nasce pelo
+  mundo inteiro; cada instância é uma entidade legítima, então não há duplicata
+  para nenhum portão achar. O sintoma é a recompensa do encontro único virando
+  farm.
+- **Placement errado.** Registrar um peixe com placement de chão reprova todo
+  ponto de água funda e o mob simplesmente nunca nasce — sem log, sem erro.
+- **Voadora no ar.** Spawnar no ar parece o óbvio para quem voa e ancora o ninho
+  no vazio: toda distância medida a partir dele passa a sair de um ponto que
+  ninguém alcança.
+
+`caps` são tetos de densidade, e **são** botão de balanceamento — por isso moram
+no dado. O que não é botão é a existência do teto: sem ele a lista de bioma
+continua valendo a cada tentativa e o vale vira parede de carne, tudo dentro das
+regras. `max_por_chunk` igual a zero é **rejeitado**: desligar um mob se faz pelo
+perfil `encounter_only`, que diz a intenção, e não por um zero que a esconde.
+
+Duas coerências são cobradas no construtor de `SpawnRule`, e as duas mordem:
+
+1. perfil que entra na lista de bioma **precisa** de ao menos uma `biome_tag` —
+   sem tag ele nunca nasce, e isso aparece como um bioma vazio;
+2. perfil que **não** entra na lista de bioma não pode declarar `biome_tags` —
+   a tag existiria no datapack, o portão a conferiria, e mesmo assim ela não
+   colocaria o mob em lugar nenhum. Alarme órfão.
+
+## Por que os 24 inimigos ainda **não** têm arquivo de definition
+
+Esta é a pergunta óbvia depois de ler o schema acima, e a resposta é uma decisão,
+não um esquecimento.
+
+**Atributos são assados antes de o datapack existir.** `EntityAttributeCreationEvent`
+roda no carregamento do mod; datapack carrega depois, e recarrega a qualquer
+momento com `/reload`. Um `max_health` vindo de definition não chegaria à
+`AttributeSupplier` — ele ficaria num catálogo que ninguém consulta na hora de
+criar a entidade. Isso **não daria erro**: daria uma sessão de balanceamento
+girando um número que o jogo ignora, que é exatamente o botão morto que este
+repositório passa o dia evitando.
+
+**Escrever os 24 em JSON hoje criaria duas fontes para a mesma verdade.** Os
+perfis Java (`HunterExamProfiles`, `GreedIslandProfiles`, `ChimeraProfiles`) são
+lidos pelo registro, pelos portões e pelas entidades. Um JSON ao lado seria lido
+por ninguém — e no dia em que alguém corrigisse um número num dos dois, o outro
+continuaria calado.
+
+### O que muda quando isto for feito de verdade
+
+A migração exige, na ordem:
+
+1. um **modificador de atributo em runtime** (ou re-aplicação no spawn) para que
+   `max_health` e companhia possam vir de dado sem contradizer a `AttributeSupplier`;
+2. a **remoção** dos números dos perfis Java no mesmo PR — número que foi para o
+   dado tem de SAIR do código, senão o do código ganha em runtime e nada acusa;
+3. um portão que reprove um id publicado sem arquivo de definition, e um arquivo
+   de definition sem id publicado — mordendo dos dois lados, como
+   `VozDeInimigoTest` e `EncounterBlueprintsTest` já fazem.
+
+Enquanto isso não acontecer, o que o schema entrega é a **capacidade**: o codec,
+o reload atômico, a validação de referência e o versionamento existem e estão
+testados. O que ele não entrega é conteúdo — e o `EnemyDefinitionRegistry` fica
+vazio num jogo real.

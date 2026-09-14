@@ -1,4 +1,1204 @@
 {
+  "entity.avian_commander.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.avian_commander.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/avian_commander/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.avian_commander.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.avian_commander.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/avian_commander/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.avian_commander.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.avian_commander.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/avian_commander/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.avian_commander.death": {
+    "subtitle": "subtitles.nenfoundation.entity.avian_commander.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/avian_commander/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.avian_commander.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.avian_commander.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/avian_commander/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bat_scout.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.bat_scout.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bat_scout/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bat_scout.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.bat_scout.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bat_scout/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bat_scout.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.bat_scout.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bat_scout/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bat_scout.death": {
+    "subtitle": "subtitles.nenfoundation.entity.bat_scout.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bat_scout/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bat_scout.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.bat_scout.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bat_scout/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bubble_horse.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.bubble_horse.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bubble_horse/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bubble_horse.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.bubble_horse.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bubble_horse/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bubble_horse.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.bubble_horse.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bubble_horse/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bubble_horse.death": {
+    "subtitle": "subtitles.nenfoundation.entity.bubble_horse.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bubble_horse/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.bubble_horse.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.bubble_horse.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/bubble_horse/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cheetah_leader.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.cheetah_leader.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cheetah_leader/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cheetah_leader.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.cheetah_leader.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cheetah_leader/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cheetah_leader.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.cheetah_leader.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cheetah_leader/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cheetah_leader.death": {
+    "subtitle": "subtitles.nenfoundation.entity.cheetah_leader.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cheetah_leader/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cheetah_leader.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.cheetah_leader.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cheetah_leader/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.crab_heavy.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.crab_heavy.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/crab_heavy/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.crab_heavy.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.crab_heavy.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/crab_heavy/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.crab_heavy.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.crab_heavy.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/crab_heavy/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.crab_heavy.death": {
+    "subtitle": "subtitles.nenfoundation.entity.crab_heavy.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/crab_heavy/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.crab_heavy.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.crab_heavy.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/crab_heavy/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cyclops.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.cyclops.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cyclops/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cyclops.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.cyclops.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cyclops/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cyclops.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.cyclops.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cyclops/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cyclops.death": {
+    "subtitle": "subtitles.nenfoundation.entity.cyclops.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cyclops/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.cyclops.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.cyclops.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/cyclops/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.dummy_enemy.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.dummy_enemy.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/dummy_enemy/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.dummy_enemy.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.dummy_enemy.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/dummy_enemy/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.dummy_enemy.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.dummy_enemy.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/dummy_enemy/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.dummy_enemy.death": {
+    "subtitle": "subtitles.nenfoundation.entity.dummy_enemy.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/dummy_enemy/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.dummy_enemy.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.dummy_enemy.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/dummy_enemy/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.foxbear.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.foxbear.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/foxbear/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.foxbear.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.foxbear.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/foxbear/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.foxbear.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.foxbear.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/foxbear/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.foxbear.death": {
+    "subtitle": "subtitles.nenfoundation.entity.foxbear.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/foxbear/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.foxbear.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.foxbear.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/foxbear/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.frog_in_waiting.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.frog_in_waiting.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/frog_in_waiting/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.frog_in_waiting.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.frog_in_waiting.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/frog_in_waiting/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.frog_in_waiting.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.frog_in_waiting.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/frog_in_waiting/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.frog_in_waiting.death": {
+    "subtitle": "subtitles.nenfoundation.entity.frog_in_waiting.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/frog_in_waiting/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.frog_in_waiting.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.frog_in_waiting.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/frog_in_waiting/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.great_stamp.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.great_stamp.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/great_stamp/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.great_stamp.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.great_stamp.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/great_stamp/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.great_stamp.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.great_stamp.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/great_stamp/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.great_stamp.death": {
+    "subtitle": "subtitles.nenfoundation.entity.great_stamp.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/great_stamp/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.great_stamp.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.great_stamp.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/great_stamp/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.hyper_puffball.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.hyper_puffball.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/hyper_puffball/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.hyper_puffball.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.hyper_puffball.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/hyper_puffball/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.hyper_puffball.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.hyper_puffball.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/hyper_puffball/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.hyper_puffball.death": {
+    "subtitle": "subtitles.nenfoundation.entity.hyper_puffball.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/hyper_puffball/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.hyper_puffball.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.hyper_puffball.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/hyper_puffball/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.king_white_stag_beetle.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.king_white_stag_beetle.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/king_white_stag_beetle/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.king_white_stag_beetle.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.king_white_stag_beetle.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/king_white_stag_beetle/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.king_white_stag_beetle.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.king_white_stag_beetle.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/king_white_stag_beetle/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.king_white_stag_beetle.death": {
+    "subtitle": "subtitles.nenfoundation.entity.king_white_stag_beetle.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/king_white_stag_beetle/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.king_white_stag_beetle.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.king_white_stag_beetle.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/king_white_stag_beetle/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.kiriko.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.kiriko.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/kiriko/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.kiriko.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.kiriko.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/kiriko/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.kiriko.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.kiriko.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/kiriko/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.kiriko.death": {
+    "subtitle": "subtitles.nenfoundation.entity.kiriko.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/kiriko/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.kiriko.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.kiriko.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/kiriko/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.man_faced_ape.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.man_faced_ape.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/man_faced_ape/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.man_faced_ape.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.man_faced_ape.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/man_faced_ape/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.man_faced_ape.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.man_faced_ape.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/man_faced_ape/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.man_faced_ape.death": {
+    "subtitle": "subtitles.nenfoundation.entity.man_faced_ape.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/man_faced_ape/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.man_faced_ape.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.man_faced_ape.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/man_faced_ape/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.master_of_the_swamp.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.master_of_the_swamp.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/master_of_the_swamp/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.master_of_the_swamp.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.master_of_the_swamp.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/master_of_the_swamp/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.master_of_the_swamp.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.master_of_the_swamp.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/master_of_the_swamp/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.master_of_the_swamp.death": {
+    "subtitle": "subtitles.nenfoundation.entity.master_of_the_swamp.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/master_of_the_swamp/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.master_of_the_swamp.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.master_of_the_swamp.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/master_of_the_swamp/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.melanin_lizard.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.melanin_lizard.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/melanin_lizard/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.melanin_lizard.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.melanin_lizard.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/melanin_lizard/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.melanin_lizard.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.melanin_lizard.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/melanin_lizard/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.melanin_lizard.death": {
+    "subtitle": "subtitles.nenfoundation.entity.melanin_lizard.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/melanin_lizard/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.melanin_lizard.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.melanin_lizard.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/melanin_lizard/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.mosquito_officer.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.mosquito_officer.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/mosquito_officer/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.mosquito_officer.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.mosquito_officer.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/mosquito_officer/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.mosquito_officer.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.mosquito_officer.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/mosquito_officer/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.mosquito_officer.death": {
+    "subtitle": "subtitles.nenfoundation.entity.mosquito_officer.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/mosquito_officer/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.mosquito_officer.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.mosquito_officer.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/mosquito_officer/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.multiarm_centipede.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.multiarm_centipede.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/multiarm_centipede/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.multiarm_centipede.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.multiarm_centipede.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/multiarm_centipede/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.multiarm_centipede.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.multiarm_centipede.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/multiarm_centipede/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.multiarm_centipede.death": {
+    "subtitle": "subtitles.nenfoundation.entity.multiarm_centipede.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/multiarm_centipede/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.multiarm_centipede.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.multiarm_centipede.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/multiarm_centipede/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.radio_rat.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.radio_rat.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/radio_rat/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.radio_rat.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.radio_rat.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/radio_rat/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.radio_rat.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.radio_rat.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/radio_rat/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.radio_rat.death": {
+    "subtitle": "subtitles.nenfoundation.entity.radio_rat.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/radio_rat/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.radio_rat.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.radio_rat.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/radio_rat/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.scorpion_leader.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.scorpion_leader.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/scorpion_leader/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.scorpion_leader.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.scorpion_leader.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/scorpion_leader/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.scorpion_leader.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.scorpion_leader.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/scorpion_leader/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.scorpion_leader.death": {
+    "subtitle": "subtitles.nenfoundation.entity.scorpion_leader.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/scorpion_leader/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.scorpion_leader.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.scorpion_leader.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/scorpion_leader/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_eagle.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_eagle.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_eagle/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_eagle.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_eagle.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_eagle/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_eagle.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_eagle.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_eagle/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_eagle.death": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_eagle.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_eagle/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_eagle.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_eagle.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_eagle/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_webber.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_webber.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_webber/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_webber.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_webber.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_webber/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_webber.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_webber.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_webber/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_webber.death": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_webber.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_webber/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.spider_webber.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.spider_webber.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/spider_webber/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_pack_hunter.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_pack_hunter.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_pack_hunter/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_pack_hunter.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_pack_hunter.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_pack_hunter/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_pack_hunter.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_pack_hunter.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_pack_hunter/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_pack_hunter.death": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_pack_hunter.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_pack_hunter/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_pack_hunter.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_pack_hunter.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_pack_hunter/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_runner.alert": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_runner.alert",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_runner/alert",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_runner.ambient": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_runner.ambient",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_runner/ambient",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_runner.attack": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_runner.attack",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_runner/attack",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_runner.death": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_runner.death",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_runner/death",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "entity.wolf_runner.hurt": {
+    "subtitle": "subtitles.nenfoundation.entity.wolf_runner.hurt",
+    "sounds": [
+      {
+        "name": "nenfoundation:entity/wolf_runner/hurt",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
   "vfx.nen.ten_activate": {
     "subtitle": "subtitles.nenfoundation.vfx.nen.ten_activate",
     "sounds": [

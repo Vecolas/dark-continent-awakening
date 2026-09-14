@@ -1,6 +1,23 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CrabHeavyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BatScoutEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfRunnerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderWebberEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MosquitoOfficerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MultiarmCentipedeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CheetahLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.ScorpionLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.AvianCommanderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CyclopsEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.HyperPuffballEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MelaninLizardEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.RadioRatEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BubbleHorseEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KingWhiteStagBeetleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfPackHunterEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -90,6 +107,121 @@ public final class EnemyEntityTypes {
             TYPES.register("foxbear",
                     () -> EntityType.Builder.of(FoxbearEntity::new, MobCategory.CREATURE)
                             .sized(1.4F, 1.35F).build(NenFoundation.id("foxbear").toString()));
+
+    // Caixa de BONECO: 0.8 x 1.9, quase a de um jogador. E deliberado -- o
+    // boneco existe para medir alcance de golpe, distancia de percepcao e
+    // acerto de ponto fraco, e medir isso contra uma caixa que nao se parece com
+    // a do jogador daria numeros que nao valem para o unico alvo que importa.
+    //
+    // MobCategory.MISC, e nao CREATURE: a categoria escolhe a lista de spawn que
+    // o biome modifier alimenta, e MISC nao tem lista. E a segunda tranca do
+    // mesmo cadeado que SpawnProfile.ENCOUNTER_ONLY ja fecha -- duas porque o
+    // vazamento nao daria erro nenhum, so encheria o mundo de ferramenta de
+    // teste, e cada uma seria uma entidade legitima.
+    public static final DeferredHolder<EntityType<?>, EntityType<DummyEnemyEntity>> DUMMY_ENEMY =
+            TYPES.register("dummy_enemy",
+                    () -> EntityType.Builder.of(DummyEnemyEntity::new, MobCategory.MISC)
+                            .sized(0.8F, 1.9F).build(NenFoundation.id("dummy_enemy").toString()));
+
+
+    // ------------------------------------------------- Greed Island (EN6)
+    //
+    // As sete usam MobCategory.MISC, e isso e a SEGUNDA tranca do mesmo cadeado
+    // que SpawnProfile.ENCOUNTER_ONLY ja fecha: MISC nao tem lista de spawn de
+    // bioma para o biome modifier alimentar. Duas trancas porque o vazamento
+    // nao daria erro nenhum -- encheria o Overworld de criatura da ilha, e cada
+    // uma seria uma entidade legitima.
+    //
+    // As caixas saem da ficha de cada bicho e MANDAM no modelo: o gerador de
+    // geometria reprova um corpo que estoure a hitbox declarada aqui.
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CyclopsEntity>> CYCLOPS =
+            TYPES.register("cyclops",
+                    () -> EntityType.Builder.of(CyclopsEntity::new, MobCategory.MISC)
+                            .sized(1.8F, 4.2F).build(NenFoundation.id("cyclops").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HyperPuffballEntity>> HYPER_PUFFBALL =
+            TYPES.register("hyper_puffball",
+                    () -> EntityType.Builder.of(HyperPuffballEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.2F).build(NenFoundation.id("hyper_puffball").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MelaninLizardEntity>> MELANIN_LIZARD =
+            TYPES.register("melanin_lizard",
+                    () -> EntityType.Builder.of(MelaninLizardEntity::new, MobCategory.MISC)
+                            .sized(1.6F, 0.8F).build(NenFoundation.id("melanin_lizard").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<RadioRatEntity>> RADIO_RAT =
+            TYPES.register("radio_rat",
+                    () -> EntityType.Builder.of(RadioRatEntity::new, MobCategory.MISC)
+                            .sized(0.6F, 0.5F).build(NenFoundation.id("radio_rat").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BubbleHorseEntity>> BUBBLE_HORSE =
+            TYPES.register("bubble_horse",
+                    () -> EntityType.Builder.of(BubbleHorseEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.8F).build(NenFoundation.id("bubble_horse").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KingWhiteStagBeetleEntity>> KING_WHITE_STAG_BEETLE =
+            TYPES.register("king_white_stag_beetle",
+                    () -> EntityType.Builder.of(KingWhiteStagBeetleEntity::new, MobCategory.MISC)
+                            .sized(1.6F, 1.4F).build(NenFoundation.id("king_white_stag_beetle").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WolfPackHunterEntity>> WOLF_PACK_HUNTER =
+            TYPES.register("wolf_pack_hunter",
+                    () -> EntityType.Builder.of(WolfPackHunterEntity::new, MobCategory.MISC)
+                            .sized(0.9F, 0.9F).build(NenFoundation.id("wolf_pack_hunter").toString()));
+
+
+    // --------------------------------------------- Chimera Ant (EN8/EN11)
+    //
+    // MobCategory.MISC, como as de Greed Island e pelo mesmo motivo: MISC nao
+    // tem lista de spawn de bioma. Formiga quimera nasce de COLONIA, nunca do
+    // bioma -- no pool ela nasceria orfa por construcao, alimentando uma
+    // colonia fantasma, e cada uma seria uma entidade legitima.
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CrabHeavyEntity>> CRAB_HEAVY =
+            TYPES.register("crab_heavy",
+                    () -> EntityType.Builder.of(CrabHeavyEntity::new, MobCategory.MISC)
+                            .sized(1.4F, 1.6F).build(NenFoundation.id("crab_heavy").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BatScoutEntity>> BAT_SCOUT =
+            TYPES.register("bat_scout",
+                    () -> EntityType.Builder.of(BatScoutEntity::new, MobCategory.MISC)
+                            .sized(0.8F, 0.9F).build(NenFoundation.id("bat_scout").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WolfRunnerEntity>> WOLF_RUNNER =
+            TYPES.register("wolf_runner",
+                    () -> EntityType.Builder.of(WolfRunnerEntity::new, MobCategory.MISC)
+                            .sized(1.0F, 0.9F).build(NenFoundation.id("wolf_runner").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SpiderWebberEntity>> SPIDER_WEBBER =
+            TYPES.register("spider_webber",
+                    () -> EntityType.Builder.of(SpiderWebberEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.3F).build(NenFoundation.id("spider_webber").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MosquitoOfficerEntity>> MOSQUITO_OFFICER =
+            TYPES.register("mosquito_officer",
+                    () -> EntityType.Builder.of(MosquitoOfficerEntity::new, MobCategory.MISC)
+                            .sized(0.9F, 1.4F).build(NenFoundation.id("mosquito_officer").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MultiarmCentipedeEntity>> MULTIARM_CENTIPEDE =
+            TYPES.register("multiarm_centipede",
+                    () -> EntityType.Builder.of(MultiarmCentipedeEntity::new, MobCategory.MISC)
+                            .sized(1.6F, 2.2F).build(NenFoundation.id("multiarm_centipede").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CheetahLeaderEntity>> CHEETAH_LEADER =
+            TYPES.register("cheetah_leader",
+                    () -> EntityType.Builder.of(CheetahLeaderEntity::new, MobCategory.MISC)
+                            .sized(1.2F, 1.5F).build(NenFoundation.id("cheetah_leader").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ScorpionLeaderEntity>> SCORPION_LEADER =
+            TYPES.register("scorpion_leader",
+                    () -> EntityType.Builder.of(ScorpionLeaderEntity::new, MobCategory.MISC)
+                            .sized(1.5F, 1.6F).build(NenFoundation.id("scorpion_leader").toString()));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<AvianCommanderEntity>> AVIAN_COMMANDER =
+            TYPES.register("avian_commander",
+                    () -> EntityType.Builder.of(AvianCommanderEntity::new, MobCategory.MISC)
+                            .sized(1.4F, 2.0F).build(NenFoundation.id("avian_commander").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

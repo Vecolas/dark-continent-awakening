@@ -148,9 +148,9 @@ class FrogInWaitingPerfilTest {
      */
     @Test
     void todaTagDeBiomaDeclaradaExisteETemBiomeModifier() {
-        Map<String, EnemyDefinition> publicados = HunterExamProfiles.publicados();
+        Map<String, EnemyDefinition> publicados = EnemyCatalog.publicados();
         assertFalse(publicados.isEmpty(),
-                "HunterExamProfiles.publicados() veio vazio: varredura vazia nao e aprovacao, "
+                "EnemyCatalog.publicados() veio vazio: varredura vazia nao e aprovacao, "
                         + "e um portao que nao varre ninguem passa sempre");
 
         Path raiz = Repo.raiz();

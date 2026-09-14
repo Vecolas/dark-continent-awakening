@@ -10,6 +10,8 @@ import com.darkcontinent.nenfoundation.enemy.ai.NestGuardRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
+import com.darkcontinent.nenfoundation.enemy.balance.StaggerPorPapel;
+import com.darkcontinent.nenfoundation.enemy.combat.StaggerRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPoint;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
@@ -17,6 +19,8 @@ import com.darkcontinent.nenfoundation.enemy.data.EnemyAttributes;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeFisgada;
 import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeJulgamento;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnCaps;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +37,8 @@ public final class HunterExamProfiles {
         // nenhum, aparece como um bioma vazio que ninguem consegue explicar.
         return new EnemyDefinition(metadata("great_stamp", ThreatTier.HUNTER, true, true),
                 new EnemyAttributes(70, 0.23F, 11, 7, 28, 0.55F),
-                spawn("#nenfoundation:great_stamp_biomes", 0, 15, true, false, 4));
+                spawn("#nenfoundation:great_stamp_biomes", 0, 15, true, false, 4,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(4, 64, 24)));
     }
 
     /**
@@ -82,7 +87,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition frogInWaiting() {
         return new EnemyDefinition(metadata("frog_in_waiting", ThreatTier.DANGEROUS, true, false),
                 new EnemyAttributes(50, 0.12F, 10, 3, 20, 0.35F),
-                spawn("#nenfoundation:swamp_predator_biomes", 0, 15, false, true, 2));
+                spawn("#nenfoundation:swamp_predator_biomes", 0, 15, false, true, 2,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(2, 32, 16)));
     }
 
     /**
@@ -143,7 +149,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition manFacedApe() {
         return new EnemyDefinition(metadata("man_faced_ape", ThreatTier.DANGEROUS, false, true),
                 new EnemyAttributes(24, 0.29F, 4, 1, 24, 0.1F),
-                spawn("#nenfoundation:jungle_ambusher_biomes", 0, 15, true, false, 4));
+                spawn("#nenfoundation:jungle_ambusher_biomes", 0, 15, true, false, 4,
+                        SpawnProfile.ON_GROUND, SpawnCaps.fauna()));
     }
 
     /**
@@ -198,7 +205,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition spiderEagle() {
         return new EnemyDefinition(metadata("spider_eagle", ThreatTier.HUNTER, true, false),
                 new EnemyAttributes(28, 0.35F, 6, 2, 32, 0.0F),
-                spawn("#nenfoundation:canyon_nest_biomes", 0, 15, true, false, 2));
+                spawn("#nenfoundation:canyon_nest_biomes", 0, 15, true, false, 2,
+                        SpawnProfile.FLYING_SURFACE_ANCHOR, new SpawnCaps(2, 96, 24)));
     }
 
     /**
@@ -264,7 +272,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition masterOfTheSwamp() {
         return new EnemyDefinition(metadata("master_of_the_swamp", ThreatTier.DANGEROUS, false, false),
                 new EnemyAttributes(60, 0.6F, 6, 4, 24, 0.6F),
-                spawn("#nenfoundation:swamp_water_biomes", 0, 15, false, true, 1));
+                spawn("#nenfoundation:swamp_water_biomes", 0, 15, false, true, 1,
+                        SpawnProfile.IN_WATER, SpawnCaps.raro()));
     }
 
     /**
@@ -345,7 +354,8 @@ public final class HunterExamProfiles {
     public static EnemyDefinition kiriko() {
         return new EnemyDefinition(metadata("kiriko", ThreatTier.ELITE, false, false),
                 new EnemyAttributes(40, 0.32F, 7, 3, 24, 0.2F),
-                spawn("#nenfoundation:magical_beast_biomes", 0, 15, true, false, 1));
+                spawn("#nenfoundation:magical_beast_biomes", 0, 15, true, false, 1,
+                        SpawnProfile.ON_GROUND, SpawnCaps.raro()));
     }
 
     /**
@@ -425,13 +435,127 @@ public final class HunterExamProfiles {
                 "spider_eagle", spiderEagle(),
                 "master_of_the_swamp", masterOfTheSwamp(),
                 "kiriko", kiriko(),
-                "foxbear", foxbear());
+                "foxbear", foxbear(),
+                // Ferramenta, e nao conteudo -- mas dentro do portao pelo mesmo
+                // motivo que todos os outros: fora daqui ele ficaria sem
+                // conferencia de atributos, loot e traducao.
+                "dummy_enemy", dummyEnemy());
     }
 
     public static EnemyDefinition foxbear() {
         return new EnemyDefinition(metadata("foxbear", ThreatTier.HUNTER, true, false),
                 new EnemyAttributes(44, 0.25F, 6, 2, 20, 0.25F),
-                spawn("#nenfoundation:foxbear_biomes", 0, 12, true, false, 3));
+                spawn("#nenfoundation:foxbear_biomes", 0, 12, true, false, 3,
+                        SpawnProfile.ON_GROUND, new SpawnCaps(3, 64, 24)));
+    }
+
+
+    // ====================================================================
+    // BONECO DE TREINO -- a entidade descartavel da issue #138.
+    //
+    // Ele esta aqui, no arquivo dos perfis do exame, por um motivo de PORTAO e
+    // nao de tema: FilaUnicaDeInimigosTest exige que todo id registrado apareca
+    // em publicados(). Um dummy de fora dessa lista ficaria SEM portao -- sem
+    // conferencia de atributos, de loot nem de traducao -- e seria exatamente o
+    // buraco que a issue #266 pagou caro para fechar. O comentario existe para
+    // que a proxima pessoa nao "arrume" isso movendo o perfil para outro lugar.
+    // ====================================================================
+
+    /**
+     * HP 30, dano 4, velocidade 0.22, armadura 0 -- corpo de FERRAMENTA.
+     *
+     * <p>Os numeros existem para o boneco ser mensuravel, e nao para ele ser um
+     * bom combate: vida redonda para contar golpes, armadura zero para o dano
+     * chegar inteiro, e velocidade baixa para caber numa arena pequena. Se
+     * alguem "equilibrar" isto, perde-se a unica coisa que ele oferece, que e
+     * ser previsivel.</p>
+     *
+     * <p>ENCOUNTER_ONLY, e isso e o mais importante da ficha: sem esse perfil o
+     * boneco entraria na lista de bioma e o mundo ficaria salpicado de
+     * ferramenta de teste -- sem erro nenhum, porque cada um seria uma entidade
+     * legitima. Ele chega por comando de dev e por arena.</p>
+     *
+     * <p>territorial=false e social=false: ele nao defende lugar nenhum e nao
+     * anda em grupo. O teto de 1 por chunk existe para a arena nao virar
+     * multidao quando alguem repetir o comando sem pensar.</p>
+     */
+    public static EnemyDefinition dummyEnemy() {
+        return new EnemyDefinition(
+                new EnemyMetadata(ResourceLocation.fromNamespaceAndPath(MOD, "dummy_enemy"),
+                        // ORIGINAL_COMPATIBLE, e nao CANON_EXACT: nao existe boneco de
+                        // treino em Hunter x Hunter, e marcar canon aqui faria o rotulo
+                        // mentir justamente no unico mob que nao e conteudo.
+                        CanonLevel.ORIGINAL_COMPATIBLE, EnemyFaction.CUSTOM,
+                        ThreatTier.LOW, false, false, "dummy_enemy"),
+                new EnemyAttributes(30, 0.22F, 4, 0, 20, 0.0F),
+                new SpawnRule(Set.of(), Set.of("minecraft:overworld"), 0, 15,
+                        true, false, false, 1,
+                        SpawnProfile.ENCOUNTER_ONLY, new SpawnCaps(1, 0, 0)));
+    }
+
+    /**
+     * Golpe de 10 ticks de aviso, 4 de janela e 12 de recuperacao.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: e lido de {@link #dummyEnemy()}, porque
+     * o golpe e o unico ataque dele. Repetir o 4 aqui criaria duas fontes para a
+     * mesma verdade, e girar o atributo numa sessao de balanceamento mudaria o
+     * golpe em jogo sem mudar este numero.</p>
+     *
+     * <p>Os 26 ticks totais sao o MESMO orcamento que
+     * {@code dummy_enemy_animacoes.py} declara, e a regua de arte reprova se a
+     * soma dos tres clipes ficar abaixo dele. Clipe curto demais faz o boneco
+     * relaxar no meio do golpe que ainda vai acertar -- dano certo, log limpo, e
+     * a unica leitura do jogador quebrada.</p>
+     */
+    public static AttackDefinition dummyEnemyStrike() {
+        return new AttackDefinition("strike", 10, 4, 12,
+                dummyEnemy().attributes().attackDamage(), 0.4F, true, false, true);
+    }
+
+    /** O alvo pintado no peito vale o dobro; o resto do saco e corpo comum. */
+    public static WeakPointRegistry dummyEnemyWeakPoints() {
+        return new WeakPointRegistry(Map.of("target", new WeakPoint("target", "torso", 2.0F, true)));
+    }
+
+    /**
+     * Geometria do alvo: acima de 45% da caixa e dentro de um cone frontal largo.
+     *
+     * <p>O 0.45 e o alvo PINTADO, medido: o anel ocupa y 14..18 num boneco de
+     * 30.4 px, ou seja 0.46 da altura. O gerador de textura confere este mesmo
+     * numero e REPROVOU a primeira versao, que trazia 0.55 copiado de outro mob
+     * -- com ela o desenho prometeria um acerto que a regra nao paga, e nao
+     * haveria erro nenhum para procurar.</p>
+     *
+     * <p>O cosseno 0.4 e largo (cerca de 66 graus para cada lado) porque o
+     * boneco e uma ferramenta de medida: exigir mira precisa transformaria o
+     * teste de ponto fraco num teste de pontaria.</p>
+     */
+    public static WeakPointResolver dummyEnemyWeakPoint() {
+        return new WeakPointResolver("target", "body", 0.45D, 0.4D);
+    }
+
+    /**
+     * Cai em 2 acertos seguidos: o boneco existe para MOSTRAR a interrupcao
+     * acontecendo, entao ela tem de ser facil.
+     *
+     * <p><b>Esta entrada e a lapide de um defeito, e vale ler o porque.</b> Os
+     * numeros antigos eram limiar 12, resistencia 1, decaimento 0.4 -- e o javadoc
+     * que os acompanhava fazia a conta assim: "tres golpes de 5 (quatro efetivos
+     * cada) chegam ao limiar". A conta esta certa e a conclusao estava errada,
+     * porque ela somava os tres golpes como se caissem no mesmo tick. No ritmo real
+     * de uma espada (12,5 ticks entre golpes) o decaimento de 0.4 comia 5 do
+     * acumulado entre um golpe e o proximo -- mais do que os 4 que o golpe somava.
+     * O acumulado subia e voltava a zero para sempre.</p>
+     *
+     * <p>O paragrafo seguinte daquele mesmo javadoc dizia, com todas as letras, que
+     * um decaimento grande demais faria o mob nunca cambalear "e nenhum dos dois
+     * daria erro". O texto CONHECIA a falha e os numeros cairam nela assim mesmo --
+     * porque descrever um risco em prosa nao e o mesmo que ter uma regua que o
+     * mede. Hoje quem deriva e {@link StaggerPorPapel}, e quem reprova e
+     * {@code StaggerAlcancavelTest}.</p>
+     */
+    public static StaggerRules dummyEnemyStagger() {
+        return StaggerPorPapel.de(ThreatTier.LOW, 2, 30);
     }
 
     private static EnemyMetadata metadata(String id, ThreatTier tier, boolean territorial, boolean social) {
@@ -439,9 +563,18 @@ public final class HunterExamProfiles {
                 EnemyFaction.WILDLIFE, tier, territorial, social, id);
     }
 
+    /**
+     * Monta a regra de spawn de um perfil.
+     *
+     * <p>O {@link SpawnProfile} e os {@link SpawnCaps} sao PARAMETROS, e nao um
+     * padrao escondido aqui dentro: um default faria todo mob novo herdar
+     * "natural, no chao, sem teto" sem que ninguem decidisse isso -- e a conta so
+     * chegaria como um chefe nascendo no meio do mato ou como uma manada de
+     * quarenta num vale. Nenhuma das duas coisas aparece em log.</p>
+     */
     private static SpawnRule spawn(String biome, int minLight, int maxLight, boolean ground,
-            boolean water, int groupLimit) {
+            boolean water, int groupLimit, SpawnProfile perfil, SpawnCaps tetos) {
         return new SpawnRule(Set.of(biome), Set.of("minecraft:overworld"), minLight, maxLight,
-                ground, water, false, groupLimit);
+                ground, water, false, groupLimit, perfil, tetos);
     }
 }

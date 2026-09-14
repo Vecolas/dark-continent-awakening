@@ -60,7 +60,9 @@ class EnemyDefinitionReloadListenerTest {
                 new EnemyAttributes(10, 0.2F, 1, 0, 8, 0),
                 new com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule(
                         java.util.Set.of("#example:field_biomes"), java.util.Set.of("minecraft:overworld"),
-                        0, 15, true, false, false, 4), ResourceLocation.parse(id),
+                        0, 15, true, false, false, 4,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile.ON_GROUND,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnCaps.fauna()), ResourceLocation.parse(id),
                 java.util.Map.of("idle", new EnemyTiming(1, 1, 1, false, false, false)), 1);
     }
 }

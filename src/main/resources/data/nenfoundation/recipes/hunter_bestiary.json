@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PPP", "LCL", "SIS"],
+  "key": {
+    "P": "minecraft:paper",
+    "L": "minecraft:leather",
+    "I": "minecraft:ink_sac",
+    "S": "minecraft:string",
+    "C": "minecraft:compass"
+  },
+  "result": {
+    "id": "nenfoundation:hunter_bestiary",
+    "count": 1
+  }
+}

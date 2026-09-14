@@ -15,6 +15,11 @@ import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.nen.category.SorteioDeCategoria;
 import com.darkcontinent.nenfoundation.server.NenAwakeningService;
 import com.darkcontinent.nenfoundation.server.NenCategoryService;
+import com.darkcontinent.nenfoundation.server.BestiaryPlayerService;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryNenStatus;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryPlayerData;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -187,10 +192,150 @@ public final class NenCommands {
                         .then(Commands.argument("alvo", EntityArgument.player())
                                 .executes(ctx -> resetar(ctx, alvoDoArgumento(ctx))))));
 
+        raiz.then(Commands.literal("bestiary")
+                .then(Commands.literal("list").executes(ctx -> listarBestiario(ctx, alvoOuProprio(ctx)))
+                        .then(Commands.argument("alvo", EntityArgument.player())
+                                .executes(ctx -> listarBestiario(ctx, alvoDoArgumento(ctx)))))
+                .then(Commands.literal("research")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("pontos", com.mojang.brigadier.arguments.IntegerArgumentType.integer(1))
+                                        .executes(ctx -> pesquisarBestiario(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> pesquisarBestiario(ctx, true))))))
+                .then(Commands.literal("weakpoint")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("ponto", StringArgumentType.word())
+                                        .executes(ctx -> descobrirPontoFraco(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> descobrirPontoFraco(ctx, true))))))
+                .then(Commands.literal("capture")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("condicao", StringArgumentType.word())
+                                        .executes(ctx -> registrarCaptura(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> registrarCaptura(ctx, true))))))
+                .then(Commands.literal("nen")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("estado", StringArgumentType.word())
+                                        .executes(ctx -> registrarNen(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> registrarNen(ctx, true))))))
+                .then(Commands.literal("unlock")
+                        .then(Commands.argument("entrada", ResourceLocationArgument.id())
+                                .then(Commands.argument("nivel", StringArgumentType.word())
+                                        .executes(ctx -> desbloquearBestiario(ctx, false))
+                                        .then(Commands.argument("alvo", EntityArgument.player())
+                                                .executes(ctx -> desbloquearBestiario(ctx, true))))))
+                .then(Commands.literal("resetall")
+                        .then(Commands.literal("confirmar")
+                                .executes(ctx -> resetarBestiario(ctx, alvoOuProprio(ctx)))
+                                .then(Commands.argument("alvo", EntityArgument.player())
+                                        .executes(ctx -> resetarBestiario(ctx, alvoDoArgumento(ctx)))))));
+
         return dispatcher.register(raiz);
     }
 
     // ------------------------------------------------------------- acoes
+
+    private static int listarBestiario(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        ctx.getSource().sendSuccess(() -> Component.literal("Bestiário de " + alvo.getGameProfile().getName() + ":"), false);
+        for (var entry : BestiaryRegistry.entries()) {
+            var progress = BestiaryPlayerService.progresso(alvo, entry.id());
+            ctx.getSource().sendSuccess(() -> Component.literal(entry.id() + " = "
+                    + progress.knowledgeLevel() + " / pesquisa=" + progress.researchPoints()), false);
+        }
+        return 1;
+    }
+
+    private static int pesquisarBestiario(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        int pontos = com.mojang.brigadier.arguments.IntegerArgumentType.getInteger(ctx, "pontos");
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.pesquisar(alvo, id, pontos);
+        ctx.getSource().sendSuccess(() -> Component.literal("Pesquisa adicionada a " + id), true);
+        return 1;
+    }
+
+    private static int desbloquearBestiario(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        final BestiaryKnowledgeLevel level;
+        try {
+            level = BestiaryKnowledgeLevel.valueOf(StringArgumentType.getString(ctx, "nivel").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException erro) {
+            ctx.getSource().sendFailure(Component.literal("Nível inválido."));
+            return 0;
+        }
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        var atual = BestiaryPlayerService.progresso(alvo, id);
+        BestiaryPlayerService.substituir(alvo, BestiaryPlayerService.ler(alvo).withProgress(id,
+                atual.withResearchPoints(0, level)));
+        ctx.getSource().sendSuccess(() -> Component.literal("Entrada " + id + " ajustada para " + level), true);
+        return 1;
+    }
+
+    private static int descobrirPontoFraco(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        var ponto = StringArgumentType.getString(ctx, "ponto");
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.descobrirPontoFraco(alvo, id, ponto);
+        ctx.getSource().sendSuccess(() -> Component.literal("Ponto fraco registrado em " + id), true);
+        return 1;
+    }
+
+    private static int registrarCaptura(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.registrarCaptura(alvo, id, StringArgumentType.getString(ctx, "condicao"));
+        ctx.getSource().sendSuccess(() -> Component.literal("Condição de captura registrada em " + id), true);
+        return 1;
+    }
+
+    private static int registrarNen(CommandContext<CommandSourceStack> ctx, boolean alvoExplicito)
+            throws CommandSyntaxException {
+        var id = ResourceLocationArgument.getId(ctx, "entrada");
+        var alvo = alvoExplicito ? alvoDoArgumento(ctx) : alvoOuProprio(ctx);
+        final BestiaryNenStatus estado;
+        try {
+            estado = BestiaryNenStatus.valueOf(StringArgumentType.getString(ctx, "estado").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException erro) {
+            ctx.getSource().sendFailure(Component.literal("Estado de Nen inválido."));
+            return 0;
+        }
+        if (BestiaryRegistry.get(id) == null) {
+            ctx.getSource().sendFailure(Component.literal("Entrada inexistente: " + id));
+            return 0;
+        }
+        BestiaryPlayerService.descobrirNen(alvo, id, estado);
+        ctx.getSource().sendSuccess(() -> Component.literal("Estado de Nen registrado em " + id), true);
+        return 1;
+    }
+
+    private static int resetarBestiario(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {
+        BestiaryPlayerService.substituir(alvo, BestiaryPlayerData.EMPTY);
+        ctx.getSource().sendSuccess(() -> Component.literal("Bestiário zerado para "
+                + alvo.getGameProfile().getName()), true);
+        return 1;
+    }
 
     /** Diagnostico de runtime, sem escrita de perfil ou despertar. */
     private static int mostrarAura(CommandContext<CommandSourceStack> ctx, ServerPlayer alvo) {

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["PPP", "LCL", "SIS"],
+  "key": {
+    "P": { "item": "minecraft:paper" },
+    "L": { "item": "minecraft:leather" },
+    "C": { "item": "minecraft:cartography_table" },
+    "S": { "item": "minecraft:stick" },
+    "I": { "item": "minecraft:ink_sac" }
+  },
+  "result": { "id": "nenfoundation:research_table", "count": 1 }
+}

@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
+import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
 
 /**
  * Quem consome os payloads que o servidor manda.
@@ -29,6 +30,10 @@ import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
  * no-op de {@link Recebedores} responde.
  */
 public interface RecebedorDeNen {
+
+    /** Conhecimento individual do bestiário, enviado somente ao dono. */
+    default void aoReceberBestiary(BestiarySnapshotS2C payload) {
+    }
 
     /** O perfil de leitura chegou. Substitui o anterior por inteiro. */
     void aoReceberSnapshot(SnapshotDePerfilS2C payload);

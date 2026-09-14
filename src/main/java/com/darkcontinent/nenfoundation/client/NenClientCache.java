@@ -8,6 +8,9 @@ import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
 import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
+import com.darkcontinent.nenfoundation.network.payload.BestiarySnapshotS2C;
+import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientState;
+import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.client.hud.AuraInterpolation;
 import com.darkcontinent.nenfoundation.client.hud.animation.HudValueAnimator;
 import java.util.Optional;
@@ -42,6 +45,14 @@ import org.slf4j.LoggerFactory;
  * pode importar esta classe; o portao {@code PacotesDeclaradosTest} reprova.
  */
 public final class NenClientCache implements RecebedorDeNen {
+
+    @Override
+    public void aoReceberBestiary(BestiarySnapshotS2C payload) {
+        if (!payload.definitions().isEmpty()) {
+            BestiaryRegistry.replaceAll(payload.definitions().values());
+        }
+        BestiaryClientState.replaceLevels(payload.entries());
+    }
 
     /**
      * Diagnostico de recepcao, so em modo de desenvolvimento.

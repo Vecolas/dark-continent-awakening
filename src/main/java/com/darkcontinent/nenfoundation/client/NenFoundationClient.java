@@ -5,6 +5,8 @@ import com.darkcontinent.nenfoundation.client.keybind.NenKeybinds;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeDebug;
 import com.darkcontinent.nenfoundation.client.screen.OverlayDeAura;
 import com.darkcontinent.nenfoundation.client.screen.TelaDoJogador;
+import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientEvents;
+import com.darkcontinent.nenfoundation.client.bestiary.BestiaryClientState;
 import com.darkcontinent.nenfoundation.client.render.EnemyRenderers;
 import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.client.particle.AuraSparkParticle;
@@ -35,6 +37,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
@@ -102,6 +105,9 @@ public final class NenFoundationClient {
 
         modEventBus.addListener(NenKeybinds::registrar);
         modEventBus.addListener(EnemyRenderers::registrar);
+        modEventBus.addListener((RegisterMenuScreensEvent evento) ->
+                evento.register(com.darkcontinent.nenfoundation.registry.NenMenus.RESEARCH_TABLE.get(),
+                        com.darkcontinent.nenfoundation.client.screen.ResearchTableScreen::new));
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
         modEventBus.addListener(AuraShaders::registrar);
@@ -123,6 +129,7 @@ public final class NenFoundationClient {
 
         NeoForge.EVENT_BUS.addListener(this::aoSairDoServidor);
         NeoForge.EVENT_BUS.addListener(this::aoTickDoCliente);
+        NeoForge.EVENT_BUS.addListener(BestiaryClientEvents::abrirAoUsar);
         // A aura de primeira pessoa e OUTRO renderer, e nao a layer: o braco
         // em primeira pessoa nao passa pelo PlayerRenderer.
         NeoForge.EVENT_BUS.addListener(
@@ -155,6 +162,7 @@ public final class NenFoundationClient {
      */
     private void aoSairDoServidor(ClientPlayerNetworkEvent.LoggingOut evento) {
         this.cache.limpar();
+        BestiaryClientState.clear();
         // QUEM LIGA, DESLIGA, e no MESMO ponto de saida que ja existia. Sem
         // esta linha a aura do mundo anterior continuaria desenhada ate o
         // primeiro delta do servidor novo chegar -- e, se ele nunca chegar

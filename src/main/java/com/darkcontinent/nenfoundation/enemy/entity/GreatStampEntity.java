@@ -6,14 +6,17 @@ import com.darkcontinent.nenfoundation.enemy.api.EnemyAwarenessState;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyCombatState;
 import com.darkcontinent.nenfoundation.enemy.base.BaseHxHMob;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
+import com.darkcontinent.nenfoundation.enemy.combat.AttackController;
+import com.darkcontinent.nenfoundation.enemy.combat.AttackHit;
+import com.darkcontinent.nenfoundation.enemy.combat.AttackHitbox;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackPhase;
-import com.darkcontinent.nenfoundation.enemy.combat.AttackTimeline;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import java.util.EnumSet;
+import java.util.Optional;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -85,6 +88,9 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     private static final double ALCANCE_DO_TRACO = 8.0D;
     /** Folga da caixa de colisao usada para achar quem esta no caminho da carga. */
     private static final double FOLGA_DA_CARGA = 0.35D;
+    /** Caixa local server-side: corpo inteiro, estendido para a frente (+Z) durante a carga. */
+    private static final AttackHitbox HITBOX_DA_CARGA =
+            new AttackHitbox(-0.8D, 0.0D, -0.5D, 0.8D, 1.8D, 2.1D);
 
     // ------------------------------------------------------------- animacao
     // Os nomes abaixo sao um CONTRATO com great_stamp.animation.json. Errar um
@@ -116,9 +122,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     // Estado de carga: DA INSTANCIA. Guardar isto na Goal faria todos os stamps do
     // mundo compartilharem a mesma carga -- a Goal e uma por entidade, mas a classe
     // aninhada abaixo e static justamente para nao esconder essa dependencia.
-    private AttackTimeline linhaDoTempoDaCarga = new AttackTimeline();
+    private final AttackController controladorDeAtaque = new AttackController(0);
     private boolean cargaEmAndamento;
-    private boolean jaAcertouNestaCarga;
     private Vec3 direcaoDaCarga = Vec3.ZERO;
     private int esperaRestante;
     private int atordoamentoRestante;
@@ -282,10 +287,8 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     /** Comeca uma carga do zero; a linha do tempo e NOVA para nunca herdar fase presa. */
     private void iniciarCarga() {
         cargaEmAndamento = true;
-        jaAcertouNestaCarga = false;
         direcaoDaCarga = Vec3.ZERO;
-        linhaDoTempoDaCarga = new AttackTimeline();
-        linhaDoTempoDaCarga.start(CARGA);
+        controladorDeAtaque.start(CARGA);
         getNavigation().stop();
         combatState(EnemyCombatState.WINDUP);
         sincronizarFase();
@@ -293,7 +296,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     private void tickDaCarga() {
         if (level().isClientSide) return;
-        AttackPhase fase = linhaDoTempoDaCarga.phase();
+        AttackPhase fase = controladorDeAtaque.phase();
         LivingEntity alvo = getTarget();
         switch (fase) {
             case WINDUP -> {
@@ -324,9 +327,9 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
             }
             default -> { }
         }
-        linhaDoTempoDaCarga.tick();
+        controladorDeAtaque.tick();
         sincronizarFase();
-        if (linhaDoTempoDaCarga.finished()) cargaEmAndamento = false;
+        if (controladorDeAtaque.phase() == AttackPhase.COMPLETE) cargaEmAndamento = false;
     }
 
     /**
@@ -337,10 +340,9 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
      */
     private void encerrarCarga() {
         cargaEmAndamento = false;
-        jaAcertouNestaCarga = false;
         direcaoDaCarga = Vec3.ZERO;
         esperaRestante = REGRAS.ticksDeEspera();
-        linhaDoTempoDaCarga = new AttackTimeline();
+        controladorDeAtaque.reset();
         sincronizarFase();
         if (combatState() != EnemyCombatState.STAGGERED && combatState() != EnemyCombatState.DYING) {
             combatState(getTarget() != null ? EnemyCombatState.AGGRO : estadoOcioso());
@@ -377,7 +379,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
 
     /** A primeira vitima viva no caminho leva o dano da definicao; uma por carga. */
     private void aplicarDanoDaCarga(AttackPhase fase) {
-        if (!REGRAS.janelaDeDano(fase, jaAcertouNestaCarga)) return;
+        if (fase != AttackPhase.ACTIVE) return;
         AABB caminho = getBoundingBox().inflate(FOLGA_DA_CARGA);
         // A MANADA NAO E ALVO. Great stamp nasce em grupo de 2 a 4; sem este filtro a
         // primeira carga acerta um irmao, o HurtByTargetGoal do irmao responde, e a
@@ -385,13 +387,14 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
         for (LivingEntity vitima : level().getEntitiesOfClass(LivingEntity.class, caminho,
                 v -> v != this && v.getType() != getType() && v.isAlive()
                         && v.isAttackable() && !isAlliedTo(v))) {
-            if (!vitima.hurt(damageSources().mobAttack(this), CARGA.damage())) continue;
+            Optional<AttackHit> hit = controladorDeAtaque.tryHit(vitima.getId(), vitima.getBoundingBox(),
+                    HITBOX_DA_CARGA, position(), getYRot(), "body");
+            if (hit.isEmpty() || !vitima.hurt(damageSources().mobAttack(this), hit.orElseThrow().damage())) continue;
             Vec3 empurrao = direcaoDaCarga.lengthSqr() < 1.0E-6D
                     ? vitima.position().subtract(position())
                     : direcaoDaCarga;
             // knockback empurra para LONGE de (x,z); negar manda a vitima na direcao da carga.
             vitima.knockback(CARGA.knockback(), -empurrao.x, -empurrao.z);
-            jaAcertouNestaCarga = true;
             return;
         }
     }
@@ -402,7 +405,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     }
 
     private void sincronizarFase() {
-        this.entityData.set(FASE_DE_ATAQUE, linhaDoTempoDaCarga.phase().ordinal());
+        this.entityData.set(FASE_DE_ATAQUE, controladorDeAtaque.phase().ordinal());
     }
 
     // ------------------------------------------------------------ geometria

@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 7
+- **Versao do protocolo:** 9
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -44,6 +44,7 @@ primeiro a encontra-lo e quem estiver procurando.
 | `ability_fx_event` | S2C | som, particula, animacao |
 | `nen_error_feedback` | S2C | motivo legivel de uma recusa |
 | `aura_presence` | S2C | id da entidade e um sinal de tres valores; o UNICO payload sobre terceiros |
+| `bestiary_snapshot` | S2C | entries de conhecimento e definitions do catálogo editorial; nunca dados de outro jogador |
 
 Namespace de todos: `nenfoundation:`.
 

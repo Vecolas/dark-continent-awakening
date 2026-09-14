@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation;
 
 import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
+import com.darkcontinent.nenfoundation.data.attachment.BestiaryAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.registry.NenParticleTypes;
@@ -10,6 +11,9 @@ import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import com.darkcontinent.nenfoundation.sound.NenSoundEvents;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityEvents;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.registry.NenItems;
+import com.darkcontinent.nenfoundation.registry.NenBlocks;
+import com.darkcontinent.nenfoundation.registry.NenMenus;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeRegistries;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeItems;
@@ -65,10 +69,15 @@ public final class NenFoundation {
         modContainer.registerConfig(ModConfig.Type.COMMON, NenConfig.SPEC);
 
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        // AS DUAS FRENTES ACRESCENTARAM REGISTRO AQUI, e o conflito era so de
-        // linhas vizinhas: nenhuma delas substitui a outra. Ficam as duas.
+        // TRES FRENTES ACRESCENTARAM REGISTRO AQUI, e os conflitos eram so de
+        // linhas vizinhas: nenhuma substitui a outra. Ficam todas.
         NenSoundEvents.register(modEventBus);
         NenParticleTypes.register(modEventBus);
+        BestiaryAttachments.TYPES.register(modEventBus);
+        NenItems.register(modEventBus);
+        NenBlocks.register(modEventBus);
+        NenMenus.register(modEventBus);
+        modEventBus.addListener(NenItems::adicionarAoCriativo);
         WorldTreeRegistries.register(modEventBus);
         WorldTreeBlocks.register(modEventBus);
         WorldTreeItems.register(modEventBus);

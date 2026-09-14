@@ -106,3 +106,39 @@ Duas coerências são cobradas no construtor de `SpawnRule`, e as duas mordem:
 2. perfil que **não** entra na lista de bioma não pode declarar `biome_tags` —
    a tag existiria no datapack, o portão a conferiria, e mesmo assim ela não
    colocaria o mob em lugar nenhum. Alarme órfão.
+
+## Por que os 24 inimigos ainda **não** têm arquivo de definition
+
+Esta é a pergunta óbvia depois de ler o schema acima, e a resposta é uma decisão,
+não um esquecimento.
+
+**Atributos são assados antes de o datapack existir.** `EntityAttributeCreationEvent`
+roda no carregamento do mod; datapack carrega depois, e recarrega a qualquer
+momento com `/reload`. Um `max_health` vindo de definition não chegaria à
+`AttributeSupplier` — ele ficaria num catálogo que ninguém consulta na hora de
+criar a entidade. Isso **não daria erro**: daria uma sessão de balanceamento
+girando um número que o jogo ignora, que é exatamente o botão morto que este
+repositório passa o dia evitando.
+
+**Escrever os 24 em JSON hoje criaria duas fontes para a mesma verdade.** Os
+perfis Java (`HunterExamProfiles`, `GreedIslandProfiles`, `ChimeraProfiles`) são
+lidos pelo registro, pelos portões e pelas entidades. Um JSON ao lado seria lido
+por ninguém — e no dia em que alguém corrigisse um número num dos dois, o outro
+continuaria calado.
+
+### O que muda quando isto for feito de verdade
+
+A migração exige, na ordem:
+
+1. um **modificador de atributo em runtime** (ou re-aplicação no spawn) para que
+   `max_health` e companhia possam vir de dado sem contradizer a `AttributeSupplier`;
+2. a **remoção** dos números dos perfis Java no mesmo PR — número que foi para o
+   dado tem de SAIR do código, senão o do código ganha em runtime e nada acusa;
+3. um portão que reprove um id publicado sem arquivo de definition, e um arquivo
+   de definition sem id publicado — mordendo dos dois lados, como
+   `VozDeInimigoTest` e `EncounterBlueprintsTest` já fazem.
+
+Enquanto isso não acontecer, o que o schema entrega é a **capacidade**: o codec,
+o reload atômico, a validação de referência e o versionamento existem e estão
+testados. O que ele não entrega é conteúdo — e o `EnemyDefinitionRegistry` fica
+vazio num jogo real.

@@ -255,6 +255,47 @@ public record WorldTreeClimbingPost(
         return floorY + ALTURA_INTERNA + 1;
     }
 
+    /**
+     * Raio do POCO DE LUZ que a copa abre em volta da cabana.
+     *
+     * <p><b>ELE EXISTE PORQUE UMA CABANA INVISIVEL NAO E UM CHECKPOINT.</b>
+     * Medido nas vinte seeds, antes disto: <b>54% das cabanas nasciam DENTRO da
+     * massa de folha</b>, e <b>95% tinham folha por cima</b> -- sem ceu, sem
+     * silhueta, sem nada que denunciasse que ha um lugar ali. O jogador nao tem
+     * como procurar o que nao da sinal.
+     *
+     * <p>Sete: quatro blocos alem da parede. Menos que isso e a folha encosta na
+     * cabana e ela some de novo; muito mais e a copa ganha sete crateras.
+     */
+    public static final int RAIO_DA_CLAREIRA = RAIO + 4;
+
+    /** Quantos blocos abaixo do piso o poco comeca, para a folha nao lamber a base. */
+    private static final int FOLGA_ABAIXO = 3;
+
+    /**
+     * A partir de que altura esta coluna fica limpa de folha.
+     *
+     * <p><b>O POCO NAO TEM TETO, e isso e a decisao.</b> Limpar so uma bolha em
+     * volta da cabana deixaria ela num vazio fechado dentro da copa -- melhor que
+     * enterrada, e ainda invisivel de fora. Sem teto, a clareira vira uma coluna
+     * aberta ate o ceu: de cima se ve um buraco na copa com uma luz no fundo, de
+     * dentro entra claridade, e a folha luminosa do forro tem por onde escapar.
+     *
+     * <p>DECIDIDO POR COLUNA, e nao por bloco. O laco da copa ja varre coluna por
+     * coluna; isto e uma comparacao a mais por coluna, e nenhuma por bloco.
+     *
+     * @return o menor y limpo, ou {@link Integer#MAX_VALUE} se a coluna nao toca
+     *         o poco
+     */
+    public int yDoPoco(int x, int z) {
+        int dx = x - centerX;
+        int dz = z - centerZ;
+        if (dx * dx + dz * dz > RAIO_DA_CLAREIRA * RAIO_DA_CLAREIRA) {
+            return Integer.MAX_VALUE;
+        }
+        return floorY - FOLGA_ABAIXO;
+    }
+
     /** Se a cabana encosta neste chunk. */
     public boolean tocaChunk(int minX, int minZ) {
         return minX <= centerX + RAIO && minX + 15 >= centerX - RAIO

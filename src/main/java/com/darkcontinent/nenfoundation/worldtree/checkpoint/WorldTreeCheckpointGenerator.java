@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.worldtree.checkpoint;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,9 +37,18 @@ public final class WorldTreeCheckpointGenerator {
     }
 
     public static void generate(ChunkAccess chunk, WorldTreeLayout layout) {
-        for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
-            build(chunk, WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y()),
-                    checkpoint == WorldTreeCheckpoint.SUMMIT);
+        // AS SETE VEM DO CACHE, e nao de sete buscas por chunk.
+        //
+        // `forCheckpoint` varre os 109 galhos em 41 amostras cada para achar o
+        // apoio: ~4.500 avaliacoes de spline, vezes sete checkpoints, em TODO
+        // chunk da dimensao -- 31 mil, sempre com o mesmo resultado. Era o mesmo
+        // defeito que o cache do plano de copa ja tinha matado, cometido de novo
+        // uma camada ao lado, porque conta pura parece de graca.
+        List<WorldTreeClimbingPost> postos = WorldTreeClimbingPosts.of(layout);
+        WorldTreeCheckpoint[] checkpoints = WorldTreeCheckpoint.values();
+        for (int indice = 0; indice < checkpoints.length; indice++) {
+            build(chunk, postos.get(indice),
+                    checkpoints[indice] == WorldTreeCheckpoint.SUMMIT);
         }
     }
 
@@ -102,7 +112,11 @@ public final class WorldTreeCheckpointGenerator {
                     escrever(chunk, posicao, x, y, z, cantoDaPlanta ? canto : parede);
                 }
 
-                escrever(chunk, posicao, x, post.roofY(), z, teto);
+                // OS QUATRO CANTOS DO TELHADO SAO FAROL. O poco abre o ceu em
+                // cima da cabana; sao estes quatro blocos que fazem o buraco ter
+                // uma luz no fundo em vez de ser so um buraco.
+                escrever(chunk, posicao, x, post.roofY(), z,
+                        cantoDaPlanta ? lampada : teto);
             }
         }
 

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBranchNode;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliagePlan;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageShelf;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator;
@@ -12,6 +14,7 @@ import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeSpline;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkSurface;
 import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBaseGenerator;
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBranchNetwork;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -88,6 +91,93 @@ class CabanaDeCheckpointTest {
                                 + post.anchorY() + " e reconhecida como "
                                 + WorldTreeCheckpoint.nearest(post.anchorY())
                                 + ". O checkpoint deixa de funcionar, sem erro nenhum.");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("o poco limpa TUDO do piso para cima -- e ele nao e enfeite")
+    void aCabanaNaoNasceEnterrada() {
+        // O RELATO: "nasceu dentro da folhagem da arvore... fica impossivel um
+        // jogador encontrar". Medido antes do poco, nas vinte seeds: 54% das
+        // cabanas nasciam DENTRO da massa de folha e 95% tinham folha por cima.
+        //
+        // ESTE CASO TEM DUAS METADES, e a segunda e a que importa.
+        //
+        // A primeira e barata: o corte do poco fica ABAIXO do piso, entao nada
+        // sobrevive da cabana para cima. Isso e quase construcao -- e a regra
+        // conferindo a si mesma.
+        //
+        // A segunda pergunta se a regra ainda faz alguma coisa: quantas cabanas
+        // TERIAM folha por cima se o poco nao existisse. Se esse numero cair para
+        // zero -- porque alguem mudou onde as cabanas nascem, ou a copa encolheu
+        // de novo --, o poco virou codigo morto e este teste passa a mentir
+        // dizendo que protege algo. A regua avisa em vez de ficar verde a toa.
+        int comFolhaPorCimaSemPoco = 0;
+        int total = 0;
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            WorldTreeFoliagePlan plano = WorldTreeFoliagePlan.of(layout,
+                    WorldTreeBranchNetwork.secondaryAndTertiary(layout));
+            for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+                WorldTreeClimbingPost post =
+                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                total++;
+
+                int corte = post.yDoPoco(post.centerX(), post.centerZ());
+                assertTrue(corte < post.floorY(),
+                        "seed " + seed + ", " + checkpoint + ": o poco so limpa a partir"
+                                + " de y=" + corte + " e o piso esta em " + post.floorY()
+                                + ". A folha entraria na cabana.");
+
+                for (WorldTreeFoliageShelf shelf : plano.shelves()) {
+                    double dx = post.centerX() - shelf.centerX();
+                    double dz = post.centerZ() - shelf.centerZ();
+                    if (dx * dx + dz * dz <= shelf.radius() * shelf.radius()
+                            && shelf.maxY() > post.roofY()) {
+                        comFolhaPorCimaSemPoco++;
+                        break;
+                    }
+                }
+            }
+        }
+        assertTrue(comFolhaPorCimaSemPoco > total / 4,
+                "sem o poco, so " + comFolhaPorCimaSemPoco + " de " + total
+                        + " cabanas teriam folha por cima. O poco deixou de proteger"
+                        + " alguma coisa -- ou as cabanas mudaram de lugar, ou a copa"
+                        + " encolheu. Confira se ele ainda precisa existir antes de"
+                        + " afrouxar este numero.");
+    }
+
+    @Test
+    @DisplayName("o poco cobre a cabana INTEIRA, e nao so o centro")
+    void pocoCobreACabanaInteira() {
+        // ALIMENTAR O PORTAO COM O DEFEITO: encolher RAIO_DA_CLAREIRA para menos
+        // que RAIO deixa os cantos da cabana de fora do poco -- a folha encosta
+        // nas paredes e a clareira deixa de ler como clareira.
+        for (int index = 0; index < SEEDS; index += 5) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
+                WorldTreeClimbingPost post =
+                        WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y());
+                for (int dx = -WorldTreeClimbingPost.RAIO;
+                        dx <= WorldTreeClimbingPost.RAIO; dx++) {
+                    for (int dz = -WorldTreeClimbingPost.RAIO;
+                            dz <= WorldTreeClimbingPost.RAIO; dz++) {
+                        int corte = post.yDoPoco(post.centerX() + dx, post.centerZ() + dz);
+                        assertTrue(corte <= post.floorY(),
+                                "seed " + seed + ", " + checkpoint + ": a coluna ("
+                                        + dx + "," + dz + ") da cabana esta FORA do poco."
+                                        + " A folha encosta na parede.");
+                    }
+                }
+                // E o poco acaba: ele nao pode virar uma cratera na copa.
+                assertEquals(Integer.MAX_VALUE,
+                        post.yDoPoco(post.centerX() + 40, post.centerZ()),
+                        "o poco alcanca 40 blocos de lado -- isso e cratera, e nao"
+                                + " clareira.");
             }
         }
     }

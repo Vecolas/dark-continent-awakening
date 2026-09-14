@@ -2,11 +2,14 @@ package com.darkcontinent.nenfoundation.worldtree.generation;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliagePlan;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageIndex;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageShelf;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageTexture;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeVineStrand;
+import com.darkcontinent.nenfoundation.worldtree.checkpoint.WorldTreeClimbingPosts;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -137,18 +140,26 @@ public final class WorldTreeCanopyGenerator {
         WorldTreeFoliageIndex index = plan.index();
         int chunkX = chunk.getPos().x;
         int chunkZ = chunk.getPos().z;
+        // AS CABANAS ABREM POCO NA COPA, e a copa precisa saber onde elas estao.
+        //
+        // Medido nas vinte seeds, antes disto: 54% das cabanas nasciam DENTRO da
+        // massa de folha e 95% tinham folha por cima. Um checkpoint que nao da
+        // sinal nenhum nao e um checkpoint -- o jogador nao procura o que nao
+        // aparece.
+        List<WorldTreeClimbingPost> cabanas = WorldTreeClimbingPosts.of(layout);
         for (int shelfIndex : index.prateleirasEm(chunkX, chunkZ)) {
             placeShelf(chunk, position, minX, minZ, maxX, maxZ,
-                    plan.shelves().get(shelfIndex), layout.seed());
+                    plan.shelves().get(shelfIndex), layout.seed(), cabanas);
         }
         for (int vineIndex : index.vinhasEm(chunkX, chunkZ)) {
             placeVine(chunk, position, minX, minZ, maxX, maxZ,
-                    plan.vines().get(vineIndex));
+                    plan.vines().get(vineIndex), cabanas);
         }
     }
 
     private static void placeShelf(ChunkAccess chunk, BlockPos.MutableBlockPos position,
-            int minX, int minZ, int maxX, int maxZ, WorldTreeFoliageShelf shelf, long seed) {
+            int minX, int minZ, int maxX, int maxZ, WorldTreeFoliageShelf shelf, long seed,
+            List<WorldTreeClimbingPost> cabanas) {
         int fromX = Math.max(minX, (int) Math.floor(shelf.centerX() - shelf.radius()));
         int toX = Math.min(maxX, (int) Math.ceil(shelf.centerX() + shelf.radius()) + 1);
         int fromZ = Math.max(minZ, (int) Math.floor(shelf.centerZ() - shelf.radius()));
@@ -194,6 +205,9 @@ public final class WorldTreeCanopyGenerator {
                 // linhas.
                 double termoDaCasca = cascaNaColuna(x, z, seed);
                 double termoDoBrilho = WorldTreeFoliageTexture.termoDaColuna(x, z, seed);
+                // O POCO E DECIDIDO POR COLUNA, e nao por bloco: uma comparacao a
+                // mais aqui, e nenhuma no laco de y.
+                int tetoDoPoco = WorldTreeClimbingPosts.yDoPoco(cabanas, x, z);
 
                 // A COLUNA E COLETADA ANTES DE SER ESCRITA, e o motivo e a folha
                 // luminosa.
@@ -210,7 +224,7 @@ public final class WorldTreeCanopyGenerator {
                 // justamente onde a erosao morde mais. Entao a coluna e coletada
                 // e so depois escrita.
                 int quantos = 0;
-                for (int y = fromY; y < toY; y++) {
+                for (int y = fromY; y < toY && y < tetoDoPoco; y++) {
                     double normalized = shelf.normalizedInColumn(horizontalSquared, y);
                     if (normalized > 1.0 || !keep(normalized, termoDaCasca, x, y, z, seed)) {
                         continue;
@@ -294,7 +308,8 @@ public final class WorldTreeCanopyGenerator {
      * mantem a leitura de cortina continua atravessando a folhagem.
      */
     private static void placeVine(ChunkAccess chunk, BlockPos.MutableBlockPos position,
-            int minX, int minZ, int maxX, int maxZ, WorldTreeVineStrand vine) {
+            int minX, int minZ, int maxX, int maxZ, WorldTreeVineStrand vine,
+            List<WorldTreeClimbingPost> cabanas) {
         BlockState state = vine.thick()
                 ? WorldTreeBlocks.WORLD_TREE_THICK_VINE.get().defaultBlockState()
                 : WorldTreeBlocks.WORLD_TREE_VINE.get().defaultBlockState();
@@ -306,6 +321,13 @@ public final class WorldTreeCanopyGenerator {
             }
             int y = (int) Math.floor(vine.originY()) - step;
             if (y < chunk.getMinBuildHeight() || y >= chunk.getMaxBuildHeight()) {
+                continue;
+            }
+            // A CORTINA TAMBEM RESPEITA O POCO. Sem isto, seis vinhas caindo
+            // dentro da clareira fechariam de novo a unica coisa que denuncia a
+            // cabana -- e o poco continuaria "aberto" em toda medida que so
+            // olhasse prateleira.
+            if (y >= WorldTreeClimbingPosts.yDoPoco(cabanas, x, z)) {
                 continue;
             }
             position.set(x, y, z);

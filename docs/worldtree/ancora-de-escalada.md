@@ -218,10 +218,97 @@ na altura do galho reprova com *"a âncora em y=1409 é reconhecida como null"*.
 
 ---
 
+## 3-C. O poço de luz — a cabana precisa ser ENCONTRÁVEL
+
+**Relato de jogo, terceira rodada:** *"nasceu dentro da folhagem da árvore… se
+nascer dentro de alguma da folhagem, dentro do galho ou dentro do tronco fica
+impossível um jogador encontrar."*
+
+Medido antes de mexer, nas vinte seeds, sobre as 140 cabanas (7 × 20):
+
+| | |
+| --- | --- |
+| cabanas **dentro** da massa de folha | **75 de 140 — 54%** |
+| cabanas com folha **por cima** (sem céu) | **133 de 140 — 95%** |
+
+Por checkpoint: CROWN 19/20 enterradas, CANOPY 16, CLOUD e MID 14, SUMMIT 12.
+BASE e LOWER, 0 — são os dois que ficam no tronco, abaixo da copa.
+
+> **O problema não era a cabana: era não haver nada que a denunciasse.** Ela
+> estava bem construída, apoiada, na altura certa — e dentro de uma massa verde
+> de 27 blocos de raio. O jogador não procura o que não dá sinal.
+
+### A decisão
+
+> **Cada cabana abre um POÇO na copa: um cilindro de raio 7 que sobe do piso até
+> o céu.**
+
+Três razões para ser um poço vertical sem teto, e não uma bolha em volta da
+cabana:
+
+1. **Uma bolha ainda é invisível.** Limpar só o entorno deixaria a cabana num
+   vazio fechado dentro da copa — melhor que enterrada, e sem sinal nenhum de
+   fora.
+2. **De cima vira um buraco na copa com luz no fundo.** Os quatro cantos do
+   telhado são folha luminosa; é o que transforma o buraco em farol.
+3. **É barato.** A decisão é **por coluna**, não por bloco — o laço da copa já
+   varre coluna por coluna. Uma comparação a mais por coluna, nenhuma por bloco.
+
+As vinhas respeitam o poço também. Sem isso, seis cortinas caindo dentro da
+clareira fechariam de novo a única coisa que denuncia a cabana — e o poço
+continuaria "aberto" em qualquer medida que só olhasse prateleira.
+
+### Depois
+
+| | antes | depois |
+| --- | --- | --- |
+| cabanas dentro da folhagem | 75/140 | **0** |
+| cabanas com folha por cima | 133/140 | **0** |
+
+### E um custo que estava escondido
+
+`WorldTreeClimbingPost.forCheckpoint` varre os 109 galhos do layout em 41
+amostras cada — ~4.500 avaliações de spline. Ele era chamado uma vez por
+checkpoint, **por chunk**: 31 mil avaliações em todo chunk da dimensão, sempre
+com o mesmo resultado.
+
+Era o mesmo defeito que o cache do plano de copa já tinha matado uma vez,
+cometido de novo uma camada ao lado — e pelo mesmo motivo: conta pura parece de
+graça. Virou `WorldTreeClimbingPosts`, uma entrada por seed, com o `forget()`
+pendurado no mesmo *unload* do plano de copa.
+
+### O portão, e o que ele se recusa a medir
+
+`aCabanaNaoNasceEnterrada` tem duas metades, e a segunda é a que importa. A
+primeira é barata — o corte do poço fica abaixo do piso, então nada sobrevive da
+cabana para cima — e é quase a regra conferindo a si mesma.
+
+A segunda pergunta **se a regra ainda faz alguma coisa**: quantas cabanas
+*teriam* folha por cima se o poço não existisse. Se esse número cair para zero —
+porque as cabanas mudaram de lugar, ou a copa encolheu de novo —, o poço virou
+código morto e o teste passaria a mentir dizendo que protege algo. A régua avisa
+em vez de ficar verde à toa.
+
+E uma asserção minha nasceu **invertida**: eu exigia que toda prateleira sobre a
+coluna estivesse abaixo do corte. Prateleira acima do corte é justamente a que o
+poço **remove** — o teste reprovou uma cabana correta e me apontou o erro.
+
+Alimentados com os defeitos: encolher o raio do poço para menos que a cabana
+reprova com *"a coluna (-3,-3) da cabana está FORA do poço"*; subir o corte para
+acima do piso reprova com *"a folha entraria na cabana"*.
+
+---
+
 ## 4. O que isto NÃO prova
 
 - **Nada foi visto em jogo.** O portão mede geometria pura; ele não coloca um
   bloco.
+- **O poço resolve a FOLHA, e só ela.** Cabana dentro de galho ou de tronco tem
+  outra proteção — o apoio escolhido põe a cabana em CIMA da madeira —, e essa
+  não tem régua contra galhos VIZINHOS passando por perto.
+- **"Encontrável" foi reduzido a "tem céu e tem luz".** É condição
+  necessária, e não a experiência de achar: nada aqui mede se há rota até lá, nem
+  a que distância a luz vence a névoa da dimensão.
 - **A cabana nunca foi vista em jogo.** Os portões medem onde ela fica e em que
   ela se apoia; nenhum coloca um bloco. Se a porta ficar virada para o vazio ou o
   pilar nascer torto, só uma captura mostra.

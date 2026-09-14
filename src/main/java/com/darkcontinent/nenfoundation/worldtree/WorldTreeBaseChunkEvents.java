@@ -31,6 +31,7 @@ public final class WorldTreeBaseChunkEvents {
             net.neoforged.neoforge.event.level.LevelEvent.Unload evento) {
         if (!evento.getLevel().isClientSide()) {
             com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCanopyGenerator.forget();
+            com.darkcontinent.nenfoundation.worldtree.checkpoint.WorldTreeClimbingPosts.forget();
         }
     }
     private WorldTreeBaseChunkEvents() {

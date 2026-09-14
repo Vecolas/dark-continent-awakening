@@ -133,6 +133,17 @@ public final class EncounterSavedData extends SavedData {
             entrada.putInt(TICKS, instancia.ticksNoEstado());
             entrada.put(PARTICIPANTES, uuids(instancia.participantes()));
             entrada.put(ENTIDADES, uuids(instancia.entidades()));
+            ListTag desfechos = new ListTag();
+            for (Map.Entry<UUID, com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult> d
+                    : instancia.desfechos().entrySet()) {
+                CompoundTag item = new CompoundTag();
+                item.putUUID("entity", d.getKey());
+                item.putString("result", d.getValue().name());
+                UUID autor = instancia.autoresDosDesfechos().get(d.getKey());
+                if (autor != null) item.putUUID("author", autor);
+                desfechos.add(item);
+            }
+            entrada.put("outcomes", desfechos);
             lista.add(entrada);
         }
         tag.put(INSTANCIAS, lista);
@@ -182,10 +193,21 @@ public final class EncounterSavedData extends SavedData {
             EncounterInstance instancia = new EncounterInstance(entrada.getUUID(ID),
                     entrada.getString(DEFINICAO), ResourceKey.create(Registries.DIMENSION, dimensao),
                     ancora);
+            Map<UUID, com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult> desfechos = new LinkedHashMap<>();
+            Map<UUID, UUID> autores = new LinkedHashMap<>();
+            ListTag salvosDesfechos = entrada.getList("outcomes", Tag.TAG_COMPOUND);
+            for (int j = 0; j < salvosDesfechos.size(); j++) {
+                CompoundTag item = salvosDesfechos.getCompound(j);
+                UUID entidade = item.getUUID("entity");
+                desfechos.put(entidade,
+                        com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult
+                                .valueOf(item.getString("result")));
+                if (item.hasUUID("author")) autores.put(entidade, item.getUUID("author"));
+            }
             instancia.restaurar(EncounterState.valueOf(entrada.getString(ESTADO)),
                     entrada.getInt(TICKS),
                     lerUuids(entrada.getList(PARTICIPANTES, Tag.TAG_INT_ARRAY)),
-                    lerUuids(entrada.getList(ENTIDADES, Tag.TAG_INT_ARRAY)));
+                    lerUuids(entrada.getList(ENTIDADES, Tag.TAG_INT_ARRAY)), desfechos, autores);
             dados.instancias.put(instancia.id(), instancia);
         }
 

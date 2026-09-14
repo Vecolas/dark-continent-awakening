@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.enemy.encounter;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -115,26 +116,29 @@ public final class EncounterServerHooks {
             if (receita == null) continue;
             var condicao = com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles
                     .capturas().get(receita.tipo().getPath());
-            if (condicao == null || condicao.exigeNaoLetal()) continue;
-
-            // Resolve o destinatario ANTES da trava. Se o ultimo participante
-            // sair no mesmo tick da conclusao, converter primeiro consumiria a
-            // copia e deixaria o card sem dono -- perda silenciosa.
-            ServerPlayer jogador = instancia.participantes().stream()
-                    .map(id -> servidor.getPlayerList().getPlayer(id))
-                    .filter(java.util.Objects::nonNull)
-                    .findFirst().orElse(null);
-            if (jogador == null) continue;
-
-            var card = cards.converter(instancia, receita.tipo(),
-                    com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult.CAPTURADO);
-            if (card.isEmpty()) continue;
-            jogador.getInventory().placeItemBackInInventory(
-                    com.darkcontinent.nenfoundation.item.GreedIslandCardItem.de(
-                            card.get().monsterId(), card.get().rank()));
-            controlador.dados().registrarCardsEmitidos(cards.emitidas());
-            jogador.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                    "Greed Island: card " + card.get().monsterId().getPath() + " recebido."));
+            if (condicao == null) continue;
+            for (var desfecho : instancia.desfechos().entrySet()) {
+                if (desfecho.getValue() != com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult.CAPTURADO) continue;
+                // Resolve o destinatario ANTES da trava. Se o ultimo participante
+                // sair no mesmo tick da conclusao, converter primeiro consumiria a
+                // copia e deixaria o card sem dono -- perda silenciosa.
+                UUID autor = instancia.autoresDosDesfechos().get(desfecho.getKey());
+                ServerPlayer jogador = autor == null ? null : servidor.getPlayerList().getPlayer(autor);
+                if (jogador == null) {
+                    jogador = instancia.participantes().stream()
+                            .map(id -> servidor.getPlayerList().getPlayer(id))
+                            .filter(java.util.Objects::nonNull).findFirst().orElse(null);
+                }
+                if (jogador == null) continue;
+                var card = cards.converter(instancia, receita.tipo(), desfecho.getValue());
+                if (card.isEmpty()) continue;
+                jogador.getInventory().placeItemBackInInventory(
+                        com.darkcontinent.nenfoundation.item.GreedIslandCardItem.de(
+                                card.get().monsterId(), card.get().rank()));
+                controlador.dados().registrarCardsEmitidos(cards.emitidas());
+                jogador.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "Greed Island: card " + card.get().monsterId().getPath() + " recebido."));
+            }
         }
     }
 }

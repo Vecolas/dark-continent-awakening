@@ -4,6 +4,9 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import com.darkcontinent.nenfoundation.enemy.greedisland.DefeatResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
@@ -32,6 +35,8 @@ public final class EncounterInstance {
     private int ticksNoEstado;
     private final Set<UUID> participantes = new LinkedHashSet<>();
     private final Set<UUID> entidades = new LinkedHashSet<>();
+    private final Map<UUID, DefeatResult> desfechos = new LinkedHashMap<>();
+    private final Map<UUID, UUID> autoresDosDesfechos = new LinkedHashMap<>();
 
     public EncounterInstance(UUID id, String definitionId, ResourceKey<Level> dimensao, BlockPos ancora) {
         this.id = Objects.requireNonNull(id, "id de encontro ausente");
@@ -52,6 +57,8 @@ public final class EncounterInstance {
     public int ticksNoEstado() { return ticksNoEstado; }
     public Set<UUID> participantes() { return Set.copyOf(participantes); }
     public Set<UUID> entidades() { return Set.copyOf(entidades); }
+    public Map<UUID, DefeatResult> desfechos() { return Map.copyOf(desfechos); }
+    public Map<UUID, UUID> autoresDosDesfechos() { return Map.copyOf(autoresDosDesfechos); }
 
     /**
      * Troca de estado, cobrada pela tabela de transicoes.
@@ -70,6 +77,8 @@ public final class EncounterInstance {
             // o primeiro tick a concluiria sozinha.
             participantes.clear();
             entidades.clear();
+            desfechos.clear();
+            autoresDosDesfechos.clear();
         }
     }
 
@@ -94,8 +103,20 @@ public final class EncounterInstance {
         return entidades.remove(Objects.requireNonNull(entidade, "entidade ausente"));
     }
 
+    /** Registra o resultado antes de a entidade ser removida do mundo. */
+    public boolean registrarDesfecho(UUID entidade, DefeatResult resultado, UUID autor) {
+        Objects.requireNonNull(entidade, "entidade ausente");
+        Objects.requireNonNull(resultado, "desfecho ausente");
+        Objects.requireNonNull(autor, "autor ausente");
+        if (!entidades.contains(entidade) || desfechos.containsKey(entidade)) return false;
+        desfechos.put(entidade, resultado);
+        autoresDosDesfechos.put(entidade, autor);
+        return true;
+    }
+
     /** Carga do save: estado e contador entram SEM passar pela tabela de transicao. */
-    void restaurar(EncounterState estado, int ticksNoEstado, Set<UUID> participantes, Set<UUID> entidades) {
+    void restaurar(EncounterState estado, int ticksNoEstado, Set<UUID> participantes, Set<UUID> entidades,
+            Map<UUID, DefeatResult> desfechos, Map<UUID, UUID> autores) {
         this.estado = Objects.requireNonNull(estado, "estado ausente no save");
         if (ticksNoEstado < 0) throw new IllegalArgumentException("ticks negativos no save");
         this.ticksNoEstado = ticksNoEstado;
@@ -103,5 +124,9 @@ public final class EncounterInstance {
         this.participantes.addAll(participantes);
         this.entidades.clear();
         this.entidades.addAll(entidades);
+        this.desfechos.clear();
+        this.desfechos.putAll(desfechos);
+        this.autoresDosDesfechos.clear();
+        this.autoresDosDesfechos.putAll(autores);
     }
 }

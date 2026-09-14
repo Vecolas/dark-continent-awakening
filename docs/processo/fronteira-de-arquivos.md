@@ -23,6 +23,11 @@ Arquivos de codigo distintos **nunca** conflitam. Estes **sempre**:
 | `config/NenConfig.java` | idem |
 | `assets/**/lang/*.json` | gerado a partir do M3; ate la, editado a mao pelos dois |
 | `.github/workflows/*` | um arquivo, dois interesses |
+| `config/NenClientConfig.java` | mesmo motivo do `NenConfig`: uma linha por decisao, todos acrescentam |
+| `client/NenFoundationClient.java` | ponto de registro de todo listener de cliente — e o `NenFoundation.java` da lane de superficie |
+| `client/vfx/render/AuraRenderTypes.java` | tabela unica de tipos de render; todos acrescentam linhas (**a partir do AV0**) |
+| `client/vfx/AuraVisualSystem.java` | orquestra os passes; e o ponto de entrada unico do efeito (**a partir do AV0**) |
+| `assets/**/shaders/*` | pipeline de shader e uma coisa so; dois autores no mesmo `.fsh` conflitam sempre (**a partir do AV1**) |
 
 **Regra:** uma pessoa por vez em cada um deles.
 

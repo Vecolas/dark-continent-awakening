@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.config.NenConfig;
 import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
 import com.darkcontinent.nenfoundation.registry.EnemyAttributes;
 import com.darkcontinent.nenfoundation.registry.EnemyEntityTypes;
+import com.darkcontinent.nenfoundation.registry.EnemySpawns;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
@@ -63,6 +64,7 @@ public final class NenFoundation {
         NenAttachments.ATTACHMENT_TYPES.register(modEventBus);
         EnemyEntityTypes.ENTITY_TYPES.register(modEventBus);
         modEventBus.addListener(EnemyAttributes::registrar);
+        modEventBus.addListener(EnemySpawns::registrar);
         com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes.register(modEventBus);
         modEventBus.addListener(EnemyEntityEvents::attributes);
         modEventBus.addListener(EnemyEntityEvents::spawnPlacements);

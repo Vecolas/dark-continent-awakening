@@ -104,6 +104,11 @@ public final class TecnicasAtivasRenderer {
             // Contorno vazado: os nos fechados, e nada saindo pelo meio.
             case CONTORNO -> DesenhoDaRoda.anel(g, cx, cy, raio - 1.0F, raio,
                     aparencia.cor());
+            // Muralha: anel grosso, quase fechando o indicador. Ken cobre o
+            // corpo inteiro, e a forma tem de parecer mais SOLIDA que a de Ren
+            // sem parecer mais brilhante.
+            case MURALHA -> DesenhoDaRoda.anel(g, cx, cy, raio - 3.0F, raio,
+                    aparencia.cor());
             // Neutra: um disco cheio. Nao tenta significar nada, porque este
             // arquivo nao sabe o que a tecnica faz.
             case NEUTRA -> DesenhoDaRoda.disco(g, cx, cy, raio - 1.5F, aparencia.cor());

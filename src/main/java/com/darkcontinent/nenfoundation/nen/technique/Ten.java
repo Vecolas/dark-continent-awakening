@@ -46,12 +46,15 @@ import net.minecraft.server.level.ServerPlayer;
  * contra aura hostil, que a issue #86 pedia, nao tem em que se apoiar: nao ha
  * dano de Nen no projeto. Ela vai para o sistema de combate, com issue propria.
  */
-public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura {
+public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura, ProtegeComAura {
 
     /** Id congelado: vai para NBT, datapack e quest. */
     public static final ResourceLocation ID = NenFoundation.id("ten");
 
     private static final double TICKS_POR_SEGUNDO = 20.0D;
+
+    private final DoubleSupplier protecao;
+
 
     private final DoubleSupplier custoPorSegundo;
     private final DoubleSupplier multiplicador;
@@ -63,9 +66,10 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
      * garante que uma recarga de config seja vista no tick seguinte em vez de
      * no proximo restart.
      */
-    public Ten(DoubleSupplier custoPorSegundo, DoubleSupplier multiplicador) {
+    public Ten(DoubleSupplier custoPorSegundo, DoubleSupplier multiplicador, DoubleSupplier protecao) {
         this.custoPorSegundo = custoPorSegundo;
         this.multiplicador = multiplicador;
+        this.protecao = protecao;
     }
 
     @Override
@@ -73,9 +77,16 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
         return ID;
     }
 
+    /**
+     * Ten recusa Zetsu, e tambem Ken.
+     *
+     * <p>KEN <i>E</i> TEN E REN SUSTENTADOS. Deixar os dois ligados cobraria
+     * duas manutencoes pelo mesmo efeito; a exclusao e o jeito honesto de
+     * dizer "isto ja inclui aquilo".
+     */
     @Override
     public Set<ResourceLocation> incompativeisCom() {
-        return Set.of(Zetsu.ID);
+        return Set.of(Zetsu.ID, Ken.ID);
     }
 
     @Override
@@ -128,5 +139,17 @@ public final class Ten implements NenTechnique, ModificaRegeneracao, ConsomeAura
         // Nada a limpar, pelo mesmo motivo de onActivate estar vazio. O
         // multiplicador volta sozinho: ele e DERIVADO do conjunto de tecnicas
         // ativas, e o servico recalcula ao desligar.
+    }
+
+    /**
+     * A protecao basica do canone.
+     *
+     * <p>Ten e descrito como suficiente contra pressao e hostilidade de Nen, e
+     * INSUFICIENTE contra ataques de Nen realmente poderosos. O numero e
+     * modesto de proposito: ele e o estado de base, nao a defesa pesada.
+     */
+    @Override
+    public double protecaoBase() {
+        return this.protecao.getAsDouble();
     }
 }

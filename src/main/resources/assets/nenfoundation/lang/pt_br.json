@@ -20,6 +20,8 @@
   "nenfoundation.tecnica.zetsu": "Zetsu",
   "nenfoundation.tecnica.gyo": "Gyo",
   "nenfoundation.tecnica.shu": "Shu",
+  "nenfoundation.tecnica.ken": "Ken",
+  "nenfoundation.tecnica.ko": "Ko",
   "nenfoundation.error.shu_sem_item": "Segure alguma coisa para envolver com aura.",
   "key.nenfoundation.ficha_do_jogador": "Status e habilidades de Nen",
   "nenfoundation.ficha.titulo": "FICHA DO JOGADOR",
@@ -84,5 +86,9 @@
   "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
-  "entity.nenfoundation.foxbear": "Urso-Raposa"
+  "entity.nenfoundation.foxbear": "Urso-Raposa",
+  "entity.nenfoundation.frog_in_waiting": "Sapo-de-Tocaia",
+  "entity.nenfoundation.great_stamp": "Great Stamp",
+  "entity.nenfoundation.man_faced_ape": "Macaco de Rosto Humano",
+  "entity.nenfoundation.spider_eagle": "Aguia-Aranha"
 }

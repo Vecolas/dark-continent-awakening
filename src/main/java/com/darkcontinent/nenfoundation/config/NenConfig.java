@@ -154,6 +154,59 @@ public final class NenConfig {
                     "concentra o corpo inteiro num ponto.")
             .defineInRange("tecnica.shu.fracaoConcentrada", 0.30D, 0.0D, 1.0D);
 
+    private static final ModConfigSpec.DoubleValue KEN_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ken consome por segundo.",
+                    "MENOR que o de Ren, e maior que todo o resto. Ren e o pico -- a",
+                    "torneira aberta, cara e insustentavel. Ken e a versao que se",
+                    "aguenta, e por isso e ele que se treina para durar.",
+                    "Se este numero alcancar o de Ren, Ken vira Ren com outro nome.")
+            .defineInRange("tecnica.ken.custoPorSegundo", 6.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue KEN_TETO_DE_OUTPUT = BUILDER
+            .comment("Teto de Output com Ken ativo.",
+                    "ABAIXO do de Ren pelo mesmo motivo do custo: Ken troca pico por",
+                    "duracao. Acima do de repouso, senao a tecnica nao libera nada.")
+            .defineInRange("tecnica.ken.tetoDeOutput", 0.8D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue TETO_DE_REDUCAO_DE_DANO = BUILDER
+            .comment("Quanto dano a aura pode segurar, no maximo, de 0 a 1.",
+                    "EXISTE PARA IMPEDIR IMORTALIDADE. Sem teto, uma combinacao de",
+                    "numeros mal escolhidos chega a 100% -- e isso nao da erro nenhum,",
+                    "so um jogador que nao morre mais.",
+                    "Ha um teto ABSOLUTO no codigo acima deste: nem pedindo 1.0 aqui a",
+                    "reducao passa dele.")
+            .defineInRange("combate.tetoDeReducaoDeDano", 0.45D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue TEN_PROTECAO_BASE = BUILDER
+            .comment("Quanto Ten protege com a aura espalhada por igual.",
+                    "Modesto de proposito: o canone chama a defesa de Ten de suficiente",
+                    "contra pressao de Nen e INSUFICIENTE contra ataque de Nen forte.")
+            .defineInRange("tecnica.ten.protecaoBase", 0.20D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue KEN_PROTECAO_BASE = BUILDER
+            .comment("Quanto Ken protege com a aura espalhada por igual.",
+                    "O MAIOR dos tres: Ken e a principal defesa geral contra Nen.",
+                    "Se ele nao for claramente maior que o de Ten, Ken vira um Ten caro.")
+            .defineInRange("tecnica.ken.protecaoBase", 0.75D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.DoubleValue KO_CUSTO_POR_SEGUNDO = BUILDER
+            .comment("Aura que Ko consome por segundo. O MAIOR de todas.",
+                    "Ko e um golpe, nao um estado: ele custa muito por pouco tempo.")
+            .defineInRange("tecnica.ko.custoPorSegundo", 20.0D, 0.0D, 1_000.0D);
+
+    private static final ModConfigSpec.DoubleValue KO_FRACAO_CONCENTRADA = BUILDER
+            .comment("Quanto da aura Ko leva para a regiao escolhida.",
+                    "Perto de 1: o canone fala em praticamente TODA a aura num ponto.",
+                    "O resto do corpo fica com o que sobra dividido por cinco -- e e",
+                    "esse quase-nada que torna errar o golpe catastrofico.")
+            .defineInRange("tecnica.ko.fracaoConcentrada", 0.95D, 0.0D, 1.0D);
+
+    private static final ModConfigSpec.IntValue KO_DURACAO_EM_TICKS = BUILDER
+            .comment("Quantos ticks Ko dura antes de expirar sozinho.",
+                    "E ISTO QUE SEPARA KO DE GYO. Gyo se sustenta; Ko e um golpe.",
+                    "Vinte ticks e um segundo -- tempo de acertar, e nao de se defender.")
+            .defineInRange("tecnica.ko.duracaoEmTicks", 20, 1, 600);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     /** O objeto e estavel; cada metodo le a config carregada no momento do uso. */
@@ -197,6 +250,30 @@ public final class NenConfig {
 
     /** Quanto da aura Gyo concentra na regiao escolhida. */
     public static double gyoFracaoConcentrada() { return GYO_FRACAO_CONCENTRADA.get(); }
+
+    /** Quanto dano a aura pode segurar, no maximo. */
+    public static double tetoDeReducaoDeDano() { return TETO_DE_REDUCAO_DE_DANO.get(); }
+
+    /** Quanto Ten protege com a aura espalhada por igual. */
+    public static double tenProtecaoBase() { return TEN_PROTECAO_BASE.get(); }
+
+    /** Quanto Ken protege com a aura espalhada por igual. */
+    public static double kenProtecaoBase() { return KEN_PROTECAO_BASE.get(); }
+
+    /** Custo de Ko por segundo. */
+    public static double koCustoPorSegundo() { return KO_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Quanto da aura Ko concentra. */
+    public static double koFracaoConcentrada() { return KO_FRACAO_CONCENTRADA.get(); }
+
+    /** Quantos ticks Ko dura. */
+    public static int koDuracaoEmTicks() { return KO_DURACAO_EM_TICKS.get(); }
+
+    /** Custo de Ken por segundo. */
+    public static double kenCustoPorSegundo() { return KEN_CUSTO_POR_SEGUNDO.get(); }
+
+    /** Teto de Output com Ken ativo. */
+    public static double kenTetoDeOutput() { return KEN_TETO_DE_OUTPUT.get(); }
 
     /** Custo de Shu por segundo. */
     public static double shuCustoPorSegundo() { return SHU_CUSTO_POR_SEGUNDO.get(); }

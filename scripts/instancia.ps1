@@ -205,7 +205,17 @@ function Comando-Atualizar {
     $java = Resolver-Java
     $env:JAVA_HOME = Split-Path -Parent (Split-Path -Parent $java)
 
-    & $Gradlew build bibliotecasDaInstancia --console=plain
+    # O GRADLE PRECISA RODAR NA RAIZ, e nao em quem chamou o script.
+    #
+    # $Gradlew e caminho absoluto, entao a chamada funciona de qualquer lugar --
+    # e e por isso que a falha e chata: o Gradle RODA, so que monta o projeto no
+    # diretorio ATUAL. Chamado da pasta pessoal do usuario, ele reprova com
+    # "Task 'bibliotecasDaInstancia' not found in root project 'alcyn'" e ainda
+    # deixa uma pasta build orfa la fora. O mesmo idioma ja era usado no servidor.
+    Push-Location $Raiz
+    try {
+        & $Gradlew build bibliotecasDaInstancia --console=plain
+    } finally { Pop-Location }
     if ($LASTEXITCODE -ne 0) {
         throw ("o build falhou; o JAR nao foi trocado. Para entrar no jogo assim" +
             " mesmo, com a versao ja instalada: .\scripts\instancia.ps1 servidor -SemAtualizar")
@@ -348,7 +358,13 @@ function Comando-Cliente {
     $argumentos = @('runClient', '--console=plain', "-PdirCliente=instancia/cliente", "-Pjogador=$Jogador")
     if (-not $SemEntrar) { $argumentos += "-PentrarEm=localhost:$Porta" }
 
-    & $Gradlew @argumentos
+    # Mesma razao do Comando-Atualizar, com um agravante: -PdirCliente e
+    # relativo a raiz do projeto, entao rodar de outro diretorio mandaria o
+    # cliente para uma pasta diferente da que o script acabou de anunciar.
+    Push-Location $Raiz
+    try {
+        & $Gradlew @argumentos
+    } finally { Pop-Location }
 }
 
 function Comando-Status {

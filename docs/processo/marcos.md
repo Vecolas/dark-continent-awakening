@@ -16,6 +16,9 @@ M0 Bootstrap
                           └─> M6 Progressao + camada de modpack
                                └─> M7 Hardening
                                     └─> M8 Vertical slice + RC
+
+  AV0 ─> AV1 ─> ... ─> AV8      trilha do VISUAL da aura, em paralelo a M5+
+                                (nao gasta contrato de servidor nem protocolo)
 ```
 
 ---
@@ -268,7 +271,7 @@ produziria uma tecnica que custa aura e nao faz nada observavel.
 | Ativacao por roda / menu radial | entregue (#102, #106) |
 | Tecnicas ativas visiveis no HUD, por forma e cor | entregue (#129) |
 | A Water Divination passa a exigir Ren | entregue (#128) |
-| Icone por tecnica e FX distinto | **fora**: exigem arte autoral (ADR-007) e `client/particle/` vazio |
+| Icone por tecnica e FX distinto | **fora do M4, e agora por decisao e nao por falta de tempo**: o FX de aura virou a trilha propria AV0–AV8 ([ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md)) |
 | A vulnerabilidade de Zetsu ao dano de Nen | **fora**, bloqueada em `nen/combat` (#127) |
 | Gate executado em servidor dedicado | **pendente**: roteiro em [m4-tecnicas.md](../testing/m4-tecnicas.md), execucao manual exige dois clientes |
 
@@ -276,6 +279,66 @@ produziria uma tecnica que custa aura e nao faz nada observavel.
 dois clientes reais, que esta maquina so aguenta com memoria livre suficiente
 (ver [qa-matrix.md](../testing/qa-matrix.md)). Nao deduzir entrega a partir de
 build verde.
+
+### O FX de aura saiu do M4 (2026-09-12)
+
+As issues #98–#104 nasceram assumindo, sem dizer, que **particula e a aura**.
+A direcao de arte fechada em [`docs/aura-art/`](../aura-art/LEIA-ME.md) mostrou
+que isso nao chega ao alvo: uma nuvem de poeira colorida e lida como pocao, e
+Zetsu vira "poeira desligada" em vez de supressao.
+
+O [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md) trocou a fundacao —
+geometria propria mais shader proprio, com particula como acabamento — e o
+[ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md) resolveu o
+brilho sem depender de shader pack.
+
+**Isso nao cabe num item de marco.** Virou a trilha **AV**, descrita abaixo. As
+seis issues de VFX do M4 foram **reescritas** e movidas para os gates AV
+correspondentes — nao fechadas como duplicadas, para nao perder o historico.
+
+O M4 continua devendo apenas o **gate com dois clientes** (#91), que e sobre
+tecnica, e nao sobre brilho.
+
+---
+
+## Trilha AV — O visual da aura  (paralela a M5+)
+
+**Fonte de verdade:** [`docs/vfx/LEIA-ME.md`](../vfx/LEIA-ME.md).
+**Decisoes:** [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md) e
+[ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md).
+**Como se prova:** [`av-aura-visual.md`](../testing/av-aura-visual.md).
+
+Ela e **paralela**, e nao um degrau da escada M1–M8: nao gasta contrato de
+servidor, nao toca protocolo nem save, e nao bloqueia o M5. O prefixo `AV`
+evita colisao com `M1–M8` e com `EN0–EN16`.
+
+```
+AV0 Tech spike        shell inflada segue as animacoes     <- se falhar, PARA
+ └─ AV1 Shell autoral    shader, Fresnel, ruido, fluxo vertical
+     └─ AV2 Ribbons        filamentos presos a bones
+         └─ AV3 TEN final    tuning, primeira pessoa, audio, LOD
+             └─ AV4 REN        transicao, colunas, pressao de chao, detritos
+                 └─ AV5 Bloom    AuraGlowTarget, blur, composite, fallback
+                     └─ AV6 ZETSU  supressao e visibilidade por observador
+                         └─ AV7 Multiplayer, armadura, poses, GeckoLib
+                             └─ AV8 Performance e release do visual
+```
+
+| Gate | O que fecha ele |
+| --- | --- |
+| **AV0** | a shell acompanha corrida, ataque, agachar e nadar, nos dois modelos de jogador, e o servidor dedicado nao carrega classe client-only |
+| **AV1** | Ten fica convincente **sem nenhuma particula** |
+| **AV2** | os filamentos nascem na superficie e acompanham os membros |
+| **AV3** | todos os criterios de "TEN aprovado se", mais primeira pessoa e a tabela de distancias |
+| **AV4** | Ren e claramente mais intenso, na mesma linguagem, e **nao altera o mundo** |
+| **AV5** | os tres niveis de bloom funcionam, o fallback funciona, e a aura **nao aparece atraves de parede** |
+| **AV6** | ausencia total para observadores, e o cliente **nao recebe** o dado de quem esta suprimido |
+| **AV7** | dois clientes reais, armadura, capa, elytra e as poses; nenhum estado visual preso apos relog, morte ou dimensao |
+| **AV8** | o orcamento de 10 jogadores em Ren, medido com `spark`, antes e depois |
+
+**Uma trilha por vez continua valendo.** Nao iniciar o AV sem autorizacao
+explicita, e nao comecar o AV(n+1) sem fechar o AV(n) — o AV0 existe
+precisamente para ser um ponto de parada barato.
 
 ---
 
@@ -388,8 +451,8 @@ do RC.
 
 | | Objetivo | Primeiro passo tecnico |
 | --- | --- | --- |
-| F1 | Ken, Ko, Ryu | mesma `NenTechnique`, usando modifiers e regras de foco/output ja existentes |
-| F2 | Shu, En, In | generalizar contexto de item, area e percepcao; criar servico de sensing |
+| F1 | Ken, Ko, Ryu | mesma `NenTechnique`, usando modifiers e regras de foco/output ja existentes. **O lado visual ja esta pronto a partir do AV1**: intensidade por regiao e mudanca de numero, e nao renderer novo |
+| F2 | Shu, En, In | generalizar contexto de item, area e percepcao; criar servico de sensing. Shu reusa shell e ribbon num `AuraItemRenderLayer`; **En exige renderer proprio** — a shell corporal nao serve; In usa o resolvedor de visibilidade do AV6 |
 | F3 | Votos e limitacoes v1 | templates declarativos (condicao + bonus + penalidade), sem scripting livre |
 | F4 | Percepcao de Nen em multiplayer | o servidor calcula quem percebe o que e envia filtrado por observador |
 | F5 | Hatsu Builder v1 | grafo de componentes limitado + orcamento por categoria/afinidade + preview |

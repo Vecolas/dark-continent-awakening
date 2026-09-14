@@ -333,6 +333,14 @@ sugestões genéricas não revogam decisões aprovadas do projeto.
 **Fonte de verdade:** [marcos.md](docs/processo/marcos.md), com evidências de QA
 e pendências de integração. Não deduzir entrega a partir de código compilável.
 
+O **visual da aura** é uma trilha própria e paralela (AV0–AV8), com fonte de
+verdade em [`docs/vfx/`](docs/vfx/LEIA-ME.md) e decisão registrada no
+[ADR-015](docs/adr/ADR-015-aura-e-geometria-e-shader.md) e no
+[ADR-016](docs/adr/ADR-016-pos-processamento-proprio-da-aura.md): **a aura é
+geometria e shader; partícula é acabamento.** Ela não gasta contrato de
+servidor nem protocolo, e não pode ser iniciada sem autorização explícita — a
+mesma regra de "um marco por vez".
+
 Não iniciar um marco sem autorização explícita. Mudanças no modelo de Aura
 exigem decisão conjunta registrada conforme o
 [ADR-009](docs/adr/ADR-009-modelo-de-aura-sem-stamina-de-nen.md).

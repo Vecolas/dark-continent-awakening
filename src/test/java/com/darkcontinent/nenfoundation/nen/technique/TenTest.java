@@ -37,7 +37,7 @@ class TenTest {
     }
 
     private static Ten ten(double custoPorSegundo, double multiplicador) {
-        return new Ten(() -> custoPorSegundo, () -> multiplicador);
+        return new Ten(() -> custoPorSegundo, () -> multiplicador, () -> 0.0D);
     }
 
     // --------------------------------------------------- o que Ten declara
@@ -54,7 +54,7 @@ class TenTest {
         // Congelar o custo faria Ten ignorar toda recarga de config posterior,
         // em silencio. E o erro numero 1 da lista do CLAUDE.md.
         double[] custo = {4.0D};
-        Ten ten = new Ten(() -> custo[0], () -> 1.0D);
+        Ten ten = new Ten(() -> custo[0], () -> 1.0D, () -> 0.0D);
 
         assertEquals(4.0D / TICKS_POR_SEGUNDO, ten.custoPorTick(), 1.0E-9D);
         custo[0] = 20.0D;

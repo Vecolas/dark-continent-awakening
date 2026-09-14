@@ -36,7 +36,21 @@ public enum SinalDeAura {
     TEN,
 
     /** Volume grande de aura liberada. No canone, uma pessoa em Ren e sentida. */
-    REN;
+    REN,
+
+    /**
+     * Muita aura envolvendo o corpo inteiro, de forma sustentada.
+     *
+     * <p>ENTROU NO FIM DA LISTA, e isso e contrato: o sinal viaja como ordinal,
+     * e inserir no meio reescreveria o significado de REN e de TEN para todo
+     * cliente ja conectado -- sem erro nenhum.
+     *
+     * <p>Um cliente antigo que receba este valor cai em {@link #seguro()}, ou
+     * seja, ve NENHUM. Nao e ideal -- ele perde de vista alguem que esta bem
+     * visivel -- mas e a falha na direcao certa: ver de menos, e nunca ver o
+     * que deveria estar escondido.
+     */
+    KEN;
 
     /** O valor seguro para qualquer situacao desconhecida. */
     public static SinalDeAura seguro() {

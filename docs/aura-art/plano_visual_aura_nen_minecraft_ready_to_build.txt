@@ -1,0 +1,3574 @@
+DARK CONTINENT AWAKENING
+PLANO COMPLETO DE DIREÇÃO E IMPLEMENTAÇÃO VISUAL DA AURA DE NEN
+Minecraft / NeoForge 1.21.1
+Objetivo: reproduzir em jogo a identidade visual das referências geradas
+(Ten sutil, Ten em camadas, Ren de alta pressão e Zetsu suprimido)
+
+================================================================================
+0. OBJETIVO
+================================================================================
+
+Este documento define como construir um sistema de aura de Nen que NÃO pareça:
+
+- fumaça;
+- partículas vanilla;
+- poção;
+- fogo;
+- Glowing Effect;
+- armadura transparente;
+- esfera ao redor do jogador;
+- shader genérico de outline.
+
+A meta visual é:
+
+TEN
+    Uma película energética fina e aderida ao corpo.
+    Ela acompanha cabeça, tronco, braços e pernas.
+    Pequenos fluxos sobem pela superfície.
+    A aura parece viva mesmo parada.
+    Deve ser elegante, discreta e controlada.
+
+REN
+    A mesma energia de Ten, porém muito mais densa.
+    Continua nascendo e se organizando ao redor do corpo.
+    Forma correntes verticais maiores.
+    Produz sensação de pressão.
+    Pode afetar visualmente o chão e pequenas partículas/debris.
+    Não vira uma explosão permanente nem fumaça.
+
+ZETSU
+    A emissão visual desaparece.
+    Após a transição, praticamente nenhum efeito deve ser visível.
+    A ausência da aura é o feedback.
+
+PRINCÍPIO MAIS IMPORTANTE:
+
+    A SILHUETA DO CORPO É A BASE DO EFEITO.
+
+Se todas as partículas forem desligadas, Ten ainda precisa ser claramente perceptível.
+
+================================================================================
+1. REFERÊNCIAS VISUAIS E LEITURA ARTÍSTICA
+================================================================================
+
+As imagens de referência estabelecem quatro níveis visuais.
+
+REFERÊNCIA A — BASE AURA
+------------------------
+
+Características:
+
+- fino contorno azul/branco;
+- shell aderida;
+- poucos filamentos;
+- fluxo predominantemente vertical;
+- extensão pequena acima da cabeça;
+- nenhuma nuvem;
+- nenhum grande halo.
+
+Uso:
+estado inicial/protótipo de Ten.
+
+REFERÊNCIA B — LAYERED TEN
+--------------------------
+
+Características:
+
+- shell ainda colada ao corpo;
+- múltiplos fios de energia;
+- algumas curvas passando por braços/tronco/pernas;
+- borda mais brilhante;
+- ainda controlada;
+- sem impacto ambiental.
+
+Uso:
+Ten final recomendado.
+
+REFERÊNCIA C — REN PRESSURE
+---------------------------
+
+Características:
+
+- mesma linguagem de Ten;
+- intensidade muito maior;
+- borda quase branca;
+- filamentos mais longos;
+- correntes verticais acima da cabeça;
+- pressão no chão;
+- pequenos fragmentos levantados;
+- sensação de output elevado;
+- ainda legível como energia organizada.
+
+Uso:
+Ren.
+
+REFERÊNCIA D — ZETSU
+--------------------
+
+Características:
+
+- praticamente nenhuma aura;
+- personagem visualmente normal;
+- ambiente tranquilo;
+- ausência de brilho é parte da informação.
+
+Uso:
+Zetsu.
+
+================================================================================
+2. LIMITAÇÕES REAIS DO MINECRAFT
+================================================================================
+
+Minecraft não oferece, por padrão, um sistema de:
+
+- aura volumétrica;
+- bloom por entidade confiável;
+- ribbons presos aos bones;
+- Fresnel de personagem;
+- distorção localizada;
+- partículas seguindo superfície;
+- outline energético procedural;
+- pressão visual no ambiente.
+
+Logo, tentar resolver tudo apenas com:
+
+ParticleEngine
++
+RenderType.translucent()
++
+Glowing
+
+não atingirá a referência.
+
+Será necessário criar componentes próprios.
+
+================================================================================
+3. LIMITAÇÕES DA GEOMETRIA DO PLAYER
+================================================================================
+
+O player é composto por partes rígidas:
+
+head
+body
+rightArm
+leftArm
+rightLeg
+leftLeg
+
+Cada parte roda separadamente.
+
+Um simples:
+
+poseStack.scale(1.05F, 1.05F, 1.05F)
+
+NÃO é suficiente.
+
+Problema:
+a escala ocorre em torno do origin global.
+
+Resultado:
+- braços podem afastar;
+- shell pode não acompanhar bem articulações;
+- espessura fica inconsistente.
+
+Solução:
+
+CRIAR UM MODELO DE AURA PRÓPRIO COM CUBE DEFORMATION.
+
+Cada cubo é inflado localmente.
+
+Resultado:
+
+skin/body cube
+████████
+
+aura cube
+░████████░
+
+Assim a aura permanece uniformemente próxima à superfície.
+
+================================================================================
+4. ARQUITETURA VISUAL FINAL
+================================================================================
+
+O sistema será dividido em passes.
+
+                  AURA VISUAL SYSTEM
+                         │
+       ┌─────────────────┼─────────────────┐
+       │                 │                 │
+ BODY SHELL          FLOW RIBBONS       AMBIENT VFX
+       │                 │                 │
+   inner shell        body strands       sparks
+   edge shell         vertical arcs      ground pressure
+   outer halo         loops              debris
+       │                 │                 │
+       └──────────────┬──┴─────────────────┘
+                      │
+                 OPTIONAL BLOOM
+                      │
+                  FINAL IMAGE
+
+Nenhum pass isolado precisa fazer tudo.
+
+================================================================================
+5. CLASSES PROPOSTAS
+================================================================================
+
+client/nen/vfx/
+│
+├── AuraVisualSystem.java
+├── AuraVisualState.java
+├── AuraVisualProfile.java
+├── AuraVisualController.java
+├── AuraVisibilityResolver.java
+├── AuraLodController.java
+│
+├── render/
+│   ├── AuraPlayerRenderLayer.java
+│   ├── AuraLivingRenderLayer.java
+│   ├── AuraShellRenderer.java
+│   ├── AuraRibbonRenderer.java
+│   ├── AuraGroundRenderer.java
+│   ├── AuraBloomRenderer.java
+│   ├── AuraFirstPersonRenderer.java
+│   └── AuraRenderTypes.java
+│
+├── model/
+│   ├── AuraPlayerModel.java
+│   ├── AuraPlayerSlimModel.java
+│   ├── AuraModelAdapter.java
+│   └── AuraGeometryProfile.java
+│
+├── ribbon/
+│   ├── AuraRibbon.java
+│   ├── AuraRibbonEmitter.java
+│   ├── AuraRibbonBatch.java
+│   ├── AuraAnchor.java
+│   └── AuraCurve.java
+│
+├── shader/
+│   ├── AuraShaderManager.java
+│   ├── AuraShaderUniforms.java
+│   └── AuraPostProcess.java
+│
+├── particle/
+│   ├── AuraSparkParticle.java
+│   ├── AuraFragmentParticle.java
+│   └── AuraDebrisParticle.java
+│
+└── debug/
+    ├── AuraDebugRenderer.java
+    └── AuraDebugCommands.java
+
+common/nen/
+│
+├── NenState.java
+├── NenTechnique.java
+├── AuraState.java
+└── AuraOutputState.java
+
+Gameplay NÃO entra em client/nen/vfx.
+
+================================================================================
+6. AURAVISUALSTATE
+================================================================================
+
+Criar um objeto client-side para cada entidade com Nen visível.
+
+Campos sugeridos:
+
+entityId
+entityUuid
+
+visible
+technique
+
+currentIntensity
+targetIntensity
+
+currentShellOpacity
+targetShellOpacity
+
+currentShellThickness
+targetShellThickness
+
+currentRibbonIntensity
+targetRibbonIntensity
+
+currentBloom
+targetBloom
+
+currentPressure
+targetPressure
+
+currentFlowSpeed
+targetFlowSpeed
+
+pulsePhase
+
+outputRatio
+auraRatio
+
+colorInner
+colorEdge
+colorOuter
+
+transitionTime
+stateAge
+
+observerVisibility
+
+Ten, Ren e Zetsu modificam apenas TARGETS.
+
+O renderer interpola.
+
+================================================================================
+7. POR QUE O ESTADO VISUAL DEVE SER CLIENT-SIDE
+================================================================================
+
+Servidor envia:
+
+technique = TEN
+outputRatio = 0.42
+hostileIntent = false
+
+Cliente calcula:
+
+shellThickness
+flow speed
+bloom
+ribbon count
+noise phase.
+
+Não enviar por rede:
+
+particle positions
+ribbon nodes
+shader time
+pulse frame.
+
+Isso economiza banda e evita jitter.
+
+================================================================================
+8. SINCRONIZAÇÃO NECESSÁRIA
+================================================================================
+
+Sincronizar apenas quando muda:
+
+Nen technique
+Nen active/inactive
+output ratio significativo
+hostile intent
+body aura allocation quando Ryu/Gyo for implementado
+In visibility
+special aura style.
+
+Threshold recomendado de output sync:
+mudança > 2–5% ou timer periódico lento.
+
+Renderização interpola localmente.
+
+================================================================================
+9. INJEÇÃO NO PLAYER RENDERER
+================================================================================
+
+NeoForge 1.21.1 oferece eventos de renderização de jogador e layers.
+
+Estratégia preferida:
+
+EntityRenderersEvent.AddLayers
+    ↓
+obter PlayerRenderer para:
+    default model
+    slim model
+    ↓
+add AuraPlayerRenderLayer
+
+A layer roda junto ao renderer do jogador,
+portanto acompanha:
+
+- yaw;
+- pitch;
+- crouch;
+- swim;
+- attack;
+- walking;
+- head rotation;
+- arm pose.
+
+Fallback/auxiliar:
+RenderPlayerEvent.Post para passes que precisam acontecer depois do player completo.
+
+IMPORTANTE:
+1.21.1 ainda usa o pipeline anterior ao EntityRenderState introduzido em 1.21.2.
+Não desenhar arquitetura baseada em APIs de 1.21.2+.
+
+================================================================================
+10. MODELO DO SHELL
+================================================================================
+
+Criar dois modelos:
+
+AURA_DEFAULT
+AURA_SLIM
+
+Eles replicam geometria de:
+
+PlayerModel.
+
+Mas usam:
+CubeDeformation positiva.
+
+Valores iniciais:
+
+INNER:
+0.025F–0.040F
+
+EDGE:
+0.045F–0.065F
+
+OUTER:
+0.070F–0.095F
+
+Não interpretar como escala percentual.
+São deformações locais dos cubes.
+
+Testar visualmente.
+
+================================================================================
+11. POR QUE NÃO USAR APENAS UMA SHELL
+================================================================================
+
+Uma shell translúcida única tende a parecer:
+
+- plástico;
+- armadura holográfica;
+- vidro.
+
+A referência exige profundidade.
+
+Usar pelo menos:
+
+PASS 1
+inner energy film
+
+PASS 2
+edge/rim energy
+
+Opcional:
+
+PASS 3
+very faint outer halo.
+
+================================================================================
+12. PASS 1 — INNER ENERGY FILM
+================================================================================
+
+Função:
+dar presença contínua no corpo.
+
+Visual:
+
+- alpha baixo;
+- quase transparente de frente;
+- mais perceptível nas laterais;
+- noise suave;
+- fluxo vertical lento.
+
+Blend:
+alpha/premultiplied alpha.
+
+Depth:
+depth test ON
+depth write OFF.
+
+Cull:
+testar both-side; preferir backface handling consistente.
+
+Packed light:
+não usar fullbright absoluto em tudo.
+Misturar emissive + world lighting.
+
+Objetivo:
+personagem ainda deve preservar skin/roupa.
+
+================================================================================
+13. PASS 2 — EDGE / FRESNEL
+================================================================================
+
+A referência depende muito da borda clara.
+
+Criar shader que aumenta alpha/intensidade quando:
+
+normal ⟂ view direction.
+
+Conceito:
+
+fresnel =
+pow(1 - abs(dot(normal, viewDir)), exponent)
+
+Valores iniciais:
+
+Ten:
+exponent ~2.0–3.5
+
+Ren:
+1.2–2.3
+
+Quanto menor,
+maior região brilhante.
+
+Fragment:
+
+finalAlpha =
+baseAlpha
++
+fresnel * edgeAlpha.
+
+finalColor =
+mix(innerColor, edgeColor, fresnel).
+
+================================================================================
+14. PASS 3 — OUTER HALO
+================================================================================
+
+Muito discreto em Ten.
+
+É uma shell ligeiramente maior.
+
+Não usar textura sólida.
+
+Alpha:
+Ten: 0.02–0.06
+Ren: 0.06–0.14
+
+Serve apenas para:
+
+- separar aura do fundo;
+- alimentar bloom;
+- criar profundidade.
+
+Se visível como "segunda pele sólida":
+está forte demais.
+
+================================================================================
+15. SHADER PRINCIPAL
+================================================================================
+
+Criar shader dedicado:
+
+aura_shell.vsh
+aura_shell.fsh
+
+Uniforms:
+
+GameTime
+AuraTime
+AuraIntensity
+AuraOpacity
+AuraThickness
+FlowSpeed
+NoiseScale
+PulseStrength
+FresnelPower
+ColorInner
+ColorEdge
+ColorOuter
+EntitySeed
+
+Inputs:
+Position
+Normal
+UV
+Color
+etc conforme vertex format escolhido.
+
+================================================================================
+16. NOISE
+================================================================================
+
+Não usar noise que pareça fumaça.
+
+Objetivo:
+quebrar uniformidade.
+
+Noise deve criar:
+
+- ondas;
+- filamentos;
+- regiões de intensidade;
+- movimento vertical.
+
+Usar:
+
+noise texture 64x64 ou 128x128
+grayscale
+tileable.
+
+Preferência:
+combinação de dois noise samples.
+
+N1:
+lento.
+
+N2:
+mais fino e mais rápido.
+
+finalNoise =
+N1 * 0.65 + N2 * 0.35.
+
+================================================================================
+17. FLUXO VERTICAL
+================================================================================
+
+A identidade da referência depende da sensação:
+
+energia nasce no corpo
+↓
+move para cima.
+
+Shader:
+
+flowCoord =
+worldY * scale
+-
+time * speed.
+
+Aplicar bands suaves.
+
+Não usar:
+ondas horizontais aleatórias.
+
+Ten:
+flow speed baixo.
+
+Ren:
+mais rápido.
+
+================================================================================
+18. PULSAÇÃO
+================================================================================
+
+Ten não deve piscar.
+
+Usar:
+
+pulse =
+1 + sin(time * frequency + entityPhase) * amplitude
+
+Ten:
+frequency baixa.
+amplitude 0.02–0.05.
+
+Ren:
+amplitude 0.06–0.12.
+
+Cada entidade recebe:
+entityPhase baseada no UUID.
+
+Evita todos jogadores pulsarem sincronizados.
+
+================================================================================
+19. COR
+================================================================================
+
+A referência usa azul-branco.
+
+Sugestão inicial:
+
+INNER:
+RGB aproximado
+0.65, 0.78, 1.0
+
+EDGE:
+0.82, 0.92, 1.0
+
+HOT:
+1.0, 1.0, 1.0
+
+REN CORE:
+quase branco.
+
+IMPORTANTE:
+
+Não associar cor automaticamente à categoria Nen.
+
+Enhancer NÃO é obrigatoriamente vermelho.
+Emitter NÃO é automaticamente amarelo.
+
+Cor é perfil visual/personagem/Hatsu quando justificável.
+
+================================================================================
+20. NÃO USAR SKIN TEXTURE COMO AURA
+================================================================================
+
+Renderizar a skin translúcida por cima cria:
+
+"clone fantasma do personagem".
+
+Errado.
+
+Aura shell deve usar:
+
+- noise;
+- gradient;
+- flow;
+- Fresnel.
+
+A skin normal continua abaixo.
+
+================================================================================
+21. RIBBONS — O COMPONENTE MAIS IMPORTANTE DEPOIS DA SHELL
+================================================================================
+
+As linhas energéticas da referência não devem ser partículas independentes.
+
+Criar ribbons geométricos.
+
+AuraRibbon:
+
+seed
+anchor
+width
+length
+lifePhase
+speed
+curl
+offset
+intensity
+
+A ribbon é uma strip de quads.
+
+Exemplo:
+
+P0──P1──P2──P3──P4
+
+cada segmento vira:
+
+left vertex
+right vertex.
+
+Camera-facing parcial ou orientada pelo normal da superfície.
+
+================================================================================
+22. POR QUE RIBBON E NÃO PARTICLE
+================================================================================
+
+Particle:
+- nasce;
+- anda solta;
+- tende a virar fumaça/faísca;
+- difícil acompanhar bone.
+
+Ribbon:
+- forma contínua;
+- pode abraçar braço;
+- pode subir pelo tronco;
+- pode permanecer presa ao corpo;
+- melhor para estilo anime.
+
+================================================================================
+23. PERSISTÊNCIA DAS RIBBONS
+================================================================================
+
+Não spawnar ribbons aleatórias todo frame.
+
+Cada jogador possui pool estável:
+
+Ten:
+6–12 ribbons.
+
+Ren:
+14–28 ribbons.
+
+Cada ribbon:
+ao terminar ciclo,
+recebe nova curva determinística.
+
+Seed:
+hash(UUID + ribbonIndex + cycle).
+
+Resultado:
+orgânico sem jitter.
+
+================================================================================
+24. AURA ANCHORS
+================================================================================
+
+Definir anchors corporais:
+
+HEAD_TOP
+HEAD_LEFT
+HEAD_RIGHT
+
+SHOULDER_LEFT
+SHOULDER_RIGHT
+
+FOREARM_LEFT
+FOREARM_RIGHT
+
+HAND_LEFT
+HAND_RIGHT
+
+CHEST_LEFT
+CHEST_RIGHT
+
+BACK_CENTER
+
+HIP_LEFT
+HIP_RIGHT
+
+THIGH_LEFT
+THIGH_RIGHT
+
+CALF_LEFT
+CALF_RIGHT
+
+FOOT_LEFT
+FOOT_RIGHT
+
+================================================================================
+25. ANCHORS SEGUEM BONES
+================================================================================
+
+Cada AuraAnchor pertence a um ModelPart.
+
+Exemplo:
+
+FOREARM_RIGHT
+parent = rightArm
+
+local offset:
+x
+y
+z.
+
+Na renderização:
+
+PoseStack
+    ↓
+aplicar transform do ModelPart
+    ↓
+obter ponto world/model-local
+    ↓
+gerar ribbon.
+
+Isso permite o filamento acompanhar:
+
+- swing;
+- corrida;
+- ataque;
+- crouch.
+
+================================================================================
+26. CURVA DA RIBBON
+================================================================================
+
+Gerar 5–9 pontos.
+
+P0:
+surface anchor.
+
+P1:
+ligeiramente externo.
+
+P2:
+subindo.
+
+P3:
+curvando ao redor do membro.
+
+Pn:
+desaparece a poucos centímetros/blocos visuais acima.
+
+Ten:
+comprimento:
+0.15–0.60 blocos.
+
+Ren:
+0.40–1.60 blocos.
+
+Algumas ribbons de Ren:
+até ~2.0 blocos acima da cabeça.
+
+Nunca todas.
+
+================================================================================
+27. ESPESSURA DA RIBBON
+================================================================================
+
+Ten:
+muito fina.
+
+0.005–0.015 blocos.
+
+Ren:
+0.008–0.030.
+
+A referência pode ser brilhante,
+mas não deve virar tubo neon.
+
+================================================================================
+28. TEXTURA DA RIBBON
+================================================================================
+
+Criar:
+
+aura_ribbon_core.png
+aura_ribbon_soft.png
+
+Formato:
+grayscale/white
+transparent.
+
+Centro:
+branco.
+
+Borda:
+fade.
+
+Shader aplica tint.
+
+================================================================================
+29. MOVIMENTO DA RIBBON
+================================================================================
+
+A ribbon não precisa literalmente mover vertices para cima a cada frame.
+
+Pode:
+
+- manter curva;
+- animar UV;
+- mudar amplitude;
+- deslocar alguns nodes.
+
+Isso reduz custo.
+
+Ten:
+curva quase fixa por 0.7–1.5 s.
+
+Ren:
+0.3–0.8 s.
+
+================================================================================
+30. SHELL + RIBBON = TEN
+================================================================================
+
+TEN final:
+
+1. Inner shell.
+2. Fresnel edge.
+3. Faint outer halo.
+4. 8-ish ribbons.
+5. 0–3 micro sparks ocasionais.
+6. Nenhum ground effect.
+7. Nenhuma camera shake.
+8. Sem debris.
+
+Se Ten precisar de 100 partículas para ficar bom:
+refazer shell/ribbons.
+
+================================================================================
+31. TEN — PRESET INICIAL
+================================================================================
+
+TEN_STANDARD:
+
+shellInnerDeformation = 0.032
+shellEdgeDeformation  = 0.052
+outerDeformation      = 0.078
+
+innerAlpha = 0.055
+edgeAlpha  = 0.20
+outerAlpha = 0.035
+
+fresnelPower = 2.7
+
+flowSpeed = 0.12
+noiseSpeed = 0.06
+
+ribbonsNear = 8
+ribbonWidth = 0.009
+ribbonLength = 0.35
+
+sparkRate = 0.4 / sec
+
+bloomStrength = 0.20
+
+pulseAmplitude = 0.025
+
+Valores são ponto de partida,
+não regra final.
+
+================================================================================
+32. TEN — SENSAÇÃO
+================================================================================
+
+A leitura deve ser:
+
+"Existe energia sendo mantida conscientemente."
+
+Não:
+
+"personagem está carregando ultimate."
+
+================================================================================
+33. REN — NÃO CRIAR UM SEGUNDO EFEITO DESCONEXO
+================================================================================
+
+Ren deve ser o MESMO sistema aumentando:
+
+- shell;
+- edge;
+- ribbon density;
+- ribbon height;
+- flow;
+- bloom;
+- pressure;
+- debris.
+
+Assim a progressão visual fica coerente.
+
+TEN
+    ↓
+mais output
+    ↓
+REN
+
+================================================================================
+34. REN — CORE SHELL
+================================================================================
+
+Aumentar:
+
+deformation
+alpha
+fresnel
+flow speed.
+
+Mas deixar a skin legível.
+
+REN_STANDARD:
+
+innerDeformation = 0.045
+edgeDeformation  = 0.072
+outerDeformation = 0.11
+
+innerAlpha = 0.09
+edgeAlpha = 0.32
+outerAlpha = 0.09
+
+fresnelPower = 1.8
+
+================================================================================
+35. REN — VERTICAL CURRENTS
+================================================================================
+
+Adicionar ribbons especiais:
+
+AuraColumnRibbon.
+
+Origins:
+shoulders
+back
+legs/feet
+head perimeter.
+
+Elas sobem:
+
+0.8–2.5 blocos.
+
+Quantidade:
+4–8.
+
+Não colocar 30 colunas.
+
+Elas são as "línguas" verticais maiores vistas na referência.
+
+================================================================================
+36. REN — PRESSURE FIELD
+================================================================================
+
+Criar renderer separado no chão:
+
+AuraGroundRenderer.
+
+Não modificar blocos.
+
+Renderizar:
+
+- ring irregular;
+- pequenas linhas ascendentes;
+- distorção de grama opcional;
+- debris.
+
+Área inicial:
+radius 0.8–1.4 blocos.
+
+Output alto:
+até ~2.0.
+
+================================================================================
+37. GROUND RING
+================================================================================
+
+Mesh horizontal perto do chão.
+
+Shape:
+não círculo perfeito.
+
+Construir 24–48 segmentos.
+
+Radius:
+noise-modulated.
+
+Alpha:
+baixo.
+
+Texture:
+aura_ground_ring.png
+
+Render:
+translucent/additive misto.
+
+Não parecer:
+runa mágica.
+
+Sem símbolos.
+
+É pressão de energia.
+
+================================================================================
+38. DEBRIS DE REN
+================================================================================
+
+Referência mostra pequenos fragmentos.
+
+Não quebrar blocos.
+
+Criar partículas mesh/voxel:
+
+AuraDebrisParticle.
+
+Source material:
+sample visual aproximado do bloco abaixo.
+
+Pequenos cubos:
+0.02–0.08 bloco.
+
+Motion:
+subir 0.05–0.25
+orbitar pouco
+cair/desaparecer.
+
+Quantidade máxima:
+6–14 perto do player.
+
+Não gerar item entities.
+
+================================================================================
+39. PRESSÃO NA GRAMA
+================================================================================
+
+Opção visual avançada:
+
+Near-player vegetation displacement.
+
+Duas abordagens:
+
+A — compatível:
+renderizar overlay/ripple no chão.
+
+B — custom high quality:
+shader de foliage lê aura pressure field.
+
+B é muito invasivo e pouco compatível.
+
+Recomendação:
+usar A no MVP/final principal.
+
+================================================================================
+40. REN — MICRO CAMERA FEEDBACK
+================================================================================
+
+Somente no jogador local.
+
+Ao ATIVAR Ren:
+camera impulse muito pequeno.
+
+Exemplo:
+0.1–0.25 graus.
+
+Não manter shake contínuo.
+
+Motivo:
+camera shake permanente é irritante.
+
+Para observadores:
+sem shake.
+
+================================================================================
+41. REN — LIGHTING
+================================================================================
+
+Não alterar real block light.
+
+Usar emissive render.
+
+Opcional:
+Dynamic Lights integration se modpack já possuir API compatível.
+
+Mas não depender dela.
+
+Aura deve ficar boa sem iluminar blocos.
+
+================================================================================
+42. REN — PRESET
+================================================================================
+
+REN_STANDARD:
+
+shell:
+inner 0.045
+edge 0.072
+outer 0.110
+
+alpha:
+0.09 / 0.32 / 0.09
+
+flow:
+0.32
+
+ribbons:
+18
+
+columns:
+6
+
+sparkRate:
+4/sec
+
+groundPressure:
+0.65
+
+debris:
+8 max
+
+bloom:
+0.55
+
+pulse:
+0.09
+
+================================================================================
+43. ZETSU
+================================================================================
+
+Zetsu não precisa de renderer permanente.
+
+Fluxo de transição:
+
+TEN
+↓ 0–100ms
+ribbons retraem
+↓
+100–250ms
+shell perde alpha
+↓
+250–400ms
+edge fecha no corpo
+↓
+400ms+
+ZERO.
+
+No estado estabilizado:
+
+shell = 0
+ribbons = 0
+bloom = 0
+particles = 0
+pressure = 0.
+
+================================================================================
+44. ZETSU — RESIDUAL SHIMMER?
+================================================================================
+
+Para fidelidade:
+
+OUTROS OBSERVADORES:
+nenhum efeito.
+
+JOGADOR LOCAL:
+opcionalíssimo:
+shimmer de 1–2% durante 0.5 s após ativar,
+apenas como feedback de input.
+
+Depois:
+nada.
+
+A referência visual D é correta:
+a ausência é a informação.
+
+================================================================================
+45. TRANSIÇÃO TEN → REN
+================================================================================
+
+Não trocar preset instantaneamente.
+
+Timeline:
+
+0 ms:
+Ten.
+
+0–100:
+shell contrai 3–5%.
+
+100–220:
+flash muito breve no edge.
+
+220–500:
+edge cresce.
+ribbons aceleram.
+
+350–700:
+vertical columns aparecem.
+
+500–900:
+ground pressure ativa.
+
+900:
+Ren estabilizado.
+
+Duração:
+~0.7–1.0s.
+
+================================================================================
+46. TRANSIÇÃO REN → TEN
+================================================================================
+
+Mais suave:
+
+0–300:
+ground pressure cai.
+
+150–500:
+columns reduzem.
+
+300–700:
+shell volta.
+
+700:
+Ten.
+
+================================================================================
+47. TRANSIÇÃO OFF → TEN
+================================================================================
+
+0–150:
+shell aparece localmente.
+
+150–350:
+ribbons entram.
+
+350:
+estável.
+
+Sem explosão.
+
+================================================================================
+48. OUTPUT VISUAL
+================================================================================
+
+A intensidade visual deve derivar principalmente de:
+
+currentOutput / referenceOutput
+
+NÃO:
+currentAura / maxAura.
+
+Grande reserva não significa aura visual enorme.
+
+Definir:
+
+visualOutput =
+clamp(log-like or sqrt scaling)
+
+Para evitar:
+um personagem 10x mais forte gerar shell 10x maior.
+
+Exemplo:
+
+visualScale =
+sqrt(outputRatioNormalized)
+
+com clamp.
+
+================================================================================
+49. ESCALA DE INTENSIDADE
+================================================================================
+
+Não escalar tamanho indefinidamente.
+
+Ten:
+thickness max ~0.12 bloco.
+
+Ren:
+outer max ~0.20–0.25.
+
+Poder extremo deve aumentar:
+
+- density;
+- brightness;
+- speed;
+- pressure;
+- reach de algumas streams.
+
+Não transformar personagem em esfera gigante.
+
+================================================================================
+50. HOSTILE REN
+================================================================================
+
+Ren hostil pode mudar:
+
+- pulse;
+- edge sharpness;
+- strand speed;
+- subtle screen vignette no alvo vulnerável.
+
+Não necessariamente cor.
+
+HostileIntent:
+
+edgeSharpness +20%
+pulse irregular
+ribbon acceleration
+pressure audio.
+
+================================================================================
+51. BLOOM — POR QUE É NECESSÁRIO
+================================================================================
+
+As referências possuem halo luminoso.
+
+Sem bloom:
+linhas ficam apenas "azuis".
+
+Shaders externos não podem ser pré-requisito.
+
+Implementar bloom próprio opcional.
+
+================================================================================
+52. AURA BLOOM PIPELINE
+================================================================================
+
+High quality mode:
+
+1. Render normal world.
+2. Render bright aura contribution para AuraGlowTarget.
+3. Downsample:
+   full -> half.
+4. Blur horizontal.
+5. Blur vertical.
+6. Composite additive sobre main target.
+
+Usar:
+half resolution por padrão.
+
+Ultra:
+full/half hybrid.
+
+Low:
+sem bloom.
+
+================================================================================
+53. BLOOM TARGET
+================================================================================
+
+AuraGlowTarget contém SOMENTE:
+
+- shell edge brightness;
+- ribbons;
+- sparks;
+- Ren columns.
+
+Não colocar:
+skin;
+world;
+UI.
+
+Isso evita borrar personagem inteiro.
+
+================================================================================
+54. BLOOM BLUR
+================================================================================
+
+Separável.
+
+Pass H:
+sample ±N X.
+
+Pass V:
+sample ±N Y.
+
+Kernel pequeno.
+
+Objetivo:
+2–8 px halo,
+não 30 px.
+
+Ten:
+radius 2–3 px.
+
+Ren:
+4–7 px.
+
+Dependente de resolution scaling.
+
+================================================================================
+55. BLOOM DEPTH
+================================================================================
+
+Aura mask deve respeitar entity/world depth quando criada.
+
+Partes atrás de parede:
+não podem emitir aura visível através da parede.
+
+Glow pode bleed poucos pixels,
+mas não revelar player atrás de parede.
+
+Testar:
+player atrás de bloco.
+player parcialmente escondido.
+
+================================================================================
+56. BLOOM FALLBACK
+================================================================================
+
+Config:
+
+OFF
+FAST
+HIGH.
+
+FAST:
+outer shell simulando glow.
+
+HIGH:
+offscreen blur.
+
+Se shader compatibility falhar:
+fallback automático FAST.
+
+Nunca crashar por efeito visual.
+
+================================================================================
+57. DISTORTION — OPCIONAL AVANÇADO
+================================================================================
+
+Para Ren muito forte:
+
+screen-space refraction leve ao redor da aura.
+
+Não necessário para MVP.
+
+Se implementado:
+
+1. gerar distortion mask.
+2. sample scene color deslocado por normal/noise.
+3. deslocamento máximo 0.5–1.5 px Ten? Nenhum.
+4. Ren 1–2 px.
+
+Muito sutil.
+
+Mais forte:
+parece água/portal.
+
+================================================================================
+58. RENDER ORDER
+================================================================================
+
+Ordem desejada:
+
+world opaque
+player base
+armor
+held items
+aura inner/edge
+ribbons
+transparent world considerations
+particles
+bloom composite
+
+O exato ponto depende do pipeline 1.21.1.
+
+Validar:
+- armor;
+- glass;
+- water;
+- translucent blocks.
+
+================================================================================
+59. ARMADURA — PROBLEMA
+================================================================================
+
+Shell baseada no corpo pode intersectar armor.
+
+Minecraft armor normalmente é ligeiramente maior.
+
+Três níveis:
+
+LOW:
+body shell com deformation maior.
+
+MEDIUM:
+body shell + armor clearance.
+
+HIGH:
+silhouette mask pass.
+
+================================================================================
+60. SOLUÇÃO RECOMENDADA PARA ARMADURA
+================================================================================
+
+MVP:
+edge deformation suficiente para aparecer fora do armor padrão.
+
+Ex:
+0.06–0.09.
+
+Não tentar copiar todas modded armors.
+
+Final High mode:
+gerar silhouette halo usando mask screen-space.
+
+================================================================================
+61. SILHOUETTE MASK AVANÇADA
+================================================================================
+
+Objetivo:
+halo seguir a silhueta FINAL,
+incluindo armor/cape quando possível.
+
+Pipeline:
+
+render target mask
+↓
+render player geometry white
+↓
+optionally armor geometry
+↓
+edge detect/dilate
+↓
+blur
+↓
+composite.
+
+Esse halo NÃO substitui shell.
+
+É apenas outer glow.
+
+================================================================================
+62. CAPE / ELYTRA
+================================================================================
+
+Decisão artística:
+
+Ten não precisa envolver cape inteira.
+
+Aura representa corpo.
+
+Cape pode:
+receber iluminação do halo
+mas não virar aura.
+
+Elytra:
+mesma regra.
+
+Se Hatsu específica:
+pode sobrescrever.
+
+================================================================================
+63. SLIM VS DEFAULT
+================================================================================
+
+Obrigatório testar os dois.
+
+Registrar:
+
+AuraPlayerModel default.
+AuraPlayerModel slim.
+
+Não usar default shell em braço slim.
+
+================================================================================
+64. SKINS COM SEGUNDA CAMADA
+================================================================================
+
+Minecraft possui hat/jacket/sleeve overlay da skin.
+
+A aura deve envolver a camada externa.
+
+Deformation precisa ser maior que outer skin layer.
+
+Testar:
+full overlay skin.
+
+================================================================================
+65. PRIMEIRA PESSOA
+================================================================================
+
+Terceira pessoa pode ter efeito completo.
+
+Primeira pessoa NÃO.
+
+Usar:
+RenderHandEvent / RenderArmEvent.
+
+NeoForge 1.21.1 possui esses eventos client-side.
+
+================================================================================
+66. PRIMEIRA PESSOA — TEN
+================================================================================
+
+Renderizar nas mãos/braços:
+
+- thin edge;
+- 1–2 filamentos;
+- bloom muito baixo.
+
+Não mostrar:
+shell na frente da câmera inteira.
+
+Ao segurar item:
+aura da mão não deve cobrir UI/item.
+
+================================================================================
+67. PRIMEIRA PESSOA — REN
+================================================================================
+
+- edge mais forte nos braços;
+- 2–4 filamentos;
+- breve peripheral glow;
+- activation pulse;
+- zero continuous camera shake.
+
+Ground pressure pode ser visto normalmente em world.
+
+================================================================================
+68. PRIMEIRA PESSOA — ZETSU
+================================================================================
+
+Nenhum efeito.
+
+================================================================================
+69. SHU FUTURO
+================================================================================
+
+Arquitetura deve permitir:
+
+AuraItemRenderLayer.
+
+Shu:
+aura segue held item.
+
+Reusar:
+shell shader
+ribbon shader.
+
+Não implementar agora se escopo é Ten/Ren/Zetsu.
+
+================================================================================
+70. GYO / RYU FUTURO
+================================================================================
+
+AuraVisualState precisa conter body weights:
+
+head
+body
+leftArm
+rightArm
+leftLeg
+rightLeg.
+
+Shader/renderer multiplica intensidade por part.
+
+Assim:
+
+Gyo braço:
+rightArm intensity 2.0
+
+Ryu:
+valores mudam dinamicamente.
+
+Ko:
+um membro extremamente forte,
+resto quase zero.
+
+================================================================================
+71. BODY PART INTENSITY
+================================================================================
+
+Exemplo:
+
+float[] partIntensity = {
+head,
+body,
+leftArm,
+rightArm,
+leftLeg,
+rightLeg
+}
+
+Cada render pass recebe valor da parte.
+
+Não duplicar shader.
+
+================================================================================
+72. EN FUTURO
+================================================================================
+
+En NÃO deve usar a body aura shell como única visualização.
+
+Criar sistema separado:
+
+EnVolumeRenderer.
+
+Mas:
+origem visual continua conectada ao player.
+
+================================================================================
+73. IN
+================================================================================
+
+In afeta visibilidade do efeito por observer.
+
+AuraVisibilityResolver:
+
+observer
+target
+targetTechnique
+observerGyo
+targetIn
+
+retorna:
+visibility 0..1.
+
+================================================================================
+74. OBSERVER-SPECIFIC RENDER
+================================================================================
+
+Cliente local já sabe:
+
+"eu devo enxergar aura deste target?"
+
+Servidor sincroniza informações adequadas.
+
+Não mandar:
+hidden aura data detalhada para qualquer cliente
+se isso puder virar cheat trivial.
+
+Para multiplayer competitivo:
+considerar observer-specific payloads.
+
+================================================================================
+75. ASSETS
+================================================================================
+
+textures/vfx/nen/
+
+aura_noise_large.png
+aura_noise_fine.png
+aura_ribbon_core.png
+aura_ribbon_soft.png
+aura_spark.png
+aura_ground_ring.png
+aura_fragment.png
+aura_debris_mask.png
+
+shaders/
+
+aura_shell.vsh
+aura_shell.fsh
+aura_ribbon.vsh
+aura_ribbon.fsh
+aura_blur_h.*
+aura_blur_v.*
+aura_composite.*
+aura_distortion.* optional
+
+================================================================================
+76. ASSET DIREÇÃO
+================================================================================
+
+NOISE:
+sem formas de nuvem.
+mais próximo de:
+veios;
+ondas;
+filamentos.
+
+RIBBON:
+centro claro.
+borda fade.
+
+SPARK:
+pequeno ponto/traço.
+não estrela cartoon.
+
+GROUND:
+arco irregular sem símbolo.
+
+================================================================================
+77. RESOLUÇÃO DOS ASSETS
+================================================================================
+
+noise:
+64x64 ou 128x128.
+
+ribbon:
+16x64 / 32x128.
+
+spark:
+16x16.
+
+ground:
+128x128.
+
+Tudo power-of-two.
+
+Minecraft 1.21.1 usa PNG no pipeline de textura.
+
+================================================================================
+78. CUSTOM RENDERTYPES
+================================================================================
+
+Criar:
+
+AURA_SHELL
+AURA_EDGE
+AURA_ADDITIVE
+AURA_RIBBON
+AURA_GROUND
+
+Objetivo:
+centralizar:
+
+blend
+depth
+cull
+shader
+texture
+write mask.
+
+Não criar RenderType novo por entidade/frame.
+
+Cache.
+
+================================================================================
+79. ALPHA VS ADDITIVE
+================================================================================
+
+Shell:
+alpha blending.
+
+Edge/ribbon core:
+additive moderado.
+
+Bloom target:
+additive contribution.
+
+Se tudo additive:
+aura fica estourada.
+
+Se tudo alpha:
+aura fica plástica.
+
+Mistura é necessária.
+
+================================================================================
+80. DEPTH WRITE
+================================================================================
+
+Aura:
+depth test ON.
+depth write normalmente OFF.
+
+Motivo:
+translucência.
+
+Mas testar sorting.
+
+Ribbons muito próximas podem provocar overdraw.
+
+================================================================================
+81. Z-FIGHTING
+================================================================================
+
+CubeDeformation impede boa parte.
+
+Nunca:
+renderizar exatamente mesma superfície.
+
+Inner:
++0.03.
+
+Edge:
++0.05.
+
+Outer:
++0.08.
+
+================================================================================
+82. TRANSPARENCY SORTING
+================================================================================
+
+Minecraft possui limitações conhecidas com translucent geometry.
+
+Reduzir problemas:
+
+- shells simples;
+- poucas camadas;
+- evitar interseções gigantes;
+- ribbons pequenas;
+- não renderizar centenas de quads sobrepostos.
+
+================================================================================
+83. PERFORMANCE — OVERDRAW
+================================================================================
+
+Aura é principalmente transparente,
+logo fill-rate importa.
+
+Pior caso:
+muitos players Ren lado a lado.
+
+Criar budget.
+
+================================================================================
+84. LOD
+================================================================================
+
+LOD0:
+0–12b.
+full shell.
+full ribbons.
+bloom.
+ground.
+sparks.
+
+LOD1:
+12–24b.
+shell.
+60% ribbons.
+bloom reduced.
+
+LOD2:
+24–48b.
+shell + edge.
+2–4 ribbons.
+sem debris.
+
+LOD3:
+48–72b.
+edge only.
+sem ribbons.
+
+LOD4:
+>72.
+off ou minimal.
+
+Ajustar conforme render distance.
+
+================================================================================
+85. RIBBON BATCHING
+================================================================================
+
+Não fazer draw call por ribbon.
+
+AuraRibbonBatch:
+
+begin
+append all ribbons same material
+end.
+
+Ideal:
+1–2 buffers por aura material.
+
+================================================================================
+86. PARTICLE BUDGET
+================================================================================
+
+Ten:
+0–4 ativos por player.
+
+Ren:
+10–24 ativos por player próximos.
+
+Debris:
+máx 12.
+
+Não 200.
+
+================================================================================
+87. BLOOM RESOLUTION
+================================================================================
+
+Default:
+half-resolution.
+
+Performance mode:
+quarter.
+
+Ultra:
+half + 2 blur iterations.
+
+Nunca full-res 5-pass por default.
+
+================================================================================
+88. CONFIG GRÁFICA
+================================================================================
+
+Nen Aura Quality:
+
+OFF
+LOW
+MEDIUM
+HIGH
+ULTRA
+
+LOW:
+single shell + edge.
+
+MEDIUM:
+shell + ribbons.
+
+HIGH:
+shell + ribbons + bloom + Ren ground.
+
+ULTRA:
+high + distortion + more ribbons.
+
+Separate toggles:
+
+Aura Bloom
+Aura Distortion
+Aura Debris
+First Person Aura
+Max Aura Distance.
+
+================================================================================
+89. AUTO QUALITY
+================================================================================
+
+Opcional:
+
+se average FPS < configured threshold por 10s:
+reduzir ribbon budget.
+
+Mas evitar mudar visual toda hora.
+
+Melhor:
+manual config inicialmente.
+
+================================================================================
+90. SOUND DESIGN
+================================================================================
+
+Aura também precisa de áudio.
+
+Ten:
+quase inaudível.
+soft energy hum.
+
+Ren:
+low-frequency pressure.
+subtle electrical/air-like tone.
+
+Zetsu:
+hum fecha rapidamente.
+
+Não usar:
+electricity sound se aura não é elétrica.
+
+Som deve ser abstrato.
+
+================================================================================
+91. TEN AUDIO
+================================================================================
+
+Loop:
+volume muito baixo.
+range curto.
+
+Pode nem ter loop em primeira versão.
+
+Activation:
+soft "whoom".
+
+================================================================================
+92. REN AUDIO
+================================================================================
+
+Activation:
+pressure burst.
+
+Loop:
+low hum + thin energy movement.
+
+Output maior:
+volume/low layer aumenta.
+
+Não usar loop alto:
+seria irritante.
+
+================================================================================
+93. ZETSU AUDIO
+================================================================================
+
+Activation:
+suction/fade.
+
+Depois:
+silêncio.
+
+================================================================================
+94. LIGHTNING VISUAL — CUIDADO
+================================================================================
+
+Referência C pode parecer elétrica.
+
+Nen genérico NÃO é eletricidade.
+
+Ribbons precisam:
+
+curvas fluidas,
+não zig-zag de raio.
+
+Killua/Hatsu elétrica:
+poderá adicionar lightning layer separada.
+
+================================================================================
+95. AURA NÃO É FOGO
+================================================================================
+
+Evitar:
+
+- pontas repetidas de chama;
+- orange/yellow;
+- sprites flame-shaped;
+- upward flicker idêntico a fire.
+
+Fluxo pode lembrar energia flame-like,
+mas deve ser abstrato.
+
+================================================================================
+96. AURA NÃO É FUMAÇA
+================================================================================
+
+Proibir:
+
+- large soft clouds;
+- billboard blobs;
+- slow drifting alpha;
+- random cloud spawn;
+- large radius haze.
+
+================================================================================
+97. CAMERA DISTANCE TEST
+================================================================================
+
+Avaliar Ten:
+
+2 blocks:
+detalhes.
+
+5:
+shell + ribbons.
+
+10:
+silhueta clara.
+
+20:
+ainda reconhecível.
+
+40:
+edge apenas.
+
+Se Ten desaparece a 5 blocos:
+edge fraco.
+
+Se parece neon a 40:
+forte demais.
+
+================================================================================
+98. LIGHT ENVIRONMENT TEST
+================================================================================
+
+Dia:
+não sumir.
+
+Noite:
+não estourar.
+
+Caverna:
+não virar fullbright branco.
+
+Nether:
+cor ainda legível.
+
+Snow:
+edge branco precisa componente azul.
+
+Water:
+render sorting.
+
+Rain:
+não conflitar.
+
+================================================================================
+99. SHADER PACKS
+================================================================================
+
+Custom shaders podem conflitar com:
+
+Iris/Oculus-like pipelines.
+other render mods.
+
+Como é modpack:
+definir stack suportado.
+
+Matriz:
+
+Vanilla renderer
+Embeddium/Sodium equivalent
+Iris/shaderpack chosen
+no shaderpack.
+
+Se bloom custom conflitar:
+fallback.
+
+================================================================================
+100. COMPATIBILITY STRATEGY
+================================================================================
+
+Core aura:
+deve funcionar sem custom post-process.
+
+Ou seja:
+
+shell + ribbons
+=
+identidade suficiente.
+
+Bloom:
+melhoria.
+
+Se bloom quebra:
+não perder aura.
+
+================================================================================
+101. RESOURCE RELOAD
+================================================================================
+
+Shaders/textures devem suportar:
+F3+T/resource reload.
+
+Aura system:
+recreate render targets.
+rebind shaders.
+clear stale references.
+
+Test obrigatório.
+
+================================================================================
+102. RESIZE
+================================================================================
+
+Ao mudar janela:
+recriar bloom targets.
+
+Handle:
+width/height.
+
+Não manter framebuffer antigo.
+
+================================================================================
+103. GUI SCALE
+================================================================================
+
+Aura world render não depende de GUI scale.
+
+First-person peripheral effect:
+usar window pixel size,
+não GUI logical size se for post effect.
+
+================================================================================
+104. PAUSE / TICK
+================================================================================
+
+AuraTime:
+
+decidir:
+render time ou game time.
+
+Preferência:
+partial-tick interpolated game time.
+
+Quando pause singleplayer:
+efeito para.
+
+Multiplayer:
+continua.
+
+================================================================================
+105. UUID SEED
+================================================================================
+
+entitySeed =
+hash(UUID).
+
+Usar para:
+ribbon phases;
+noise offsets;
+pulse offset.
+
+Resultado:
+cada aura parece ligeiramente diferente
+sem RNG por frame.
+
+================================================================================
+106. DATA-DRIVEN VISUAL PROFILE
+================================================================================
+
+Criar:
+
+AuraVisualProfile.
+
+Campos:
+
+shellInnerThickness
+shellEdgeThickness
+shellOuterThickness
+
+innerAlpha
+edgeAlpha
+outerAlpha
+
+flowSpeed
+noiseScale
+fresnelPower
+
+ribbonCount
+ribbonLength
+ribbonWidth
+
+bloom
+pressure
+sparkRate
+
+color.
+
+Salvar profiles em JSON opcionalmente.
+
+================================================================================
+107. PROFILES
+================================================================================
+
+ten_standard
+ren_standard
+zetsu
+
+future:
+ken
+hostile_ren
+boss_aura
+hatsu_custom.
+
+================================================================================
+108. EXEMPLO JSON — TEN
+================================================================================
+
+{
+  "shell": {
+    "inner_thickness": 0.032,
+    "edge_thickness": 0.052,
+    "outer_thickness": 0.078,
+    "inner_alpha": 0.055,
+    "edge_alpha": 0.20,
+    "outer_alpha": 0.035
+  },
+  "flow": {
+    "speed": 0.12,
+    "noise_scale": 1.0
+  },
+  "ribbons": {
+    "count": 8,
+    "length": 0.35,
+    "width": 0.009
+  },
+  "bloom": 0.20
+}
+
+================================================================================
+109. TRANSITIONS DATA
+================================================================================
+
+Separar perfil e transition.
+
+AuraTransitionProfile:
+
+from
+to
+duration
+curves.
+
+Curves:
+linear
+easeOut
+easeInOut
+overshoot.
+
+Ren activation:
+edge pode overshoot 10–15%.
+
+================================================================================
+110. DEBUG UI
+================================================================================
+
+Criar overlay dev:
+
+Technique
+Output
+VisualIntensity
+LOD
+Ribbon count
+Bloom target size
+GPU-ish frame timing se possível
+observer visibility.
+
+Sliders runtime:
+
+innerAlpha
+edgeAlpha
+fresnel
+flow
+ribbon count
+bloom.
+
+Isso é essencial para art direction.
+
+================================================================================
+111. DEBUG COMMANDS
+================================================================================
+
+/nenvfx on
+/nenvfx off
+
+/nenvfx state ten
+/nenvfx state ren
+/nenvfx state zetsu
+
+/nenvfx output 0.5
+/nenvfx bloom 0.4
+/nenvfx ribbons 12
+/nenvfx freeze
+/nenvfx lod 0
+
+Somente dev/op local.
+
+================================================================================
+112. CAPTURE MODE
+================================================================================
+
+Criar tecla/dev command:
+
+AuraCaptureMode.
+
+Funções:
+
+- trava hora;
+- trava weather;
+- esconde HUD;
+- força third-person;
+- coloca player em pose idle;
+- troca Ten/Ren/Zetsu.
+
+Facilita comparar com reference images.
+
+================================================================================
+113. TESTE A/B COM REFERÊNCIA
+================================================================================
+
+Capturar sempre:
+
+mesmo local;
+mesmo FOV;
+mesma hora;
+mesma skin;
+mesma distância.
+
+Comparar:
+
+Reference Ten
+vs
+Game Ten.
+
+Reference Ren
+vs
+Game Ren.
+
+Isso evita tuning no "achismo".
+
+================================================================================
+114. CRITÉRIO TEN
+================================================================================
+
+TEN aprovado se:
+
+[ ] shell acompanha corpo.
+[ ] borda clara.
+[ ] braços separados visualmente.
+[ ] ribbons nascem na superfície.
+[ ] nada parece fumaça.
+[ ] nenhum grande halo.
+[ ] não parece armor.
+[ ] funciona correndo.
+[ ] funciona crouched.
+[ ] funciona swimming.
+[ ] funciona com armor.
+[ ] legível de dia.
+[ ] não estoura à noite.
+
+================================================================================
+115. CRITÉRIO REN
+================================================================================
+
+REN aprovado se:
+
+[ ] claramente mais intenso que Ten.
+[ ] mesma linguagem visual.
+[ ] vertical streams.
+[ ] pressão no chão.
+[ ] debris pequeno.
+[ ] skin ainda legível.
+[ ] não parece raio elétrico genérico.
+[ ] não parece Super Saiyan clone.
+[ ] não bloqueia visão.
+[ ] multiplayer não destrói FPS.
+
+================================================================================
+116. CRITÉRIO ZETSU
+================================================================================
+
+[ ] aura some.
+[ ] não resta outline.
+[ ] no bloom.
+[ ] no particles.
+[ ] transition suave.
+[ ] observers veem ausência.
+[ ] local player recebe feedback de ativação apenas se necessário.
+
+================================================================================
+117. MILESTONE 0 — TECH SPIKE
+================================================================================
+
+Objetivo:
+provar que o shell funciona.
+
+Implementar:
+
+- AddLayers player.
+- AuraPlayerModel.
+- CubeDeformation.
+- single translucent RenderType.
+- no shader custom.
+- no ribbons.
+
+Saída:
+
+player com segunda camada uniforme.
+
+Se isso não acompanha animações corretamente:
+não continuar.
+
+================================================================================
+118. MILESTONE 1 — CUSTOM SHELL
+================================================================================
+
+Implementar:
+
+aura shader.
+Fresnel.
+noise.
+flow.
+inner + edge.
+
+Objetivo:
+Ten deve ficar bom sem partículas.
+
+Exit:
+screenshot já lembra referência B.
+
+================================================================================
+119. MILESTONE 2 — RIBBONS
+================================================================================
+
+Criar:
+
+anchors.
+ribbon mesh.
+batch.
+seed.
+
+Primeiro:
+4 ribbons.
+
+Depois:
+8–12.
+
+Exit:
+fluxos seguem arms/legs durante walk.
+
+================================================================================
+120. MILESTONE 3 — TEN FINAL
+================================================================================
+
+Tuning:
+shell.
+ribbons.
+color.
+audio.
+LOD.
+
+Adicionar:
+first-person.
+
+Exit:
+Ten ready.
+
+================================================================================
+121. MILESTONE 4 — REN
+================================================================================
+
+Adicionar:
+
+transition.
+larger shell.
+columns.
+higher density.
+pressure ring.
+debris.
+audio.
+activation impulse.
+
+Exit:
+Ren visually distinct.
+
+================================================================================
+122. MILESTONE 5 — BLOOM
+================================================================================
+
+Criar:
+AuraGlowTarget
+blur
+composite.
+
+Ten:
+subtle.
+
+Ren:
+strong.
+
+Fallback:
+working.
+
+================================================================================
+123. MILESTONE 6 — ZETSU
+================================================================================
+
+Transition.
+Visibility.
+No persistent effect.
+
+================================================================================
+124. MILESTONE 7 — MULTIPLAYER
+================================================================================
+
+2 players.
+
+4 players.
+
+10 dummy aura entities.
+
+Observer visibility.
+
+Output sync.
+
+================================================================================
+125. MILESTONE 8 — ARMOR / POSES
+================================================================================
+
+Test:
+
+default
+slim
+armor
+cape
+elytra
+swim
+crawl
+sleep
+ride
+bow
+crossbow
+shield
+two-handed mod weapons.
+
+================================================================================
+126. MILESTONE 9 — PERFORMANCE
+================================================================================
+
+Profile.
+
+Optimize:
+ribbon batch
+shader samples
+LOD
+bloom target.
+
+================================================================================
+127. MILESTONE 10 — READY TO PLAY
+================================================================================
+
+Final art pass.
+
+No debug dependency.
+
+Configs.
+
+Resource reload.
+
+Dedicated server.
+
+================================================================================
+128. DIVISÃO PARA DUAS PESSOAS
+================================================================================
+
+DESENVOLVEDOR A — RENDER CORE
+-----------------------------
+
+AuraPlayerRenderLayer
+Aura models
+RenderTypes
+shell shader
+bloom
+LOD
+first-person.
+
+DESENVOLVEDOR B — MOTION / ART
+------------------------------
+
+ribbon system
+textures
+noise
+ground renderer
+debris
+audio
+profiles
+debug tuning.
+
+Ambos:
+integration.
+
+================================================================================
+129. BRANCHES
+================================================================================
+
+feature/aura-shell
+feature/aura-shader
+feature/aura-ribbons
+feature/aura-ten
+feature/aura-ren
+feature/aura-bloom
+feature/aura-first-person
+feature/aura-visibility
+
+Merge nessa ordem.
+
+================================================================================
+130. TESTES AUTOMATIZÁVEIS
+================================================================================
+
+Render visual não é totalmente unit-testável.
+
+Mas testar:
+
+AuraVisualController transitions.
+
+Exemplo:
+Ten -> Ren after 1s:
+intensity reaches target.
+
+Zetsu:
+target alpha 0.
+
+LOD:
+distance 50 -> no ribbons.
+
+Visibility:
+observer without Nen -> false se regra assim exigir.
+
+================================================================================
+131. SCREENSHOT REGRESSION — RECOMENDADO
+================================================================================
+
+Criar teste/manual script com camera fixa.
+
+Screenshots de:
+
+ten_day
+ten_night
+ren_day
+ren_night
+zetsu
+armor
+slim
+
+Comparar visualmente em PRs.
+
+================================================================================
+132. PERFORMANCE TARGETS
+================================================================================
+
+Não definir target em número absoluto universal de GPU.
+
+Definir budgets relativos.
+
+Cena:
+10 players Ren em 16 blocks.
+
+Objetivo:
+aura não deve adicionar > ~20% do frame time alvo.
+
+Cena:
+20 Ten em 32 blocks.
+
+LOD deve impedir explosão de custo.
+
+Medir:
+CPU render.
+GPU time se profiler disponível.
+draw calls.
+particles.
+
+================================================================================
+133. PRINCIPAIS CUSTOS
+================================================================================
+
+1. transparency overdraw.
+2. bloom blur.
+3. ribbon vertices.
+4. multiple shell passes.
+5. multiple nearby players.
+
+Não:
+server CPU.
+
+Aura é majoritariamente client-side.
+
+================================================================================
+134. OTIMIZAÇÃO SHELL
+================================================================================
+
+Reuse baked model.
+
+Não rebuild mesh/frame.
+
+Uniforms mudam.
+
+Não alocar:
+new model
+new RenderType
+new texture
+por frame.
+
+================================================================================
+135. OTIMIZAÇÃO RIBBON
+================================================================================
+
+Pools.
+
+Reuse arrays/buffers.
+
+No garbage per frame.
+
+Preallocate max nodes.
+
+================================================================================
+136. BLOOM OPTIMIZATION
+================================================================================
+
+Half-res.
+Skip if no aura visible.
+Skip if quality LOW.
+One shared target for all auras.
+
+Não framebuffer por entidade.
+
+================================================================================
+137. GROUND RENDER OPTIMIZATION
+================================================================================
+
+Render apenas Ren nearby.
+
+No Ten.
+
+No distant.
+
+No block scan cada frame.
+
+Sample ground block:
+occasional cache.
+
+================================================================================
+138. DEBRIS OPTIMIZATION
+================================================================================
+
+Client cosmetic.
+
+No collision.
+
+No server entity.
+
+No item entity.
+
+================================================================================
+139. FIRST PERSON PERFORMANCE
+================================================================================
+
+No bloom extra pass exclusivo.
+
+Use same target if needed.
+
+No world shell around camera.
+
+================================================================================
+140. VISUAL HIERARCHY
+================================================================================
+
+Prioridade de leitura:
+
+1. personagem.
+2. aura outline.
+3. streams.
+4. ground pressure.
+5. sparks.
+
+Nunca:
+sparks > personagem.
+
+================================================================================
+141. BRIGHTNESS HIERARCHY
+================================================================================
+
+Ren:
+
+edge:
+mais brilhante.
+
+ribbon core:
+branco.
+
+shell:
+mais fraco.
+
+outer halo:
+muito fraco.
+
+Isso evita blob branco.
+
+================================================================================
+142. COLOR MANAGEMENT
+================================================================================
+
+Não saturar azul.
+
+Base:
+quase branco.
+
+Blue:
+principalmente outer tint.
+
+Referência:
+white energy with blue-lavender edge.
+
+================================================================================
+143. DAYLIGHT COMPENSATION
+================================================================================
+
+Aura precisa manter visibilidade no sol.
+
+Shader pode aplicar:
+minimum emissive.
+
+Mas não alterar dependendo da hora de forma agressiva.
+
+Use world light:
+20–40%
+emissive:
+60–80%
+aproximadamente.
+
+Testar.
+
+================================================================================
+144. NIGHT COMPENSATION
+================================================================================
+
+Em noite:
+limitar brightness.
+
+BloomStrength pode ter clamp por luminance.
+
+Evitar retina burn.
+
+================================================================================
+145. REN PRESSURE E FÍSICA
+================================================================================
+
+Visual pressure não precisa alterar blocks.
+
+Gameplay knockback:
+sistema separado.
+
+Nunca:
+VFX decide física.
+
+================================================================================
+146. INTERAÇÃO COM ÁGUA
+================================================================================
+
+Ao entrar em água:
+
+shell continua.
+
+Ribbons:
+podem reduzir vertical extent e ondular.
+
+Não obrigatório para MVP.
+
+Bloom:
+test transparency.
+
+No steam/smoke.
+
+================================================================================
+147. CHUVA
+================================================================================
+
+Aura não precisa evaporar chuva.
+
+Opcional:
+rain droplets brighten briefly perto shell.
+
+Pós-MVP.
+
+================================================================================
+148. DANOS
+================================================================================
+
+Ten hit feedback:
+
+localized ripple.
+
+Como:
+
+impactPoint
+↓
+short-lived AuraImpact
+↓
+bright arc around nearby body region.
+
+Não piscar aura inteira.
+
+================================================================================
+149. IMPACT RIPPLE
+================================================================================
+
+Duration:
+120–220 ms.
+
+Render:
+ring projected around approximate limb.
+
+Amplitude:
+depends damage.
+
+Ten defense:
+visible.
+
+Ren:
+stronger.
+
+================================================================================
+150. FUTURO — KEN
+================================================================================
+
+Ken visual:
+
+shell mais densa que Ten,
+menos explosiva que Ren.
+
+Mais estável.
+Mais espessa.
+Menos vertical columns que Ren.
+
+Arquitetura já suporta via profile.
+
+================================================================================
+151. FUTURO — KO
+================================================================================
+
+Body parts:
+
+target part intensity:
+3–5x.
+
+others:
+0.05–0.15.
+
+Ribbons convergem para part.
+
+Não criar nova render engine.
+
+================================================================================
+152. FUTURO — RYU
+================================================================================
+
+Interpolar body allocation:
+
+rightArm:
+0.2 -> 0.7 em 100ms.
+
+Shell em outras regiões cai.
+
+Essa será uma das maiores vantagens da arquitetura baseada em parts.
+
+================================================================================
+153. FUTURO — HATSU
+================================================================================
+
+Hatsu não substitui aura base.
+
+AuraStyleModifier:
+
+color override
+noise override
+extra layer
+particle layer
+material property.
+
+Ex:
+electric transmutation:
+base Nen
++
+electric arcs.
+
+================================================================================
+154. API PARA HATSU
+================================================================================
+
+interface AuraVisualModifier {
+
+    modifyProfile(...)
+    renderAdditionalLayers(...)
+}
+
+Não permitir cada Hatsu editar AuraRenderer internamente.
+
+================================================================================
+155. COMPATIBILIDADE COM NPCs
+================================================================================
+
+Criar AuraModelAdapter.
+
+Player:
+PlayerAuraAdapter.
+
+Humanoid mob:
+HumanoidAuraAdapter.
+
+GeckoLib Chimera:
+GeoAuraAdapter.
+
+Reusar shader.
+
+================================================================================
+156. GECKOLIB MOBS
+================================================================================
+
+Para custom mobs:
+
+não tentar usar PlayerModel shell.
+
+Criar duplicated/inflated GeoModel ou geometry pass específico.
+
+Ribbons usam bones GeckoLib.
+
+Sistema conceitual continua igual.
+
+================================================================================
+157. ART DIRECTION RULES — TEN
+================================================================================
+
+Ten deve ter:
+
+70% shell/edge
+25% ribbons
+5% sparks.
+
+================================================================================
+158. ART DIRECTION RULES — REN
+================================================================================
+
+Ren:
+
+45% shell/edge
+35% ribbons/columns
+15% ground pressure
+5% sparks/debris.
+
+================================================================================
+159. ART DIRECTION RULES — ZETSU
+================================================================================
+
+100% ausência.
+
+================================================================================
+160. ERROS VISUAIS QUE REPROVAM
+================================================================================
+
+REPROVAR se:
+
+- parece fogo.
+- parece fumaça.
+- parece eletricidade.
+- parece poção.
+- parece um shader de outline.
+- é esfera.
+- ribbons flutuam longe sem conexão.
+- partículas dominam.
+- aura atravessa paredes.
+- aura não acompanha braço.
+- Ren esconde skin.
+- Ten parece Ren.
+- Zetsu mantém glow.
+
+================================================================================
+161. ERROS TÉCNICOS QUE REPROVAM
+================================================================================
+
+- client class no dedicated server.
+- render target não resize.
+- F3+T crash.
+- memory leak.
+- buffer allocations/frame.
+- packet/frame.
+- observer hidden info leakage.
+- aura visible through walls.
+- slim model errado.
+- first person cobre crosshair.
+- translucent sorting severe.
+
+================================================================================
+162. RELEASE CHECKLIST
+================================================================================
+
+TEN
+[ ] third person.
+[ ] first person.
+[ ] default.
+[ ] slim.
+[ ] armor.
+[ ] day.
+[ ] night.
+[ ] cave.
+[ ] sprint.
+[ ] crouch.
+[ ] swim.
+[ ] hurt.
+
+REN
+[ ] activation.
+[ ] sustained.
+[ ] deactivation.
+[ ] ground.
+[ ] debris.
+[ ] audio.
+[ ] LOD.
+[ ] multiplayer.
+
+ZETSU
+[ ] transition.
+[ ] stable zero.
+[ ] visibility rules.
+
+SYSTEM
+[ ] config.
+[ ] bloom fallback.
+[ ] resize.
+[ ] resource reload.
+[ ] dedicated server.
+[ ] 10-player stress.
+[ ] no leaks.
+
+================================================================================
+163. ORDEM REAL DE IMPLEMENTAÇÃO
+================================================================================
+
+1. AuraVisualState.
+2. Player layer injection.
+3. AuraPlayerModel default/slim.
+4. Single shell.
+5. Custom shell shader.
+6. Fresnel.
+7. animated noise.
+8. layered shell.
+9. ribbon anchors.
+10. ribbon mesh.
+11. Ten profile.
+12. Ten transition.
+13. first person Ten.
+14. Ren profile.
+15. Ren columns.
+16. Ren ground.
+17. Ren debris.
+18. bloom.
+19. Zetsu transition.
+20. observer visibility.
+21. armor polish.
+22. LOD.
+23. performance.
+24. release polish.
+
+================================================================================
+164. PRIMEIRO PROMPT PARA CODEX/CLAUDE
+================================================================================
+
+"Implemente apenas o Milestone 0 do plano de aura:
+AuraVisualState, injeção da AuraPlayerRenderLayer em ambos modelos de player
+(default e slim) e um AuraPlayerModel inflado com CubeDeformation.
+Renderize apenas uma shell translúcida simples seguindo todas as animações.
+Não implemente partículas, ribbons, bloom ou Ren ainda.
+Garanta compatibilidade com NeoForge 1.21.1 e dedicated server.
+Crie comandos dev para ligar/desligar Ten e rode build."
+
+Depois:
+
+"Implemente Milestone 1: shader custom de shell com Fresnel, noise e fluxo vertical.
+Ten deve ficar visualmente convincente sem partículas."
+
+Depois:
+Milestone 2.
+
+Não pedir tudo de uma vez.
+
+================================================================================
+165. JUSTIFICATIVA TÉCNICA FINAL
+================================================================================
+
+A aparência das referências não deve ser interpretada como:
+
+"coloque partículas azuis ao redor do player".
+
+Ela exige:
+
+GEOMETRIA
++
+SHADER
++
+MOTION
++
+POST-PROCESS
++
+ART DIRECTION.
+
+A camada corporal garante que o efeito pertence ao personagem.
+
+O Fresnel cria o contorno.
+
+O noise impede que pareça plástico.
+
+O fluxo vertical dá vida.
+
+As ribbons criam as linhas de energia da referência.
+
+O bloom produz a luminosidade.
+
+O ground pressure diferencia Ren.
+
+Zetsu usa justamente a remoção de todos esses elementos.
+
+Esse é o caminho recomendado para chegar o mais próximo possível das referências
+sem destruir a legibilidade visual do Minecraft.
+
+================================================================================
+166. NOTAS ESPECÍFICAS DO NEOFORGE 1.21.1
+================================================================================
+
+A versão 1.21.1 está ANTES da grande mudança de EntityRenderState introduzida
+na migração 1.21.1 -> 1.21.2.
+
+Logo:
+não copiar cegamente exemplos de renderer feitos para 1.21.2+.
+
+Em 1.21.1, usar a API/eventos correspondentes da linha 21.1.x.
+
+NeoForge disponibiliza eventos client-side como:
+
+RenderPlayerEvent.Pre/Post
+RenderHandEvent
+RenderArmEvent
+
+que permitem complementar a renderização de players e mãos.
+
+Usar EntityRenderersEvent/AddLayers quando adequado para anexar layers ao player.
+
+Shading:
+1.21/1.21.1 também passou por mudanças no pipeline de RenderType/shaders,
+portanto manter shader code isolado em um módulo pequeno e version-locked.
+
+================================================================================
+167. FONTES TÉCNICAS
+================================================================================
+
+NeoForge 1.21.1 — Events
+https://docs.neoforged.net/docs/1.21.1/concepts/events/
+
+NeoForge 1.21.1 — Textures
+https://docs.neoforged.net/docs/1.21.1/resources/client/textures/
+
+NeoForge 1.21.1 — Models
+https://docs.neoforged.net/docs/1.21.1/resources/client/models/
+
+NeoForge migration 1.21 -> 1.21.1
+https://docs.neoforged.net/primer/docs/1.21.1/
+
+NeoForge migration 1.21.1 -> 1.21.2
+https://docs.neoforged.net/primer/docs/1.21.2/
+
+A migration 1.21.1 -> 1.21.2 documenta que EntityRenderState e alterações
+significativas de shader aparecem na versão seguinte, ponto importante para não
+implementar APIs incorretas no mod 1.21.1.
+
+NeoForge 1.21.1 RenderHandEvent source/javadocs:
+net.neoforged.neoforge.client.event.RenderHandEvent
+
+NeoForge 1.21.1 RenderPlayerEvent source/javadocs:
+net.neoforged.neoforge.client.event.RenderPlayerEvent
+
+================================================================================
+FIM
+================================================================================

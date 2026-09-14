@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.nen.aura;
 
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
+import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
@@ -50,6 +51,13 @@ public final class PresencaDeAura {
         }
         if (ativas.contains(Zetsu.ID)) {
             return SinalDeAura.NENHUM;
+        }
+        // KEN ANTES DE REN: os dois se excluem hoje, entao a disputa nao
+        // acontece em jogo -- e por isso a ordem precisa estar escrita antes
+        // da primeira tecnica que combine com os dois. Ken e o envelope maior,
+        // e quem esta perto sente o maior.
+        if (ativas.contains(Ken.ID)) {
+            return SinalDeAura.KEN;
         }
         if (ativas.contains(Ren.ID)) {
             return SinalDeAura.REN;

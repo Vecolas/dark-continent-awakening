@@ -4,6 +4,8 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.function.BiConsumer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -18,6 +20,7 @@ public final class NenTickScheduler {
             com.mojang.logging.LogUtils.getLogger();
 
     private static final Despachante<ServerPlayer> CENTRAL = new Despachante<>();
+    private static final Set<java.util.UUID> AUSENCIAS_REPORTADAS = new HashSet<>();
 
     /**
      * Subsistemas que tickam UMA vez por tick, e nao uma vez por jogador.
@@ -96,6 +99,14 @@ public final class NenTickScheduler {
             }
         }
         for (ServerPlayer jogador : evento.getServer().getPlayerList().getPlayers()) {
+            if (!NenRuntimeService.temSessao(jogador)) {
+                if (AUSENCIAS_REPORTADAS.add(jogador.getUUID())) {
+                    LOG.error("Jogador {} sem RuntimeNenState; tick de Nen ignorado até a sessão ser iniciada.",
+                            jogador.getGameProfile().getName());
+                }
+                continue;
+            }
+            AUSENCIAS_REPORTADAS.remove(jogador.getUUID());
             try {
                 CENTRAL.executar(jogador, NenRuntimeService.estadoDe(jogador));
             } catch (RuntimeException falha) {

@@ -78,6 +78,12 @@ public final class NenRuntimeService {
         return ESTADOS.size();
     }
 
+    /** Consulta usada pelo scheduler para não transformar ausência em spam por tick. */
+    static boolean temSessao(ServerPlayer jogador) {
+        Objects.requireNonNull(jogador, "jogador");
+        return ESTADOS.containsKey(jogador.getUUID());
+    }
+
     static void encerrarTodasAsSessoes() {
         for (UUID id : Set.copyOf(ESTADOS.keySet())) encerrarSessao(id);
         ESTADOS.clear();

@@ -69,6 +69,17 @@ public final class EnemySoundEvents {
 
     private EnemySoundEvents() { }
 
+    /**
+     * Forca a construcao dos holders enquanto o mod ainda esta no bootstrap.
+     *
+     * <p>Os sons compartilham o {@link NenSoundEvents#SOUND_EVENTS}; se esta
+     * classe so for tocada pelo primeiro dano de um mob, o {@code DeferredRegister}
+     * ja recebeu o {@code RegisterEvent} e a tentativa de adicionar a voz falha
+     * dentro do tick. O ponto de entrada chama este metodo antes de registrar a
+     * fila, e depois deste momento a classe fica somente-leitura.</p>
+     */
+    public static void inicializarDuranteBootstrap() { }
+
     private static DeferredHolder<SoundEvent, SoundEvent> registrar(String mob, String momento) {
         String id = "entity." + mob + "." + momento;
         return NenSoundEvents.SOUND_EVENTS.register(id,

@@ -15,9 +15,8 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Medida | Valor |
 | --- | --- |
-| Testes JUnit na trilha inteira | 971 executados, 0 falhas |
-| GameTests escritos para o Boneco de Treino | 11 |
-| GameTests **executados** | **0** — `runGameTestServer` não rodou |
+| Testes JUnit na trilha inteira | **1.409 executados, 0 falhas** |
+| GameTests da trilha de inimigos | **143 executados, 0 falhas** |
 | Ids de inimigo registrados | 24 (7 do exame + 7 de Greed Island + 9 de Chimera + o boneco) |
 | Arquivos de som gerados e conferidos | 120, todos Ogg Vorbis validados byte a byte |
 | Geradores de arte com validação semântica | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, Wolf Pack Hunter, King White Stag Beetle, Boneco de Treino |
@@ -30,11 +29,11 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Item | Estado | Evidência |
 | --- | --- | --- |
-| build verde, contagem > 0 | ✅ | 971 testes |
+| build verde, contagem > 0 | ✅ | 1.409 testes |
 | datagen auditado quando dados mudarem | ✅ | loot, lang, `sounds.json` e tags conferidos por portão, não por leitura |
-| GameTests do dummy cobrem percepção, fases, hitbox, weak point e stagger | 🟡 | **escritos, não executados** |
+| GameTests do dummy cobrem percepção, fases, hitbox, weak point e stagger | ✅ | executados dentro dos 143 GameTests |
 | `runClient` renderiza e anima o dummy | ⬜ | não executado |
-| `runServer` chega a `Done` | ⬜ | não executado |
+| `runServer` chega a `Done` | ✅ | servidor dedicado chegou a `Done` nesta passagem |
 | dois jogadores confirmam autoridade e action sync | ⬜ | não executado |
 | gate de import client/common com caso canário | ✅ | `PacotesDeclaradosTest`, pré-existente |
 | gate de asset/JSON ausente com caso canário | ✅ | `CoerenciaDeGeckoLibTest` reprovou de verdade 4 vezes durante esta trilha |

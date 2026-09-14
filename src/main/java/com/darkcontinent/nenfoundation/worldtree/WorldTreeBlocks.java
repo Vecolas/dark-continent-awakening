@@ -17,24 +17,24 @@ public final class WorldTreeBlocks {
     public static final DeferredRegister.Blocks BLOCKS =
             DeferredRegister.createBlocks(NenFoundation.MOD_ID);
 
-    private static final BlockBehaviour.Properties BARK = BlockBehaviour.Properties.of()
+    /** Obsidian-equivalent mining/blast profile for every harvestable tree block. */
+    private static BlockBehaviour.Properties structuralProperties() {
+        return BlockBehaviour.Properties.of().strength(50.0F, 1200.0F)
+                .requiresCorrectToolForDrops();
+    }
+
+    private static final BlockBehaviour.Properties BARK = structuralProperties()
             .mapColor(MapColor.WOOD)
-            .strength(6.0F, 1200.0F)
-            .sound(SoundType.WOOD)
-            .requiresCorrectToolForDrops();
-    private static final BlockBehaviour.Properties WOOD = BlockBehaviour.Properties.of()
+            .sound(SoundType.WOOD);
+    private static final BlockBehaviour.Properties WOOD = structuralProperties()
             .mapColor(MapColor.WOOD)
-            .strength(4.0F, 300.0F)
-            .sound(SoundType.WOOD)
-            .requiresCorrectToolForDrops();
-    private static final BlockBehaviour.Properties LEAVES = BlockBehaviour.Properties.of()
+            .sound(SoundType.WOOD);
+    private static final BlockBehaviour.Properties LEAVES = structuralProperties()
             .mapColor(MapColor.COLOR_GREEN)
-            .strength(0.35F)
             .sound(SoundType.GRASS)
             .noOcclusion();
-    private static final BlockBehaviour.Properties MOSS = BlockBehaviour.Properties.of()
+    private static final BlockBehaviour.Properties MOSS = structuralProperties()
             .mapColor(MapColor.COLOR_GREEN)
-            .strength(0.6F)
             .sound(SoundType.MOSS);
 
     public static final DeferredBlock<Block> WORLD_TREE_BARK = BLOCKS.registerSimpleBlock("world_tree_bark", BARK);
@@ -57,25 +57,31 @@ public final class WorldTreeBlocks {
     public static final DeferredBlock<Block> WORLD_TREE_LEAVES_PALE = BLOCKS.registerSimpleBlock("world_tree_leaves_pale", LEAVES);
 
     public static final DeferredBlock<Block> WORLD_TREE_VINE = BLOCKS.registerSimpleBlock("world_tree_vine",
-            BlockBehaviour.Properties.ofFullCopy(Blocks.VINE).noOcclusion());
+            BlockBehaviour.Properties.ofFullCopy(Blocks.VINE).strength(50.0F, 1200.0F)
+                    .requiresCorrectToolForDrops().noOcclusion());
     public static final DeferredBlock<Block> WORLD_TREE_THICK_VINE = BLOCKS.registerSimpleBlock("world_tree_thick_vine",
-            BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).strength(0.2F)
+            BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).strength(50.0F, 1200.0F)
+                    .requiresCorrectToolForDrops()
                     .sound(SoundType.GRASS).noOcclusion());
 
     public static final DeferredBlock<Block> WORLD_TREE_MOSS = BLOCKS.registerSimpleBlock("world_tree_moss", MOSS);
     public static final DeferredBlock<Block> WORLD_TREE_MOSS_CARPET = BLOCKS.register("world_tree_moss_carpet",
-            () -> new CarpetBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.MOSS_CARPET)));
+            () -> new CarpetBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.MOSS_CARPET)
+                    .strength(50.0F, 1200.0F).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> WORLD_TREE_RESIN = BLOCKS.registerSimpleBlock("world_tree_resin",
-            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(1.0F)
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(50.0F, 1200.0F)
+                    .requiresCorrectToolForDrops()
                     .sound(SoundType.GLASS).noOcclusion());
     public static final DeferredBlock<Block> WORLD_TREE_RESIN_VEIN = BLOCKS.registerSimpleBlock("world_tree_resin_vein",
-            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(1.0F)
+            BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(50.0F, 1200.0F)
+                    .requiresCorrectToolForDrops()
                     .sound(SoundType.GLASS).noOcclusion());
     public static final DeferredBlock<Block> WORLD_TREE_DEADWOOD = BLOCKS.registerSimpleBlock("world_tree_deadwood", WOOD);
     public static final DeferredBlock<Block> HUNTER_CLIMBING_ANCHOR = BLOCKS.register(
             "hunter_climbing_anchor", () -> new HunterClimbingAnchorBlock(
                     BlockBehaviour.Properties.of().mapColor(MapColor.METAL)
-                            .strength(2.0F, 1200.0F).sound(SoundType.METAL)));
+                            .strength(50.0F, 1200.0F).requiresCorrectToolForDrops()
+                            .sound(SoundType.METAL)));
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);

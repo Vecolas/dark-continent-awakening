@@ -2,7 +2,6 @@ package com.darkcontinent.nenfoundation.worldtree.travel;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeDebugCommands;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +56,7 @@ public final class WorldTreeTravelService {
         if (destination == null) {
             return;
         }
-        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(overworld.getSeed(), 0, 0);
+        WorldTreeLayout layout = data.layoutForGeneration(overworld.getSeed());
         double localX = player.getX() - data.overworldOriginX();
         double localZ = player.getZ() - data.overworldOriginZ();
         double localY = 48.0 + (player.getY() - BASE_TRANSITION_Y);

@@ -35,6 +35,9 @@ import net.minecraft.world.level.block.Blocks;
  * separa o risco de registro/dimension type do risco de worldgen procedural.
  */
 public final class WorldTreeChunkGenerator extends ChunkGenerator {
+    private transient long cachedLayoutSeed = Long.MIN_VALUE;
+    private transient WorldTreeLayout cachedLayout;
+
     public static final MapCodec<WorldTreeChunkGenerator> CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source")
@@ -60,15 +63,24 @@ public final class WorldTreeChunkGenerator extends ChunkGenerator {
     @Override
     public void buildSurface(WorldGenRegion level, StructureManager structureManager,
             RandomState random, ChunkAccess chunk) {
-        // O seed do mundo existe neste estagio e evita uma seed fixa silenciosa.
-        WorldTreeTrunkGenerator.generate(chunk, level.getSeed());
-        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(level.getSeed(), 0, 0);
+        // O layout e imutavel para a seed: gerar uma vez evita reconstruir o grafo
+        // de galhos e anchors para cada chunk solicitado pela dimensao.
+        WorldTreeLayout layout = layoutFor(level.getSeed());
+        WorldTreeTrunkGenerator.generate(chunk, layout);
         WorldTreeBranchGenerator.generate(chunk, layout);
         WorldTreeCrownGenerator.generate(chunk, layout);
         WorldTreeCanopyGenerator.generate(chunk, layout);
         WorldTreeCheckpointGenerator.generate(chunk, layout);
         WorldTreeHollowGenerator.generate(chunk, layout);
         WorldTreeFloraGenerator.generate(chunk, layout);
+    }
+
+    private synchronized WorldTreeLayout layoutFor(long seed) {
+        if (cachedLayout == null || cachedLayoutSeed != seed) {
+            cachedLayout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            cachedLayoutSeed = seed;
+        }
+        return cachedLayout;
     }
 
     @Override

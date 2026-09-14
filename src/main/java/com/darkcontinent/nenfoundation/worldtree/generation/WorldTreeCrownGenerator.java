@@ -24,15 +24,28 @@ public final class WorldTreeCrownGenerator {
         generateLeader(chunk, position, minX, minZ, maxX, maxZ, layout);
     }
 
+    public static WorldTreePoint leaderCenter(int y, long seed) {
+        double t = Math.max(0.0, Math.min(1.0, (y - LEADER_BOTTOM)
+                / (double) (LEADER_TOP - LEADER_BOTTOM)));
+        return new WorldTreePoint(
+                Math.sin(y * 0.018 + seed * 0.0000011) * (1.5 + t * 2.5),
+                y,
+                Math.cos(y * 0.015 - seed * 0.0000017) * (1.5 + t * 2.0));
+    }
+
+    public static double leaderRadius(int y) {
+        double t = Math.max(0.0, Math.min(1.0, (y - LEADER_BOTTOM)
+                / (double) (LEADER_TOP - LEADER_BOTTOM)));
+        return 19.0 - t * 12.0;
+    }
+
     private static void generateLeader(ChunkAccess chunk, BlockPos.MutableBlockPos position,
             int minX, int minZ, int maxX, int maxZ, WorldTreeLayout layout) {
         for (int y = LEADER_BOTTOM; y <= LEADER_TOP; y++) {
-            double t = (double) (y - LEADER_BOTTOM) / (LEADER_TOP - LEADER_BOTTOM);
-            double x = Math.sin(y * 0.018 + layout.seed() * 0.0000011) * (1.5 + t * 2.5);
-            double z = Math.cos(y * 0.015 - layout.seed() * 0.0000017) * (1.5 + t * 2.0);
-            double radius = 19.0 - t * 12.0;
+            WorldTreePoint leader = leaderCenter(y, layout.seed());
+            double radius = leaderRadius(y);
             placeEllipsoid(chunk, position, minX, minZ, maxX, maxZ,
-                    new WorldTreePoint(x, y, z), radius, radius * 0.78, layout.seed());
+                    leader, radius, radius * 0.78, layout.seed());
         }
     }
 

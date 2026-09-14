@@ -35,6 +35,8 @@ public final class WorldTreeSavedData extends SavedData {
     private boolean firstReachedCrown;
     private boolean summitReached;
     private final Set<Long> generatedBaseChunks = new HashSet<>();
+    private transient long cachedLayoutSeed = Long.MIN_VALUE;
+    private transient WorldTreeLayout cachedLayout;
 
     public static SavedData.Factory<WorldTreeSavedData> factory() {
         return new SavedData.Factory<>(WorldTreeSavedData::new, WorldTreeSavedData::load, null);
@@ -93,6 +95,19 @@ public final class WorldTreeSavedData extends SavedData {
     public boolean firstReachedCrown() { return firstReachedCrown; }
     public boolean summitReached() { return summitReached; }
     public boolean isBaseChunkGenerated(long chunk) { return generatedBaseChunks.contains(chunk); }
+
+    /**
+     * Layout is derived from saved identity and seed, so it is cached only in
+     * memory and never serialized as a second source of world truth.
+     */
+    public synchronized WorldTreeLayout layoutForGeneration(long seed) {
+        if (cachedLayout == null || cachedLayoutSeed != seed) {
+            cachedLayout = WorldTreeLayoutGenerator.generate(seed, generationVersion,
+                    overworldOriginX, overworldOriginZ);
+            cachedLayoutSeed = seed;
+        }
+        return cachedLayout;
+    }
 
     public boolean markBaseChunkGenerated(long chunk) {
         if (!generatedBaseChunks.add(chunk)) {

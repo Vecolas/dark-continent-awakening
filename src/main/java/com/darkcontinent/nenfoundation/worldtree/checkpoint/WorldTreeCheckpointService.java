@@ -1,6 +1,8 @@
 package com.darkcontinent.nenfoundation.worldtree.checkpoint;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeDebugCommands;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -83,10 +85,10 @@ public final class WorldTreeCheckpointService {
         if (destination == null) {
             return false;
         }
-        double radius = Math.max(18.0D, com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator
-                .generate(destination.getSeed(), 0, 0).trunk()
-                .radiusAt(Math.min(target.y(), 1200)));
-        player.teleportTo(destination, radius + 1.5D, target.y(), 0.5D,
+        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(destination.getSeed(), 0, 0);
+        BlockPos checkpoint = WorldTreeCheckpointGenerator.anchorPosition(layout, target);
+        player.teleportTo(destination, checkpoint.getX() + 0.5D, target.y(),
+                checkpoint.getZ() + 0.5D,
                 player.getYRot(), player.getXRot());
         return true;
     }
@@ -108,8 +110,11 @@ public final class WorldTreeCheckpointService {
         if (checkpoint == null) {
             return false;
         }
-        return player.getX() >= 16 && player.getX() <= 60
-                && Math.abs(player.getZ()) <= 8;
+        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(player.serverLevel().getSeed(), 0, 0);
+        BlockPos anchor = WorldTreeCheckpointGenerator.anchorPosition(layout, checkpoint);
+        double dx = player.getX() - (anchor.getX() + 0.5D);
+        double dz = player.getZ() - (anchor.getZ() + 0.5D);
+        return dx * dx + dz * dz <= 64.0D;
     }
 
     private static WorldTreePlayerProgressSavedData progress(ServerLevel anyLevel) {

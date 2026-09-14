@@ -18,6 +18,8 @@ public record WorldTreeLayout(
         WorldTreeTrunkProfile trunk,
         List<WorldTreeSpline> roots,
         List<WorldTreeSpline> branches,
+        List<WorldTreeBranchNode> branchNodes,
+        List<WorldTreeFoliageAnchor> foliageAnchors,
         List<WorldTreeHollow> hollows,
         List<WorldTreeLandmark> landmarks) {
 
@@ -28,6 +30,8 @@ public record WorldTreeLayout(
         trunk = Objects.requireNonNull(trunk, "trunk");
         roots = List.copyOf(Objects.requireNonNull(roots, "roots"));
         branches = List.copyOf(Objects.requireNonNull(branches, "branches"));
+        branchNodes = List.copyOf(Objects.requireNonNull(branchNodes, "branchNodes"));
+        foliageAnchors = List.copyOf(Objects.requireNonNull(foliageAnchors, "foliageAnchors"));
         hollows = List.copyOf(Objects.requireNonNull(hollows, "hollows"));
         landmarks = List.copyOf(Objects.requireNonNull(landmarks, "landmarks"));
         if (roots.size() < 8 || roots.size() > 14) {

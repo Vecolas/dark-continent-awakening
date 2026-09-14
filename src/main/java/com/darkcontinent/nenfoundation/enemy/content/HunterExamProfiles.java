@@ -10,6 +10,7 @@ import com.darkcontinent.nenfoundation.enemy.ai.NestGuardRules;
 import com.darkcontinent.nenfoundation.enemy.combat.AttackDefinition;
 import com.darkcontinent.nenfoundation.enemy.combat.ChargeRules;
 import com.darkcontinent.nenfoundation.enemy.combat.GrabRules;
+import com.darkcontinent.nenfoundation.enemy.combat.StaggerRules;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPoint;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointRegistry;
 import com.darkcontinent.nenfoundation.enemy.combat.WeakPointResolver;
@@ -433,7 +434,11 @@ public final class HunterExamProfiles {
                 "spider_eagle", spiderEagle(),
                 "master_of_the_swamp", masterOfTheSwamp(),
                 "kiriko", kiriko(),
-                "foxbear", foxbear());
+                "foxbear", foxbear(),
+                // Ferramenta, e nao conteudo -- mas dentro do portao pelo mesmo
+                // motivo que todos os outros: fora daqui ele ficaria sem
+                // conferencia de atributos, loot e traducao.
+                "dummy_enemy", dummyEnemy());
     }
 
     public static EnemyDefinition foxbear() {
@@ -441,6 +446,107 @@ public final class HunterExamProfiles {
                 new EnemyAttributes(44, 0.25F, 6, 2, 20, 0.25F),
                 spawn("#nenfoundation:foxbear_biomes", 0, 12, true, false, 3,
                         SpawnProfile.ON_GROUND, new SpawnCaps(3, 64, 24)));
+    }
+
+
+    // ====================================================================
+    // BONECO DE TREINO -- a entidade descartavel da issue #138.
+    //
+    // Ele esta aqui, no arquivo dos perfis do exame, por um motivo de PORTAO e
+    // nao de tema: FilaUnicaDeInimigosTest exige que todo id registrado apareca
+    // em publicados(). Um dummy de fora dessa lista ficaria SEM portao -- sem
+    // conferencia de atributos, de loot nem de traducao -- e seria exatamente o
+    // buraco que a issue #266 pagou caro para fechar. O comentario existe para
+    // que a proxima pessoa nao "arrume" isso movendo o perfil para outro lugar.
+    // ====================================================================
+
+    /**
+     * HP 30, dano 4, velocidade 0.22, armadura 0 -- corpo de FERRAMENTA.
+     *
+     * <p>Os numeros existem para o boneco ser mensuravel, e nao para ele ser um
+     * bom combate: vida redonda para contar golpes, armadura zero para o dano
+     * chegar inteiro, e velocidade baixa para caber numa arena pequena. Se
+     * alguem "equilibrar" isto, perde-se a unica coisa que ele oferece, que e
+     * ser previsivel.</p>
+     *
+     * <p>ENCOUNTER_ONLY, e isso e o mais importante da ficha: sem esse perfil o
+     * boneco entraria na lista de bioma e o mundo ficaria salpicado de
+     * ferramenta de teste -- sem erro nenhum, porque cada um seria uma entidade
+     * legitima. Ele chega por comando de dev e por arena.</p>
+     *
+     * <p>territorial=false e social=false: ele nao defende lugar nenhum e nao
+     * anda em grupo. O teto de 1 por chunk existe para a arena nao virar
+     * multidao quando alguem repetir o comando sem pensar.</p>
+     */
+    public static EnemyDefinition dummyEnemy() {
+        return new EnemyDefinition(
+                new EnemyMetadata(ResourceLocation.fromNamespaceAndPath(MOD, "dummy_enemy"),
+                        // ORIGINAL_COMPATIBLE, e nao CANON_EXACT: nao existe boneco de
+                        // treino em Hunter x Hunter, e marcar canon aqui faria o rotulo
+                        // mentir justamente no unico mob que nao e conteudo.
+                        CanonLevel.ORIGINAL_COMPATIBLE, EnemyFaction.CUSTOM,
+                        ThreatTier.LOW, false, false, "dummy_enemy"),
+                new EnemyAttributes(30, 0.22F, 4, 0, 20, 0.0F),
+                new SpawnRule(Set.of(), Set.of("minecraft:overworld"), 0, 15,
+                        true, false, false, 1,
+                        SpawnProfile.ENCOUNTER_ONLY, new SpawnCaps(1, 0, 0)));
+    }
+
+    /**
+     * Golpe de 10 ticks de aviso, 4 de janela e 12 de recuperacao.
+     *
+     * <p>O DANO NAO E UM NUMERO PROPRIO: e lido de {@link #dummyEnemy()}, porque
+     * o golpe e o unico ataque dele. Repetir o 4 aqui criaria duas fontes para a
+     * mesma verdade, e girar o atributo numa sessao de balanceamento mudaria o
+     * golpe em jogo sem mudar este numero.</p>
+     *
+     * <p>Os 26 ticks totais sao o MESMO orcamento que
+     * {@code dummy_enemy_animacoes.py} declara, e a regua de arte reprova se a
+     * soma dos tres clipes ficar abaixo dele. Clipe curto demais faz o boneco
+     * relaxar no meio do golpe que ainda vai acertar -- dano certo, log limpo, e
+     * a unica leitura do jogador quebrada.</p>
+     */
+    public static AttackDefinition dummyEnemyStrike() {
+        return new AttackDefinition("strike", 10, 4, 12,
+                dummyEnemy().attributes().attackDamage(), 0.4F, true, false, true);
+    }
+
+    /** O alvo pintado no peito vale o dobro; o resto do saco e corpo comum. */
+    public static WeakPointRegistry dummyEnemyWeakPoints() {
+        return new WeakPointRegistry(Map.of("target", new WeakPoint("target", "torso", 2.0F, true)));
+    }
+
+    /**
+     * Geometria do alvo: acima de 45% da caixa e dentro de um cone frontal largo.
+     *
+     * <p>O 0.45 e o alvo PINTADO, medido: o anel ocupa y 14..18 num boneco de
+     * 30.4 px, ou seja 0.46 da altura. O gerador de textura confere este mesmo
+     * numero e REPROVOU a primeira versao, que trazia 0.55 copiado de outro mob
+     * -- com ela o desenho prometeria um acerto que a regra nao paga, e nao
+     * haveria erro nenhum para procurar.</p>
+     *
+     * <p>O cosseno 0.4 e largo (cerca de 66 graus para cada lado) porque o
+     * boneco e uma ferramenta de medida: exigir mira precisa transformaria o
+     * teste de ponto fraco num teste de pontaria.</p>
+     */
+    public static WeakPointResolver dummyEnemyWeakPoint() {
+        return new WeakPointResolver("target", "body", 0.45D, 0.4D);
+    }
+
+    /**
+     * Limiar 12, resistencia 1, decaimento 0.4 por tick, 30 ticks de cambaleio.
+     *
+     * <p>Os quatro se leem JUNTOS, e a conta e a licao do boneco: com 30 de vida
+     * e resistencia 1, tres golpes de 5 (quatro efetivos cada) chegam ao limiar
+     * -- ou UM golpe no alvo, que vale o dobro. Acertar o alvo interrompe mais
+     * depressa do que bater em qualquer lugar, e e isso que o boneco ensina.</p>
+     *
+     * <p>O decaimento de 0.4 esvazia o acumulado em 30 ticks. Menor que isso e o
+     * stagger viraria um contador de vida inteira; maior, e acumular seria
+     * impossivel e o mob nunca cambalearia -- e nenhum dos dois daria erro.</p>
+     */
+    public static StaggerRules dummyEnemyStagger() {
+        return new StaggerRules(12.0F, 1.0F, 0.4F, 30);
     }
 
     private static EnemyMetadata metadata(String id, ThreatTier tier, boolean territorial, boolean social) {

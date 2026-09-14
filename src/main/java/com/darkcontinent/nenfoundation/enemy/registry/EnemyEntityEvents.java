@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -33,6 +34,7 @@ public final class EnemyEntityEvents {
                 MasterOfTheSwampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FOXBEAR.get(), FoxbearEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.DUMMY_ENEMY.get(), DummyEnemyEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -93,8 +95,40 @@ public final class EnemyEntityEvents {
         // pessoa achar que ha um motivo escondido.
         registrarPeloPerfil(event, EnemyEntityTypes.FOXBEAR.get(),
                 HunterExamProfiles.foxbear().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()));
+
+        // O boneco de treino fecha a fila e NAO ganha placement: ele e
+        // ENCOUNTER_ONLY. A linha existe para o portao poder ver que alguem
+        // DECIDIU isso, em vez de ver um id simplesmente ausente.
+        semPlacementNatural(EnemyEntityTypes.DUMMY_ENEMY.get(),
+                HunterExamProfiles.dummyEnemy().spawnRule());
     }
 
+
+    /**
+     * Declara, com todas as letras, que este tipo NAO nasce pelo mundo.
+     *
+     * <p>Ela nao registra nada, e e esse o ponto. O portao
+     * {@code FilaUnicaDeInimigosTest} exige que todo id registrado apareca neste
+     * metodo -- e a exigencia e certa: um id que nao aparece aqui e um id que
+     * ninguem conferiu. Sem esta funcao, a unica forma de satisfazer o portao
+     * seria dar placement natural ao boneco, que e justamente o vazamento que o
+     * perfil ENCOUNTER_ONLY existe para impedir. O silencio viraria um chefe
+     * nascendo no mato porque um portao pediu.</p>
+     *
+     * <p>E ela MORDE: um tipo que chegue aqui com perfil natural reprova no
+     * carregamento. Sem isso, marcar "sem placement" viraria a saida facil para
+     * quem nao quisesse escrever o predicado, e o mob ficaria sem nascer sem que
+     * nada acusasse.</p>
+     */
+    private static void semPlacementNatural(net.minecraft.world.entity.EntityType<?> tipo,
+            SpawnRule regra) {
+        if (regra.profile().registraPlacement()) {
+            throw new IllegalStateException(tipo.getDescriptionId() + " foi declarado SEM placement"
+                    + " natural, mas o perfil " + regra.profile() + " nasce pelo mundo. Ou o perfil"
+                    + " esta errado, ou o mob vai deixar de aparecer -- e a segunda leitura nao"
+                    + " produz erro nenhum, so um bioma vazio.");
+        }
+    }
 
     /**
      * Registra o placement LENDO o perfil -- placement, heightmap e a pergunta

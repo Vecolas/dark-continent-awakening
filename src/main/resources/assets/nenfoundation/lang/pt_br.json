@@ -87,6 +87,7 @@
   "nenfoundation.error.aura_invalida": "Quantidade de aura invalida.",
   "nenfoundation.error.aura_insuficiente": "Aura insuficiente.",
   "nenfoundation.error.output_excedido": "Teto de output atingido neste tick.",
+  "entity.nenfoundation.dummy_enemy": "Boneco de Treino",
   "entity.nenfoundation.foxbear": "Urso-Raposa",
   "item.nenfoundation.foxbear_field_note": "Nota de campo do Urso-Raposa",
   "item.nenfoundation.great_stamp_field_note": "Nota de campo do Great Stamp",

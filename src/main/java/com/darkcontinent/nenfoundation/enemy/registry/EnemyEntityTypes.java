@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -90,6 +91,21 @@ public final class EnemyEntityTypes {
             TYPES.register("foxbear",
                     () -> EntityType.Builder.of(FoxbearEntity::new, MobCategory.CREATURE)
                             .sized(1.4F, 1.35F).build(NenFoundation.id("foxbear").toString()));
+
+    // Caixa de BONECO: 0.8 x 1.9, quase a de um jogador. E deliberado -- o
+    // boneco existe para medir alcance de golpe, distancia de percepcao e
+    // acerto de ponto fraco, e medir isso contra uma caixa que nao se parece com
+    // a do jogador daria numeros que nao valem para o unico alvo que importa.
+    //
+    // MobCategory.MISC, e nao CREATURE: a categoria escolhe a lista de spawn que
+    // o biome modifier alimenta, e MISC nao tem lista. E a segunda tranca do
+    // mesmo cadeado que SpawnProfile.ENCOUNTER_ONLY ja fecha -- duas porque o
+    // vazamento nao daria erro nenhum, so encheria o mundo de ferramenta de
+    // teste, e cada uma seria uma entidade legitima.
+    public static final DeferredHolder<EntityType<?>, EntityType<DummyEnemyEntity>> DUMMY_ENEMY =
+            TYPES.register("dummy_enemy",
+                    () -> EntityType.Builder.of(DummyEnemyEntity::new, MobCategory.MISC)
+                            .sized(0.8F, 1.9F).build(NenFoundation.id("dummy_enemy").toString()));
 
     private EnemyEntityTypes() { }
     public static void register(IEventBus bus) { TYPES.register(bus); }

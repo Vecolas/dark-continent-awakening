@@ -82,7 +82,10 @@ public final class EnemyRuntime {
             int ticksDeRecargaAposInterrupcao) {
         StaggerResult resultado = stagger.acumular(instanciaDeAtaque, valorBruto);
         if (resultado == StaggerResult.DISPAROU) {
-            ataques.reset();
+            // Com recarga, e nao reset seco: reset devolve a fase para IDLE e o
+            // mob interrompido poderia atacar no MESMO tick em que cambaleou --
+            // sem erro nenhum, e com o jogador aprendendo a nao interromper.
+            ataques.resetComRecarga(ticksDeRecargaAposInterrupcao);
         }
         return resultado;
     }

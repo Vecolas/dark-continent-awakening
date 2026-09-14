@@ -228,6 +228,7 @@ que **é** verificável está em [`av-aura-visual.md`](av-aura-visual.md).
 | A série de distância do jogador LOCAL não exercita LOD | a distância dele para a própria câmera é zero, e o nível fica sempre `FULL`. Uma série `2b..40b` tirada em si mesmo mede tamanho na tela, e não a tabela de corte | quando a série for tirada com um segundo jogador |
 | O contador de chamadas de desenho não é tempo de quadro | ele conta descargas de lote de aura, o que é um proxy. Memória, tempo de quadro e alocação por quadro continuam sem régua | AV8, com `spark` |
 | O commit no nome da captura é o commit do **build**, não o da árvore | com mudança não commitada em cima, a imagem aponta para um código que não é exatamente o que gerou ela | nunca; é o custo aceito por não ter git em runtime |
+| O áudio de Ten ainda não foi ouvido por duas pessoas | o portão automático prova o contêiner Ogg, mono, duração, registro, legenda e borda `OFF → TEN`; não prova que o timbre evita eletricidade, que a atenuação parece natural nem que vinte minutos sem loop são a decisão certa | gate humano do AV3 (#187) |
 
 As antigas alegações de impossibilidade de dois clientes e falta de resync
 foram superadas pela QA M1/M2. A evidência atual está em

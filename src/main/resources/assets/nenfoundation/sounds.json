@@ -1,0 +1,12 @@
+{
+  "vfx.nen.ten_activate": {
+    "subtitle": "subtitles.nenfoundation.vfx.nen.ten_activate",
+    "sounds": [
+      {
+        "name": "nenfoundation:vfx/nen/ten_activate",
+        "stream": false,
+        "attenuation_distance": 10
+      }
+    ]
+  }
+}

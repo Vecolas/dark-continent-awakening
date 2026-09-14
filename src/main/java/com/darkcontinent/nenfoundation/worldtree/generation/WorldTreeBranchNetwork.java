@@ -36,7 +36,12 @@ public final class WorldTreeBranchNetwork {
         double parentAngle = Math.atan2(last.z() - first.z(), last.x() - first.x());
         for (int child = 0; child < count; child++) {
             double t = firstT + child * 0.19;
-            WorldTreePoint origin = WorldTreeRootGenerator.bezier(parent, t);
+            // A CURVA VEM DA PROPRIA SPLINE, e nao do gerador de raizes.
+            // Chamar `WorldTreeRootGenerator.bezier` aqui arrastava uma classe
+            // que importa ChunkAccess para dentro do calculo de layout -- e com
+            // isso a rede de galhos, que e matematica pura, so podia ser
+            // executada com o Minecraft de pe.
+            WorldTreePoint origin = parent.pointAt(t);
             long mixed = mix(seed, id, child);
             double angle = parentAngle + (-0.72 + child * 0.66)
                     + signed(mixed >>> 8) * 0.16;

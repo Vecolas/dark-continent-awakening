@@ -64,23 +64,15 @@ public final class WorldTreeRootGenerator {
                 && minZ <= originZ + MAX_ROOT_REACH && maxZ >= originZ - MAX_ROOT_REACH;
     }
 
+    // A CURVA MORA EM `WorldTreeSpline`, e nao aqui. Estes dois delegam para
+    // que os chamadores antigos continuem funcionando sem duas contas da mesma
+    // curva no repositorio.
     static WorldTreePoint bezier(WorldTreeSpline spline, double t) {
-        double inverse = 1.0 - t;
-        WorldTreePoint p0 = spline.controlPoints().get(0);
-        WorldTreePoint p1 = spline.controlPoints().get(1);
-        WorldTreePoint p2 = spline.controlPoints().get(2);
-        WorldTreePoint p3 = spline.controlPoints().get(3);
-        return new WorldTreePoint(
-                inverse * inverse * inverse * p0.x() + 3 * inverse * inverse * t * p1.x()
-                        + 3 * inverse * t * t * p2.x() + t * t * t * p3.x(),
-                inverse * inverse * inverse * p0.y() + 3 * inverse * inverse * t * p1.y()
-                        + 3 * inverse * t * t * p2.y() + t * t * t * p3.y(),
-                inverse * inverse * inverse * p0.z() + 3 * inverse * inverse * t * p1.z()
-                        + 3 * inverse * t * t * p2.z() + t * t * t * p3.z());
+        return spline.pointAt(t);
     }
 
     static double radiusAt(WorldTreeSpline spline, double t) {
-        return spline.startRadius() + (spline.endRadius() - spline.startRadius()) * t;
+        return spline.radiusAt(t);
     }
 
     private static net.minecraft.world.level.block.state.BlockState rootState(

@@ -17,6 +17,22 @@ import net.neoforged.neoforge.event.level.ChunkEvent;
 /** Agenda a parcela da base fora do callback reentrante de carregamento. */
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class WorldTreeBaseChunkEvents {
+
+    /**
+     * Solta o plano de copa quando o mundo descarrega.
+     *
+     * <p>QUEM LIGA, DESLIGA. O plano e um cache de uma entrada por seed, e sem
+     * este par ele ficaria retido pelo resto da sessao depois de sair do mundo --
+     * milhares de objetos que ninguem mais consulta. Nao daria erro: daria
+     * memoria que sobe a cada mundo aberto.
+     */
+    @net.neoforged.bus.api.SubscribeEvent
+    public static void aoDescarregarNivel(
+            net.neoforged.neoforge.event.level.LevelEvent.Unload evento) {
+        if (!evento.getLevel().isClientSide()) {
+            com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCanopyGenerator.forget();
+        }
+    }
     private WorldTreeBaseChunkEvents() {
     }
 

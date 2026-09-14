@@ -10,7 +10,16 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 /** Gera galhos major por splines cubicas, somente no chunk solicitado. */
 public final class WorldTreeBranchGenerator {
     private static final int SAMPLE_COUNT = 96;
-    private static final double MAX_BRANCH_REACH = 320.0;
+    /**
+     * Ate onde a MADEIRA e desenhada, a partir do eixo.
+     *
+     * <p>PUBLICO DE PROPOSITO, e o portao da copa depende disto. Um chunk alem
+     * deste raio sai antes de desenhar galho -- entao qualquer folha planejada
+     * la fora apareceria pendurada em NADA. Enquanto este numero morava
+     * escondido aqui, a copa podia crescer para fora dele sem que nada acusasse,
+     * e o sintoma seria ilha flutuante longe do tronco.
+     */
+    public static final double MAX_BRANCH_REACH = 320.0;
 
     private WorldTreeBranchGenerator() {
     }

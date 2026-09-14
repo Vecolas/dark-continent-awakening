@@ -1,0 +1,491 @@
+package com.darkcontinent.nenfoundation.worldtree;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeBranchNetwork;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+/**
+ * O portao da copa, em vinte seeds.
+ *
+ * <p>CADA ITEM AQUI EXISTE POR CAUSA DE UM DEFEITO QUE FOI VISTO EM JOGO, e a
+ * lista esta em {@code docs/worldtree/copa-e-folhagem.md} secao 1. Nenhum deles
+ * dava erro: a copa simplesmente sumia, ou virava confete, ou virava luva.
+ *
+ * <p><b>O QUE ESTE ARQUIVO NAO PODE FAZER:</b> julgar aparencia. Ele mede
+ * geometria -- cobertura, camadas, sobreposicao, ancoragem, volume. A aprovacao
+ * final continua sendo captura comparada com {@code docs/insp/arvoremundo.png},
+ * por gente olhando. Um verde aqui e condicao necessaria, e nunca suficiente.
+ */
+class WorldTreeFoliagePlanTest {
+
+    private static final int SEEDS = 20;
+
+    private static WorldTreeFoliagePlan plan(long seed) {
+        WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+        return WorldTreeFoliagePlan.of(layout, WorldTreeBranchNetwork.secondaryAndTertiary(layout));
+    }
+
+    private static long seedAt(int index) {
+        return 1_000L + index * 7_919L;
+    }
+
+    // ------------------------------------------------------- determinismo
+
+    @Test
+    @DisplayName("mesma seed, mesmo plano -- senao a copa corta na fronteira de chunk")
+    void deterministico() {
+        // UM CHUNK NAO SABE O QUE O VIZINHO GEROU. A unica coisa que mantem a
+        // copa continua atraves da fronteira e o plano ser funcao pura da seed.
+        // Um sorteio nao semeado aqui apareceria como folha cortada em linha
+        // reta a cada 16 blocos -- e ninguem atribuiria isso ao planejador.
+        WorldTreeFoliagePlan first = plan(4242L);
+        WorldTreeFoliagePlan second = plan(4242L);
+        assertEquals(first.shelves(), second.shelves());
+        assertEquals(first.vines(), second.vines());
+    }
+
+    // ------------------------------------------------- a copa existe mesmo
+
+    @Test
+    @DisplayName("a copa cobre o disco dela -- contra a copa rala")
+    void coberturaProjetada() {
+        // O DEFEITO 1.1 E 1.2: prateleira dentro da madeira mais ruido branco a
+        // 38% davam uma copa que, vista de cima, era quase toda buraco.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            double cobertura = coberturaProjetada(plan(seed));
+            assertTrue(cobertura >= 0.55,
+                    "seed " + seed + ": a copa cobre so " + String.format("%.0f%%", cobertura * 100)
+                            + " do proprio disco. Vista de cima, isso e peneira, e nao arvore.");
+        }
+    }
+
+    @Test
+    @DisplayName("a copa e MUITO maior que o tronco -- senao nao ha copa, ha um poste")
+    void copaMaiorQueOTronco() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            double raioDaCopa = raioDaCopa(plan(seed));
+            double raioDoTronco = layout.trunk().baseRadius();
+            assertTrue(raioDaCopa >= raioDoTronco * 3.0,
+                    "seed " + seed + ": copa de raio " + (int) raioDaCopa
+                            + " sobre tronco de raio " + (int) raioDoTronco
+                            + ". A referencia tem copa varias vezes mais larga que o tronco.");
+        }
+    }
+
+    @Test
+    @DisplayName("a copa tem varios andares -- a referencia empilha, nao e um chapeu")
+    void multiplasCamadas() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            // Faixas de 60 blocos: duas prateleiras dentro da mesma faixa leem
+            // como um andar so.
+            TreeSet<Integer> andares = new TreeSet<>();
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                andares.add((int) (shelf.centerY() / 60.0));
+            }
+            assertTrue(andares.size() >= 6,
+                    "seed " + seed + ": so " + andares.size() + " andares de copa.");
+        }
+    }
+
+    @Test
+    @DisplayName("o LIDER CENTRAL tem folha -- ele era madeira macica ate o topo")
+    void aCoroaTemFolha() {
+        // A PRIMEIRA VERSAO DESTE TESTE NAO PEGAVA NADA, e so a quebra
+        // deliberada revelou: ela pedia "alguma folha acima de y=1300", e os
+        // galhos da zona SUMMIT nascem em y=1450 e satisfaziam sozinhos. Dava
+        // para apagar a copa da coroa inteira com o portao verde.
+        //
+        // O que importa e folha PERTO DO EIXO la em cima: o lider central e
+        // vertical em x=0,z=0, e sao os discos dele que impedem o topo de ser um
+        // poste. Os galhos de SUMMIT ficam longe do eixo e nao substituem isso.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            long noEixo = plan(seed).shelves().stream()
+                    .filter(shelf -> shelf.centerY() >= 1300.0)
+                    .filter(shelf -> Math.hypot(shelf.centerX(), shelf.centerZ()) < 40.0)
+                    .count();
+            assertTrue(noEixo >= 2,
+                    "seed " + seed + ": so " + noEixo + " prateleiras perto do eixo acima"
+                            + " de y=1300. O lider central desenha madeira de 1100 a 1450;"
+                            + " sem copa ali, o topo da arvore e um poste.");
+        }
+    }
+
+    @Test
+    @DisplayName("a folha aparece POR FORA da madeira -- o defeito original")
+    void aFolhaEscapaDaMadeira() {
+        // ESTE PORTAO NASCEU DE UMA QUEBRA QUE PASSOU. Ao alimentar as reguas
+        // com o defeito original -- prateleira centrada no eixo do galho --,
+        // TODAS passaram: o disco continuava ancorado, chato, com as duas faces
+        // e sobreposto ao vizinho. So que ficava DENTRO da madeira, e como folha
+        // nao sobrescreve madeira, nao virava um bloco sequer.
+        //
+        // O buraco era que toda regua olhava a prateleira SOZINHA. Esta olha ela
+        // contra a madeira que ela veste.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                assertTrue(shelf.escapesWood(),
+                        "seed " + seed + ", suporte " + shelf.suporte() + ": disco de raio "
+                                + (int) shelf.radius() + " e massa de " + (int) shelf.minY()
+                                + " a " + (int) shelf.maxY() + " sobre madeira de raio "
+                                + (int) shelf.branchRadius() + " ancorada em "
+                                + (int) shelf.anchorY() + ". Folha dentro de madeira nao"
+                                + " vira bloco -- e o defeito que fazia a copa sumir.");
+            }
+        }
+    }
+
+    // ---------------------------------------------------------- a luva
+
+    @Test
+    @DisplayName("prateleiras vizinhas se SOBREPOEM -- este e o teste da luva")
+    void semDedos() {
+        // AS "COBERTURAS QUE PARECIAM LUVAS" vinham disto: clusters de raio
+        // parecido, enfileirados ao longo do galho, SEM se tocarem. Cada um lia
+        // como um dedo. A cura nao e diminuir o espaco entre eles no olho: e
+        // exigir sobreposicao, e medir.
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            Map<Integer, List<WorldTreeFoliageShelf>> porGalho = agruparPorGalho(plan(seed));
+            for (Map.Entry<Integer, List<WorldTreeFoliageShelf>> entrada : porGalho.entrySet()) {
+                List<WorldTreeFoliageShelf> fila = entrada.getValue();
+                for (int i = 1; i < fila.size(); i++) {
+                    WorldTreeFoliageShelf anterior = fila.get(i - 1);
+                    WorldTreeFoliageShelf atual = fila.get(i);
+                    double distancia = Math.hypot(atual.centerX() - anterior.centerX(),
+                            atual.centerZ() - anterior.centerZ());
+                    double soma = anterior.radius() + atual.radius();
+                    double sobreposicao = 1.0 - distancia / soma;
+                    assertTrue(sobreposicao >= WorldTreeFoliagePlan.SOBREPOSICAO_MINIMA,
+                            "seed " + seed + ", galho " + entrada.getKey() + ", prateleiras "
+                                    + (i - 1) + " e " + i + ": sobreposicao de "
+                                    + String.format("%.2f", sobreposicao)
+                                    + ". Discos que nao se tocam leem como DEDOS.");
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("o raio decresce em direcao a ponta -- senao a copa vira haltere")
+    void afunilaNaPonta() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (Map.Entry<Integer, List<WorldTreeFoliageShelf>> entrada
+                    : agruparPorGalho(plan(seed)).entrySet()) {
+                List<WorldTreeFoliageShelf> fila = entrada.getValue();
+                if (fila.size() < 2) {
+                    continue;
+                }
+                WorldTreeFoliageShelf primeira = fila.get(0);
+                WorldTreeFoliageShelf ultima = fila.get(fila.size() - 1);
+                assertTrue(ultima.radius() < primeira.radius(),
+                        "seed " + seed + ", galho " + entrada.getKey()
+                                + ": a prateleira da ponta (" + (int) ultima.radius()
+                                + ") nao e menor que a da base (" + (int) primeira.radius()
+                                + "). Discos do mesmo tamanho ate a ponta leem como haltere.");
+            }
+        }
+    }
+
+    // ------------------------------------------------------ ilha flutuante
+
+    @Test
+    @DisplayName("nenhuma prateleira solta: toda uma ancorada em madeira alcancavel")
+    void semIlhaFlutuante() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                // O centro do disco nao pode estar longe do eixo do galho que o
+                // sustenta: se estiver, a massa aparece sem nada embaixo.
+                assertTrue(shelf.anchorOffset() <= shelf.radius() * 0.35 + 1.0,
+                        "seed " + seed + ": prateleira a " + (int) shelf.anchorOffset()
+                                + " blocos do eixo do galho, com raio "
+                                + (int) shelf.radius() + ". Isso aparece como ilha.");
+                // E a ancora tem de estar DENTRO da massa verticalmente, senao a
+                // folha flutua acima do galho com um vao no meio.
+                assertTrue(shelf.anchorY() >= shelf.minY() - 2.0
+                                && shelf.anchorY() <= shelf.maxY(),
+                        "seed " + seed + ": o galho passa fora da prateleira em Y."
+                                + " Ancora em " + (int) shelf.anchorY() + ", massa de "
+                                + (int) shelf.minY() + " a " + (int) shelf.maxY() + ".");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("nenhuma folha alem de onde a MADEIRA e desenhada")
+    void copaCabeNoAlcanceDaMadeira() {
+        // ESTE E UM CONTRATO ENTRE DOIS ARQUIVOS, e do tipo que se quebra sozinho.
+        // `WorldTreeBranchGenerator` descarta o chunk inteiro alem de
+        // MAX_BRANCH_REACH -- nenhuma madeira e escrita la. Se a copa crescer
+        // para fora desse raio, a folha aparece pendurada em NADA, longe do
+        // tronco, e ninguem liga o defeito ao numero que o causou.
+        //
+        // Aumentar o raio das prateleiras, alongar os galhos ou acrescentar um
+        // nivel de subgalho sao tres mudancas plausiveis que estouram isto.
+        double limite = com.darkcontinent.nenfoundation.worldtree.generation
+                .WorldTreeBranchGenerator.MAX_BRANCH_REACH;
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                double alcance = Math.hypot(shelf.centerX(), shelf.centerZ()) + shelf.radius();
+                assertTrue(alcance <= limite,
+                        "seed " + seed + ": copa chega a " + (int) alcance
+                                + " blocos, e a madeira para em " + (int) limite
+                                + ". A folha de la aparece pendurada em nada.");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("toda vinha nasce SOB uma prateleira -- vinha orfa le como bug")
+    void semVinhaOrfa() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeFoliagePlan plano = plan(seed);
+            for (WorldTreeVineStrand vine : plano.vines()) {
+                assertTrue(vine.shelfIndex() < plano.shelves().size(),
+                        "seed " + seed + ": vinha apontando para prateleira inexistente");
+                WorldTreeFoliageShelf shelf = plano.shelves().get(vine.shelfIndex());
+                double distancia = Math.hypot(vine.originX() - shelf.centerX(),
+                        vine.originZ() - shelf.centerZ());
+                assertTrue(distancia <= shelf.radius() + 0.5,
+                        "seed " + seed + ": vinha nasce a " + (int) distancia
+                                + " blocos do centro de uma prateleira de raio "
+                                + (int) shelf.radius() + " -- fora dela, pendurada em nada.");
+                assertTrue(vine.originY() <= shelf.centerY(),
+                        "seed " + seed + ": vinha nascendo ACIMA do centro da prateleira");
+            }
+        }
+    }
+
+    // ------------------------------------------------------ folha em baixo
+
+    @Test
+    @DisplayName("toda prateleira tem massa em cima E embaixo")
+    void folhaEmCimaEEmbaixo() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                assertTrue(shelf.topThickness() > 0.0 && shelf.bottomThickness() > 0.0,
+                        "seed " + seed + ": prateleira sem uma das duas faces");
+                // A de baixo e MENOR, mas nao pode ser desprezivel: e ela que
+                // impede a copa de parecer um guarda-sol visto do chao.
+                assertTrue(shelf.bottomThickness() >= shelf.topThickness() * 0.4,
+                        "seed " + seed + ": a saia inferior ficou fina demais ("
+                                + String.format("%.1f", shelf.bottomThickness()) + " contra "
+                                + String.format("%.1f", shelf.topThickness()) + " em cima)");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a prateleira e CHATA: larga em XZ e fina em Y")
+    void chataEmVezDeBolha() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            for (WorldTreeFoliageShelf shelf : plan(seed).shelves()) {
+                double altura = shelf.topThickness() + shelf.bottomThickness();
+                assertTrue(altura < shelf.radius(),
+                        "seed " + seed + ": prateleira de raio " + (int) shelf.radius()
+                                + " e altura " + (int) altura
+                                + ". Isso e uma bolha, e bolha em fila vira brocolis.");
+            }
+        }
+    }
+
+    // ------------------------------------------------------------- custo
+
+    @Test
+    @DisplayName("o custo tem teto, e ele nao e um botao")
+    void tetoDeCusto() {
+        for (int index = 0; index < SEEDS; index++) {
+            long seed = seedAt(index);
+            WorldTreeFoliagePlan plano = plan(seed);
+            assertTrue(plano.shelves().size() <= WorldTreeFoliagePlan.TETO_DE_PRATELEIRAS,
+                    "seed " + seed + ": " + plano.shelves().size() + " prateleiras");
+            assertTrue(plano.vines().size() <= WorldTreeFoliagePlan.TETO_DE_VINHAS,
+                    "seed " + seed + ": " + plano.vines().size() + " vinhas");
+            // O TETO NAO PODE MORDER DE VERDADE. Se ele mordesse, cortaria a
+            // CAUDA da lista em silencio, e ninguem procuraria a copa que sumiu
+            // num limite de seguranca. Ele existe para o caso patologico.
+            assertTrue(plano.shelves().size() < WorldTreeFoliagePlan.TETO_DE_PRATELEIRAS,
+                    "seed " + seed + ": o teto de seguranca esta MORDENDO. Ou o plano"
+                            + " cresceu demais, ou o teto virou parametro de arte.");
+            assertTrue(plano.vines().size() < WorldTreeFoliagePlan.TETO_DE_VINHAS,
+                    "seed " + seed + ": o teto de vinhas esta mordendo");
+        }
+    }
+
+    @Test
+    @DisplayName("nenhum chunk paga por prateleiras demais -- este e o custo real")
+    void custoPorChunk() {
+        // A REGUA MUDOU DE GRANDEZA, e vale dizer por que. Ela somava o volume
+        // aproximado de cada prateleira -- e a copa e feita de SOBREPOSICAO de
+        // proposito, entao aquela soma contava o mesmo bloco varias vezes e
+        // media algo que o gerador nunca executa. O que ele executa e varrer, por
+        // chunk, a caixa de cada prateleira que o toca.
+        long pior = 0;
+        int piorPrateleiras = 0;
+        for (int index = 0; index < SEEDS; index++) {
+            WorldTreeFoliagePlan plano = plan(seedAt(index));
+            for (int chunkX = -24; chunkX <= 24; chunkX += 3) {
+                for (int chunkZ = -24; chunkZ <= 24; chunkZ += 3) {
+                    pior = Math.max(pior, plano.estimatedVisitsForChunk(chunkX, chunkZ));
+                    piorPrateleiras = Math.max(piorPrateleiras,
+                            plano.shelvesTouchingChunk(chunkX, chunkZ));
+                }
+            }
+        }
+        // ESTE NUMERO NAO FOI MEDIDO EM JOGO, e isso esta dito em voz alta aqui e
+        // em o-que-nao-provamos.md. Ele e o custo que a copa da REFERENCIA pede
+        // no pior chunk -- o que fica sobre o tronco, onde todos os galhos
+        // convergem -- mais uma folga de um terco.
+        //
+        // O que ele protege e regressao de ORDEM DE GRANDEZA: alguem dobrar o
+        // numero de prateleiras ou a espessura e nao perceber. O que ele NAO faz
+        // e afirmar que o custo atual e aceitavel; isso depende do tempo de
+        // geracao real, e a medida sai de um runServer voando pela copa.
+        assertTrue(pior <= 2_000_000L,
+                "o pior chunk visitaria " + pior + " blocos so de copa (em "
+                        + piorPrateleiras + " prateleiras). O limite existe porque este"
+                        + " custo aparece como engasgo ao voar, e nao como erro.");
+    }
+
+    // ------------------------------------------------------- invariantes
+
+    @Test
+    @DisplayName("a forma recusa o que nao e prateleira")
+    void formaInvalidaERecusada() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new WorldTreeFoliageShelf(0, 900, 0, 10, 3, 0, 0, 900, 0, 4,
+                        WorldTreeFoliageShelf.Suporte.GALHO, 0, 0, 0),
+                "espessura inferior zero e 'folha so por cima', e a copa vira guarda-sol");
+        assertThrows(IllegalArgumentException.class,
+                () -> new WorldTreeFoliageShelf(0, 900, 0, 0, 3, 2, 0, 900, 0, 4,
+                        WorldTreeFoliageShelf.Suporte.GALHO, 0, 0, 0));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WorldTreeVineStrand(0, 900, 0, 2, 0, 0, false, 0),
+                "vinha de dois blocos nao le como cortina; le como bloco solto");
+        assertThrows(IllegalArgumentException.class,
+                () -> new WorldTreeVineStrand(0, 900, 0, 999, 0, 0, false, 0));
+    }
+
+    @Test
+    @DisplayName("o span e a forma concordam -- o expoente esta escrito em DOIS lugares")
+    void spanConcordaComAForma() {
+        // O EXPOENTE APARECE DUAS VEZES, e nenhuma delas e uma constante: em
+        // `normalized`, como v*v*v*v; em `verticalSpanFactor`, como raiz da raiz.
+        // Havia uma constante `EXPOENTE_VERTICAL` que parecia mandar nos dois e
+        // nao mandava em nenhum -- trocar 4 por 2 nao mudava um bloco. So a
+        // quebra deliberada mostrou.
+        //
+        // Se as duas encodificacoes divergirem, o laco de desenho corta a coluna
+        // antes da borda da massa: folhagem com o topo raspado, sem erro nenhum.
+        // Este teste amarra as duas.
+        WorldTreeFoliageShelf shelf = new WorldTreeFoliageShelf(0, 900, 0, 20, 5, 3,
+                0, 900, 0, 4, WorldTreeFoliageShelf.Suporte.GALHO, 0, 0, 0);
+        for (int passo = 0; passo <= 18; passo++) {
+            double h = passo * 20.0 / 19.0;
+            double factor = shelf.verticalSpanFactor((h * h) / 400.0);
+            // Exatamente no alcance previsto, o ponto tem de estar DENTRO.
+            assertTrue(shelf.contains(h, 900.0 + factor * 5.0 * 0.999, 0.0),
+                    "o span promete alcance que a forma nao tem, em h=" + h);
+            // Um pouco alem, tem de estar FORA.
+            assertTrue(!shelf.contains(h, 900.0 + factor * 5.0 * 1.05 + 0.01, 0.0),
+                    "o span corta a massa antes da borda, em h=" + h
+                            + " -- folhagem com o topo raspado");
+        }
+    }
+
+    @Test
+    @DisplayName("o expoente vertical achata: a 4, o topo e chato; a 2, seria bolha")
+    void superelipseAchata() {
+        WorldTreeFoliageShelf shelf =
+                new WorldTreeFoliageShelf(0, 900, 0, 20, 5, 3, 0, 900, 0, 4,
+                        WorldTreeFoliageShelf.Suporte.GALHO, 0, 0, 0);
+
+        // O PONTO DE TESTE MUDOU, e a quebra deliberada e quem mostrou por que.
+        // Com (19, 901.5) o teste passava TANTO com expoente 4 quanto com 2 --
+        // ou seja, ele nao media a unica decisao de forma deste arquivo. O ponto
+        // abaixo separa os dois: a 19 de distancia num raio de 20, o expoente 4
+        // ainda alcanca 2,79 de altura, e o expoente 2 para em 1,56.
+        assertTrue(shelf.contains(19.0, 902.4, 0.0),
+                "a borda fechou cedo demais. Com expoente 2 isto reprova, e e o ponto:"
+                        + " expoente 2 e um ELIPSOIDE, e elipsoide em fila vira brocolis.");
+        assertTrue(!shelf.contains(0.0, 900.0 + 5.6, 0.0),
+                "a prateleira nao pode passar da propria espessura");
+        assertTrue(shelf.contains(0.0, 900.0 - 2.9, 0.0), "a face de baixo sumiu");
+    }
+
+    // --------------------------------------------------------- utilidades
+
+    private static Map<Integer, List<WorldTreeFoliageShelf>> agruparPorGalho(
+            WorldTreeFoliagePlan plano) {
+        Map<Integer, List<WorldTreeFoliageShelf>> porGalho = new HashMap<>();
+        for (WorldTreeFoliageShelf shelf : plano.shelves()) {
+            porGalho.computeIfAbsent(shelf.branchId(), key -> new ArrayList<>()).add(shelf);
+        }
+        for (List<WorldTreeFoliageShelf> fila : porGalho.values()) {
+            fila.sort((a, b) -> Integer.compare(a.order(), b.order()));
+        }
+        return porGalho;
+    }
+
+    /**
+     * Fracao do disco da copa que tem folha por cima, vista de cima.
+     *
+     * <p>AMOSTRA EM GRADE, e nao bloco a bloco: o disco tem centenas de blocos de
+     * raio, e uma varredura completa custaria mais que o resto da suite inteira.
+     * A grade de 4 blocos e fina o suficiente para pegar peneira e grossa o
+     * suficiente para rodar em milissegundos.
+     */
+    private static double coberturaProjetada(WorldTreeFoliagePlan plano) {
+        double raio = raioDaCopa(plano);
+        int passo = 4;
+        int dentro = 0;
+        int cobertos = 0;
+        for (int x = (int) -raio; x <= raio; x += passo) {
+            for (int z = (int) -raio; z <= raio; z += passo) {
+                if (Math.hypot(x, z) > raio) {
+                    continue;
+                }
+                dentro++;
+                for (WorldTreeFoliageShelf shelf : plano.shelves()) {
+                    double dx = x - shelf.centerX();
+                    double dz = z - shelf.centerZ();
+                    if (dx * dx + dz * dz <= shelf.radius() * shelf.radius()) {
+                        cobertos++;
+                        break;
+                    }
+                }
+            }
+        }
+        return dentro == 0 ? 0.0 : (double) cobertos / dentro;
+    }
+
+    /** O maior alcance horizontal que a copa tem, a partir do eixo. */
+    private static double raioDaCopa(WorldTreeFoliagePlan plano) {
+        double maior = 0.0;
+        for (WorldTreeFoliageShelf shelf : plano.shelves()) {
+            maior = Math.max(maior,
+                    Math.hypot(shelf.centerX(), shelf.centerZ()) + shelf.radius());
+        }
+        return maior;
+    }
+}

@@ -69,8 +69,21 @@ public final class WorldTreeChunkGenerator extends ChunkGenerator {
         WorldTreeTrunkGenerator.generate(chunk, layout);
         WorldTreeBranchGenerator.generate(chunk, layout);
         WorldTreeCrownGenerator.generate(chunk, layout);
-        WorldTreeCanopyGenerator.generate(chunk, layout);
+        // O CHECKPOINT VEM ANTES DA COPA, e a ordem aqui e semantica.
+        //
+        // A plataforma do checkpoint so preenche AR, e a copa tambem. Com a copa
+        // primeiro, cada folha ja posta virava um buraco na plataforma: a varanda
+        // saia como peneira, e mais furada quanto mais alto o checkpoint --
+        // CROWN e SUMMIT ficam debaixo dos discos do lider central, que tem raio
+        // de ate 168. Era a "base totalmente bugada" vista em jogo, e nao havia
+        // erro nenhum: dois geradores educados, cada um respeitando o que o outro
+        // ja tinha escrito.
+        //
+        // Invertida, a copa e que contorna a plataforma -- que e a regra ja
+        // escrita para madeira em WorldTreeCanopyGenerator: folha nao sobrescreve
+        // estrutura.
         WorldTreeCheckpointGenerator.generate(chunk, layout);
+        WorldTreeCanopyGenerator.generate(chunk, layout);
         WorldTreeHollowGenerator.generate(chunk, layout);
         WorldTreeFloraGenerator.generate(chunk, layout);
     }

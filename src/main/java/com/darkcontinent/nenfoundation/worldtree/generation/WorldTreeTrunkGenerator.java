@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.worldtree.generation;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayoutGenerator;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkSurface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -80,13 +81,17 @@ public final class WorldTreeTrunkGenerator {
                 && minZ <= MAX_TRUNK_RADIUS && maxZ >= -MAX_TRUNK_RADIUS;
     }
 
+    /**
+     * A forma da casca MUDOU DE CASA, para {@link WorldTreeTrunkSurface}.
+     *
+     * <p>Ela morava so aqui, e por isso quem precisava encostar na casca -- a
+     * ancora de escalada -- usava o raio NOMINAL do perfil, que erra em ate 6,5
+     * blocos para cada lado. Isto aqui e um delegado, e nao uma copia: duas
+     * versoes divergiriam na primeira correcao de forma, e o sintoma seria a
+     * ancora saindo do lugar sem ninguem ter tocado nela.
+     */
     static double irregularRadius(double baseRadius, int x, int y, int z, long seed) {
-        double angle = Math.atan2(z, x);
-        double lobes = Math.sin(angle * 3.0 + y * 0.013) * 3.0
-                + Math.sin(angle * 7.0 - y * 0.021) * 1.5;
-        double noise = Math.sin(x * 0.19 + y * 0.037 + seed * 0.0000017)
-                * Math.cos(z * 0.17 - y * 0.029 + seed * 0.0000011) * 2.0;
-        return Math.max(1.0, baseRadius + lobes + noise);
+        return WorldTreeTrunkSurface.irregularRadius(baseRadius, x, y, z, seed);
     }
 
     static BlockState stateFor(double distance, double radius, int x, int y, int z, long seed) {

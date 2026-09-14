@@ -30,9 +30,16 @@ class WorldTreeCheckpointGeneratorTest {
                 layout, WorldTreeCheckpoint.SUMMIT);
         WorldTreePoint leader = WorldTreeCrownGenerator.leaderCenter(1450, layout.seed());
 
+        // ERA `+ 2`, E ESTE TESTE COPIAVA O NUMERO. Vale registrar o que isso
+        // significa: ele nao media a arvore, media a aritmetica contra ela mesma
+        // -- e por isso ficou verde durante todo o tempo em que a ancora nasceu
+        // flutuando. A pergunta que importa ("ela encosta na madeira?") passou a
+        // ter portao proprio em AncoraEncostaNaMadeiraTest.
         assertEquals((int) Math.ceil(leader.x()
-                + WorldTreeCrownGenerator.leaderRadius(1450)) + 2, anchor.getX());
+                + WorldTreeCrownGenerator.leaderRadius(1450)) + 1, anchor.getX());
         assertEquals((int) Math.round(leader.z()), anchor.getZ());
-        assertTrue(anchor.getX() - 6 < anchor.getX());
+        // A plataforma alcanca nove blocos para DENTRO da madeira; era seis, e
+        // afinando justo na ponta interna.
+        assertTrue(anchor.getX() - 9 < anchor.getX());
     }
 }

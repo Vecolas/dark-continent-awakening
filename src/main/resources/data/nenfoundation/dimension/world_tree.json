@@ -1,0 +1,10 @@
+{
+  "type": "nenfoundation:world_tree_type",
+  "generator": {
+    "type": "nenfoundation:world_tree",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:the_void"
+    }
+  }
+}

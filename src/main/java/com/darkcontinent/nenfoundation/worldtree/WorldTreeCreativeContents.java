@@ -29,6 +29,7 @@ public final class WorldTreeCreativeContents {
         event.accept(WorldTreeItems.WORLD_TREE_LEAVES_BLOCK);
         event.accept(WorldTreeItems.WORLD_TREE_LEAVES_DENSE_BLOCK);
         event.accept(WorldTreeItems.WORLD_TREE_LEAVES_PALE_BLOCK);
+        event.accept(WorldTreeItems.WORLD_TREE_LEAVES_LUMINOUS_BLOCK);
         event.accept(WorldTreeItems.WORLD_TREE_VINE_BLOCK);
         event.accept(WorldTreeItems.WORLD_TREE_THICK_VINE_BLOCK);
         event.accept(WorldTreeItems.WORLD_TREE_MOSS_BLOCK);

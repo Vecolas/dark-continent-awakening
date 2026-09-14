@@ -114,12 +114,28 @@ public record WorldTreeFoliageShelf(
     public double normalized(double x, double y, double z) {
         double dx = x - centerX;
         double dz = z - centerZ;
-        double dy = y - centerY;
         // SEM `Math.sqrt` E SEM `Math.pow`, e isto nao e microtuning gratuito:
         // este metodo roda milhoes de vezes por chunk na copa. O termo horizontal
         // ja era elevado ao quadrado logo em seguida -- a raiz era desfeita na
         // linha de baixo --, e a quarta potencia e o quadrado do quadrado.
-        double horizontalSquared = (dx * dx + dz * dz) / (radius * radius);
+        return normalizedInColumn((dx * dx + dz * dz) / (radius * radius), y);
+    }
+
+    /**
+     * A mesma forma, para quem ja tem o termo horizontal da coluna.
+     *
+     * <p><b>NAO E UMA SEGUNDA IMPLEMENTACAO</b> -- {@link #normalized} delega
+     * para ca. A separacao existe porque o escritor varre uma COLUNA de cada vez:
+     * {@code dx}, {@code dz} e a divisao pelo raio ao quadrado sao os mesmos para
+     * todos os blocos da coluna, e ele ja precisou calcular esse termo para saber
+     * ate onde a coluna vai ({@link #verticalSpanFactor}). Recalcula-lo por bloco
+     * era tres multiplicacoes e uma divisao pagas em cada um dos ~200 milhoes de
+     * blocos da copa.
+     *
+     * @param horizontalSquared o MESMO valor passado a {@link #verticalSpanFactor}
+     */
+    public double normalizedInColumn(double horizontalSquared, double y) {
+        double dy = y - centerY;
         double vertical = dy >= 0.0 ? dy / topThickness : -dy / bottomThickness;
         double v2 = vertical * vertical;
         return horizontalSquared + v2 * v2;

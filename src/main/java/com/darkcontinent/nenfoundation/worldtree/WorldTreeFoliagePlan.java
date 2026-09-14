@@ -25,33 +25,49 @@ public final class WorldTreeFoliagePlan {
     /**
      * Prateleiras por galho maior.
      *
-     * <p>SETE, E NAO CINCO. Com cinco, o portao da luva reprovou: num galho de
-     * 200 blocos, as prateleiras ficavam a ~32 blocos uma da outra com raio ~20,
-     * e a sobreposicao caia para 0,20 -- dedos. A contagem e o que controla o
-     * espacamento, porque os t sao distribuidos entre o primeiro e o ultimo.
+     * <p>ONZE ATE AQUI, SETE AGORA -- e o que mudou nao foi o gosto, foi o que a
+     * copa precisa mostrar. Com onze discos de raio ~43 espacados ~14 blocos num
+     * galho de ~90, a folhagem era um TUBO CONTINUO em volta do galho inteiro:
+     * a medida diz que so 14,6% do eixo de um galho ficava sem folha por cima, e
+     * 708 de 766 galhos tinham menos de 30% de madeira a mostra. Nao havia de
+     * onde ver a estrutura da arvore.
+     *
+     * <p>A contagem continua sendo o que controla o ESPACAMENTO -- os t sao
+     * distribuidos entre o primeiro e o ultimo --, e por isso ela nao pode cair
+     * sozinha: sete discos na faixa antiga (t de 0,34 a 0,98) reprovariam o
+     * portao da luva. Ela cai JUNTO com a janela de t, logo abaixo.
      */
-    private static final int PRATELEIRAS_POR_GALHO_MAIOR = 11;
+    private static final int PRATELEIRAS_POR_GALHO_MAIOR = 7;
 
     /**
      * Prateleiras por subgalho.
      *
-     * <p>QUATRO, e o numero saiu do portao da luva -- nao de gosto. Com tres, um
-     * subgalho de 78 blocos espacava os discos em ~22 com raio ~13 cada, e a
-     * sobreposicao caia para 0,30. Cada contagem aqui e um espacamento, porque os
-     * t sao distribuidos entre o primeiro e o ultimo.
+     * <p>CINCO ATE AQUI. Vale a mesma conta do galho maior, e o subgalho sofria
+     * mais: ele e curto, e um unico disco de raio 43 ja o engolia inteiro.
      */
-    private static final int PRATELEIRAS_POR_SUBGALHO = 5;
+    private static final int PRATELEIRAS_POR_SUBGALHO = 4;
 
     /**
-     * Onde a primeira prateleira do galho maior nasce.
+     * Onde a primeira prateleira do galho nasce.
      *
-     * <p>NAO E ZERO: perto do tronco o galho e grosso demais e a copa taparia o
-     * proprio eixo. Comeca depois do primeiro terco, que e onde a referencia
-     * mostra a folhagem descolando da madeira.
+     * <p><b>0,34 ATE AQUI, 0,66 AGORA -- E ESTA E A MUDANCA QUE FAZ A MADEIRA
+     * APARECER.</b> Ela nao tira folha de onde havia copa: ela move a copa para o
+     * TERCO EXTERNO do galho, que e onde a referencia a coloca. O que sobra
+     * embaixo e galho nu -- estrutura visivel, que e metade da leitura de escala
+     * de uma arvore deste tamanho.
+     *
+     * <p>Medido nas oito primeiras seeds, sobre os 766 galhos: a fracao do eixo
+     * sem folha por cima passou de <b>0,146 para 0,496</b>, e os galhos com menos
+     * de 30% de madeira a mostra cairam de <b>708 para 23</b>. A regua e
+     * {@code WorldTreeFoliagePlanTest#madeiraDoGalhoAparece}.
+     *
+     * <p>Ela tambem e o que permite baixar a contagem sem reprovar o portao da
+     * luva: a janela de t encolheu de 0,64 para 0,32, entao sete discos ficam
+     * MAIS proximos entre si do que onze ficavam antes.
      */
-    private static final double PRIMEIRO_T_MAIOR = 0.34;
+    private static final double PRIMEIRO_T_MAIOR = 0.66;
     private static final double ULTIMO_T_MAIOR = 0.98;
-    private static final double PRIMEIRO_T_SUB = 0.42;
+    private static final double PRIMEIRO_T_SUB = 0.68;
     private static final double ULTIMO_T_SUB = 1.0;
 
     /**
@@ -109,11 +125,13 @@ public final class WorldTreeFoliagePlan {
 
     private final List<WorldTreeFoliageShelf> shelves;
     private final List<WorldTreeVineStrand> vines;
+    private final WorldTreeFoliageIndex index;
 
     private WorldTreeFoliagePlan(List<WorldTreeFoliageShelf> shelves,
             List<WorldTreeVineStrand> vines) {
         this.shelves = List.copyOf(shelves);
         this.vines = List.copyOf(vines);
+        this.index = WorldTreeFoliageIndex.of(this.shelves, this.vines);
     }
 
     public List<WorldTreeFoliageShelf> shelves() {
@@ -122,6 +140,18 @@ public final class WorldTreeFoliagePlan {
 
     public List<WorldTreeVineStrand> vines() {
         return vines;
+    }
+
+    /**
+     * Quem encosta em cada chunk, sem varrer o plano.
+     *
+     * <p>O gerador E a regua de custo passam por aqui. Se um deles usasse o laco
+     * linear e o outro o indice, a regua mediria um custo que ninguem paga -- que
+     * e o estado em que este arquivo ja esteve, e que custou um achado de
+     * revisao.
+     */
+    public WorldTreeFoliageIndex index() {
+        return index;
     }
 
     /**
@@ -165,6 +195,9 @@ public final class WorldTreeFoliagePlan {
     private static void addShelves(List<WorldTreeFoliageShelf> out, WorldTreeSpline branch,
             long seed, int branchId, int count, double firstT, double lastT, double scale) {
         double step = count > 1 ? (lastT - firstT) / (count - 1) : 0.0;
+        // O RAIO DA PRATELEIRA ANTERIOR, para a sequencia nao poder crescer em
+        // direcao a ponta. Ver a nota do clamp, mais abaixo.
+        double raioAnterior = Double.MAX_VALUE;
         for (int order = 0; order < count; order++) {
             double t = firstT + step * order;
             WorldTreePoint axis = branch.pointAt(t);
@@ -174,12 +207,29 @@ public final class WorldTreeFoliagePlan {
             // O RAIO ENCOLHE EM DIRECAO A PONTA, e cresce com a grossura do
             // galho: galho grosso sustenta prateleira grande, e e isso que faz a
             // silhueta afunilar como arvore em vez de haltere.
-            double taper = 1.0 - ENCOLHIMENTO_NA_PONTA * t;
+            // O ENCOLHIMENTO MEDE A POSICAO NA SEQUENCIA, e nao o t absoluto.
+            //
+            // Enquanto a folhagem comecava em t=0,34, as duas coisas eram quase
+            // a mesma. Com ela concentrada na ponta -- de 0,66 a 0,98 --, o t
+            // absoluto varia so 0,32, e o taper encolhia 14% do primeiro disco
+            // ao ultimo. Catorze por cento nao afunila nada: le como haltere, que
+            // e exatamente o defeito que esta constante existe para matar.
+            double aoLongoDaSequencia = count > 1 ? (double) order / (count - 1) : 0.0;
+            double taper = 1.0 - ENCOLHIMENTO_NA_PONTA * aoLongoDaSequencia;
             // A ALTITUDE MANDA NO TAMANHO. E o que separa "conifera de andares
             // iguais" de "coroa concentrada no alto", e foi a projecao lateral
             // que mostrou -- nenhum dos portoes numericos reprovava o pinheiro,
             // porque cada prateleira, sozinha, estava correta.
-            double radius = (31.0 + branchRadius * 2.1 + unit(mixed) * 9.0)
+            //
+            // OS TRES TERMOS ENCOLHERAM (eram 31,0 / 2,1 / 9,0), e nao foi para
+            // "gastar menos": um disco de raio 43 sobre um galho de 90 blocos
+            // cobre metade do galho sozinho, e nenhuma quantidade de espacamento
+            // deixa a madeira aparecer enquanto isso for verdade. O raio medio
+            // caiu para ~27.
+            //
+            // O piso logo abaixo continua protegendo o caso que importa: disco
+            // pequeno demais some dentro da propria madeira.
+            double radius = (17.5 + branchRadius * 1.25 + unit(mixed) * 5.0)
                     * taper * scale * escalaPorAltitude(axis.y());
 
             // O PISO E RELATIVO AO GALHO, e nao um numero fixo -- e este foi o
@@ -196,8 +246,30 @@ public final class WorldTreeFoliagePlan {
             // nao resolve: ele nao sabe a grossura do galho, e por isso deixava
             // passar disco pequeno sobre galho grosso E achatava o taper nas
             // pontas finas, onde os dois extremos batiam no mesmo piso.
-            double piso = branchRadius * 2.2 + 6.0;
+            //
+            // ERA `2,2 * raio + 6`. O limite duro e `escapesWood`, que pede
+            // `raio > 1,5 * raioDoGalho`; 1,85 mantem folga sobre esse limite e
+            // deixa de ser o termo que decide o tamanho da maioria dos discos --
+            // que era o efeito colateral de 2,2: o piso mordia quase sempre, e
+            // por isso encolher a formula acima nao encolhia a copa.
+            double piso = branchRadius * 1.85 + 5.0;
             radius = Math.max(piso, radius);
+
+            // O RAIO NAO PODE CRESCER EM DIRECAO A PONTA -- e isto e uma
+            // GARANTIA, e nao uma tendencia.
+            //
+            // O taper sozinho e uma tendencia: o sorteio de +-7 blocos e a escala
+            // por altitude (que CRESCE com y, e um galho sobe em direcao a ponta)
+            // podem virar o sinal entre dois discos vizinhos. Com a folhagem
+            // espremida no ultimo terco do galho isso deixou de ser raro e o
+            // portao `afunilaNaPonta` passou a reprovar -- ele mede exatamente
+            // isto, e estava certo.
+            //
+            // O piso continua tendo a ultima palavra: um disco menor que
+            // `branchRadius * 1.85 + 5` some dentro da propria madeira, que e o
+            // defeito original desta trilha.
+            radius = Math.max(piso, Math.min(radius, raioAnterior * 0.94));
+            raioAnterior = radius;
 
             // A PRATELEIRA VESTE O GALHO, e nao pousa em cima dele.
             //
@@ -386,41 +458,23 @@ public final class WorldTreeFoliagePlan {
     public long estimatedVisitsForChunk(int chunkX, int chunkZ) {
         int minX = chunkX * 16;
         int minZ = chunkZ * 16;
-        int maxX = minX + 16;
-        int maxZ = minZ + 16;
         long visits = 0;
-        for (WorldTreeFoliageShelf shelf : shelves) {
-            double r = shelf.radius() + 1.0;
-            if (minX <= shelf.centerX() + r && maxX >= shelf.centerX() - r
-                    && minZ <= shelf.centerZ() + r && maxZ >= shelf.centerZ() - r) {
-                visits += shelf.estimatedVisitsInChunk(minX, minZ);
-            }
+        for (int shelfIndex : index.prateleirasEm(chunkX, chunkZ)) {
+            visits += shelves.get(shelfIndex).estimatedVisitsInChunk(minX, minZ);
         }
         // AS VINHAS ENTRAM NA CONTA, e nao entravam. Enquanto elas ficaram de
         // fora, esta funcao devolvia ZERO para um chunk distante -- justamente o
         // chunk que pagava o custo integral delas, porque o laco de vinhas nao
         // tinha corte espacial nenhum. A regua media uma coisa e o gerador pagava
         // outra, que e o pior estado possivel para um portao de custo.
-        for (WorldTreeVineStrand vine : vines) {
-            visits += vine.estimatedVisitsInChunk(minX, minZ);
+        for (int vineIndex : index.vinhasEm(chunkX, chunkZ)) {
+            visits += vines.get(vineIndex).estimatedVisitsInChunk(minX, minZ);
         }
         return visits;
     }
 
     public int shelvesTouchingChunk(int chunkX, int chunkZ) {
-        int minX = chunkX * 16;
-        int minZ = chunkZ * 16;
-        int maxX = minX + 16;
-        int maxZ = minZ + 16;
-        int count = 0;
-        for (WorldTreeFoliageShelf shelf : shelves) {
-            double r = shelf.radius() + 1.0;
-            if (minX <= shelf.centerX() + r && maxX >= shelf.centerX() - r
-                    && minZ <= shelf.centerZ() + r && maxZ >= shelf.centerZ() - r) {
-                count++;
-            }
-        }
-        return count;
+        return index.prateleirasEm(chunkX, chunkZ).length;
     }
 
     static double unit(long value) {

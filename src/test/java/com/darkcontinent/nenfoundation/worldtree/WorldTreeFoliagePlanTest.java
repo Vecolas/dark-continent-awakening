@@ -361,10 +361,89 @@ class WorldTreeFoliagePlanTest {
         // numero de prateleiras ou a espessura e nao perceber. O que ele NAO faz
         // e afirmar que o custo atual e aceitavel; isso depende do tempo de
         // geracao real, e a medida sai de um runServer voando pela copa.
-        assertTrue(pior <= 2_000_000L,
+        // O TETO DESCEU DE 2.000.000 PARA 800.000, e descer um teto exige o mesmo
+        // cuidado que subir: um teto que nao acompanha a realidade para de
+        // proteger. Medido depois de a copa migrar para o terco externo dos
+        // galhos, o pior chunk das vinte seeds visita 408.834 blocos -- era
+        // 1.061.281. O teto e cerca do dobro do medido, e continua sendo uma
+        // protecao contra regressao de ORDEM DE GRANDEZA, e nao uma afirmacao de
+        // que 408 mil e um custo aceitavel. Isso so sai de um runServer voando
+        // pela copa, e esta em o-que-nao-provamos.md.
+        assertTrue(pior <= 800_000L,
                 "o pior chunk visitaria " + pior + " blocos so de copa (em "
                         + piorPrateleiras + " prateleiras). O limite existe porque este"
                         + " custo aparece como engasgo ao voar, e nao como erro.");
+    }
+
+    // ------------------------------------------------ a madeira tem de aparecer
+
+    @Test
+    @DisplayName("boa parte de cada galho fica com a MADEIRA a mostra")
+    void madeiraDoGalhoAparece() {
+        // ESTA REGUA NASCEU DE UM PEDIDO, e o pedido descrevia um defeito que
+        // nenhum portao daqui media: a copa tapava o galho inteiro. Todos os
+        // portoes olhavam a folha -- cobertura, sobreposicao, ancoragem,
+        // espessura --, e nenhum perguntava o que sobra da MADEIRA.
+        //
+        // Medido antes da mudanca: 0,146 do eixo de um galho sem folha por cima,
+        // e 708 de 766 galhos com menos de 30%. A arvore nao tinha estrutura
+        // visivel; era uma massa verde.
+        //
+        // O que a conta faz: anda pelo eixo do galho, sobe ate a superficie da
+        // madeira e pergunta se algum disco DAQUELE galho contem aquele ponto.
+        // Ela nao afirma que o jogador VE a madeira -- isso depende de oclusao,
+        // luz e distancia, e esta em o-que-nao-provamos.md. Ela afirma que existe
+        // madeira descoberta, que e a condicao necessaria.
+        double somaNua = 0.0;
+        int galhos = 0;
+        int apertados = 0;
+        for (int index = 0; index < 8; index++) {
+            long seed = seedAt(index);
+            WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(seed, 0, 0);
+            List<WorldTreeSpline> derivados = WorldTreeBranchNetwork.secondaryAndTertiary(layout);
+            WorldTreeFoliagePlan plano = WorldTreeFoliagePlan.of(layout, derivados);
+            Map<Integer, List<WorldTreeFoliageShelf>> porGalho = agruparPorGalho(plano);
+
+            List<WorldTreeSpline> todos = new ArrayList<>(layout.branches());
+            todos.addAll(derivados);
+            for (int b = 0; b < todos.size(); b++) {
+                // O branchId comeca em 1: o 0 e a coroa, que nao e galho e nao
+                // tem madeira horizontal para mostrar.
+                List<WorldTreeFoliageShelf> fila = porGalho.get(b + 1);
+                if (fila == null) {
+                    continue;
+                }
+                WorldTreeSpline spline = todos.get(b);
+                int amostras = 200;
+                int coberto = 0;
+                for (int i = 0; i < amostras; i++) {
+                    double t = (i + 0.5) / amostras;
+                    WorldTreePoint ponto = spline.pointAt(t);
+                    for (WorldTreeFoliageShelf shelf : fila) {
+                        if (shelf.contains(ponto.x(),
+                                ponto.y() + spline.radiusAt(t), ponto.z())) {
+                            coberto++;
+                            break;
+                        }
+                    }
+                }
+                double nua = 1.0 - (double) coberto / amostras;
+                somaNua += nua;
+                galhos++;
+                if (nua < 0.30) {
+                    apertados++;
+                }
+            }
+        }
+        double media = somaNua / galhos;
+        assertTrue(media >= 0.40,
+                "so " + String.format("%.1f%%", media * 100) + " do eixo de um galho"
+                        + " fica sem folha por cima, na media. Abaixo disso a arvore"
+                        + " volta a ser uma massa verde sem estrutura visivel.");
+        assertTrue(apertados <= galhos / 10,
+                apertados + " de " + galhos + " galhos tem menos de 30% de madeira a"
+                        + " mostra. A copa precisa deixar a maior parte dos galhos"
+                        + " legivel, e nao so a media fechar.");
     }
 
     @Test

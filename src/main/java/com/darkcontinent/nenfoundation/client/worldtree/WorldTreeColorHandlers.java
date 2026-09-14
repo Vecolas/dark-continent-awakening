@@ -25,5 +25,10 @@ public final class WorldTreeColorHandlers {
         }, WorldTreeBlocks.WORLD_TREE_LEAVES.get(),
                 WorldTreeBlocks.WORLD_TREE_LEAVES_DENSE.get(),
                 WorldTreeBlocks.WORLD_TREE_LEAVES_PALE.get());
+        // WORLD_TREE_LEAVES_LUMINOUS FICA DE FORA, e de proposito. O tint de
+        // bioma ESCURECE a textura, e um bloco que emite luz 15 pintado de verde
+        // escuro le como folha comum -- a unica coisa que o distingue em tela e a
+        // cor propria. Registra-lo aqui por simetria apagaria o motivo de ele
+        // existir.
     }
 }

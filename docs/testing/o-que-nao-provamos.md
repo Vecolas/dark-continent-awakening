@@ -207,6 +207,22 @@ O procedimento inteiro esta em
 | Ninguém viu a ave voar | o voo, a batida de aviso, a subida do telégrafo e o mergulho são lidos do estado publicado pelo servidor; o `COLAGEM_VERTICAL = 1.05F` que cola o tronco na hitbox é conta, não observação. Só `runClient` à mão responde | QA manual dos inimigos |
 | A ave não foge e não se salva na água | sem `FloatGoal` (ligaria `setCanFloat(true)` contra o `false` da navegação, criando duas fontes para a mesma verdade) e sem Goal de fuga: com vida crítica ela só muda de `combatState`. É escolha declarada no código, não descuido — mas o custo em jogo nunca foi visto | quando houver playtest de canyon |
 
+## O que os portões da COPA da World Tree não provam
+
+Detalhe completo em [`../worldtree/copa-e-folhagem.md`](../worldtree/copa-e-folhagem.md),
+seções 5-B a 5-E. O resumo do que fica **sem prova**:
+
+| Limite | Por que ele existe | Quando some |
+| --- | --- | --- |
+| **Nenhum bloco da copa foi visto em jogo** | tudo o que existe é geometria pura medida em JUnit e a projeção desenhada por `SilhuetaDaCopa`. O renderer do Minecraft, com luz, oclusão e névoa, não foi consultado | primeiro `runClient` voando pela copa |
+| "**Madeira nua**" não é "madeira **visível**" | `madeiraDoGalhoAparece` anda pelo eixo do galho e pergunta se algum disco **daquele** galho cobre o ponto. Ela não sabe de oclusão, de distância, nem da copa de um galho **vizinho** passando por cima. É condição necessária | captura comparada, por gente olhando |
+| O teto de custo por chunk é **visitas**, não milissegundos | 800.000 visitas no pior chunk protege contra regressão de ordem de grandeza; não afirma que o custo atual é aceitável | `runServer` voando pela copa, com tempo de geração medido |
+| **O custo de LUZ das folhas luminosas nunca foi medido** | 15% da copa emite luz 15, e a propagação é um BFS por fonte. O agrupamento do campo é a mitigação escolhida — e é uma hipótese, não uma medida. Se a dimensão engasgar ao carregar a copa, este é o primeiro suspeito | `runServer` com `spark`, medindo o tempo de luz por chunk |
+| O índice espacial prova **equivalência**, não velocidade | `indiceNaoMudaResultado` garante que ele devolve o mesmo que o laço linear, e `chunkDistanteNaoTemCandidato` garante que um chunk longe custa zero candidatos. O ganho em tempo real não foi cronometrado | idem |
+| A fração de 15% de folha luminosa é **amostrada** | uma prateleira a cada treze, com passo proporcional ao raio. O intervalo por seed vai de 11,9% a 17,2% — a dispersão é da copa, não da amostragem | nunca; varrer tudo custaria mais que a suíte inteira |
+| **Mundo já gerado não muda** | chunks existentes ficam com a copa antiga, e a fronteira entre o gerado e o novo é visível. Vale para qualquer mudança de worldgen; aqui a diferença é grande o bastante para notar | nunca; é a natureza de worldgen |
+| A **identidade de Hunter × Hunter** não é mensurável | as três folhas por altitude, a luminosa e a resina são a tentativa. Se ler como floresta genérica, é ajuste de paleta | nunca por portão |
+
 ## O que a trilha AV não vai provar, e já se sabe disso
 
 Aberto junto do [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md), antes

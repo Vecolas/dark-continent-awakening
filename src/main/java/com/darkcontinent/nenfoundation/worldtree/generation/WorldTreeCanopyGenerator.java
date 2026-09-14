@@ -2,7 +2,9 @@ package com.darkcontinent.nenfoundation.worldtree.generation;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliagePlan;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageIndex;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageShelf;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageTexture;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeVineStrand;
 import net.minecraft.core.BlockPos;
@@ -104,38 +106,25 @@ public final class WorldTreeCanopyGenerator {
 
         WorldTreeFoliagePlan plan = planFor(layout);
 
-        for (WorldTreeFoliageShelf shelf : plan.shelves()) {
-            if (!shelfIntersectsChunk(minX, maxX, minZ, maxZ, shelf)) {
-                continue;
-            }
-            placeShelf(chunk, position, minX, minZ, maxX, maxZ, shelf, layout.seed());
+        // O INDICE RESPONDE QUEM ENCOSTA NESTE CHUNK, e este laco nao ve mais o
+        // plano inteiro.
+        //
+        // O corte por chunk sempre existiu e sempre esteve CERTO -- so que era um
+        // `if` dentro de um laco sobre as 549 prateleiras e as 3.070 vinhas. Todo
+        // chunk da dimensao pagava 3.619 testes de caixa antes de descobrir que
+        // nao tinha nada a desenhar, e um chunk a 5.000 blocos do tronco pagava
+        // exatamente o mesmo que o chunk em cima dele.
+        WorldTreeFoliageIndex index = plan.index();
+        int chunkX = chunk.getPos().x;
+        int chunkZ = chunk.getPos().z;
+        for (int shelfIndex : index.prateleirasEm(chunkX, chunkZ)) {
+            placeShelf(chunk, position, minX, minZ, maxX, maxZ,
+                    plan.shelves().get(shelfIndex), layout.seed());
         }
-        for (WorldTreeVineStrand vine : plan.vines()) {
-            // O CORTE POR CHUNK VEM ANTES, e nao dentro do desenho.
-            //
-            // Sem ele, TODO chunk da dimensao percorria as ~6.000 cortinas passo
-            // a passo -- ~140.000 iteracoes, ~1,2 ms -- mesmo a 5.000 blocos do
-            // tronco, onde nao ha uma folha para desenhar. O laco de prateleiras
-            // sempre teve esse corte; o de vinhas nunca teve, e a regua de custo
-            // nao contava vinha nenhuma, entao nada acusava.
-            if (!vine.touchesChunk(minX, minZ)) {
-                continue;
-            }
-            placeVine(chunk, position, minX, minZ, maxX, maxZ, vine);
+        for (int vineIndex : index.vinhasEm(chunkX, chunkZ)) {
+            placeVine(chunk, position, minX, minZ, maxX, maxZ,
+                    plan.vines().get(vineIndex));
         }
-    }
-
-    /**
-     * Se vale a pena olhar esta prateleira neste chunk.
-     *
-     * <p>SEM ESTE CORTE, cada chunk percorreria as centenas de prateleiras do
-     * plano inteiro bloco a bloco. Com ele, so as que encostam no chunk.
-     */
-    static boolean shelfIntersectsChunk(int minX, int maxX, int minZ, int maxZ,
-            WorldTreeFoliageShelf shelf) {
-        double r = shelf.radius() + 1.0;
-        return minX <= shelf.centerX() + r && maxX >= shelf.centerX() - r
-                && minZ <= shelf.centerZ() + r && maxZ >= shelf.centerZ() - r;
     }
 
     private static void placeShelf(ChunkAccess chunk, BlockPos.MutableBlockPos position,
@@ -146,6 +135,7 @@ public final class WorldTreeCanopyGenerator {
         int toZ = Math.min(maxZ, (int) Math.ceil(shelf.centerZ() + shelf.radius()) + 1);
         double raio2 = shelf.radius() * shelf.radius();
         BlockState leaf = leafState(shelf.tier());
+        BlockState luminous = WorldTreeBlocks.WORLD_TREE_LEAVES_LUMINOUS.get().defaultBlockState();
 
         for (int x = fromX; x < toX; x++) {
             for (int z = fromZ; z < toZ; z++) {
@@ -160,7 +150,8 @@ public final class WorldTreeCanopyGenerator {
                 // de custo usa; duas versoes dela mediriam coisas diferentes.
                 double dx = x - shelf.centerX();
                 double dz = z - shelf.centerZ();
-                double factor = shelf.verticalSpanFactor((dx * dx + dz * dz) / raio2);
+                double horizontalSquared = (dx * dx + dz * dz) / raio2;
+                double factor = shelf.verticalSpanFactor(horizontalSquared);
                 if (factor <= 0.0) {
                     continue;
                 }
@@ -170,14 +161,28 @@ public final class WorldTreeCanopyGenerator {
                 int fromY = Math.max(chunk.getMinBuildHeight(), columnBottom);
                 int toY = Math.min(chunk.getMaxBuildHeight(), columnTop + 1);
 
+                // OS TERMOS QUE SO DEPENDEM DA COLUNA SAEM DO LACO DE y.
+                //
+                // Os dois campos de ruido tem um termo em (x, z) e dois que
+                // envolvem y. O termo de coluna era recalculado em cada um dos
+                // ~200 milhoes de blocos da copa, sempre com o mesmo resultado.
+                // Nao ha uma segunda implementacao aqui: as funcoes de
+                // conveniencia calculam este termo e delegam para as mesmas
+                // linhas.
+                double termoDaCasca = cascaNaColuna(x, z, seed);
+                double termoDoBrilho = WorldTreeFoliageTexture.termoDaColuna(x, z, seed);
+
                 for (int y = fromY; y < toY; y++) {
-                    double normalized = shelf.normalized(x, y, z);
-                    if (normalized > 1.0 || !keep(normalized, x, y, z, seed)) {
+                    double normalized = shelf.normalizedInColumn(horizontalSquared, y);
+                    if (normalized > 1.0 || !keep(normalized, termoDaCasca, x, y, z, seed)) {
                         continue;
                     }
                     position.set(x, y, z);
                     if (chunk.getBlockState(position).isAir()) {
-                        chunk.setBlockState(position, leaf, false);
+                        chunk.setBlockState(position,
+                                WorldTreeFoliageTexture.brilha(termoDoBrilho, x, y, z, seed)
+                                        ? luminous : leaf,
+                                false);
                     }
                 }
             }
@@ -194,6 +199,23 @@ public final class WorldTreeCanopyGenerator {
      * nao um hash por bloco. Hash por bloco nao produz borda: produz chuvisco.
      */
     static boolean keep(double normalized, int x, int y, int z, long seed) {
+        return keep(normalized, cascaNaColuna(x, z, seed), x, y, z, seed);
+    }
+
+    /**
+     * O termo do ruido de casca que so depende da coluna.
+     *
+     * <p>Existe para sair do laco de y, e nao para ser uma segunda versao da
+     * conta: {@link #keep(double, int, int, int, long)} chama esta funcao e
+     * delega. O portao {@code cascaNaColunaConcordaComKeep} amarra os dois.
+     */
+    static double cascaNaColuna(int x, int z, long seed) {
+        return WorldTreeFoliageTexture.sin(x * 0.21 + z * 0.13 + seed * 0.0000013);
+    }
+
+    /** A mesma decisao, com o termo da coluna ja calculado. */
+    static boolean keep(double normalized, double termoDaColuna,
+            int x, int y, int z, long seed) {
         if (normalized <= INICIO_DA_CASCA) {
             return true;
         }
@@ -209,9 +231,13 @@ public final class WorldTreeCanopyGenerator {
         //
         // Numa soma, um termo no zero nao apaga os outros. As frequencias sao
         // incomensuraveis de proposito, para o padrao nao se repetir em grade.
-        double ruido = 0.5 + (Math.sin(x * 0.21 + z * 0.13 + seed * 0.0000013)
-                + Math.sin(z * 0.19 - y * 0.11 - seed * 0.0000017)
-                + Math.sin(y * 0.27 + x * 0.057)) / 6.0;
+        //
+        // O SENO E TABELADO, e a troca nao e so de custo: `Math.sin` so promete
+        // 1 ulp e pode diferir entre JVMs, e 1 ulp perto do limiar troca a
+        // decisao de um bloco. Ver WorldTreeFoliageTexture.
+        double ruido = 0.5 + (termoDaColuna
+                + WorldTreeFoliageTexture.sin(z * 0.19 - y * 0.11 - seed * 0.0000017)
+                + WorldTreeFoliageTexture.sin(y * 0.27 + x * 0.057)) / 6.0;
         return ruido > borda * 0.92;
     }
 

@@ -36,6 +36,7 @@ public final class WorldTreeItems {
     public static final DeferredItem<BlockItem> WORLD_TREE_LEAVES_BLOCK = registerBlockItem("world_tree_leaves", WorldTreeBlocks.WORLD_TREE_LEAVES);
     public static final DeferredItem<BlockItem> WORLD_TREE_LEAVES_DENSE_BLOCK = registerBlockItem("world_tree_leaves_dense", WorldTreeBlocks.WORLD_TREE_LEAVES_DENSE);
     public static final DeferredItem<BlockItem> WORLD_TREE_LEAVES_PALE_BLOCK = registerBlockItem("world_tree_leaves_pale", WorldTreeBlocks.WORLD_TREE_LEAVES_PALE);
+    public static final DeferredItem<BlockItem> WORLD_TREE_LEAVES_LUMINOUS_BLOCK = registerBlockItem("world_tree_leaves_luminous", WorldTreeBlocks.WORLD_TREE_LEAVES_LUMINOUS);
     public static final DeferredItem<BlockItem> WORLD_TREE_VINE_BLOCK = registerBlockItem("world_tree_vine", WorldTreeBlocks.WORLD_TREE_VINE);
     public static final DeferredItem<BlockItem> WORLD_TREE_THICK_VINE_BLOCK = registerBlockItem("world_tree_thick_vine", WorldTreeBlocks.WORLD_TREE_THICK_VINE);
     public static final DeferredItem<BlockItem> WORLD_TREE_MOSS_BLOCK = registerBlockItem("world_tree_moss", WorldTreeBlocks.WORLD_TREE_MOSS);

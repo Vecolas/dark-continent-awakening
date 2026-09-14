@@ -56,6 +56,29 @@ public final class WorldTreeBlocks {
     public static final DeferredBlock<Block> WORLD_TREE_LEAVES_DENSE = BLOCKS.registerSimpleBlock("world_tree_leaves_dense", LEAVES);
     public static final DeferredBlock<Block> WORLD_TREE_LEAVES_PALE = BLOCKS.registerSimpleBlock("world_tree_leaves_pale", LEAVES);
 
+    /**
+     * A folha que acende, no nivel da glowstone.
+     *
+     * <p>Ela e o mesmo material das outras tres -- mesma dureza, mesmo som, mesma
+     * falta de oclusao -- e difere em uma coisa so: {@code lightEmission}. Copiar
+     * o perfil em vez de reescreve-lo e deliberado; uma folha luminosa que
+     * quebrasse mais rapido que a vizinha seria uma diferenca que ninguem pediu.
+     *
+     * <p><b>15 E A GLOWSTONE, E FOI O QUE FOI PEDIDO.</b> Fica registrado o que
+     * isso custa: cada bloco destes e uma fonte de luz, e a propagacao de luz da
+     * engine e um BFS por fonte. Por isso o campo que os escolhe
+     * ({@link WorldTreeFoliageTexture}) e AGRUPADO e nao espalhado -- fontes
+     * encostadas compartilham a propagacao. O custo real disso em jogo nao foi
+     * medido; esta em docs/testing/o-que-nao-provamos.md.
+     */
+    public static final DeferredBlock<Block> WORLD_TREE_LEAVES_LUMINOUS =
+            BLOCKS.registerSimpleBlock("world_tree_leaves_luminous",
+                    structuralProperties()
+                            .mapColor(MapColor.COLOR_GREEN)
+                            .sound(SoundType.GRASS)
+                            .noOcclusion()
+                            .lightLevel(state -> 15));
+
     public static final DeferredBlock<Block> WORLD_TREE_VINE = BLOCKS.registerSimpleBlock("world_tree_vine",
             BlockBehaviour.Properties.ofFullCopy(Blocks.VINE).strength(50.0F, 1200.0F)
                     .requiresCorrectToolForDrops().noOcclusion());

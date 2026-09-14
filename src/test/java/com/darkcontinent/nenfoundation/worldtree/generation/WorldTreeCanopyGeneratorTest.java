@@ -1,9 +1,7 @@
 package com.darkcontinent.nenfoundation.worldtree.generation;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeFoliageShelf;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,25 +12,42 @@ import org.junit.jupiter.api.Test;
  * <p>Este arquivo mudou de assunto junto com o gerador. Ele testava
  * {@code clusterRadius}, um numero que so existia dentro do laco que escrevia
  * blocos -- e por isso a forma da copa nunca teve regua. O plano agora e puro, e
- * as perguntas daqui sao duas: o corte por chunk esta certo, e o miolo da massa
- * NAO e perfurado.
+ * as perguntas daqui sao duas: o miolo da massa NAO e perfurado, e os atalhos de
+ * custo do laco interno dao a MESMA resposta que a funcao completa. O corte por
+ * chunk mudou de casa e tem portao proprio em {@code WorldTreeFoliageIndexTest}.
  */
 class WorldTreeCanopyGeneratorTest {
 
-    private static WorldTreeFoliageShelf prateleira(double x, double z, double raio) {
-        return new WorldTreeFoliageShelf(x, 900.0, z, raio, 5.0, 3.0, x, 900.0, z,
-                4.0, WorldTreeFoliageShelf.Suporte.GALHO, 0, 0, 1);
-    }
+    // O CORTE POR CHUNK MUDOU DE CASA, e o teste dele foi junto.
+    //
+    // Ele era um `if` de caixa dentro de um laco sobre o plano inteiro; hoje e
+    // WorldTreeFoliageIndex, e a prova de que o resultado nao mudou esta em
+    // WorldTreeFoliageIndexTest#indiceNaoMudaResultado, que compara o indice com
+    // o laco linear em vinte seeds. Deixar uma copia do corte aqui seria manter
+    // duas fontes para a mesma verdade -- e a copia morta divergiria da viva sem
+    // nada acusar.
 
     @Test
-    @DisplayName("o corte por chunk pega a prateleira que encosta, e larga a distante")
-    void corteDeChunk() {
-        assertTrue(WorldTreeCanopyGenerator.shelfIntersectsChunk(0, 16, 0, 16,
-                prateleira(24.0, 8.0, 12.0)),
-                "prateleira encostando no chunk foi descartada; isso corta a copa na fronteira");
-        assertFalse(WorldTreeCanopyGenerator.shelfIntersectsChunk(0, 16, 0, 16,
-                prateleira(400.0, 400.0, 20.0)),
-                "prateleira do outro lado da arvore passou; cada chunk pagaria pelo plano inteiro");
+    @DisplayName("o termo de coluna e a funcao completa concordam -- senao a casca muda em jogo")
+    void cascaNaColunaConcordaComKeep() {
+        // O GERADOR USA O ATALHO POR COLUNA; esta suite usa a funcao completa. Se
+        // os dois divergissem, a borda da folhagem em jogo seria diferente da que
+        // os outros testes daqui medem -- e os testes continuariam verdes.
+        for (long seed : new long[] {42L, 1_000L, 8_919L}) {
+            for (int x = -50; x <= 50; x += 3) {
+                for (int z = -50; z <= 50; z += 5) {
+                    double termo = WorldTreeCanopyGenerator.cascaNaColuna(x, z, seed);
+                    for (int y = 890; y <= 950; y += 7) {
+                        for (double normalized : new double[] {0.30, 0.75, 0.86, 0.97}) {
+                            assertTrue(WorldTreeCanopyGenerator.keep(normalized, x, y, z, seed)
+                                            == WorldTreeCanopyGenerator.keep(normalized, termo,
+                                                    x, y, z, seed),
+                                    "x=" + x + " y=" + y + " z=" + z + " n=" + normalized);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Test

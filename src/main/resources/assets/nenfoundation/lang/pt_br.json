@@ -190,5 +190,6 @@
   "nenfoundation.vfx.tuning_titulo": "Tuning do visual da aura",
   "nenfoundation.vfx.tuning_restaurar": "Restaurar o perfil (descarta os ajustes)",
   "nenfoundation.vfx.tuning_rodape": "Nada aqui persiste. Para valer, escreva o numero em assets/nenfoundation/nen_vfx/.",
-  "subtitles.nenfoundation.vfx.nen.ten_activate": "Aura de Ten se envolve ao redor de alguém"
+  "subtitles.nenfoundation.vfx.nen.ten_activate": "Aura de Ten se envolve ao redor de alguém",
+  "block.nenfoundation.world_tree_leaves_luminous": "Folhas Luminosas da Arvore-Mundo"
 }

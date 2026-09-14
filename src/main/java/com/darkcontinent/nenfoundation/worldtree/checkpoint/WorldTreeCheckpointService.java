@@ -77,8 +77,11 @@ public final class WorldTreeCheckpointService {
                     com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData.factory(),
                     com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData.DATA_ID);
             data.initialize(overworld.getSeed());
-            player.teleportTo(overworld, data.overworldOriginX() + 49.5D, 80.0D,
-                    data.overworldOriginZ() + 0.5D, player.getYRot(), player.getXRot());
+            var posto = com.darkcontinent.nenfoundation.worldtree.generation
+                    .WorldTreeBaseGenerator.postoDoPe(
+                            WorldTreeLayoutGenerator.generate(overworld.getSeed(), 0, 0));
+            player.teleportTo(overworld, posto.spawnX(), posto.floorY() + 1,
+                    posto.spawnZ(), player.getYRot(), player.getXRot());
             return true;
         }
         ServerLevel destination = player.getServer().getLevel(WorldTreeDebugCommands.WORLD_TREE_LEVEL);
@@ -86,9 +89,9 @@ public final class WorldTreeCheckpointService {
             return false;
         }
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(destination.getSeed(), 0, 0);
-        BlockPos checkpoint = WorldTreeCheckpointGenerator.anchorPosition(layout, target);
-        player.teleportTo(destination, checkpoint.getX() + 0.5D, target.y(),
-                checkpoint.getZ() + 0.5D,
+        var posto = com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost
+                .forCheckpoint(layout, target.y());
+        player.teleportTo(destination, posto.spawnX(), posto.floorY() + 1, posto.spawnZ(),
                 player.getYRot(), player.getXRot());
         return true;
     }
@@ -99,8 +102,12 @@ public final class WorldTreeCheckpointService {
                     com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData.factory(),
                     com.darkcontinent.nenfoundation.worldtree.WorldTreeSavedData.DATA_ID);
             data.initialize(player.serverLevel().getSeed());
-            return player.distanceToSqr(data.overworldOriginX() + 49.5D, 80.0D,
-                    data.overworldOriginZ() + 0.5D) <= 64.0D;
+            var posto = com.darkcontinent.nenfoundation.worldtree.generation
+                    .WorldTreeBaseGenerator.postoDoPe(
+                            WorldTreeLayoutGenerator.generate(
+                                    player.serverLevel().getSeed(), 0, 0));
+            return player.distanceToSqr(posto.spawnX(), posto.floorY() + 1,
+                    posto.spawnZ()) <= 64.0D;
         }
         if (player.level().dimension() != WorldTreeDebugCommands.WORLD_TREE_LEVEL) {
             return false;
@@ -111,9 +118,10 @@ public final class WorldTreeCheckpointService {
             return false;
         }
         WorldTreeLayout layout = WorldTreeLayoutGenerator.generate(player.serverLevel().getSeed(), 0, 0);
-        BlockPos anchor = WorldTreeCheckpointGenerator.anchorPosition(layout, checkpoint);
-        double dx = player.getX() - (anchor.getX() + 0.5D);
-        double dz = player.getZ() - (anchor.getZ() + 0.5D);
+        var posto = com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost
+                .forCheckpoint(layout, checkpoint.y());
+        double dx = player.getX() - posto.spawnX();
+        double dz = player.getZ() - posto.spawnZ();
         return dx * dx + dz * dz <= 64.0D;
     }
 

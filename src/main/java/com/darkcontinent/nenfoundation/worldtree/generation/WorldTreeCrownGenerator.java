@@ -2,6 +2,7 @@ package com.darkcontinent.nenfoundation.worldtree.generation;
 
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkSurface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -24,19 +25,19 @@ public final class WorldTreeCrownGenerator {
         generateLeader(chunk, position, minX, minZ, maxX, maxZ, layout);
     }
 
+    /**
+     * O perfil do lider MUDOU DE CASA, para {@link WorldTreeTrunkSurface}.
+     *
+     * <p>Isto e delegado, e nao copia: a cabana dos checkpoints do topo encosta
+     * neste perfil, e duas versoes dele divergiriam na primeira correcao de forma
+     * -- com a cabana saindo do lugar sem ninguem ter tocado nela.
+     */
     public static WorldTreePoint leaderCenter(int y, long seed) {
-        double t = Math.max(0.0, Math.min(1.0, (y - LEADER_BOTTOM)
-                / (double) (LEADER_TOP - LEADER_BOTTOM)));
-        return new WorldTreePoint(
-                Math.sin(y * 0.018 + seed * 0.0000011) * (1.5 + t * 2.5),
-                y,
-                Math.cos(y * 0.015 - seed * 0.0000017) * (1.5 + t * 2.0));
+        return WorldTreeTrunkSurface.leaderCenter(y, seed);
     }
 
     public static double leaderRadius(int y) {
-        double t = Math.max(0.0, Math.min(1.0, (y - LEADER_BOTTOM)
-                / (double) (LEADER_TOP - LEADER_BOTTOM)));
-        return 19.0 - t * 12.0;
+        return WorldTreeTrunkSurface.leaderRadius(y);
     }
 
     private static void generateLeader(ChunkAccess chunk, BlockPos.MutableBlockPos position,

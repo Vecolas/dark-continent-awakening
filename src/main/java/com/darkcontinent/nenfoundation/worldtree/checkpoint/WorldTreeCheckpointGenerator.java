@@ -1,97 +1,148 @@
 package com.darkcontinent.nenfoundation.worldtree.checkpoint;
 
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeAnchorPlatform;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeBlocks;
+import com.darkcontinent.nenfoundation.worldtree.WorldTreeClimbingPost;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeLayout;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreePoint;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeTrunkSurface;
-import com.darkcontinent.nenfoundation.worldtree.generation.WorldTreeCrownGenerator;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.ChunkPos;
 
-/** Materializa anchors da rota principal somente no chunk que os contém. */
+/**
+ * Constroi a CABANA de cada checkpoint, no chunk que a toca.
+ *
+ * <p><b>O QUE HAVIA AQUI, e por que trocar a posicao nao bastou.</b> O checkpoint
+ * era uma ancora sobre um disco de lenho de um bloco de espessura, saindo do
+ * tronco. A rodada anterior consertou a POSICAO dele -- ele media o raio nominal
+ * do tronco e a casca real e outra --, e o resultado em jogo continuou ruim: uma
+ * tabua nua projetada de uma parede de casca le como mundo quebrado, e nao como
+ * lugar. O pedido foi cabana, num galho.
+ *
+ * <p><b>A CABANA AFIRMA O PROPRIO VOLUME, e a prateleira nao afirmava.</b> Aquele
+ * laco so preenchia AR: ele era educado com tudo o que ja estivesse no lugar, e
+ * por isso saia furado quando qualquer outro gerador tivesse escrito ali. Aqui o
+ * interior e <b>esvaziado</b> e as paredes sao escritas <b>por cima</b> do que
+ * houver. Nao existe estado do mundo que produza meia cabana.
+ *
+ * <p>Isso nao dispensa a ordem em {@code buildSurface} -- o checkpoint continua
+ * vindo antes da copa, porque a copa so entra em ar e uma cabana ja construida a
+ * faz contornar. O que muda e que agora a cabana tambem sobrevive ao contrario.
+ *
+ * <p><b>CADA CHUNK ESCREVE A PROPRIA FATIA.</b> A pegada e 7x7 e cruza fronteira
+ * quase sempre; nenhuma coordenada aqui depende do chunk, so do layout.
+ */
 public final class WorldTreeCheckpointGenerator {
     private WorldTreeCheckpointGenerator() {
     }
 
     public static void generate(ChunkAccess chunk, WorldTreeLayout layout) {
         for (WorldTreeCheckpoint checkpoint : WorldTreeCheckpoint.values()) {
-            int y = checkpoint.y();
-            BlockPos anchor = anchorPosition(layout, checkpoint);
-            if (!platformIntersectsChunk(chunk, anchor)) {
-                continue;
-            }
-            if (chunk.getPos().equals(new ChunkPos(anchor))) {
-                chunk.setBlockState(anchor, WorldTreeBlocks.HUNTER_CLIMBING_ANCHOR.get()
-                        .defaultBlockState(), false);
-            }
-            // A FORMA DA VARANDA MORA EM WorldTreeAnchorPlatform, e nao aqui.
-            // Ela e a mesma do pe da arvore no Overworld, e enquanto morou
-            // duplicada nos dois lacos ja tinha divergido -- la era UM bloco de
-            // lenho embaixo da ancora.
-            for (int dx = -WorldTreeAnchorPlatform.ALCANCE_PARA_DENTRO;
-                    dx <= WorldTreeAnchorPlatform.ALCANCE_PARA_FORA; dx++) {
-                for (int dz = -WorldTreeAnchorPlatform.ALCANCE_LATERAL;
-                        dz <= WorldTreeAnchorPlatform.ALCANCE_LATERAL; dz++) {
-                    if (!WorldTreeAnchorPlatform.contem(dx, dz)) {
-                        continue;
-                    }
-                    BlockPos support = anchor.below().offset(dx, 0, dz);
-                    if (chunk.getBlockState(support).isAir()) {
-                        chunk.setBlockState(support, checkpoint == WorldTreeCheckpoint.SUMMIT
-                                ? WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState()
-                                : WorldTreeBlocks.WORLD_TREE_DEADWOOD.get().defaultBlockState(), false);
-                    }
-                }
-            }
+            build(chunk, WorldTreeClimbingPost.forCheckpoint(layout, checkpoint.y()),
+                    checkpoint == WorldTreeCheckpoint.SUMMIT);
         }
     }
 
     /**
-     * Onde a ancora encosta na madeira.
+     * Levanta a cabana, na parte dela que cai neste chunk.
      *
-     * <p><b>DUAS COISAS ESTAVAM ERRADAS AQUI, e as duas produziam o mesmo
-     * sintoma: ancora flutuando.</b>
-     *
-     * <p>A primeira era um {@code Math.max(18, ...)} sem relacao com a arvore.
-     * Onde o tronco tem raio 10, ele punha a ancora em x=20 -- oito blocos de ar
-     * entre a madeira e a plataforma.
-     *
-     * <p>A segunda sobreviveria a correcao da primeira: {@code radiusAt} devolve
-     * o raio NOMINAL do perfil, e a casca que o gerador escreve tem lobos de ate
-     * 4,5 blocos e ruido de ate 2. Usar o nominal erra por ate 6,5 blocos para
-     * cada lado -- ora flutuando, ora com a ancora ENTERRADA na madeira.
-     *
-     * <p>Agora a conta e a mesma que o escritor usa, em
-     * {@link WorldTreeTrunkSurface}. O {@code +1} e o unico folgado que sobra: a
-     * ancora fica um bloco fora da casca, e a plataforma de baixo e que atravessa
-     * para dentro da madeira.
+     * @param nobre se usa cerne no lugar de lenho morto -- o SUMMIT e o fim da
+     *              rota, e vale ser diferente
      */
-    static BlockPos anchorPosition(WorldTreeLayout layout, WorldTreeCheckpoint checkpoint) {
-        if (checkpoint.y() > layout.trunk().topY()) {
-            WorldTreePoint leader = WorldTreeCrownGenerator.leaderCenter(checkpoint.y(), layout.seed());
-            double radius = WorldTreeCrownGenerator.leaderRadius(checkpoint.y());
-            return new BlockPos((int) Math.ceil(leader.x() + radius) + 1,
-                    checkpoint.y(), (int) Math.round(leader.z()));
+    public static void build(ChunkAccess chunk, WorldTreeClimbingPost post, boolean nobre) {
+        int minX = chunk.getPos().getMinBlockX();
+        int minZ = chunk.getPos().getMinBlockZ();
+        if (!post.tocaChunk(minX, minZ)) {
+            return;
         }
-        int y = Math.min(checkpoint.y(), layout.trunk().topY());
-        double casca = WorldTreeTrunkSurface.naDirecaoX(
-                layout.trunk().radiusAt(y), y, layout.seed());
-        return new BlockPos((int) Math.ceil(casca) + 1, checkpoint.y(), 0);
+        BlockState piso = nobre
+                ? WorldTreeBlocks.WORLD_TREE_HEARTWOOD.get().defaultBlockState()
+                : WorldTreeBlocks.WORLD_TREE_DEADWOOD.get().defaultBlockState();
+        BlockState parede = WorldTreeBlocks.WORLD_TREE_BARK.get().defaultBlockState();
+        BlockState canto = WorldTreeBlocks.WORLD_TREE_BARK_DARK.get().defaultBlockState();
+        BlockState teto = WorldTreeBlocks.WORLD_TREE_SAPWOOD.get().defaultBlockState();
+        BlockState lampada = WorldTreeBlocks.WORLD_TREE_LEAVES_LUMINOUS.get().defaultBlockState();
+        BlockState ar = Blocks.AIR.defaultBlockState();
+
+        BlockPos.MutableBlockPos posicao = new BlockPos.MutableBlockPos();
+        int raio = WorldTreeClimbingPost.RAIO;
+        int deX = Math.max(minX, post.centerX() - raio);
+        int ateX = Math.min(minX + 16, post.centerX() + raio + 1);
+        int deZ = Math.max(minZ, post.centerZ() - raio);
+        int ateZ = Math.min(minZ + 16, post.centerZ() + raio + 1);
+
+        for (int x = deX; x < ateX; x++) {
+            for (int z = deZ; z < ateZ; z++) {
+                int dx = Math.abs(x - post.centerX());
+                int dz = Math.abs(z - post.centerZ());
+                boolean parede_ = dx == raio || dz == raio;
+                boolean cantoDaPlanta = dx == raio && dz == raio;
+
+                // O PILAR, antes de tudo: e ele que liga a cabana ao galho.
+                //
+                // Sem ele a cabana fica no ar sobre o galho -- que e o defeito
+                // anterior de volta, so que maior. Ele so existe quando ha vao;
+                // encostada no tronco, a cabana nao precisa de estaca.
+                if (dx <= 1 && dz <= 1) {
+                    for (int y = post.topoDoSuporte(); y < post.floorY(); y++) {
+                        escrever(chunk, posicao, x, y, z, piso);
+                    }
+                }
+
+                escrever(chunk, posicao, x, post.floorY(), z, piso);
+
+                for (int nivel = 1; nivel <= WorldTreeClimbingPost.ALTURA_INTERNA; nivel++) {
+                    int y = post.floorY() + nivel;
+                    if (!parede_) {
+                        // O INTERIOR E ESVAZIADO, e este e o ponto da reforma. Se
+                        // a cabana cair sobre madeira de galho -- e ela cai, ela
+                        // mora em cima de um --, so esvaziar produz comodo.
+                        escrever(chunk, posicao, x, y, z, ar);
+                        continue;
+                    }
+                    escrever(chunk, posicao, x, y, z, cantoDaPlanta ? canto : parede);
+                }
+
+                escrever(chunk, posicao, x, post.roofY(), z, teto);
+            }
+        }
+
+        // A PORTA fica na parede voltada para o eixo da arvore: quem chega vem de
+        // la. Dois blocos de altura, no meio da parede.
+        int portaX = post.centerX() + (post.centerX() >= 0 ? -raio : raio);
+        for (int nivel = 1; nivel <= 2; nivel++) {
+            escrever(chunk, posicao, portaX, post.floorY() + nivel, post.centerZ(), ar);
+        }
+        // UMA JANELA em cada uma das outras duas faces, para a cabana nao ser uma
+        // caixa fechada vista de fora.
+        escrever(chunk, posicao, post.centerX(), post.floorY() + 2, post.centerZ() - raio, ar);
+        escrever(chunk, posicao, post.centerX(), post.floorY() + 2, post.centerZ() + raio, ar);
+
+        // A LUZ, e ela e a folha luminosa de proposito: e o unico bloco que emite
+        // luz nesta arvore, e a cabana e onde se olha para ele de perto.
+        escrever(chunk, posicao, post.centerX(), post.roofY() - 1, post.centerZ(), lampada);
+
+        escrever(chunk, posicao, post.centerX(), post.anchorY(), post.centerZ(),
+                WorldTreeBlocks.HUNTER_CLIMBING_ANCHOR.get().defaultBlockState());
     }
 
-    private static boolean platformIntersectsChunk(ChunkAccess chunk, BlockPos anchor) {
-        int minX = WorldTreeAnchorPlatform.pontaInterna(anchor.getX());
-        int maxX = anchor.getX() + WorldTreeAnchorPlatform.ALCANCE_PARA_FORA;
-        int minZ = anchor.getZ() - WorldTreeAnchorPlatform.ALCANCE_LATERAL;
-        int maxZ = anchor.getZ() + WorldTreeAnchorPlatform.ALCANCE_LATERAL;
-        int chunkMinX = chunk.getPos().getMinBlockX();
-        int chunkMaxX = chunkMinX + 15;
-        int chunkMinZ = chunk.getPos().getMinBlockZ();
-        int chunkMaxZ = chunkMinZ + 15;
-        return chunkMinX <= maxX && chunkMaxX >= minX
-                && chunkMinZ <= maxZ && chunkMaxZ >= minZ;
+    /**
+     * Escreve um bloco, se ele cair neste chunk.
+     *
+     * <p><b>SEM PERGUNTAR SE HA AR.</b> Era assim que a prateleira antiga
+     * trabalhava, e era por isso que ela saia furada. Uma construcao que respeita
+     * o que encontra nao e uma construcao.
+     */
+    private static void escrever(ChunkAccess chunk, BlockPos.MutableBlockPos posicao,
+            int x, int y, int z, BlockState estado) {
+        int minX = chunk.getPos().getMinBlockX();
+        int minZ = chunk.getPos().getMinBlockZ();
+        if (x < minX || x >= minX + 16 || z < minZ || z >= minZ + 16) {
+            return;
+        }
+        if (y < chunk.getMinBuildHeight() || y >= chunk.getMaxBuildHeight()) {
+            return;
+        }
+        posicao.set(x, y, z);
+        chunk.setBlockState(posicao, estado, false);
     }
 }

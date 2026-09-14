@@ -53,6 +53,34 @@ public final class WorldTreeTrunkSurface {
         return Math.max(1.0, baseRadius + lobes + noise);
     }
 
+    /** Onde o lider central comeca e acaba. Os mesmos numeros do desenho dele. */
+    public static final int LIDER_BASE = 1100;
+    public static final int LIDER_TOPO = 1450;
+
+    /**
+     * O eixo do lider central naquela altura.
+     *
+     * <p>MUDOU DE CASA por exatamente o mesmo motivo que a casca do tronco: quem
+     * precisa encostar alguma coisa no lider -- a cabana dos checkpoints acima de
+     * y=1200, onde o tronco ja acabou -- precisa perguntar isto antes de existir
+     * chunk. Enquanto morou so no gerador da coroa, a alternativa era chutar.
+     */
+    public static WorldTreePoint leaderCenter(int y, long seed) {
+        double t = Math.max(0.0, Math.min(1.0, (y - LIDER_BASE)
+                / (double) (LIDER_TOPO - LIDER_BASE)));
+        return new WorldTreePoint(
+                Math.sin(y * 0.018 + seed * 0.0000011) * (1.5 + t * 2.5),
+                y,
+                Math.cos(y * 0.015 - seed * 0.0000017) * (1.5 + t * 2.0));
+    }
+
+    /** A grossura do lider central naquela altura. */
+    public static double leaderRadius(int y) {
+        double t = Math.max(0.0, Math.min(1.0, (y - LIDER_BASE)
+                / (double) (LIDER_TOPO - LIDER_BASE)));
+        return 19.0 - t * 12.0;
+    }
+
     /**
      * Ate onde a casca chega na direcao +X, na altura {@code y}.
      *

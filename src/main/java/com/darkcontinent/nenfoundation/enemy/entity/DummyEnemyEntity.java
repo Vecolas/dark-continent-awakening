@@ -125,9 +125,24 @@ public final class DummyEnemyEntity extends BaseHxHMob implements GeoEntity {
     /** Alcance do traco que procura o ponto de impacto na caixa do boneco. */
     private static final double ALCANCE_DO_TRACO = 6.0D;
 
-    /** Caixa do golpe, em coordenadas LOCAIS: a frente do boneco e -Z. */
+    /**
+     * Caixa do golpe, em coordenadas LOCAIS. A FRENTE E +Z.
+     *
+     * <p>A primeira versao deste campo escrevia z de -2.6 a -0.4, "porque a frente
+     * do bicho e -Z". Isso vale para a GEOMETRIA do modelo (no formato Bedrock -Z
+     * aponta para a frente), e nao para a transformacao de {@link AttackHitbox},
+     * que e matematica de MUNDO: com yaw 0 o olhar vanilla aponta para +Z, e a
+     * conta de {@code noMundo} segue essa convencao. Misturar as duas colocava a
+     * caixa ATRAS do boneco -- ele atacava, animava, e nao encostava em quem
+     * estava na frente; quem estivesse pelas costas e que apanhava.</p>
+     *
+     * <p>Nao havia erro nenhum: fase certa, cooldown certo, log limpo. Quem achou
+     * foi o gametest, medindo dano num golem parado na frente. O great stamp usa a
+     * mesma convencao ({@code z} de -0.5 a 2.1), e a coerencia entre os dois e o
+     * que impede a proxima pessoa de inverter de novo.</p>
+     */
     private static final AttackHitbox CAIXA_DO_GOLPE =
-            new AttackHitbox(-1.0D, 0.4D, -2.6D, 1.0D, 1.8D, -0.4D);
+            new AttackHitbox(-1.0D, 0.4D, 0.4D, 1.0D, 1.8D, 2.6D);
 
     private static final WeakPointRegistry PONTOS_FRACOS = HunterExamProfiles.dummyEnemyWeakPoints();
     private static final WeakPointResolver GEOMETRIA_DO_PONTO_FRACO =
@@ -443,6 +458,40 @@ public final class DummyEnemyEntity extends BaseHxHMob implements GeoEntity {
     /** Som de mundo chega ao boneco como EVENTO -- e assim que a audicao existe. */
     public void ouvir(HearingEvent evento) {
         if (!level().isClientSide) runtimeExigido().percepcao().ouvir(evento);
+    }
+
+    // ------------------------------------------------------------- ciclo de vida
+
+    /**
+     * Morrer PUBLICA o repouso, e nao apenas limpa o servidor.
+     *
+     * <p>{@code BaseHxHMob.die} limpa o runtime, mas o campo sincronizado nao
+     * sabe disso: depois de morto {@code isImmobile()} e verdadeiro,
+     * {@code customServerAiStep} nao roda mais e {@link #publicarEstado} nunca
+     * mais acontece. Morrer no meio de um golpe deixava a fase congelada em
+     * WINDUP ou ACTIVE no CLIENTE, e o boneco morria com os bracos erguidos.</p>
+     *
+     * <p>A morte por golpe escapava disso por acidente -- o ramo de stagger em
+     * {@link #hurt} grava IDLE de passagem. Morte SEM atacante (fogo, queda,
+     * {@code /kill}) nao passa por ali, e era exatamente o caso que ninguem
+     * testaria a mao. Quem achou foi o gametest.</p>
+     */
+    @Override
+    public void die(DamageSource source) {
+        if (!level().isClientSide) publicarRepouso();
+        super.die(source);
+    }
+
+    /** Remocao -- unload, dimensao, comando -- passa pelo MESMO ponto. */
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (!level().isClientSide) publicarRepouso();
+        super.remove(reason);
+    }
+
+    private void publicarRepouso() {
+        this.entityData.set(FASE_DE_ATAQUE, AttackPhase.IDLE.ordinal());
+        this.entityData.set(CAMBALEANDO, false);
     }
 
     // ------------------------------------------------------------------ goals

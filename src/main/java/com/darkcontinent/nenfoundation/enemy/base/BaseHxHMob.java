@@ -61,6 +61,24 @@ public abstract class BaseHxHMob extends PathfinderMob implements HxHEnemy {
     protected final Optional<EnemyRuntime> runtime() { return Optional.ofNullable(runtime); }
 
     /**
+     * A UNICA porta publica para o runtime, e ela e de LEITURA.
+     *
+     * <p>Existe para as ferramentas de debug (#113) poderem imprimir fase de
+     * ataque, stagger e alvo lembrado de QUALQUER inimigo sem uma linha de
+     * logica especifica de criatura -- e sem que um comando de diagnostico ganhe
+     * o poder de mexer no estado que ele foi chamado para observar.
+     *
+     * <p>Vazio nao e erro: os mobs que nasceram antes da fundacao trazem os
+     * proprios sensores e nunca chamaram {@code instalarRuntime}. Quem exibe
+     * isto precisa DIZER que esta vazio em vez de imprimir zeros -- zero de
+     * stagger e "nao apanhou", vazio e "esta peca nao existe neste mob", e
+     * confundir os dois manda a proxima pessoa atras de um bug que nao ha.
+     */
+    public final Optional<EnemyDebugView> visaoDeDebug() {
+        return runtime == null ? Optional.empty() : Optional.of(EnemyDebugView.de(runtime));
+    }
+
+    /**
      * Runtime obrigatorio, para quem sabe que instalou.
      *
      * <p>A alternativa seria devolver null e deixar cada chamada decidir. Null

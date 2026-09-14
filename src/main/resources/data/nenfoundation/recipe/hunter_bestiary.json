@@ -1,13 +1,27 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "pattern": ["PPP", "LCL", "SIS"],
+  "pattern": [
+    "PPP",
+    "LCL",
+    "SIS"
+  ],
   "key": {
-    "P": "minecraft:paper",
-    "L": "minecraft:leather",
-    "I": "minecraft:ink_sac",
-    "S": "minecraft:string",
-    "C": "minecraft:compass"
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "I": {
+      "item": "minecraft:ink_sac"
+    },
+    "S": {
+      "item": "minecraft:string"
+    },
+    "C": {
+      "item": "minecraft:compass"
+    }
   },
   "result": {
     "id": "nenfoundation:hunter_bestiary",

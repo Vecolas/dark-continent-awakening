@@ -130,6 +130,58 @@ class CaminhosDeDatapackTest {
     }
 
     @Test
+    @DisplayName("nenhuma receita usa o atalho de ingrediente de 1.20")
+    void semAtalhoDeIngredienteDe120() throws IOException {
+        // ESTE CASO NASCEU DE UM LOG DE SERVIDOR, e ele so foi possivel PORQUE as
+        // receitas sairam da pasta morta.
+        //
+        // `hunter_bestiary` usava o atalho de 1.20 -- {@code "P": "minecraft:paper"},
+        // uma string solta onde 1.21 exige objeto ou lista. Enquanto o arquivo
+        // estava em `recipes/`, o jogo nem o lia: dois defeitos empilhados, e o
+        // de fora escondia o de dentro. Movido para `recipe/`, ele passou a
+        // carregar -- e a falhar alto:
+        //
+        //   Parsing error loading recipe nenfoundation:hunter_bestiary
+        //   Map entry 'P' : Failed to parse either. Not a json array / not a JSON object
+        //
+        // Consertar o caminho SEM consertar o conteudo troca um arquivo morto por
+        // um erro no boot. Este portao existe para que a proxima receita nao
+        // repita o atalho.
+        Path receitas = DADOS.resolve("nenfoundation/recipe");
+        if (!Files.isDirectory(receitas)) {
+            return;
+        }
+        // `"X": "algum:id"` dentro do bloco `key` -- o atalho, em uma linha.
+        //
+        // `\s` COM DUAS BARRAS, e isto quase passou: desde o Java 15 `\s` e um
+        // escape VALIDO de string -- ele vale um espaco, e nao a classe de regex.
+        // Compila, roda, e casa um espaco literal em vez de qualquer branco: com
+        // um tab ou uma quebra de linha no JSON, o portao passaria calado.
+        Pattern atalho = Pattern.compile(
+                "\"[A-Za-z#]\"\\s*:\\s*\"[a-z0-9_.-]+:[a-z0-9_/.-]+\"");
+        List<String> culpadas = new ArrayList<>();
+        try (Stream<Path> arquivos = Files.list(receitas)) {
+            for (Path arquivo : arquivos.filter(p -> p.toString().endsWith(".json")).toList()) {
+                String texto = Files.readString(arquivo, StandardCharsets.UTF_8);
+                int inicio = texto.indexOf("\"key\"");
+                if (inicio < 0) {
+                    continue;
+                }
+                int fim = texto.indexOf("\"result\"", inicio);
+                String bloco = fim > inicio ? texto.substring(inicio, fim) : texto.substring(inicio);
+                if (atalho.matcher(bloco).find()) {
+                    culpadas.add(arquivo.getFileName().toString());
+                }
+            }
+        }
+        assertTrue(culpadas.isEmpty(),
+                "receita(s) com o atalho de ingrediente de 1.20: " + culpadas
+                        + ". Em 1.21 o ingrediente e objeto ({\"item\": \"...\"}) ou"
+                        + " lista; a string solta reprova no carregamento, com a"
+                        + " receita simplesmente ausente do jogo.");
+    }
+
+    @Test
     @DisplayName("as tags de ferramenta moram no namespace minecraft, e nao no nosso")
     void tagDeFerramentaNoNamespaceCerto() {
         // ALIMENTAR O PORTAO COM O DEFEITO: escrever as mesmas tags em

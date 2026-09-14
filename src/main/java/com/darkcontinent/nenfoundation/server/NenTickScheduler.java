@@ -19,6 +19,24 @@ public final class NenTickScheduler {
 
     private static final Despachante<ServerPlayer> CENTRAL = new Despachante<>();
 
+    /**
+     * Subsistemas que tickam UMA vez por tick, e nao uma vez por jogador.
+     *
+     * <p>Encontro, colonia e qualquer estado de MUNDO caem aqui. Registra-los no
+     * despachante por jogador os faria rodar N vezes por tick -- com quatro
+     * jogadores, quatro reconciliacoes de encontro por tick. Isso nao daria erro:
+     * daria quatro vezes o custo e, no caso de quem conta alguma coisa, quatro
+     * vezes a contagem.</p>
+     *
+     * <p>E eles moram AQUI, no laco unico, e nao num {@code ServerTickEvent}
+     * proprio. O portao {@code NenRuntimeBoundaryTest} cobra isso: dois lacos
+     * globais nao dao erro, so deixam a ordem entre eles indefinida -- e a ordem
+     * so passa a importar no dia em que um depender do outro, quando ja e tarde
+     * para descobrir qual roda primeiro.</p>
+     */
+    private static final CopyOnWriteArrayList<java.util.function.Consumer<
+            net.minecraft.server.MinecraftServer>> DO_MUNDO = new CopyOnWriteArrayList<>();
+
     private NenTickScheduler() {
     }
 
@@ -29,6 +47,21 @@ public final class NenTickScheduler {
     public static Registro registrar(NenTickSubsystem subsistema) {
         Objects.requireNonNull(subsistema, "subsistema");
         return CENTRAL.registrar(subsistema::serverTick);
+    }
+
+    /**
+     * Registra um subsistema de MUNDO -- uma execucao por tick, nao por jogador.
+     *
+     * <p>Fechar o registro o remove, como no de jogador. Sem isso, um subsistema
+     * de um mundo que foi descarregado continuaria tickando contra o servidor
+     * seguinte, e o sintoma seria estado de outro save aparecendo num mundo
+     * novo.</p>
+     */
+    public static Registro registrarDoMundo(
+            java.util.function.Consumer<net.minecraft.server.MinecraftServer> subsistema) {
+        Objects.requireNonNull(subsistema, "subsistema de mundo");
+        DO_MUNDO.add(subsistema);
+        return () -> DO_MUNDO.remove(subsistema);
     }
 
     /**
@@ -51,6 +84,17 @@ public final class NenTickScheduler {
      */
     @SubscribeEvent
     public static void aoFimDoTick(ServerTickEvent.Post evento) {
+        // Os de MUNDO vem primeiro, e uma vez so. A ordem e deliberada: um
+        // subsistema de mundo que ative um encontro precisa ter feito isso antes
+        // de o tick por jogador ler o estado dele, senao a leitura fica um tick
+        // atrasada -- invisivel em teste, visivel na tela.
+        for (var subsistema : DO_MUNDO) {
+            try {
+                subsistema.accept(evento.getServer());
+            } catch (RuntimeException falha) {
+                LOG.error("Tick de mundo falhou; os demais subsistemas seguem.", falha);
+            }
+        }
         for (ServerPlayer jogador : evento.getServer().getPlayerList().getPlayers()) {
             try {
                 CENTRAL.executar(jogador, NenRuntimeService.estadoDe(jogador));

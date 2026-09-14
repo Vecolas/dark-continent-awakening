@@ -21,7 +21,9 @@ class EnemyDefinitionCodecTest {
                 "armor":0.0,"follow_range":8.0,"knockback_resistance":0.0},
               "spawn": {"biome_tags":["#example:field_biomes"],"dimensions":["minecraft:overworld"],
                 "min_light":0,"max_light":15,"require_ground":true,"allow_water":false,
-                "require_sky":false,"max_nearby_same_faction":4},
+                "require_sky":false,"max_nearby_same_faction":4,
+                "profile":"on_ground",
+                "caps":{"max_por_chunk":4,"distancia_entre_grupos":48,"distancia_de_jogador":24}},
               "audio_id":"example:entity/field_beast",
               "timings":{"strike":{"windup_ticks":8,"active_ticks":4,"recovery_ticks":12,
                 "interruptible_windup":true,"interruptible_active":false,"interruptible_recovery":true}},
@@ -40,6 +42,9 @@ class EnemyDefinitionCodecTest {
         assertEquals(ResourceLocation.parse("example:entity/field_beast"), definition.audioId());
         assertEquals(8, definition.timings().get("strike").windupTicks());
         assertEquals(1, definition.schemaVersion());
+        assertEquals(com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile.ON_GROUND,
+                definition.spawnRule().profile());
+        assertEquals(48, definition.spawnRule().caps().distanciaMinimaEntreGrupos());
         assertTrue(EnemyDefinitionValidator.problemas(definition).isEmpty());
     }
 
@@ -65,7 +70,9 @@ class EnemyDefinitionCodecTest {
                 new EnemyAttributes(1, 0, 0, 0, 0, 0),
                 new com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule(
                         Set.of("example:missing_hash", "#bad tag"), Set.of("not a dimension"),
-                        0, 15, false, false, false, 1),
+                        0, 15, false, false, false, 1,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile.ON_GROUND,
+                        com.darkcontinent.nenfoundation.enemy.spawn.SpawnCaps.fauna()),
                 ResourceLocation.parse("example:entity/bad"));
 
         List<String> problemas = EnemyDefinitionValidator.problemas(definition);

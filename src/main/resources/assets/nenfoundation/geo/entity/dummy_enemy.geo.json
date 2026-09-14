@@ -1,0 +1,93 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.dummy_enemy",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 1.5,
+        "visible_bounds_height": 2.5,
+        "visible_bounds_offset": [0, 1.25, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0]
+        },
+        {
+          "name": "base",
+          "parent": "root",
+          "pivot": [0, 1, 0],
+          "cubes": [
+            {
+              "origin": [-5, 0, -5],
+              "size": [10, 2, 10],
+              "uv": [0, 0]
+            }
+          ]
+        },
+        {
+          "name": "post",
+          "parent": "base",
+          "pivot": [0, 2, 0],
+          "cubes": [
+            {
+              "origin": [-2, 2, -2],
+              "size": [4, 10, 4],
+              "uv": [40, 0]
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "parent": "post",
+          "pivot": [0, 12, 0],
+          "cubes": [
+            {
+              "origin": [-4, 12, -2],
+              "size": [8, 8, 4],
+              "uv": [0, 14]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "body",
+          "pivot": [0, 20, 0],
+          "cubes": [
+            {
+              "origin": [-3, 20, -3],
+              "size": [6, 6, 6],
+              "uv": [24, 14]
+            }
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "body",
+          "pivot": [4, 17, 0],
+          "cubes": [
+            {
+              "origin": [4, 16, -1],
+              "size": [2, 2, 2],
+              "uv": [0, 28]
+            }
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "body",
+          "pivot": [-4, 17, 0],
+          "cubes": [
+            {
+              "origin": [-6, 16, -1],
+              "size": [2, 2, 2],
+              "uv": [10, 28]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

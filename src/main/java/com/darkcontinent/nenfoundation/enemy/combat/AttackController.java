@@ -38,6 +38,25 @@ public final class AttackController {
         instanciaAtual = 0L;
     }
 
+    /**
+     * Encerra a instancia atual E arma uma recarga.
+     *
+     * <p>Existe separado de {@link #reset()} porque as duas saidas externas
+     * querem coisas opostas. Morte e unload nao precisam de recarga -- nao ha
+     * proximo golpe. Interrupcao precisa: sem ela, quem interrompe um ataque
+     * ganha um ataque imediato na cara, porque {@code reset()} devolve a fase
+     * para IDLE e {@code canStart()} passa a aprovar no mesmo tick. Isso nao da
+     * erro nenhum -- da um mob que apanha e revida mais depressa do que se
+     * ninguem tivesse batido, e o jogador aprende a NAO interromper.</p>
+     *
+     * @param ticksDeRecarga recarga a impor; zero se comporta como {@link #reset()}
+     */
+    public void resetComRecarga(int ticksDeRecarga) {
+        if (ticksDeRecarga < 0) throw new IllegalArgumentException("recarga negativa");
+        reset();
+        cooldownRestante = Math.max(cooldownRestante, ticksDeRecarga);
+    }
+
     public boolean canStart() {
         return cooldownRestante == 0
                 && (timeline.phase() == AttackPhase.IDLE || timeline.phase() == AttackPhase.COMPLETE);

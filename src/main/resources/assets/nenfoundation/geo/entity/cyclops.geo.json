@@ -1,0 +1,153 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.cyclops",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 2.5,
+        "visible_bounds_height": 5.0,
+        "visible_bounds_offset": [0, 2.5, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0]
+        },
+        {
+          "name": "hip",
+          "parent": "root",
+          "pivot": [0, 32, 0],
+          "cubes": [
+            {
+              "origin": [-9, 28, -5],
+              "size": [18, 8, 10],
+              "uv": [30, 70]
+            }
+          ]
+        },
+        {
+          "name": "torso",
+          "parent": "hip",
+          "pivot": [0, 36, 0],
+          "cubes": [
+            {
+              "origin": [-9, 36, -6],
+              "size": [18, 18, 12],
+              "uv": [0, 0]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "torso",
+          "pivot": [0, 54, 0],
+          "cubes": [
+            {
+              "origin": [-7, 54, -7],
+              "size": [14, 12, 14],
+              "uv": [60, 0]
+            }
+          ]
+        },
+        {
+          "name": "eye",
+          "parent": "head",
+          "pivot": [0, 61, -7],
+          "cubes": [
+            {
+              "origin": [-3, 58, -8],
+              "size": [6, 6, 1],
+              "uv": [86, 70]
+            }
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "torso",
+          "pivot": [9, 53, 0],
+          "cubes": [
+            {
+              "origin": [9, 32, -5],
+              "size": [5, 22, 10],
+              "uv": [24, 32]
+            }
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "torso",
+          "pivot": [-9, 53, 0],
+          "cubes": [
+            {
+              "origin": [-14, 32, -5],
+              "size": [5, 22, 10],
+              "uv": [54, 32]
+            }
+          ]
+        },
+        {
+          "name": "club",
+          "parent": "arm_right",
+          "pivot": [-11.5, 33, -5],
+          "cubes": [
+            {
+              "origin": [-14, 2, -12],
+              "size": [5, 30, 7],
+              "uv": [0, 32]
+            }
+          ]
+        },
+        {
+          "name": "leg_left",
+          "parent": "hip",
+          "pivot": [5, 30, 0],
+          "cubes": [
+            {
+              "origin": [2, 5, -4],
+              "size": [7, 23, 8],
+              "uv": [84, 32]
+            }
+          ]
+        },
+        {
+          "name": "leg_right",
+          "parent": "hip",
+          "pivot": [-5, 30, 0],
+          "cubes": [
+            {
+              "origin": [-9, 5, -4],
+              "size": [7, 23, 8],
+              "uv": [0, 70]
+            }
+          ]
+        },
+        {
+          "name": "foot_left",
+          "parent": "leg_left",
+          "pivot": [5, 6, 0],
+          "cubes": [
+            {
+              "origin": [1, 0, -6],
+              "size": [8, 5, 11],
+              "uv": [0, 102]
+            }
+          ]
+        },
+        {
+          "name": "foot_right",
+          "parent": "leg_right",
+          "pivot": [-5, 6, 0],
+          "cubes": [
+            {
+              "origin": [-9, 0, -6],
+              "size": [8, 5, 11],
+              "uv": [38, 102]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

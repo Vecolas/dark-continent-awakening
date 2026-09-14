@@ -1,6 +1,25 @@
 package com.darkcontinent.nenfoundation.enemy.registry;
 
+import com.darkcontinent.nenfoundation.enemy.content.ChimeraProfiles;
+import com.darkcontinent.nenfoundation.enemy.content.GreedIslandProfiles;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
+import com.darkcontinent.nenfoundation.enemy.entity.DummyEnemyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CrabHeavyEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BatScoutEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfRunnerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.SpiderWebberEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MosquitoOfficerEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MultiarmCentipedeEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CheetahLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.ScorpionLeaderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.AvianCommanderEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.CyclopsEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.HyperPuffballEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.MelaninLizardEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.RadioRatEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.BubbleHorseEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.KingWhiteStagBeetleEntity;
+import com.darkcontinent.nenfoundation.enemy.entity.WolfPackHunterEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FoxbearEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.FrogInWaitingEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.GreatStampEntity;
@@ -8,6 +27,7 @@ import com.darkcontinent.nenfoundation.enemy.entity.KirikoEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.ManFacedApeEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.MasterOfTheSwampEntity;
 import com.darkcontinent.nenfoundation.enemy.entity.SpiderEagleEntity;
+import com.darkcontinent.nenfoundation.enemy.spawn.SpawnProfile;
 import com.darkcontinent.nenfoundation.enemy.spawn.SpawnRule;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
@@ -32,33 +52,43 @@ public final class EnemyEntityEvents {
                 MasterOfTheSwampEntity.createAttributes().build());
         event.put(EnemyEntityTypes.KIRIKO.get(), KirikoEntity.createAttributes().build());
         event.put(EnemyEntityTypes.FOXBEAR.get(), FoxbearEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.DUMMY_ENEMY.get(), DummyEnemyEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.CYCLOPS.get(), CyclopsEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.HYPER_PUFFBALL.get(), HyperPuffballEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MELANIN_LIZARD.get(), MelaninLizardEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.RADIO_RAT.get(), RadioRatEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.BUBBLE_HORSE.get(), BubbleHorseEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(), KingWhiteStagBeetleEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.WOLF_PACK_HUNTER.get(), WolfPackHunterEntity.createAttributes().build());
+
+        // As nove formigas quimera (EN8 e EN11).
+        event.put(EnemyEntityTypes.CRAB_HEAVY.get(), CrabHeavyEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.BAT_SCOUT.get(), BatScoutEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.WOLF_RUNNER.get(), WolfRunnerEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.SPIDER_WEBBER.get(), SpiderWebberEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MOSQUITO_OFFICER.get(), MosquitoOfficerEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.MULTIARM_CENTIPEDE.get(), MultiarmCentipedeEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.CHEETAH_LEADER.get(), CheetahLeaderEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.SCORPION_LEADER.get(), ScorpionLeaderEntity.createAttributes().build());
+        event.put(EnemyEntityTypes.AVIAN_COMMANDER.get(), AvianCommanderEntity.createAttributes().build());
     }
 
     public static void spawnPlacements(RegisterSpawnPlacementsEvent event) {
-        event.register(EnemyEntityTypes.GREAT_STAMP.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.greatStamp().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.GREAT_STAMP.get(),
+                HunterExamProfiles.greatStamp().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.greatStamp().spawnRule()));
 
         // O sapo tambem nasce no chao: ele emboscada ENTERRADO, e nao ha "enterrar"
         // sem um bloco solido embaixo. A faixa de luz e a do perfil dele, que vai ate
         // 15 justamente porque exigir escuridao faria a emboscada nunca nascer.
-        event.register(EnemyEntityTypes.FROG_IN_WAITING.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.FROG_IN_WAITING.get(),
+                HunterExamProfiles.frogInWaiting().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.frogInWaiting().spawnRule()));
 
         // O macaco tambem nasce no chao, e com a MESMA forma de predicado: a faixa de
         // luz dele vai ate 15 porque ele se disfarca de gente, e ninguem e enganado no
         // escuro. Copiar o corpo do predicado aqui faria o terceiro lugar onde a mesma
         // regra pode divergir do perfil -- por isso ele e lido, nao repetido.
-        event.register(EnemyEntityTypes.MAN_FACED_APE.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.MAN_FACED_APE.get(),
+                HunterExamProfiles.manFacedApe().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.manFacedApe().spawnRule()));
 
         // A ave VOA, e mesmo assim nasce no chao: o ninho e o lugar dela, e ela nasce
         // POUSADA nele. Registrar um placement de ar aqui faria a ave aparecer
@@ -66,21 +96,15 @@ public final class EnemyEntityEvents {
         // da erro nenhum, so faz a coleira medir a partir de um ponto que ninguem
         // consegue alcancar. Chao solido continua valendo, e a faixa de luz e a do
         // perfil, lida e nao repetida.
-        event.register(EnemyEntityTypes.SPIDER_EAGLE.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.SPIDER_EAGLE.get(),
+                HunterExamProfiles.spiderEagle().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.spiderEagle().spawnRule()));
 
         // O PRIMEIRO PLACEMENT DE AGUA DO REPOSITORIO. O predicado de chao nao serve
         // aqui: ele exige face solida embaixo, e isso reprovaria todo ponto de agua
         // funda -- o mob simplesmente nunca nasceria, e nada acusaria. A faixa de luz
         // continua sendo a DO PERFIL, lida e nao repetida, pelo mesmo motivo de sempre.
-        event.register(EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
-                SpawnPlacementTypes.IN_WATER,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.MASTER_OF_THE_SWAMP.get(),
+                HunterExamProfiles.masterOfTheSwamp().spawnRule(), naAguaComLuzDoPerfil(HunterExamProfiles.masterOfTheSwamp().spawnRule()));
 
         // O kiriko nasce no chao e de dia, com a MESMA forma de predicado dos outros
         // tres terrestres -- reusada, e nao copiada, pelo motivo de sempre: numero de
@@ -88,11 +112,8 @@ public final class EnemyEntityEvents {
         // porque o mob inteiro depende de ser VISTO: um disfarce de gente no escuro nao
         // engana ninguem, e o encontro simplesmente nao aconteceria. Nada acusaria --
         // apareceria como um bioma vazio.
-        event.register(EnemyEntityTypes.KIRIKO.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()),
-                RegisterSpawnPlacementsEvent.Operation.OR);
+        registrarPeloPerfil(event, EnemyEntityTypes.KIRIKO.get(),
+                HunterExamProfiles.kiriko().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.kiriko().spawnRule()));
 
         // O foxbear fecha a fila, e chega aqui trocando de predicado. Ele usava
         // Animal::checkAnimalSpawnRules -- bloco da lista de spawn de animais embaixo
@@ -108,10 +129,113 @@ public final class EnemyEntityEvents {
         // placement que ja existe, e um tipo autoral nao tem nenhum. As duas formas
         // se comportam igual aqui, e a divergencia de forma e o que faz a proxima
         // pessoa achar que ha um motivo escondido.
-        event.register(EnemyEntityTypes.FOXBEAR.get(),
-                SpawnPlacementTypes.ON_GROUND,
-                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()),
+        registrarPeloPerfil(event, EnemyEntityTypes.FOXBEAR.get(),
+                HunterExamProfiles.foxbear().spawnRule(), noChaoComLuzDoPerfil(HunterExamProfiles.foxbear().spawnRule()));
+
+        // O boneco de treino fecha a fila e NAO ganha placement: ele e
+        // ENCOUNTER_ONLY. A linha existe para o portao poder ver que alguem
+        // DECIDIU isso, em vez de ver um id simplesmente ausente.
+        semPlacementNatural(EnemyEntityTypes.DUMMY_ENEMY.get(),
+                HunterExamProfiles.dummyEnemy().spawnRule());
+
+        // As sete da ilha fecham a fila pelo MESMO caminho declarado: nenhuma
+        // delas nasce pelo mundo, e a linha existe para o portao poder ver que
+        // alguem DECIDIU isso, em vez de ver sete ids simplesmente ausentes.
+        semPlacementNatural(EnemyEntityTypes.CYCLOPS.get(),
+                GreedIslandProfiles.cyclops().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.HYPER_PUFFBALL.get(),
+                GreedIslandProfiles.hyperPuffball().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MELANIN_LIZARD.get(),
+                GreedIslandProfiles.melaninLizard().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.RADIO_RAT.get(),
+                GreedIslandProfiles.radioRat().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.BUBBLE_HORSE.get(),
+                GreedIslandProfiles.bubbleHorse().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.KING_WHITE_STAG_BEETLE.get(),
+                GreedIslandProfiles.kingWhiteStagBeetle().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.WOLF_PACK_HUNTER.get(),
+                GreedIslandProfiles.wolfPackHunter().spawnRule());
+
+        // As nove formigas fecham a fila pelo mesmo caminho
+        // declarado: nenhuma nasce pelo mundo, e a linha existe para o
+        // portao ver que alguem DECIDIU isso, em vez de ver nove ids
+        // simplesmente ausentes.
+        semPlacementNatural(EnemyEntityTypes.CRAB_HEAVY.get(),
+                ChimeraProfiles.crabHeavy().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.BAT_SCOUT.get(),
+                ChimeraProfiles.batScout().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.WOLF_RUNNER.get(),
+                ChimeraProfiles.wolfRunner().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.SPIDER_WEBBER.get(),
+                ChimeraProfiles.spiderWebber().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MOSQUITO_OFFICER.get(),
+                ChimeraProfiles.mosquitoOfficer().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.MULTIARM_CENTIPEDE.get(),
+                ChimeraProfiles.multiarmCentipede().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.CHEETAH_LEADER.get(),
+                ChimeraProfiles.cheetahLeader().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.SCORPION_LEADER.get(),
+                ChimeraProfiles.scorpionLeader().spawnRule());
+        semPlacementNatural(EnemyEntityTypes.AVIAN_COMMANDER.get(),
+                ChimeraProfiles.avianCommander().spawnRule());
+
+    }
+
+
+    /**
+     * Declara, com todas as letras, que este tipo NAO nasce pelo mundo.
+     *
+     * <p>Ela nao registra nada, e e esse o ponto. O portao
+     * {@code FilaUnicaDeInimigosTest} exige que todo id registrado apareca neste
+     * metodo -- e a exigencia e certa: um id que nao aparece aqui e um id que
+     * ninguem conferiu. Sem esta funcao, a unica forma de satisfazer o portao
+     * seria dar placement natural ao boneco, que e justamente o vazamento que o
+     * perfil ENCOUNTER_ONLY existe para impedir. O silencio viraria um chefe
+     * nascendo no mato porque um portao pediu.</p>
+     *
+     * <p>E ela MORDE: um tipo que chegue aqui com perfil natural reprova no
+     * carregamento. Sem isso, marcar "sem placement" viraria a saida facil para
+     * quem nao quisesse escrever o predicado, e o mob ficaria sem nascer sem que
+     * nada acusasse.</p>
+     */
+    private static void semPlacementNatural(net.minecraft.world.entity.EntityType<?> tipo,
+            SpawnRule regra) {
+        if (regra.profile().registraPlacement()) {
+            throw new IllegalStateException(tipo.getDescriptionId() + " foi declarado SEM placement"
+                    + " natural, mas o perfil " + regra.profile() + " nasce pelo mundo. Ou o perfil"
+                    + " esta errado, ou o mob vai deixar de aparecer -- e a segunda leitura nao"
+                    + " produz erro nenhum, so um bioma vazio.");
+        }
+    }
+
+    /**
+     * Registra o placement LENDO o perfil -- placement, heightmap e a pergunta
+     * "isto pode nascer sozinho?" saem todos de {@link SpawnProfile}.
+     *
+     * <p>Antes cada linha repetia o par {@code SpawnPlacementTypes.X} +
+     * {@code Heightmap.Types.Y}, e repetir e como o peixe quase ganhou placement
+     * de chao: a linha compila, o registro carrega, e o mob simplesmente nunca
+     * nasce. Aqui a escolha vem do dado, e a divergencia deixa de ser possivel.</p>
+     *
+     * <p>ENCOUNTER_ONLY e RECUSADO com todas as letras. Um chefe que chegue aqui
+     * por engano ganharia placement natural e passaria a nascer no meio do mato
+     * -- e nada acusaria, porque cada bicho seria uma entidade legitima. A
+     * excecao no carregamento e barata; o encontro unico virando farm, nao.</p>
+     */
+    private static <T extends net.minecraft.world.entity.Mob> void registrarPeloPerfil(
+            RegisterSpawnPlacementsEvent event, net.minecraft.world.entity.EntityType<T> tipo,
+            SpawnRule regra, SpawnPlacements.SpawnPredicate<T> predicado) {
+        SpawnProfile perfil = regra.profile();
+        if (!perfil.registraPlacement()) {
+            throw new IllegalStateException(tipo.getDescriptionId() + " usa o perfil " + perfil
+                    + ", que nao nasce pelo caminho natural. Registrar placement para ele e"
+                    + " exatamente o vazamento que o perfil existe para impedir.");
+        }
+        event.register(tipo, perfil.placement(), perfil.heightmap(), predicado,
+                // Operation.OR, e nao REPLACE: REPLACE so faz sentido para derrubar
+                // um placement que ja existe, e tipo autoral nao tem nenhum. As duas
+                // se comportam igual aqui, e a divergencia de forma e o que faz a
+                // proxima pessoa achar que ha motivo escondido.
                 RegisterSpawnPlacementsEvent.Operation.OR);
     }
 

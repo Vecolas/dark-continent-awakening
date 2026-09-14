@@ -38,6 +38,17 @@ public final class NenConfig {
                      "So tem efeito com dev.enabled = true.")
             .define("dev.logStateTransitions", false);
 
+    private static final ModConfigSpec.BooleanValue TELEMETRIA_DE_INIMIGOS = BUILDER
+            .comment("Registra amostras LOCAIS de combate contra inimigos do mod:",
+                     "quanto tempo cada encontro durou, quanto dano foi dado e recebido.",
+                     "",
+                     "DESLIGADO POR PADRAO, e assim tem de ficar. Telemetria e opt-in por",
+                     "decisao (issue #150), e ela e LOCAL: o arquivo fica no diretorio do",
+                     "mundo e NADA sai da maquina. Um padrao ligado transformaria",
+                     "'medir o proprio jogo' em 'coletar sem perguntar', e a diferenca",
+                     "nao aparece em lugar nenhum do jogo -- so na conta de quem confia.")
+            .define("telemetry.enemyCombat", false);
+
     private static final ModConfigSpec.IntValue PEDIDOS_POR_SEGUNDO = BUILDER
             .comment("Cota C2S por jogador, somando ativacao, desativacao e habilidade.",
                      "Excesso e cortado antes da fila; contadores aparecem no logout em modo dev.")
@@ -378,6 +389,18 @@ public final class NenConfig {
      */
     public static boolean devModeAtivo() {
         return DEV_MODE.get();
+    }
+
+    /**
+     * {@code true} quando o jogador LIGOU a telemetria local de combate.
+     *
+     * <p>Ela NAO depende de {@code dev.enabled} de proposito. Balanceamento e
+     * trabalho de quem joga a serio, e nao de quem esta depurando; amarrar as
+     * duas obrigaria a ligar o log ruidoso de desenvolvimento para medir um
+     * combate, e o ruido esconderia justamente o que a medida procura.</p>
+     */
+    public static boolean telemetriaDeInimigosAtiva() {
+        return TELEMETRIA_DE_INIMIGOS.get();
     }
 
     /**

@@ -343,6 +343,16 @@ Ela e **paralela**, e nao um degrau da escada M1–M8: nao gasta contrato de
 servidor, nao toca protocolo nem save, e nao bloqueia o M5. O prefixo `AV`
 evita colisao com `M1–M8` e com `EN0–EN16`.
 
+> **A trilha EN tem fonte de verdade propria.** Onde os inimigos estao, o que
+> cada estagio fechou e o que falta para o RC estao em
+> [`docs/inimigos/estado-en.md`](../inimigos/estado-en.md); a evidencia dos
+> gates esta em [`docs/testing/en-gates.md`](../testing/en-gates.md), e o gate
+> final em
+> [`docs/inimigos/release-candidate.md`](../inimigos/release-candidate.md).
+> Este arquivo continua sendo a verdade de M0–M8, e so dela -- duas fontes
+> para o mesmo estagio divergiriam na primeira entrega, e a divergencia nao
+> daria erro: daria duas respostas para "onde estamos".
+
 ```
 AV0 Tech spike        shell inflada segue as animacoes     <- se falhar, PARA
  └─ AV1 Shell autoral    shader, Fresnel, ruido, fluxo vertical

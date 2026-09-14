@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
+import com.darkcontinent.nenfoundation.enemy.content.EnemyCatalog;
 import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -170,7 +171,7 @@ class FilaUnicaDeInimigosTest {
     @DisplayName("todo id registrado tem perfil publicado, loot e traducao")
     void oQueEstaNoMundoTemFichaCompleta() {
         Map<String, String> ids = idPorConstante();
-        Set<String> publicados = HunterExamProfiles.publicados().keySet();
+        Set<String> publicados = EnemyCatalog.publicados().keySet();
 
         Set<String> semPerfil = new LinkedHashSet<>();
         Set<String> semLoot = new LinkedHashSet<>();
@@ -191,7 +192,7 @@ class FilaUnicaDeInimigosTest {
         }
 
         assertTrue(semPerfil.isEmpty(),
-                "Registrados e ausentes de HunterExamProfiles.publicados(): " + semPerfil
+                "Registrados e ausentes de EnemyCatalog.publicados(): " + semPerfil
                         + ". Fora dessa lista eles saem do portao que confere tag de bioma e"
                         + " biome modifier -- o portao segue verde varrendo menos, que e o"
                         + " falso verde mais barato que existe.");

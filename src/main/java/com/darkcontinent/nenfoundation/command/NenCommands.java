@@ -114,6 +114,16 @@ public final class NenCommands {
     @SubscribeEvent
     public static void aoRegistrarComandos(RegisterCommandsEvent evento) {
         registrar(evento.getDispatcher());
+
+        // UMA FILA DE REGISTRO SO para o pacote inteiro (#113).
+        //
+        // As ferramentas de inimigo sao uma arvore SEPARADA -- /nenenemy, e nao
+        // /nen enemy --, mas nascem daqui de proposito. Um segundo
+        // @EventBusSubscriber funcionaria, e e isso que o torna perigoso: dois
+        // pontos de registro podem divergir na permissao da raiz sem que nada
+        // acuse, e o portao so consegue afirmar "todo comando esta sob raiz
+        // permissionada" enquanto souber onde todas as raizes nascem.
+        EnemyDebugCommands.registrar(evento.getDispatcher());
     }
 
     /** Registra a arvore. Devolve o no da raiz para que o portao possa inspeciona-la. */

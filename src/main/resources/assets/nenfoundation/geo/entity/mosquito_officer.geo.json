@@ -1,0 +1,141 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.mosquito_officer",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 1.5,
+        "visible_bounds_height": 2.0,
+        "visible_bounds_offset": [0, 1.0, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0]
+        },
+        {
+          "name": "thorax",
+          "parent": "root",
+          "pivot": [0, 12, 0],
+          "cubes": [
+            {
+              "origin": [-2, 12, -3],
+              "size": [4, 6, 6],
+              "uv": [0, 0]
+            }
+          ]
+        },
+        {
+          "name": "abdomen",
+          "parent": "thorax",
+          "pivot": [0, 12, 2],
+          "cubes": [
+            {
+              "origin": [-1.5, 7, 0],
+              "size": [3, 6, 4],
+              "uv": [20, 0]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "parent": "thorax",
+          "pivot": [0, 18, -1],
+          "cubes": [
+            {
+              "origin": [-2, 18, -3],
+              "size": [4, 4, 4],
+              "uv": [34, 0]
+            }
+          ]
+        },
+        {
+          "name": "proboscis",
+          "parent": "head",
+          "pivot": [0, 19, -3],
+          "cubes": [
+            {
+              "origin": [-0.5, 17.5, -10],
+              "size": [1, 1, 7],
+              "uv": [34, 8]
+            }
+          ]
+        },
+        {
+          "name": "wing_left",
+          "parent": "thorax",
+          "pivot": [2, 17, -1],
+          "cubes": [
+            {
+              "origin": [2, 16, -2],
+              "size": [5, 1, 5],
+              "uv": [0, 16]
+            }
+          ]
+        },
+        {
+          "name": "wing_right",
+          "parent": "thorax",
+          "pivot": [-2, 17, -1],
+          "cubes": [
+            {
+              "origin": [-7, 16, -2],
+              "size": [5, 1, 5],
+              "uv": [0, 22]
+            }
+          ]
+        },
+        {
+          "name": "arm_left",
+          "parent": "thorax",
+          "pivot": [2, 16, -2],
+          "cubes": [
+            {
+              "origin": [2, 10, -3],
+              "size": [1, 6, 1],
+              "uv": [20, 16]
+            }
+          ]
+        },
+        {
+          "name": "arm_right",
+          "parent": "thorax",
+          "pivot": [-2, 16, -2],
+          "cubes": [
+            {
+              "origin": [-3, 10, -3],
+              "size": [1, 6, 1],
+              "uv": [24, 16]
+            }
+          ]
+        },
+        {
+          "name": "leg_left",
+          "parent": "thorax",
+          "pivot": [1, 12, 1],
+          "cubes": [
+            {
+              "origin": [1, 0, 1],
+              "size": [2, 12, 2],
+              "uv": [0, 28]
+            }
+          ]
+        },
+        {
+          "name": "leg_right",
+          "parent": "thorax",
+          "pivot": [-1, 12, 1],
+          "cubes": [
+            {
+              "origin": [-3, 0, 1],
+              "size": [2, 12, 2],
+              "uv": [8, 28]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

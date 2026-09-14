@@ -1,0 +1,69 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.hyper_puffball",
+        "texture_width": 64,
+        "texture_height": 64,
+        "visible_bounds_width": 1.5,
+        "visible_bounds_height": 2.0,
+        "visible_bounds_offset": [0, 1.0, 0]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [0, 0, 0]
+        },
+        {
+          "name": "talo",
+          "parent": "root",
+          "pivot": [0, 0, 0],
+          "cubes": [
+            {
+              "origin": [-5, 0, -5],
+              "size": [10, 2, 10],
+              "uv": [0, 44]
+            }
+          ]
+        },
+        {
+          "name": "bulbo",
+          "parent": "talo",
+          "pivot": [0, 2, 0],
+          "cubes": [
+            {
+              "origin": [-8, 2, -8],
+              "size": [16, 14, 16],
+              "uv": [0, 0]
+            }
+          ]
+        },
+        {
+          "name": "cupula",
+          "parent": "bulbo",
+          "pivot": [0, 16, 0],
+          "cubes": [
+            {
+              "origin": [-6, 16, -6],
+              "size": [12, 2, 12],
+              "uv": [0, 30]
+            }
+          ]
+        },
+        {
+          "name": "poro",
+          "parent": "cupula",
+          "pivot": [0, 18, 0],
+          "cubes": [
+            {
+              "origin": [-2, 18, -2],
+              "size": [4, 1, 4],
+              "uv": [48, 30]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@ está* e este diz *o que foi conferido, com o quê*.
 | Medida | Valor |
 | --- | --- |
 | Testes JUnit na trilha inteira | **1.409 executados, 0 falhas** |
-| GameTests da trilha de inimigos | **143 executados, 0 falhas** |
+| GameTests da trilha de inimigos | **144 executados, 0 falhas** |
 | Ids de inimigo registrados | 24 (7 do exame + 7 de Greed Island + 9 de Chimera + o boneco) |
 | Arquivos de som gerados e conferidos | 120, todos Ogg Vorbis validados byte a byte |
 | Geradores de arte com validação semântica | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, Wolf Pack Hunter, King White Stag Beetle, Boneco de Treino |
@@ -31,7 +31,7 @@ está* e este diz *o que foi conferido, com o quê*.
 | --- | --- | --- |
 | build verde, contagem > 0 | ✅ | 1.409 testes |
 | datagen auditado quando dados mudarem | ✅ | loot, lang, `sounds.json` e tags conferidos por portão, não por leitura |
-| GameTests do dummy cobrem percepção, fases, hitbox, weak point e stagger | ✅ | executados dentro dos 143 GameTests |
+| GameTests do dummy cobrem percepção, fases, hitbox, weak point e stagger | ✅ | executados dentro dos 144 GameTests |
 | `runClient` renderiza e anima o dummy | ⬜ | não executado |
 | `runServer` chega a `Done` | ✅ | servidor dedicado chegou a `Done` nesta passagem |
 | dois jogadores confirmam autoridade e action sync | ⬜ | não executado |

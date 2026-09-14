@@ -22,7 +22,7 @@ medir.
 | Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
 | Assets reproduzíveis byte a byte | **199 de 199** |
 | Testes JUnit | **1.409 executados, 0 falhas** |
-| GameTests escritos / **executados** | **143 / 143**, 0 falhas |
+| GameTests escritos / **executados** | **144 / 144**, 0 falhas |
 
 ---
 

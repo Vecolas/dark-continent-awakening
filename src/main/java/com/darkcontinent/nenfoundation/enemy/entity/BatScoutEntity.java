@@ -199,6 +199,8 @@ public final class BatScoutEntity extends BaseChimeraAnt
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, attrs.maxHealth())
                 .add(Attributes.MOVEMENT_SPEED, attrs.movementSpeed())
+                // FlyingMoveControl le este atributo a cada tick de voo.
+                .add(Attributes.FLYING_SPEED, attrs.movementSpeed())
                 .add(Attributes.ATTACK_DAMAGE, attrs.attackDamage())
                 .add(Attributes.ARMOR, attrs.armor())
                 .add(Attributes.FOLLOW_RANGE, attrs.followRange())

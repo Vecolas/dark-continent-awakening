@@ -511,6 +511,14 @@ O áudio é parte do efeito, e é onde a aura passa de visual para presença.
 Som abstrato. **Não usar som de eletricidade** se a aura não é elétrica — o
 ouvido classifica o efeito antes do olho.
 
+**Decisão do AV3 (#185): a v1 de Ten não tem loop.** A ativação curta já
+comunica presença; adicionar agora um zumbido contínuo arriscaria transformar
+uma técnica sustentada em ruído permanente sem uma sessão longa que prove o
+benefício. O loop só volta por issue e com uma sessão de vinte minutos que
+demonstre que ele acrescenta mais do que incomoda. `ten_activate.ogg` é
+autoral, sintetizado para este projeto a partir de ruído rosa filtrado e uma
+fundamental grave — nenhum sample externo foi usado.
+
 ---
 
 ## 17. Dano e impacto

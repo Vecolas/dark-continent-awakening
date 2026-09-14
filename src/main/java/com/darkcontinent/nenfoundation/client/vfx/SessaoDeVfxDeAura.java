@@ -29,6 +29,7 @@ public final class SessaoDeVfxDeAura {
     private AuraDistribution ultimaDistribuicao;
     private AuraDistribution distribuicaoDesteTick = AuraDistribution.uniforme();
     private boolean recebeuAlgumaVez;
+    private boolean ativacaoDeTenPendente;
 
     /** O estado interpolado deste tick. Nunca nulo. */
     public AuraVisualState estado() {
@@ -61,6 +62,12 @@ public final class SessaoDeVfxDeAura {
         float alvo = modo == AuraVisualMode.OFF ? 0.0F : sanear(intensidade);
 
         if (precisaReenviar(modo, alvo, cor)) {
+            // O AUDIO LE A MESMA TROCA QUE O CONTROLADOR. Reconstituir a
+            // borda OFF -> TEN em outro relogio faria o som adiantar ou
+            // atrasar justamente quando a escala da transicao mudasse.
+            if (AuraTransicao.de(this.ultimoModo, modo) == AuraTransicao.LIGAR) {
+                this.ativacaoDeTenPendente = true;
+            }
             this.controlador.receber(modo, alvo, distribuicao, cor, cor);
             this.ultimoModo = modo;
             this.ultimaIntensidade = alvo;
@@ -87,6 +94,20 @@ public final class SessaoDeVfxDeAura {
         this.ultimaDistribuicao = null;
         this.distribuicaoDesteTick = AuraDistribution.uniforme();
         this.recebeuAlgumaVez = false;
+        this.ativacaoDeTenPendente = false;
+    }
+
+    /**
+     * Consome a borda {@code OFF -> TEN} observada pela propria sessao.
+     *
+     * <p>E UMA BORDA, NAO UM ESTADO. Enquanto Ten permanece ligado, chamadas
+     * seguintes retornam {@code false}; assim uma queda de FPS ou uma mudanca
+     * pequena de output nao empilha vinte copias do mesmo som.
+     */
+    public boolean consumirAtivacaoDeTen() {
+        boolean pendente = this.ativacaoDeTenPendente;
+        this.ativacaoDeTenPendente = false;
+        return pendente;
     }
 
     /**

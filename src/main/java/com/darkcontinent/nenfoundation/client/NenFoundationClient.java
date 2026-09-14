@@ -11,6 +11,7 @@ import com.darkcontinent.nenfoundation.api.SinalDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
+import com.darkcontinent.nenfoundation.client.vfx.AudioDeAura;
 import com.darkcontinent.nenfoundation.client.vfx.render.AuraRenderRegistro;
 import com.darkcontinent.nenfoundation.client.vfx.shader.AuraShaders;
 import com.darkcontinent.nenfoundation.client.vfx.EstadoVisualDeTerceiro;
@@ -76,6 +77,7 @@ public final class NenFoundationClient {
     private final OverlayDeAura auraHud;
     private int errosExibidos;
     private final SessaoDeVfxDeAura vfx;
+    private final AudioDeAura audioDeAura;
     private long ticksDaSessao;
     private final com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer overlayDeVfx =
             new com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer();
@@ -89,6 +91,7 @@ public final class NenFoundationClient {
         this.overlay = new OverlayDeDebug(this.cache);
         this.auraHud = new OverlayDeAura(this.cache);
         this.vfx = new SessaoDeVfxDeAura();
+        this.audioDeAura = new AudioDeAura();
 
         Recebedores.registrar(this.cache);
 
@@ -151,6 +154,7 @@ public final class NenFoundationClient {
         // primeiro delta do servidor novo chegar -- e, se ele nunca chegar
         // porque o jogador nao despertou la, para sempre.
         this.vfx.limpar();
+        this.audioDeAura.limpar(Minecraft.getInstance());
         // A FONTE DO AuraVisualSystem NAO E DESLIGADA AQUI, e isso e
         // deliberado. `ligar` acontece uma vez, no construtor, e este objeto
         // vive tanto quanto o mod; desligar no logout deixaria a aura morta
@@ -263,6 +267,11 @@ public final class NenFoundationClient {
         if (!com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.congelado()) {
             this.vfx.aoTick(ativas, output, cor, NenClientConfig.escalaDeTransicao(), distribuicao);
         }
+        // O SOM CONSOME A BORDA DA MESMA SESSAO que move a transicao visual.
+        // Assim OFF -> TEN tem um relogio so, e uma mudanca pequena de output
+        // nao reproduz a ativacao outra vez.
+        this.audioDeAura.aoTick(mc, this.vfx.consumirAtivacaoDeTen(),
+                this.cache::presencaDe);
         double densidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
                 .aplicarNaDensidade(NenClientConfig.densidadeDeParticulas());
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e

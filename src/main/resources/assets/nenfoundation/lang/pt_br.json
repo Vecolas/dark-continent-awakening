@@ -122,5 +122,6 @@
   "nenfoundation.vfx.tuning_aberto": "Abrindo os sliders de aura.",
   "nenfoundation.vfx.tuning_titulo": "Tuning do visual da aura",
   "nenfoundation.vfx.tuning_restaurar": "Restaurar o perfil (descarta os ajustes)",
-  "nenfoundation.vfx.tuning_rodape": "Nada aqui persiste. Para valer, escreva o numero em assets/nenfoundation/nen_vfx/."
+  "nenfoundation.vfx.tuning_rodape": "Nada aqui persiste. Para valer, escreva o numero em assets/nenfoundation/nen_vfx/.",
+  "subtitles.nenfoundation.vfx.nen.ten_activate": "Aura de Ten se envolve ao redor de alguém"
 }

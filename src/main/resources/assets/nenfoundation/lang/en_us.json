@@ -122,5 +122,6 @@
   "nenfoundation.vfx.tuning_aberto": "Opening the aura sliders.",
   "nenfoundation.vfx.tuning_titulo": "Aura visual tuning",
   "nenfoundation.vfx.tuning_restaurar": "Restore the profile (discards adjustments)",
-  "nenfoundation.vfx.tuning_rodape": "Nothing here persists. To make it real, write the number in assets/nenfoundation/nen_vfx/."
+  "nenfoundation.vfx.tuning_rodape": "Nothing here persists. To make it real, write the number in assets/nenfoundation/nen_vfx/.",
+  "subtitles.nenfoundation.vfx.nen.ten_activate": "Ten aura gathers around someone"
 }

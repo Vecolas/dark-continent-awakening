@@ -9,7 +9,10 @@ import net.minecraft.ReportedException;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
+import net.minecraft.client.player.Input;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.client.event.CalculateDetachedCameraDistanceEvent;
+import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,11 +42,15 @@ import org.slf4j.LoggerFactory;
  * mandando o horario dele; enquanto o modo estiver ligado, o valor travado e
  * reescrito a cada tick por cima. Nenhum jogador do lado ve diferenca.
  *
- * <p>O QUE ELE NAO CONSEGUE TRAVAR, e esta declarado em vez de fingido: a
- * <b>pose</b> (parar de andar e trabalho de quem esta no teclado) e a
- * <b>distancia real de camera</b>, que em terceira pessoa e fixa pelo jogo,
- * exceto quando ha parede atras -- e ai ela encurta sem avisar. Capturar de
- * costas para um muro produz um enquadramento diferente com o mesmo nome.
+ * <p>A POSE IDLE E TRAVADA neutralizando o input de movimento local. Isso nao
+ * transforma o cliente em autoridade: o modo nao teleporta, nao congela a
+ * entidade no servidor e nao altera hitbox. Ele apenas deixa de pedir
+ * movimento enquanto a bancada esta ligada.
+ *
+ * <p>A CAMERA pede sempre quatro blocos de recuo, mas a colisao vanilla roda
+ * depois e continua autorizada a aproxima-la. Ignorar parede aqui seria
+ * oferecer visao atraves de blocos em nome de uma captura. A arena precisa ter
+ * espaco livre atras do jogador para a distancia real continuar comparavel.
  *
  * <p>CLIENT-ONLY.
  */
@@ -53,6 +60,9 @@ public final class AuraCaptureMode {
 
     /** Onde as capturas caem, dentro de {@code screenshots/}. */
     public static final String PASTA = "nenfoundation-av";
+
+    /** Recuo pedido antes de a colisao vanilla limitar a camera. */
+    static final float DISTANCIA_DA_CAMERA = 4.0F;
 
     private static final AuraCaptureMode INSTANCIA = new AuraCaptureMode();
 
@@ -160,6 +170,8 @@ public final class AuraCaptureMode {
         mc.level.setDayTime(this.horaTravada);
         mc.level.setRainLevel(0.0F);
         mc.level.setThunderLevel(0.0F);
+        mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+        mc.options.hideGui = true;
 
         RoteiroDeCaptura.Resultado passo = this.roteiro.aoQuadro();
         switch (passo.acao()) {
@@ -179,6 +191,45 @@ public final class AuraCaptureMode {
                 // Esperando o estado assentar.
             }
         }
+    }
+
+    /**
+     * Neutraliza o pedido local de movimento para a pose assentar em idle.
+     *
+     * <p>O evento acontece depois de {@link Input#tick(boolean, float)}, entao
+     * limpar aqui ganha inclusive de uma tecla que continua fisicamente
+     * pressionada. Fora do modo, nem lemos os campos.
+     */
+    public void aoAtualizarMovimento(MovementInputUpdateEvent evento) {
+        if (neutralizarSeLigado(this.ligado, evento.getInput())) {
+            evento.getEntity().setSprinting(false);
+        }
+    }
+
+    /**
+     * Fixa o recuo solicitado; o raycast vanilla ainda pode reduzi-lo.
+     */
+    public void aoCalcularDistanciaDaCamera(CalculateDetachedCameraDistanceEvent evento) {
+        evento.setDistance(distanciaSolicitada(this.ligado, evento.getDistance()));
+    }
+
+    static boolean neutralizarSeLigado(boolean ligado, Input input) {
+        if (!ligado) {
+            return false;
+        }
+        input.leftImpulse = 0.0F;
+        input.forwardImpulse = 0.0F;
+        input.up = false;
+        input.down = false;
+        input.left = false;
+        input.right = false;
+        input.jumping = false;
+        input.shiftKeyDown = false;
+        return true;
+    }
+
+    static float distanciaSolicitada(boolean ligado, float distanciaAtual) {
+        return ligado ? DISTANCIA_DA_CAMERA : distanciaAtual;
     }
 
     private static void aplicar(RoteiroDeCaptura.Passo passo) {

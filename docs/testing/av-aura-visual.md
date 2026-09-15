@@ -36,14 +36,16 @@ skin diferente — e a comparação vira achismo.
   senão `ten_noite` e `ten_caverna` seriam impossíveis;
 - trava o clima;
 - esconde o HUD;
-- força terceira pessoa;
+- força terceira pessoa e pede sempre quatro blocos de recuo;
+- neutraliza andar, strafe, pulo, agachamento e sprint para a pose assentar em
+  idle;
 - alterna Ten/Ren/Zetsu por comando.
 
-> **Duas coisas ele NÃO trava, e estão escritas em vez de fingidas:** a **pose**
-> (parar de andar é trabalho de quem está no teclado) e a **distância real de
-> câmera**, que em terceira pessoa é fixa pelo jogo *exceto quando há parede
-> atrás* — e aí ela encurta sem avisar. Capturar de costas para um muro produz
-> um enquadramento diferente com o mesmo nome de arquivo.
+> **A distância pedida é fixa; a distância real ainda respeita parede.** A
+> colisão vanilla roda depois do ajuste e aproxima a câmera quando não há quatro
+> blocos livres atrás do jogador. Ignorá-la permitiria enxergar através de
+> blocos. A arena de captura precisa deixar esse espaço livre. A trava de pose
+> também não cancela impulso já aplicado pelo servidor, como knockback.
 
 Comandos de dev, **como existem no código** (`AuraDebugCommands`):
 

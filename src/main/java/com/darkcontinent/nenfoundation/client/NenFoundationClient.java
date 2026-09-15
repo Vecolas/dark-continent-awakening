@@ -143,6 +143,12 @@ public final class NenFoundationClient {
         // decidir aparencia para os outros jogadores.
         NeoForge.EVENT_BUS.addListener(
                 com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugCommands::registrar);
+        NeoForge.EVENT_BUS.addListener(
+                com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
+                        ::aoAtualizarMovimento);
+        NeoForge.EVENT_BUS.addListener(
+                com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
+                        ::aoCalcularDistanciaDaCamera);
         // A REGUA FECHA POR QUADRO, e nao por tick: desenho acontece por
         // quadro, e fechar no tick somaria tres quadros num numero so.
         NeoForge.EVENT_BUS.addListener(

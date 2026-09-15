@@ -225,6 +225,11 @@ script não conhece a pasta do launcher.
 .\scripts\instancia.ps1 instalar -Porta 25566
 ```
 
+Os perfis nomeados ficam em `instancia/cliente-Gon/` e
+`instancia/cliente-Kurapika/`. Cada um tem `options.txt`, configs, logs e
+capturas próprios. O nome padrão `Dev` preserva `instancia/cliente/` para não
+invalidar a bancada já instalada.
+
 > Duas instâncias do Gradle **no mesmo diretório de projeto** travam uma na
 > outra por lock de execução. Para dois clientes ao mesmo tempo são precisos
 > dois `git worktree`. E há um limite de máquina medido: ver

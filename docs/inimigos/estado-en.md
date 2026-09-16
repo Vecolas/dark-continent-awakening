@@ -32,7 +32,7 @@ avançam por dependência técnica própria.
 | EN12 | integração de mundo e segurança de spawn | ✅ código completo: contenção final de GI e bloqueio de spawn natural de bosses; gate de mundo novo/reload pendente |
 | EN13 | passe de áudio, VFX e legibilidade | ✅ código completo: vozes, subtitles, bordas de telegraph e animações; gate visual/low graphics pendente |
 | EN14 | hardening multiplayer | ✅ código completo: ledger, captura, grab, unload e participantes; gate 1/2/4 jogadores pendente; Gyo depende da #126 |
-| EN15 | balanceamento e telemetria local | ⬜ não iniciado |
+| EN15 | balanceamento e telemetria local | ✅ código completo: loadouts, TTK/stagger e telemetria local opt-in; matriz solo/2/4 manual pendente |
 | EN16 | release candidate dos 23 | ⬜ não iniciado |
 
 ---

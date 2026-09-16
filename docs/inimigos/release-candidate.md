@@ -1,7 +1,8 @@
 # EN16 — o que falta para os 23 encontros virarem Release Candidate
 
 Este documento é o **gate final** da trilha [INIMIGOS] (issue `#151`), e ele
-começa dizendo o que ainda não é verdade: **nada aqui está pronto para RC.**
+separa o que já foi provado automaticamente do que ainda exige uma sessão real
+de jogo. A existência de conteúdo completo não é, sozinha, aprovação de RC.
 
 Ele existe agora, e não no fim, por um motivo prático: um checklist escrito
 depois que o trabalho acabou lista o que foi feito. Escrito antes, ele lista o
@@ -21,18 +22,20 @@ medir.
 | Loot, tradução, perfil publicado, renderer, ficha de bestiário | 24 de 24 |
 | Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
 | Assets reproduzíveis byte a byte | **199 de 199** |
-| Testes JUnit | **1.409 executados, 0 falhas** |
-| GameTests escritos / **executados** | **144 / 144**, 0 falhas |
+| Testes JUnit | **1.415 executados, 0 falhas** |
+| GameTests escritos / **executados** | **145 / 145**, 0 falhas |
 
 ---
 
 ## Os oito bloqueios de RC, por ordem de custo
 
-### 1. Nada rodou com o jogo de pé
+### 1. Os portões de jogo ainda não estão todos executados
 
-Nem `runClient`, nem `runServer`, nem `runGameTestServer`. É o bloqueio maior, e
-ele invalida qualquer afirmação de "funciona" — inclusive as que este repositório
-faz com cuidado. O que está provado é regra; o que falta é comportamento.
+`runGameTestServer` foi executado e passou os 145 cenários obrigatórios. O
+servidor dedicado também chegou a `Done` em uma execução. Ainda faltam a
+inspeção visual pelo `runClient`, a matriz com jogadores reais e a repetição
+dedicada com save/restart. O que está provado por GameTest é regra server-side;
+o que falta é comportamento observado no jogo.
 
 ### 2. Nenhum save passou por disco
 
@@ -62,11 +65,11 @@ encontro e há spawner — mas **não há gatilho de mundo**: nada cria uma
 `EncounterInstance` a não ser `/nenenemy encounter`. Sem worldgen ou estrutura, o
 jogador nunca encontra nada por acaso.
 
-### 5. A colônia de Chimera não existe em jogo
+### 5. A materialização da colônia de Chimera ainda não existe em jogo
 
-`ChimeraColony`, `ChimeraColonySavedData` e a simulação offline estão completos e
-sem produtor: não há ninho gerado, não há quem funde uma colônia, e não há quem
-materialize as formigas que a recuperação autoriza.
+`ChimeraColony`, `ChimeraColonySavedData`, a simulação offline e o ciclo de vida
+do servidor estão completos. Ainda não há ninho gerado, produtor que funda uma
+colônia ou materializador das formigas autorizadas pela recuperação.
 
 ### 6. O Nen das formigas decide e não ativa
 

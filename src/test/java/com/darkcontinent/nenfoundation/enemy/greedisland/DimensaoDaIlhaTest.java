@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.enemy.greedisland;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Portao que liga o NOME da ilha ao arquivo que a cria.
@@ -26,6 +28,16 @@ import org.junit.jupiter.api.Test;
  * arquivo, e nao do mob que deixou de existir por causa disso.</p>
  */
 class DimensaoDaIlhaTest {
+
+    @Test
+    void catalogoDeCriaturasDaIlhaEFechado() {
+        assertTrue(GreedIslandRegion.eCriatura(
+                ResourceLocation.fromNamespaceAndPath("nenfoundation", "cyclops")));
+        assertFalse(GreedIslandRegion.eCriatura(
+                ResourceLocation.fromNamespaceAndPath("nenfoundation", "dummy_enemy")));
+        assertFalse(GreedIslandRegion.eCriatura(
+                ResourceLocation.fromNamespaceAndPath("minecraft", "cow")));
+    }
 
     private static final String DIMENSOES = "src/main/resources/data/nenfoundation/dimension";
     private static final String TIPOS = "src/main/resources/data/nenfoundation/dimension_type";

@@ -29,7 +29,7 @@ avançam por dependência técnica própria.
 | EN9 | colônia persistente e simulação offline | ✅ código completo: SavedData versionado, ciclo de vida e limpeza de membros; gate de restart/unload pendente |
 | EN10 | Nen de Chimera sobre o Nen real | 🟡 decisão tática completa; **não ativa técnica nenhuma** |
 | EN11 | seis officers e squadron leaders | ✅ código completo: seis entidades, telegraphs, squad e Nen tático; gates de jogo pendentes |
-| EN12 | integração de mundo e segurança de spawn | 🟡 parcial: os cinco perfis e as duas trancas existem |
+| EN12 | integração de mundo e segurança de spawn | ✅ código completo: contenção final de GI e bloqueio de spawn natural de bosses; gate de mundo novo/reload pendente |
 | EN13 | passe de áudio, VFX e legibilidade | ⬜ não iniciado — **e o bloqueio de ferramenta caiu** |
 | EN14 | hardening multiplayer | ⬜ não iniciado |
 | EN15 | balanceamento e telemetria local | ⬜ não iniciado |

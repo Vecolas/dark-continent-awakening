@@ -2,7 +2,9 @@ package com.darkcontinent.nenfoundation.enemy.greedisland;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import java.util.Objects;
+import java.util.Set;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
@@ -28,6 +30,10 @@ import net.minecraft.world.level.Level;
  * Overworld.</p>
  */
 public final class GreedIslandRegion {
+
+    private static final Set<String> CRIATURAS = Set.of(
+            "cyclops", "hyper_puffball", "melanin_lizard", "radio_rat",
+            "bubble_horse", "king_white_stag_beetle", "wolf_pack_hunter");
 
     /**
      * A dimensao da ilha. CONGELADA como identidade: ela vai para save, para
@@ -57,5 +63,11 @@ public final class GreedIslandRegion {
                     + DIMENSAO.location() + ". Permitir aqui abriria o atalho de levar a"
                     + " criatura para fora e converter onde as regras da ilha nao valem.");
         }
+    }
+
+    /** Identifica o catálogo fechado de criaturas que não pode escapar da ilha. */
+    public static boolean eCriatura(ResourceLocation id) {
+        Objects.requireNonNull(id, "id da criatura ausente");
+        return NenFoundation.MOD_ID.equals(id.getNamespace()) && CRIATURAS.contains(id.getPath());
     }
 }

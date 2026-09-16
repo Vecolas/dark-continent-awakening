@@ -31,7 +31,7 @@ avançam por dependência técnica própria.
 | EN11 | seis officers e squadron leaders | ✅ código completo: seis entidades, telegraphs, squad e Nen tático; gates de jogo pendentes |
 | EN12 | integração de mundo e segurança de spawn | ✅ código completo: contenção final de GI e bloqueio de spawn natural de bosses; gate de mundo novo/reload pendente |
 | EN13 | passe de áudio, VFX e legibilidade | ✅ código completo: vozes, subtitles, bordas de telegraph e animações; gate visual/low graphics pendente |
-| EN14 | hardening multiplayer | ⬜ não iniciado |
+| EN14 | hardening multiplayer | ✅ código completo: ledger, captura, grab, unload e participantes; gate 1/2/4 jogadores pendente; Gyo depende da #126 |
 | EN15 | balanceamento e telemetria local | ⬜ não iniciado |
 | EN16 | release candidate dos 23 | ⬜ não iniciado |
 

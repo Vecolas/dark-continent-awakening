@@ -36,13 +36,14 @@ public final class ChimeraColonyServerHooks {
 
         long tick = overworld.getGameTime();
         int autorizados = dados.recuperarAusencias(tick, SIMULACAO, ORCAMENTO);
+        int materializados = ChimeraColonyMaterializer.materializar(overworld, dados);
         dados.sujar();
         ultimoSave = tick;
         registroNoScheduler = NenTickScheduler.registrarDoMundo(
                 ChimeraColonyServerHooks::tickDasColonias);
-        if (autorizados > 0) {
-            LOG.info("Colonias recuperaram {} nascimentos autorizados sob o teto ativo;"
-                    + " materializacao permanece limitada ao consumidor de spawn.", autorizados);
+        if (autorizados > 0 || materializados > 0) {
+            LOG.info("Colonias recuperaram {} nascimentos autorizados; {} materializados.",
+                    autorizados, materializados);
         }
     }
 
@@ -63,6 +64,8 @@ public final class ChimeraColonyServerHooks {
 
         long tick = overworld.getGameTime();
         boolean mudou = false;
+        int materializados = ChimeraColonyMaterializer.materializar(overworld, atual);
+        if (materializados > 0) mudou = true;
         for (ChimeraColony colonia : atual.colonias().values()) {
             if (colonia.expirarRelatorios(tick) > 0) mudou = true;
             colonia.marcarTick(tick);

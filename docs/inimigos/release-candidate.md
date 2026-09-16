@@ -22,8 +22,8 @@ medir.
 | Loot, tradução, perfil publicado, renderer, ficha de bestiário | 24 de 24 |
 | Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
 | Assets reproduzíveis byte a byte | **199 de 199** |
-| Testes JUnit | **1.415 executados, 0 falhas** |
-| GameTests escritos / **executados** | **145 / 145**, 0 falhas |
+| Testes JUnit | **1.416 executados, 0 falhas** |
+| GameTests escritos / **executados** | **146 / 146**, 0 falhas |
 
 ---
 
@@ -65,11 +65,12 @@ encontro e há spawner — mas **não há gatilho de mundo**: nada cria uma
 `EncounterInstance` a não ser `/nenenemy encounter`. Sem worldgen ou estrutura, o
 jogador nunca encontra nada por acaso.
 
-### 5. A materialização da colônia de Chimera ainda não existe em jogo
+### 5. O produtor de colônia Chimera ainda não existe em jogo
 
 `ChimeraColony`, `ChimeraColonySavedData`, a simulação offline e o ciclo de vida
-do servidor estão completos. Ainda não há ninho gerado, produtor que funda uma
-colônia ou materializador das formigas autorizadas pela recuperação.
+do servidor estão completos. O materializador server-side agora conserva
+nascimentos pendentes e tenta criá-los quando o ninho está carregado. Ainda não
+há ninho gerado nem produtor de gameplay que funda uma colônia.
 
 ### 6. O Nen das formigas decide e não ativa
 

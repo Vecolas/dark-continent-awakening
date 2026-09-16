@@ -6,7 +6,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.LivingEntity;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +35,11 @@ public final class GreedIslandEnemiesGameTest {
 
         List<LivingEntity> criadas = new ArrayList<>();
         for (int i = 0; i < tipos.length; i++) {
-            LivingEntity criatura = (LivingEntity) tipos[i].spawn(
-                    helper.getLevel(), helper.absolutePos(new BlockPos(2 + i * 2, 2, 5)),
-                    MobSpawnType.COMMAND);
+            LivingEntity criatura = (LivingEntity) tipos[i].create(helper.getLevel());
             helper.assertTrue(criatura != null,
                     "o tipo de Greed Island nao criou entidade no indice " + i);
+            criatura.moveTo(helper.absolutePos(new BlockPos(2 + i * 2, 2, 5)), 0.0F, 0.0F);
+            helper.getLevel().addFreshEntity(criatura);
             criadas.add(criatura);
         }
 

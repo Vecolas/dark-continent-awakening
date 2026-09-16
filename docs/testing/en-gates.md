@@ -15,8 +15,8 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Medida | Valor |
 | --- | --- |
-| Testes JUnit na trilha inteira | **1.415 executados, 0 falhas** |
-| GameTests da trilha de inimigos | **145 executados, 0 falhas** |
+| Testes JUnit na trilha inteira | **1.416 executados, 0 falhas** |
+| GameTests da trilha de inimigos | **146 executados, 0 falhas** |
 | Ids de inimigo registrados | 24 (7 do exame + 7 de Greed Island + 9 de Chimera + o boneco) |
 | Arquivos de som gerados e conferidos | 120, todos Ogg Vorbis validados byte a byte |
 | Geradores de arte com validação semântica | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, Wolf Pack Hunter, King White Stag Beetle, Boneco de Treino |

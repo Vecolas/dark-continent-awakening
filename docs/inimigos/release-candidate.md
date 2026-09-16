@@ -65,12 +65,12 @@ encontro e há spawner — mas **não há gatilho de mundo**: nada cria uma
 `EncounterInstance` a não ser `/nenenemy encounter`. Sem worldgen ou estrutura, o
 jogador nunca encontra nada por acaso.
 
-### 5. O produtor de colônia Chimera ainda não existe em jogo
+### 5. ~~O produtor de colônia Chimera ainda não existe em jogo~~ — FECHADO EM CÓDIGO
 
-`ChimeraColony`, `ChimeraColonySavedData`, a simulação offline e o ciclo de vida
-do servidor estão completos. O materializador server-side agora conserva
-nascimentos pendentes e tenta criá-los quando o ninho está carregado. Ainda não
-há ninho gerado nem produtor de gameplay que funda uma colônia.
+`ChimeraColony`, `ChimeraColonySavedData`, a simulação offline, o ciclo de vida,
+o produtor natural por chunk e o materializador server-side agora formam o
+caminho completo de fundação até os três peões iniciais. A fundação é rara,
+determinística, protegida contra duplicação e não ocorre perto de jogadores.
 
 ### 6. O Nen das formigas decide e não ativa
 

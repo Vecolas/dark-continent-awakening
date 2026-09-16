@@ -71,6 +71,15 @@ public final class ChimeraColonySavedData extends SavedData {
         return Optional.ofNullable(colonias.get(Objects.requireNonNull(id, "id ausente")));
     }
 
+    /** Evita que dois carregamentos próximos fundem a mesma colônia em silêncio. */
+    public boolean existePerto(net.minecraft.core.BlockPos centro, int raio) {
+        Objects.requireNonNull(centro, "centro ausente");
+        if (raio < 0) throw new IllegalArgumentException("raio negativo");
+        long quadrado = (long) raio * raio;
+        return colonias.values().stream().anyMatch(colonia ->
+                colonia.ninho().distSqr(centro) <= quadrado);
+    }
+
     public ChimeraColony registrar(ChimeraColony colonia) {
         Objects.requireNonNull(colonia, "colonia ausente");
         ChimeraColony anterior = colonias.putIfAbsent(colonia.id(), colonia);

@@ -25,10 +25,10 @@ avançam por dependência técnica própria.
 | EN5 | Greed Island core, captura, card | ✅ código completo; gate pendente de corrida com dois jogadores |
 | EN6 | sete criaturas de Greed Island | ✅ **código completo**; gates visuais e multiplayer pendentes |
 | EN7 | Squad e Pack | ✅ código completo; Wolf Pack Hunter é consumidor; gate multiplayer pendente |
-| EN8 | Chimera core + três peons | 🟡 domínio completo; **sem entidade** |
+| EN8 | Chimera core + três peons | ✅ código completo: Crab Heavy, Bat Scout e Wolf Runner |
 | EN9 | colônia persistente e simulação offline | ✅ código completo: SavedData versionado, ciclo de vida e limpeza de membros; gate de restart/unload pendente |
 | EN10 | Nen de Chimera sobre o Nen real | 🟡 decisão tática completa; **não ativa técnica nenhuma** |
-| EN11 | seis officers e squadron leaders | ⬜ não iniciado |
+| EN11 | seis officers e squadron leaders | ✅ código completo: seis entidades, telegraphs, squad e Nen tático; gates de jogo pendentes |
 | EN12 | integração de mundo e segurança de spawn | 🟡 parcial: os cinco perfis e as duas trancas existem |
 | EN13 | passe de áudio, VFX e legibilidade | ⬜ não iniciado — **e o bloqueio de ferramenta caiu** |
 | EN14 | hardening multiplayer | ⬜ não iniciado |

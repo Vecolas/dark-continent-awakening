@@ -7,6 +7,7 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import com.darkcontinent.nenfoundation.registry.NenBlocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -44,6 +45,7 @@ public final class ChimeraColonyNaturalSpawner {
         if (!pontoSeguro(level, centro)
                 || dados.existePerto(centro, MIN_DISTANCE_BETWEEN_COLONIES)) return;
 
+        if (!level.setBlock(centro, NenBlocks.CHIMERA_NEST.get().defaultBlockState(), 3)) return;
         ChimeraColony colonia = new ChimeraColony(java.util.UUID.randomUUID(), centro);
         colonia.autorizarNascimentos(INITIAL_BIRTHS);
         dados.registrar(colonia);

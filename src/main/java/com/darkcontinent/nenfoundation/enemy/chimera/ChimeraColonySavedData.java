@@ -71,6 +71,11 @@ public final class ChimeraColonySavedData extends SavedData {
         return Optional.ofNullable(colonias.get(Objects.requireNonNull(id, "id ausente")));
     }
 
+    public Optional<ChimeraColony> coloniaNoNinho(net.minecraft.core.BlockPos posicao) {
+        Objects.requireNonNull(posicao, "posicao ausente");
+        return colonias.values().stream().filter(colonia -> colonia.ninho().equals(posicao)).findFirst();
+    }
+
     /** Evita que dois carregamentos próximos fundem a mesma colônia em silêncio. */
     public boolean existePerto(net.minecraft.core.BlockPos centro, int raio) {
         Objects.requireNonNull(centro, "centro ausente");

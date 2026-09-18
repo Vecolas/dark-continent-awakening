@@ -70,6 +70,20 @@ public final class NenClientConfig {
                     "vfx.densidadeDeParticulas; aqui e liga e desliga.")
             .define("vfx.detritos", true);
 
+    private static final ModConfigSpec.DoubleValue DISTANCIA_MAXIMA = BUILDER
+            .comment("Ate quantos blocos este cliente desenha aura de outras pessoas.",
+                    "Alem disso, nada -- nem shell, nem filamento, nem anel, nem brilho.",
+                    "",
+                    "ELA ESTAVA PROMETIDA DESDE O AV3 e nao tinha consumidor: uma chave",
+                    "anunciada que ninguem implementou e o numero orfao virado do",
+                    "avesso -- alguem configura e nada muda. O consumidor nasce com",
+                    "ela, e e um so: AuraLodEfetivo.",
+                    "",
+                    "O padrao e 72, que e onde a tabela de nivel de detalhe ja corta",
+                    "por conta propria. Abaixar aqui e escolha de desempenho; subir",
+                    "acima de 72 nao acrescenta nada, porque a tabela manda.")
+            .defineInRange("vfx.distanciaMaxima", 72.0D, 8.0D, 128.0D);
+
     private static final ModConfigSpec.EnumValue<
             com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel> BLOOM = BUILDER
             .comment("Quanto a aura BRILHA neste cliente.",
@@ -112,6 +126,17 @@ public final class NenClientConfig {
      */
     public static com.darkcontinent.nenfoundation.client.vfx.AuraVisualQuality qualidade() {
         return QUALIDADE.get();
+    }
+
+    /**
+     * Ate onde este cliente desenha aura dos outros, em blocos.
+     *
+     * <p>Quem a le e {@code AuraLodEfetivo}, e mais ninguem: quatro caminhos de
+     * desenho perguntando a config direto seriam quatro chances de um deles
+     * esquecer o corte.
+     */
+    public static double distanciaMaxima() {
+        return DISTANCIA_MAXIMA.get();
     }
 
     /** Se este cliente desenha a aura nos bracos em primeira pessoa. */

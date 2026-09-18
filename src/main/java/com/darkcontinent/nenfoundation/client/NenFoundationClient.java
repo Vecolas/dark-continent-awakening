@@ -472,8 +472,8 @@ public final class NenFoundationClient {
         // que nao prova nada sobre o jogo.
         return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
                 EstadoVisualDeTerceiro.de(sinal,
-                        com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador))),
+                        com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo.doCliente(
+                                mc.player.distanceTo(jogador)),
                         visibilidadeDe(mc.player, jogador, sinal)));
     }
 
@@ -503,9 +503,11 @@ public final class NenFoundationClient {
             // AQUI O LOD FINALMENTE RECEBE DISTANCIA DE VERDADE. Para o proprio
             // jogador ela e sempre zero, entao ate agora ele so tinha teste
             // unitario -- o corte por distancia nunca mordia em jogo.
-            AuraRenderLod lod = NenClientConfig.qualidade().limitar(
-                    com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                            AuraRenderLod.porDistancia(mc.player.distanceTo(outro))));
+            // O FUNIL DECIDE TUDO: distancia maxima do jogador, sobreposicao do
+            // dev e teto de qualidade, nesta ordem. Antes esta corrente estava
+            // copiada em quatro lugares, com tres cortes proprios em numero cru.
+            AuraRenderLod lod = com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
+                    .doCliente(mc.player.distanceTo(outro));
             if (!lod.visivel()) {
                 continue;
             }

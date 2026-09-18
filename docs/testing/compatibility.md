@@ -156,7 +156,12 @@ erro.
 
 | Ambiente | Versao | Nivel | Sintoma | Contorno | Quem viu | Data |
 | --- | --- | --- | --- | --- | --- | --- |
-| _(vazia)_ | | | | | | |
+| _(nenhuma sessao de ambiente foi feita)_ | | | | | | |
+
+E a linha de `supported-mods.md` que faltava: **Iris/Oculus entrou na tabela de
+candidatos**, com a licenca ainda *a confirmar* -- a mesma divida nomeada que
+vale para todo mod daquela lista. Sem essa linha, os ambientes 3 e 4 desta
+matriz nao podiam sequer ser montados.
 
 ### O que ja esta implementado, e o que falta
 
@@ -193,7 +198,12 @@ erro.
 
 | Ambiente | Versao | Nivel | Sintoma | Contorno | Quem viu | Data |
 | --- | --- | --- | --- | --- | --- | --- |
-| _(vazia)_ | | | | | | |
+| _(nenhuma sessao de ambiente foi feita)_ | | | | | | |
+
+E a linha de `supported-mods.md` que faltava: **Iris/Oculus entrou na tabela de
+candidatos**, com a licenca ainda *a confirmar* -- a mesma divida nomeada que
+vale para todo mod daquela lista. Sem essa linha, os ambientes 3 e 4 desta
+matriz nao podiam sequer ser montados.
 
 ### O que ja esta implementado, e o que falta
 

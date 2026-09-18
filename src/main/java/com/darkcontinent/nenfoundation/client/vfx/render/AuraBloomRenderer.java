@@ -1,6 +1,6 @@
 package com.darkcontinent.nenfoundation.client.vfx.render;
 
-import com.darkcontinent.nenfoundation.client.vfx.AuraRenderLod;
+import com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualState;
 import com.darkcontinent.nenfoundation.client.vfx.AuraVisualSystem;
 import com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDeBrilho;
@@ -42,8 +42,10 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
  */
 public final class AuraBloomRenderer {
 
-    /** Ate onde vale procurar aura para alimentar o alvo, em blocos. */
-    private static final double DISTANCIA_MAXIMA = 96.0D;
+    // ATE ONDE VALE PROCURAR AURA sai de `AuraLodEfetivo.alcanceDeBusca()`, que
+    // le a distancia maxima escolhida pelo jogador. Havia aqui um 96 cru, e ele
+    // era a terceira copia da mesma decisao -- com um valor que nao batia com
+    // nenhuma das outras duas.
 
     /** O peso e o raio do quadro corrente, decididos na preparacao. */
     private float peso;
@@ -73,8 +75,8 @@ public final class AuraBloomRenderer {
                 continue;
             }
             double distancia = mc.player.distanceTo(jogador);
-            if (distancia > DISTANCIA_MAXIMA
-                    || !AuraRenderLod.porDistancia(distancia).visivel()) {
+            if (distancia > AuraLodEfetivo.alcanceDeBusca()
+                    || !AuraLodEfetivo.doCliente(distancia).visivel()) {
                 continue;
             }
             AuraVisualState estado = AuraVisualSystem.estadoDe(jogador);

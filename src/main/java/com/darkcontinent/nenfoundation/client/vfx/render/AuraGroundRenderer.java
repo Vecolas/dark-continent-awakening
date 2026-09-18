@@ -73,8 +73,15 @@ public final class AuraGroundRenderer {
      */
     private static final float FAIXA = 0.38F;
 
-    /** Ate onde o anel e desenhado: o corte do LOD 0-1. */
-    private static final double DISTANCIA_MAXIMA = 24.0D;
+    /**
+     * Ate onde o anel e desenhado, em blocos.
+     *
+     * <p>ELE SAI NO LOD 2, junto com os detritos -- e o corte por NIVEL, e nao
+     * por este numero, e quem decide. Este teto existe so para o laco: perguntar
+     * o nivel de cada jogador custa mais que descartar quem esta obviamente
+     * longe demais, e o corte do LOD 0-1 e vinte e quatro blocos.
+     */
+    private static final double DISTANCIA_DE_BUSCA = 24.0D;
 
     /**
      * A sondagem, COMPARTILHADA com os detritos.
@@ -134,15 +141,16 @@ public final class AuraGroundRenderer {
                 continue;
             }
             double distancia = mc.player.distanceTo(jogador);
-            // O ANEL SAI NO LOD 2, junto com os detritos. Ele e o componente
-            // mais barato de cortar e o que menos falta faz a vinte e cinco
-            // blocos, onde a leitura ja e so a borda.
-            if (distancia > DISTANCIA_MAXIMA) {
+            if (distancia > Math.min(DISTANCIA_DE_BUSCA,
+                    com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
+                            .alcanceDeBusca())) {
                 continue;
             }
-            AuraRenderLod lod = NenClientConfig.qualidade().limitar(
-                    com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                            AuraRenderLod.porDistancia(distancia)));
+            // O NIVEL VEM DO FUNIL, e nao de uma corrente propria: distancia
+            // maxima do jogador, sobreposicao do dev e teto de qualidade, na
+            // mesma ordem que todo o resto da aura usa.
+            AuraRenderLod lod = com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
+                    .doCliente(distancia);
             if (lod != AuraRenderLod.FULL && lod != AuraRenderLod.NEAR) {
                 continue;
             }

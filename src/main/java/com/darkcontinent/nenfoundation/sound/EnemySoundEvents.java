@@ -89,4 +89,30 @@ public final class EnemySoundEvents {
 
     /** Todas as vozes, para portao e para diagnostico. */
     public static Map<String, EnemyVoice> todas() { return Map.copyOf(VOZES); }
+
+    /**
+     * Forca a inicializacao desta classe, para que os 120 eventos entrem na fila
+     * ENQUANTO ela ainda esta aberta.
+     *
+     * <p><b>ELA EXISTE POR CAUSA DE UM DEFEITO REAL, e o defeito era silencioso
+     * ate ser fatal.</b> O bloco estatico acima registra em
+     * {@link NenSoundEvents#SOUND_EVENTS}, mas nada carregava esta classe durante
+     * o registro: o unico caminho ate ela era {@code BaseHxHMob.getVoice()},
+     * chamado quando um mob tenta falar -- depois de {@code RegisterEvent} ter
+     * fechado o {@code DeferredRegister}.
+     *
+     * <p>O sintoma nao era um som faltando. Era
+     * {@code IllegalStateException: Cannot register new entries to
+     * DeferredRegister after RegisterEvent has been fired}, embrulhada num
+     * {@code ExceptionInInitializerError}, no primeiro bicho que abrisse a boca
+     * -- derrubando o servidor.
+     *
+     * <p>O METODO E VAZIO DE PROPOSITO. O trabalho todo esta no bloco estatico;
+     * o que esta chamada compra e o MOMENTO em que ele roda. Um metodo vazio com
+     * este javadoc e mais honesto que uma linha esperta em outro arquivo, porque
+     * a proxima pessoa que vier apagar "codigo morto" le o motivo antes.
+     */
+    public static void forcarRegistro() {
+        // Intencionalmente vazio: ver o javadoc.
+    }
 }

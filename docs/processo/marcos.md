@@ -440,6 +440,34 @@ o motivo:
    ser mais espesso que Ten. Os tres caminhos descartados estao no javadoc da
    classe.
 
+### Estado da trilha (2026-09-17, segunda parte)
+
+O codigo de **AV5, AV6, AV7 e AV8** tambem esta entregue, na mesma branch:
+
+| Marco | O que entrou |
+| --- | --- |
+| **AV5** | alvo de brilho com mascara de profundidade, downsample, desfoque separavel, composite aditivo, os tres niveis `OFF`/`FAST`/`HIGH`, fallback lembrado na sessao, deteccao de shader pack, recriacao no resize e em `F3+T`, contadores de alvo criado/liberado |
+| **AV6** | `zetsu.json` com trava estrutural, `AuraVisibilityResolver` puro, pulso de supressao local em HUD, `/nenvfx permissivo` |
+| **AV7** | `borda_com_armadura` por REGIAO, colunas suprimidas nas poses horizontais, `AuraModelAdapter` com `HumanoidAuraAdapter`, `GeoAuraAdapter` e `AuraOssosDoInimigo` |
+| **AV8** | auditoria de alocacao por quadro: memo de perfil interpolado, `BlockPos` mutavel no anel, sem record por jogador no passe de brilho; matriz de renderizacao aberta em `compatibility.md` |
+
+**TODOS OS DEZ GATES CONTINUAM ABERTOS** -- #169, #176, #181, #187, #193, #198,
+#201, #205, #209 e #104. Nenhum deles se fecha com codigo: os dez exigem
+servidor dedicado, dois clientes reais e capturas arquivadas, e
+`docs/testing/capturas/` continua vazio. A issue #103 (ripple de impacto)
+tambem segue bloqueada, por #127 -- nao ha dano de Nen para disparar.
+
+Tres coisas foram deliberadamente NAO feitas, e as tres estao no codigo com o
+motivo e em `o-que-nao-provamos.md`:
+
+1. **`AuraLivingRenderLayer`** -- `AuraVisualSystem` so responde por `Player`, e
+   nenhum inimigo tem Nen antes do EN10. Layer sobre um estado que nao pode
+   existir e regua que mede o vazio.
+2. **`AuraShaderManager` e `AuraAudioController` separados** -- os dois teriam
+   sido um segundo ciclo de vida para uma coisa so.
+3. **Medicao de performance** -- o AV8 pede numero medido e arquivado, e
+   arquivar um numero que ninguem mediu seria a pior versao de um numero.
+
 ---
 
 ## M5 — Framework de Hatsu / habilidades

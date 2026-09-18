@@ -63,7 +63,11 @@ public final class AuraBloomRenderer {
             return;
         }
 
-        AuraPerfilDeBrilho maior = AuraPerfilDeBrilho.NENHUM;
+        // DOIS FLOATS, E NAO UM RECORD POR JOGADOR. Montar um
+        // `AuraPerfilDeBrilho` a cada candidato aloca um objeto por jogador com
+        // aura, por quadro -- para carregar dois numeros que cabem na pilha.
+        float maiorForca = 0.0F;
+        float raioDoMaior = 0.0F;
         for (Player jogador : mc.level.players()) {
             if (jogador.isInvisible() || jogador.isSpectator()) {
                 continue;
@@ -81,17 +85,19 @@ public final class AuraBloomRenderer {
             // menos, como a shell dele. Ligar o halo so ao modo faria o brilho
             // ignorar o botao de output, e o sintoma seria "o bloom nao reage".
             AuraPerfilDeBrilho brilho = AuraPerfis.de(estado).brilho();
-            float forca = brilho.forca() * estado.intensity() * estado.fases().borda();
-            if (forca > maior.forca()) {
-                maior = new AuraPerfilDeBrilho(Math.clamp(forca, 0.0F, 1.0F), brilho.raio());
+            float forca = Math.clamp(
+                    brilho.forca() * estado.intensity() * estado.fases().borda(), 0.0F, 1.0F);
+            if (forca > maiorForca) {
+                maiorForca = forca;
+                raioDoMaior = brilho.raio();
             }
         }
 
-        boolean haAura = maior.existe();
+        boolean haAura = maiorForca > 0.0F && raioDoMaior > 0.0F;
         AuraPostProcess.prepararQuadro(mc, haAura);
         if (haAura) {
-            this.peso = maior.forca() * NenClientConfig.intensidadeDoBloom();
-            this.raio = maior.raio();
+            this.peso = maiorForca * NenClientConfig.intensidadeDoBloom();
+            this.raio = raioDoMaior;
         }
     }
 

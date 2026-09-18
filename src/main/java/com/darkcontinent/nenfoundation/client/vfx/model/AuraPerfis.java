@@ -41,6 +41,38 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
     private static final Map<AuraVisualMode, AuraPerfilVisual> CARREGADOS =
             new EnumMap<>(AuraVisualMode.class);
 
+    /**
+     * O ultimo perfil interpolado, e a chave dele.
+     *
+     * <p><b>UMA ENTRADA SO, E ELA BASTA.</b> Num quadro, cada jogador com aura
+     * pergunta o perfil quatro vezes -- a shell, os filamentos, o anel e a
+     * particula --, e as quatro chegam com a MESMA chave. Dez jogadores no mesmo
+     * estado tambem compartilham a chave. O que uma entrada nao cobre e dez
+     * jogadores em estados diferentes intercalados, e ai ela simplesmente erra e
+     * recalcula -- que e o comportamento de antes, e nao uma regressao.
+     *
+     * <p><b>POR QUE ISTO EXISTE.</b> {@code AuraPerfilVisual.interpolar} aloca um
+     * record com dois records dentro. Quatro chamadas por jogador por quadro,
+     * vezes sessenta quadros, vezes dez jogadores, sao 2400 objetos por segundo
+     * no caminho quente -- e alocacao por quadro nao da erro: aparece como FPS
+     * caindo devagar ao longo de uma sessao, que e o sintoma que o AV8 existe
+     * para nao encontrar.
+     *
+     * <p>A CHAVE INCLUI A VERSAO DO DADO E A DA SOBREPOSICAO. Sem elas, recarregar
+     * com F3+T ou girar um slider devolveria o perfil velho -- e o botao
+     * pareceria morto, que e o erro numero 7 do {@code CLAUDE.md} chegando pela
+     * porta dos fundos.
+     */
+    private static AuraVisualMode memoModo;
+    private static AuraVisualMode memoAlvo;
+    private static float memoProgresso = Float.NaN;
+    private static int memoVersaoDoDado = -1;
+    private static int memoVersaoDaSobreposicao = -1;
+    private static AuraPerfilVisual memoPerfil;
+
+    /** Avanca a cada recarga de recurso. Metade da chave do memo. */
+    private static int versaoDoDado;
+
     public AuraPerfis() {
         super(GSON, DIRETORIO);
     }
@@ -91,10 +123,40 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
             // sobreposicao -- mesma razao de {@link #de(AuraVisualMode)}.
             return AuraPerfilVisual.SEGURO.apagado();
         }
+        int versaoDaSobreposicao =
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.versao();
+        if (estado.mode() == memoModo && estado.modoAlvo() == memoAlvo
+                && Float.compare(estado.transitionProgress(), memoProgresso) == 0
+                && versaoDoDado == memoVersaoDoDado
+                && versaoDaSobreposicao == memoVersaoDaSobreposicao
+                && memoPerfil != null) {
+            return memoPerfil;
+        }
         AuraPerfilVisual origem = cru(estado.mode());
         AuraPerfilVisual alvo = cru(estado.modoAlvo());
-        return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
-                AuraPerfilVisual.interpolar(origem, alvo, estado.transitionProgress()));
+        AuraPerfilVisual resultado =
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
+                        AuraPerfilVisual.interpolar(origem, alvo, estado.transitionProgress()));
+        memoModo = estado.mode();
+        memoAlvo = estado.modoAlvo();
+        memoProgresso = estado.transitionProgress();
+        memoVersaoDoDado = versaoDoDado;
+        memoVersaoDaSobreposicao = versaoDaSobreposicao;
+        memoPerfil = resultado;
+        return resultado;
+    }
+
+    /**
+     * Esquece o perfil memorizado.
+     *
+     * <p>Chamado na recarga de recurso. Publico porque o teste precisa dele: sem
+     * um jeito de zerar, o memo faria um teste enxergar o perfil montado pelo
+     * teste ANTERIOR, e a falha apareceria conforme a ordem de execucao.
+     */
+    public static void esquecerMemo() {
+        versaoDoDado++;
+        memoPerfil = null;
+        memoProgresso = Float.NaN;
     }
 
     /**
@@ -153,6 +215,11 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
         // continuaria valendo ate o jogo fechar -- e o sintoma seria um ajuste
         // que "nao volta atras".
         CARREGADOS.clear();
+        // O MEMO MORRE COM O DADO. Sem esta linha, F3+T carregaria o perfil novo
+        // e o desenho continuaria mostrando o antigo ate o estado mudar -- e a
+        // sessao de arte inteira depende de "mexer no numero, recarregar,
+        // olhar".
+        esquecerMemo();
 
         for (Map.Entry<ResourceLocation, JsonElement> arquivo : arquivos.entrySet()) {
             ResourceLocation id = arquivo.getKey();

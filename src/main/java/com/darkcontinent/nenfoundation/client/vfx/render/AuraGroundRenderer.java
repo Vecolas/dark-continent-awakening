@@ -89,6 +89,16 @@ public final class AuraGroundRenderer {
     private final Vector3f interno = new Vector3f();
     private final Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 
+    /**
+     * A posicao de onde a luz do chao e lida, reaproveitada.
+     *
+     * <p>{@code BlockPos.containing} ALOCA, e esta consulta acontece por jogador
+     * com anel, por quadro. Um objeto pequeno sessenta vezes por segundo nao da
+     * erro -- aparece como FPS caindo devagar ao longo de uma sessao, que e o
+     * sintoma que o AV8 existe para nao encontrar.
+     */
+    private final BlockPos.MutableBlockPos posDaLuz = new BlockPos.MutableBlockPos();
+
     public AuraGroundRenderer(SondagemDeChao sondagem) {
         if (sondagem == null) {
             throw new NullPointerException("sondagem de chao obrigatoria");
@@ -288,10 +298,11 @@ public final class AuraGroundRenderer {
      * dentro de uma caverna como se iluminasse o chao -- e iluminar o chao e
      * alterar o mundo.
      */
-    private static int luzDoChao(Minecraft mc, Player jogador, SondagemDeChao.Amostra chao) {
-        BlockPos pos = BlockPos.containing(jogador.getX(), chao.y() + 0.1D, jogador.getZ());
-        int bloco = mc.level.getBrightness(LightLayer.BLOCK, pos);
-        int ceu = mc.level.getBrightness(LightLayer.SKY, pos);
+    private int luzDoChao(Minecraft mc, Player jogador, SondagemDeChao.Amostra chao) {
+        this.posDaLuz.set(Mth.floor(jogador.getX()), Mth.floor(chao.y() + 0.1D),
+                Mth.floor(jogador.getZ()));
+        int bloco = mc.level.getBrightness(LightLayer.BLOCK, this.posDaLuz);
+        int ceu = mc.level.getBrightness(LightLayer.SKY, this.posDaLuz);
         return (ceu << 20) | (bloco << 4);
     }
 }

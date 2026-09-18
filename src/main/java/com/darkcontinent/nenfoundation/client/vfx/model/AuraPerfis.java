@@ -97,13 +97,43 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
                 AuraPerfilVisual.interpolar(origem, alvo, estado.transitionProgress()));
     }
 
-    /** O perfil de um modo SEM a sobreposicao: a materia-prima da interpolacao. */
+    /**
+     * O perfil de um modo SEM a sobreposicao: a materia-prima da interpolacao.
+     *
+     * <p>ZETSU TEM ARQUIVO A PARTIR DO AV6, e ele e LIDO -- mas o codigo nao
+     * CONFIA nele. O que este metodo devolve para Zetsu e sempre o perfil
+     * apagado, venha o que vier do disco. A razao esta no javadoc de
+     * {@link #zetsuPrecisaSerZero}: um resource pack de terceiro chega por este
+     * mesmo caminho, e um Zetsu que brilha entrega justamente quem esta se
+     * escondendo.
+     */
     private static AuraPerfilVisual cru(AuraVisualMode modo) {
         if (semBrilho(modo)) {
             return AuraPerfilVisual.SEGURO.apagado();
         }
         AuraPerfilVisual perfil = CARREGADOS.get(modo);
         return perfil != null ? perfil : AuraPerfilVisual.SEGURO;
+    }
+
+    /**
+     * Reprova, com motivo, um perfil de Zetsu que nao seja zero.
+     *
+     * <p><b>A TRAVA E ESTRUTURAL, E ESTE LOG E O AVISO.</b> {@link #cru} ja
+     * devolve o apagado para Zetsu de qualquer jeito, entao um arquivo torto nao
+     * consegue acender nada. O que esta linha acrescenta e o motivo: sem ela,
+     * quem escreveu {@code alpha_borda: 0.3} no zetsu.json de um pack ficaria
+     * horas tentando entender por que nada muda -- e "nao muda" e o pior relato
+     * que existe, porque nao ha erro para procurar.
+     */
+    private static void zetsuPrecisaSerZero(ResourceLocation id, AuraPerfilVisual perfil) {
+        if (perfil.equals(perfil.apagado())) {
+            return;
+        }
+        LOG.error("O perfil de aura '{}' tem valores diferentes de zero, e Zetsu e ausencia"
+                + " TOTAL (referencia D). Os valores foram IGNORADOS -- o perfil apagado"
+                + " assume. Num servidor com dois clientes, brilho residual entrega"
+                + " justamente quem esta se escondendo, e por isso esta trava nao e"
+                + " negociavel por resource pack.", id);
     }
 
     /** Modos em que a ausencia e a informacao. */
@@ -138,7 +168,12 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
                             "Perfil de aura '{}' recusado: {}. O perfil de emergencia assume,"
                                     + " e ele e visivelmente mais fraco -- se a aura parecer"
                                     + " apagada, e este o motivo.", id, erro))
-                    .ifPresent(perfil -> CARREGADOS.put(modo, perfil));
+                    .ifPresent(perfil -> {
+                        if (modo == AuraVisualMode.ZETSU) {
+                            zetsuPrecisaSerZero(id, perfil);
+                        }
+                        CARREGADOS.put(modo, perfil);
+                    });
             } catch (RuntimeException erro) {
                 // CINTO E SUSPENSORIO. O codec ja transforma dado torto em erro,
                 // mas uma excecao aqui derrubaria o RELOAD DE RECURSOS inteiro

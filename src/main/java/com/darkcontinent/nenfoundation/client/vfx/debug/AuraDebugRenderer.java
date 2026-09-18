@@ -142,6 +142,7 @@ public final class AuraDebugRenderer {
                 com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess.liberados(),
                 com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
                         .motivoDoRebaixamento(),
+                com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.permissivo(),
                 captura.ligado(),
                 captura.emLote() ? captura.progressoDoLote() : null,
                 InfoDeBuild.commit(),
@@ -240,7 +241,11 @@ public final class AuraDebugRenderer {
                 + " liberados / " + (d.alvosCriados() - d.alvosLiberados()) + " vivos"
                 + (d.motivoDoRebaixamento() == null ? ""
                         : "   REBAIXADO: " + d.motivoDoRebaixamento()));
-        l.add("visibilidade: " + SEM_CONSUMIDOR + " (AV6)");
+        // A VISIBILIDADE GANHOU CONSUMIDOR NO AV6. O que continua sem um e a
+        // coluna do OBSERVADOR: Gyo e In sao marcos de Nen (F1 e F2), e ate la
+        // os dois chegam sempre falsos -- dito aqui em vez de descoberto depois.
+        l.add("visibilidade: " + (d.permissivo() ? "PERMISSIVA (dev)" : "normal")
+                + "   gyo/in: " + SEM_CONSUMIDOR + " (F1/F2)");
 
         if (d.capturaLigada()) {
             l.add("modo de captura: LIGADO"
@@ -271,6 +276,13 @@ public final class AuraDebugRenderer {
         }
         if (d.ajustesDePerfil() != null) {
             forcados.add(d.ajustesDePerfil());
+        }
+        if (d.permissivo()) {
+            // O MODO PERMISSIVO E O AJUSTE MAIS PERIGOSO DE ESQUECER NUMA
+            // CAPTURA: ele mostra a aura de quem deveria estar escondido, e uma
+            // imagem tirada assim provaria o contrario do que o AV6 existe para
+            // provar.
+            forcados.add("visibilidade=permissiva");
         }
 
         if (forcados.isEmpty()) {
@@ -364,6 +376,7 @@ public final class AuraDebugRenderer {
             int alvosCriados,
             int alvosLiberados,
             String motivoDoRebaixamento,
+            boolean permissivo,
             boolean capturaLigada,
             String progressoDoLote,
             String commit,

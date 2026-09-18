@@ -1,0 +1,43 @@
+{
+  "_comentario": "Zetsu: TUDO EM ZERO. Este arquivo nao existe para ser ajustado -- ele existe para que o ALVO da interpolacao seja um objeto legitimo, e nao um caso especial espalhado pelo renderer. A referencia D e literal: o corpo e o corpo.",
+
+  "_trava": "O codigo NAO CONFIA neste arquivo. AuraPerfis forca o perfil apagado para ZETSU, e reprova com erro no log qualquer valor diferente de zero aqui. Sem essa trava, um resource pack de terceiro poderia reacender a aura de quem esta suprimido -- e num servidor com dois clientes isso entrega justamente quem esta se escondendo.",
+
+  "alpha_interno": 0.0,
+  "alpha_borda": 0.0,
+  "alpha_externo": 0.0,
+
+  "_fresnel": "Os expoentes NAO sao zero: o codec exige positivo e decrescente, e um alpha zerado ja apaga tudo. Zerar tambem o expoente so produziria um arquivo recusado.",
+  "fresnel_interno": 3.0,
+  "fresnel_borda": 2.5,
+  "fresnel_externo": 2.0,
+
+  "velocidade_de_fluxo": 0.0,
+  "escala_de_ruido": 4.0,
+  "reforco_da_borda": 0.0,
+
+  "taxa_de_faiscas": 0.0,
+  "tamanho_de_particula": 0.0,
+
+  "filamentos": {
+    "quantidade": 0,
+    "comprimento_min": 0.15,
+    "comprimento_max": 0.60,
+    "largura": 0.009,
+    "ciclo_segundos": 1.1
+  },
+
+  "pressao": {
+    "colunas": 0,
+    "altura_minima": 0.0,
+    "altura_maxima": 0.0,
+    "anel": 0.0,
+    "anel_raio_minimo": 0.0,
+    "anel_raio_maximo": 0.0,
+    "anel_segmentos": 0,
+    "detritos": 0
+  },
+
+  "bloom": { "forca": 0.0, "raio": 0.0 },
+  "amplitude_de_pulso": 0.0
+}

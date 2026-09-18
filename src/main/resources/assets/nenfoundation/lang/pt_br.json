@@ -277,6 +277,8 @@
   "nenfoundation.tecnica.shu": "Shu",
   "nenfoundation.tecnica.ten": "Ten",
   "nenfoundation.tecnica.zetsu": "Zetsu",
+  "nenfoundation.vfx.permissivo_ligado": "Visibilidade de aura: PERMISSIVA (dev) -- capturas tiradas agora nao valem como aprovacao",
+  "nenfoundation.vfx.permissivo_desligado": "Visibilidade de aura de volta ao normal",
   "nenfoundation.vfx.ajuste_automatico": "Ajuste %s devolvido ao perfil.",
   "nenfoundation.vfx.ajuste_forcado": "Ajuste %s forcado em %s. E hipotese, nao decisao: escreva no perfil para valer.",
   "nenfoundation.vfx.captura_desligada": "Modo de captura desligado. Camera e HUD devolvidos.",

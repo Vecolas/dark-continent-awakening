@@ -277,6 +277,8 @@
   "nenfoundation.tecnica.shu": "Shu",
   "nenfoundation.tecnica.ten": "Ten",
   "nenfoundation.tecnica.zetsu": "Zetsu",
+  "nenfoundation.vfx.permissivo_ligado": "Aura visibility: PERMISSIVE (dev) -- captures taken now are not approval",
+  "nenfoundation.vfx.permissivo_desligado": "Aura visibility back to normal",
   "nenfoundation.vfx.ajuste_automatico": "Adjustment %s handed back to the profile.",
   "nenfoundation.vfx.ajuste_forcado": "Adjustment %s forced to %s. This is a hypothesis, not a decision: write it to the profile to make it real.",
   "nenfoundation.vfx.captura_desligada": "Capture mode off. Camera and HUD restored.",

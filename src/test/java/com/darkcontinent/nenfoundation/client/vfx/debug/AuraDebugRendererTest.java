@@ -45,7 +45,7 @@ class AuraDebugRendererTest {
         return new AuraDebugRenderer.Dados(desenhoLigado, false, null, Float.NaN, Float.NaN,
                 null, -1,
                 chamadas, filamentos, colunas, aneis, particulas, detritos, 0, jogadores,
-                "off", null, true, 0, 0, null,
+                "off", null, true, 0, 0, null, false,
                 false, null, "33ded12", ajustes, distribuicao, null);
     }
 
@@ -60,7 +60,7 @@ class AuraDebugRendererTest {
         // O ALVO DE BLOOM SAIU DA LISTA DE TRACOS NO AV5, porque ele ganhou
         // consumidor. A visibilidade por observador continua sem um -- e
         // escrever um numero nela seria afirmar que o resolvedor rodou.
-        assertTrue(texto.contains("visibilidade: " + AuraDebugRenderer.SEM_CONSUMIDOR),
+        assertTrue(texto.contains("gyo/in: " + AuraDebugRenderer.SEM_CONSUMIDOR),
                 "o resolvedor de visibilidade nasce no AV6\n" + texto);
         assertTrue(texto.contains("alvo: nenhum"),
                 "sem alvo criado, a linha diz NENHUM -- e nao um tamanho em pixels que"

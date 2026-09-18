@@ -32,6 +32,7 @@ public final class SessaoDeVfxDeAura {
     private boolean ativacaoDeTenPendente;
     private boolean ativacaoDeRenPendente;
     private boolean saidaDeRenPendente;
+    private boolean supressaoPendente;
 
     /** O estado interpolado deste tick. Nunca nulo. */
     public AuraVisualState estado() {
@@ -83,6 +84,9 @@ public final class SessaoDeVfxDeAura {
             if (this.ultimoModo == AuraVisualMode.REN && modo != AuraVisualMode.REN) {
                 this.saidaDeRenPendente = true;
             }
+            if (troca == AuraTransicao.SUPRIMIR) {
+                this.supressaoPendente = true;
+            }
             this.controlador.receber(modo, alvo, distribuicao, cor, cor);
             this.ultimoModo = modo;
             this.ultimaIntensidade = alvo;
@@ -112,6 +116,7 @@ public final class SessaoDeVfxDeAura {
         this.ativacaoDeTenPendente = false;
         this.ativacaoDeRenPendente = false;
         this.saidaDeRenPendente = false;
+        this.supressaoPendente = false;
     }
 
     /**
@@ -151,6 +156,20 @@ public final class SessaoDeVfxDeAura {
     public boolean consumirSaidaDeRen() {
         boolean pendente = this.saidaDeRenPendente;
         this.saidaDeRenPendente = false;
+        return pendente;
+    }
+
+    /**
+     * Consome a borda para ZETSU observada pela propria sessao.
+     *
+     * <p>ELA SO EXISTE PARA O RETORNO DE INPUT LOCAL. Zetsu e ausencia total
+     * para observadores -- nenhum contorno, nenhum halo, nem cintilacao --, e
+     * esta borda nao desenha nada no mundo: ela dispara um pulso que vive apenas
+     * na tela de quem apertou a tecla. Ver {@link PulsoDeSupressao}.
+     */
+    public boolean consumirSupressao() {
+        boolean pendente = this.supressaoPendente;
+        this.supressaoPendente = false;
         return pendente;
     }
 

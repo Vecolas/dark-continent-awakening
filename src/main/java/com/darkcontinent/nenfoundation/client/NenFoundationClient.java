@@ -169,6 +169,12 @@ public final class NenFoundationClient {
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.overlayDeVfx::aoRenderizar);
+        // O RETORNO DE INPUT DE ZETSU E HUD, e nao aura: na interface ele
+        // existe so na tela de quem apertou a tecla, e nao ha por onde vazar
+        // para um observador.
+        NeoForge.EVENT_BUS.addListener(
+                new com.darkcontinent.nenfoundation.client.vfx.render
+                        .FlashDeSupressao()::aoRenderizar);
         // O ANEL DE PRESSAO E EVENTO DE MUNDO, e nao layer: ele precisa de
         // espaco alinhado ao MUNDO, e a pilha de uma RenderLayer chega com a
         // rotacao de corpo e o scale(-1,-1,1) ja aplicados. Ver o javadoc de
@@ -241,6 +247,11 @@ public final class NenFoundationClient {
         // logout faria a proxima captura sair com um numero que nao esta em
         // perfil nenhum, e ela seria aprovada como se fosse o jogo.
         com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.limpar();
+        // QUEM LIGA, DESLIGA -- e o modo permissivo e o caso mais caro de
+        // esquecer: ele ignora a supressao por In, e sobreviver ao logout faria
+        // a proxima captura mostrar a aura de quem deveria estar escondido.
+        com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.limpar();
         com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.limpar();
         com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
                 .desligar(Minecraft.getInstance());
@@ -351,6 +362,14 @@ public final class NenFoundationClient {
         this.audioDeAura.aoTick(mc, this.vfx.consumirAtivacaoDeTen(),
                 this.vfx.consumirAtivacaoDeRen(), this.vfx.consumirSaidaDeRen(),
                 this::outputLocalEmMilesimos, this.cache::presencaDe);
+        // O RETORNO DE INPUT DE ZETSU VIVE SO NESTA TELA. Ele nao e aura: nao
+        // passa pelo perfil, nao entra no alvo de brilho, nao e desenhado no
+        // mundo e nao atravessa a rede. Zetsu continua sendo ausencia total para
+        // qualquer observador.
+        if (this.vfx.consumirSupressao()) {
+            com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.disparar();
+        }
+        com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.aoTick();
         double densidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
                 .aplicarNaDensidade(NenClientConfig.densidadeDeParticulas());
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e
@@ -371,6 +390,30 @@ public final class NenFoundationClient {
         }
 
         this.tickDaAuraDosOutros(mc, densidade);
+    }
+
+    /**
+     * Quanto da aura deste alvo o jogador local enxerga.
+     *
+     * <p>UM PONTO SO PERGUNTA, e os dois caminhos de desenho -- a layer e a
+     * particula -- leem daqui. Repetir a chamada em cada um faria os dois
+     * divergirem no dia em que Gyo chegasse e um deles fosse esquecido: a shell
+     * mostraria a aura e a faisca nao, ou o contrario.
+     *
+     * <p><b>GYO E IN CHEGAM SEMPRE FALSOS HOJE, e isso esta declarado.</b> As
+     * duas tecnicas sao marcos de Nen (F1 e F2), e nao da trilha AV; o laco por
+     * OBSERVADOR no servidor depende de #126. Ate la a coluna "observador" do
+     * resolvedor nunca foi exercitada com valor diferente de falso -- e isso
+     * esta em o-que-nao-provamos.md, e nao escondido aqui.
+     */
+    private static float visibilidadeDe(net.minecraft.world.entity.player.Player observador,
+            net.minecraft.world.entity.player.Player alvo, SinalDeAura sinal) {
+        return com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.visibilidade(
+                new com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver
+                        .ObservadorDeAura(observador.getId()),
+                new com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver
+                        .AlvoDeAura(alvo.getId()),
+                sinal, false, false);
     }
 
     /**
@@ -430,7 +473,8 @@ public final class NenFoundationClient {
         return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
                 EstadoVisualDeTerceiro.de(sinal,
                         com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador)))));
+                                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador))),
+                        visibilidadeDe(mc.player, jogador, sinal)));
     }
 
     /**
@@ -467,7 +511,8 @@ public final class NenFoundationClient {
             }
 
             var estado = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
-                    .aplicarEmTerceiro(EstadoVisualDeTerceiro.de(sinal, lod));
+                    .aplicarEmTerceiro(EstadoVisualDeTerceiro.de(sinal, lod,
+                            visibilidadeDe(mc.player, outro, sinal)));
             EmissorDeParticulasDeAura.emitir(mc.level, outro, estado, densidade);
             EmissorDeParticulasDeAura.emitirDetritos(
                     this.sondagemDeChao, mc.level, outro, estado, densidade);

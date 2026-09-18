@@ -325,8 +325,15 @@ código ganha, o texto se atualiza, e a discrepância se relata em voz alta em v
 de sumir. Quem for mexer num perfil usa esta lista, e não as de cima.
 
 `assets/nenfoundation/nen_vfx/<modo>.json` — um arquivo por modo com brilho
-(`ten`, `ren`); `zetsu` e `off` não têm arquivo, porque a ausência é a
-informação e o código responde com o perfil apagado.
+(`ten`, `ren`) **e, a partir do AV6, também `zetsu`**. `off` continua sem
+arquivo.
+
+> **O `zetsu.json` existe, e o código NÃO CONFIA nele.** Ele existe para que o
+> alvo da interpolação seja um objeto legítimo em vez de um caso especial
+> espalhado pelo renderer. Mas `AuraPerfis` força o perfil apagado para Zetsu e
+> registra erro no log se o arquivo tiver qualquer valor diferente de zero —
+> um resource pack de terceiro chega pelo mesmo caminho que o nosso, e um Zetsu
+> que brilha entrega justamente quem está se escondendo.
 
 | Chave | Faixa | O que é |
 | --- | --- | --- |

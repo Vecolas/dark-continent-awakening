@@ -137,3 +137,77 @@ decisao mais facil de reverter por engano quando alguem quiser "so testar":
 **O pack tem UMA autoridade de Nen, e ela e o Nen Foundation.** Instalar outro
 mod de Nen junto nao produz erro — produz dois HUDs, duas barras de recurso e
 um balanceamento que ninguem consegue explicar.
+
+---
+
+## Matriz de renderizacao da aura (trilha AV)
+
+Os quatro ambientes de
+[`arquitetura-do-render-de-aura.md`](../vfx/arquitetura-do-render-de-aura.md)
+secao 13, cada um nos tres niveis de `vfx.bloom`. O compromisso do
+[ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md) e **detectar e
+documentar**, e nao prometer paridade: um pack que substitui o pipeline pode
+ignorar o passe, duplica-lo ou desenhar por cima dele, e nenhum desses tres da
+erro.
+
+> **Esta tabela nasce vazia e PRECISA crescer.** Tabela vazia depois do gate
+> significa que ninguem procurou -- nao que esta tudo bem. Se um ambiente
+> realmente nao teve achado, isso se escreve como linha, com nome e data.
+
+| Ambiente | Versao | Nivel | Sintoma | Contorno | Quem viu | Data |
+| --- | --- | --- | --- | --- | --- | --- |
+| _(vazia)_ | | | | | | |
+
+### O que ja esta implementado, e o que falta
+
+| Item | Estado |
+| --- | --- |
+| Deteccao de pipeline substituido (Iris/Oculus com pack ativo) | **existe** -- `DeteccaoDeShaderPack`, por reflexao e sem dependencia de compilacao; cai para `FAST` e registra **uma** linha |
+| Queda para `FAST` em falha de shader ou de alvo | **existe** -- `AuraPostProcess.rebaixar`, lembrada na sessao |
+| Recriacao de alvo no redimensionamento | **existe** -- comparacao de tamanho por quadro, com liberacao explicita antes |
+| Recompilacao e liberacao em `F3+T` | **existe** -- `RecarregarBrilhoDaAura`, que tambem ESQUECE o rebaixamento |
+| Contadores de alvo criado/liberado no overlay | **existe** -- lado a lado, e eles tem de bater |
+| **As quatro sessoes de teste, nos tres niveis** | **nao feito** -- exige `runServer`, dois clientes e packs reais instalados |
+| **Dez redimensionamentos medindo memoria** | **nao feito** |
+| **Falha de shader forcada, conferindo o log** | **nao feito** |
+
+Enquanto as tres ultimas linhas estiverem em aberto, o gate #198 e o #207
+continuam abertos -- codigo compilavel e teste verde nao sao evidencia de
+ambiente.
+
+---
+
+## Matriz de renderizacao da aura (trilha AV)
+
+Os quatro ambientes de
+[`arquitetura-do-render-de-aura.md`](../vfx/arquitetura-do-render-de-aura.md)
+secao 13, cada um nos tres niveis de `vfx.bloom`. O compromisso do
+[ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md) e **detectar e
+documentar**, e nao prometer paridade: um pack que substitui o pipeline pode
+ignorar o passe, duplica-lo ou desenhar por cima dele, e nenhum desses tres da
+erro.
+
+> **Esta tabela nasce vazia e PRECISA crescer.** Tabela vazia depois do gate
+> significa que ninguem procurou -- nao que esta tudo bem. Se um ambiente
+> realmente nao teve achado, isso se escreve como linha, com nome e data.
+
+| Ambiente | Versao | Nivel | Sintoma | Contorno | Quem viu | Data |
+| --- | --- | --- | --- | --- | --- | --- |
+| _(vazia)_ | | | | | | |
+
+### O que ja esta implementado, e o que falta
+
+| Item | Estado |
+| --- | --- |
+| Deteccao de pipeline substituido (Iris/Oculus com pack ativo) | **existe** -- `DeteccaoDeShaderPack`, por reflexao e sem dependencia de compilacao; cai para `FAST` e registra **uma** linha |
+| Queda para `FAST` em falha de shader ou de alvo | **existe** -- `AuraPostProcess.rebaixar`, lembrada na sessao |
+| Recriacao de alvo no redimensionamento | **existe** -- comparacao de tamanho por quadro, com liberacao explicita antes |
+| Recompilacao e liberacao em `F3+T` | **existe** -- `RecarregarBrilhoDaAura`, que tambem ESQUECE o rebaixamento |
+| Contadores de alvo criado/liberado no overlay | **existe** -- lado a lado, e eles tem de bater |
+| **As quatro sessoes de teste, nos tres niveis** | **nao feito** -- exige `runServer`, dois clientes e packs reais instalados |
+| **Dez redimensionamentos medindo memoria** | **nao feito** |
+| **Falha de shader forcada, conferindo o log** | **nao feito** |
+
+Enquanto as tres ultimas linhas estiverem em aberto, o gate #198 e o #207
+continuam abertos -- codigo compilavel e teste verde nao sao evidencia de
+ambiente.

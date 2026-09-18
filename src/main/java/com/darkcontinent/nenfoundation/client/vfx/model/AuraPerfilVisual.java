@@ -43,7 +43,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param tamanhoDeParticula   o quanto cada faisca cresce com a intensidade
  * @param filamentos           quantos, de que tamanho e de quanto em quanto tempo
  * @param pressao              colunas, anel de chao e detritos; tudo zero em Ten
- * @param bloom                quanto este modo contribui para o brilho (AV5)
+ * @param brilho               forca e raio do halo do passe de bloom (AV5)
  * @param amplitudeDePulso     o quanto a shell respira; Ten NAO pisca
  */
 public record AuraPerfilVisual(
@@ -52,7 +52,7 @@ public record AuraPerfilVisual(
         float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda,
         float taxaDeFaiscas, float tamanhoDeParticula,
         AuraRibbonProfile filamentos,
-        AuraPerfilDePressao pressao, float bloom, float amplitudeDePulso) {
+        AuraPerfilDePressao pressao, AuraPerfilDeBrilho brilho, float amplitudeDePulso) {
 
     /**
      * Amplitude de pulso acima da qual a aura PISCA.
@@ -81,7 +81,7 @@ public record AuraPerfilVisual(
             // perfil de emergencia existe para ser DISCRETO -- "nao carregou"
             // precisa ser perceptivel como aura fraca, nunca como Ren completo
             // desenhado por engano.
-            AuraPerfilDePressao.NENHUMA, 0.0F, 0.02F);
+            AuraPerfilDePressao.NENHUMA, AuraPerfilDeBrilho.NENHUM, 0.02F);
 
     /** Alpha de 0 a 1. Fora disso o codec RECUSA, em vez de lancar. */
     private static final Codec<Float> ALPHA = Codec.floatRange(0.0F, 1.0F);
@@ -125,7 +125,7 @@ public record AuraPerfilVisual(
                     .forGetter(AuraPerfilVisual::filamentos),
             AuraPerfilDePressao.CODEC.fieldOf("pressao")
                     .forGetter(AuraPerfilVisual::pressao),
-            ALPHA.fieldOf("bloom").forGetter(AuraPerfilVisual::bloom),
+            AuraPerfilDeBrilho.CODEC.fieldOf("bloom").forGetter(AuraPerfilVisual::brilho),
             Codec.floatRange(0.0F, AMPLITUDE_MAXIMA_DE_PULSO).fieldOf("amplitude_de_pulso")
                     .forGetter(AuraPerfilVisual::amplitudeDePulso))
             .apply(i, AuraPerfilVisual::new))
@@ -166,7 +166,11 @@ public record AuraPerfilVisual(
         naoNegativo(reforcoDaBorda, "reforco_da_borda");
         naoNegativo(taxaDeFaiscas, "taxa_de_faiscas");
         alpha(tamanhoDeParticula, "tamanho_de_particula");
-        alpha(bloom, "bloom");
+        if (brilho == null) {
+            throw new NullPointerException("bloom e obrigatorio; sem ele o passe de brilho"
+                    + " nao saberia se este modo contribui, e assumir zero apagaria Ren"
+                    + " sem que nada acusasse");
+        }
         if (!Float.isFinite(amplitudeDePulso) || amplitudeDePulso < 0.0F
                 || amplitudeDePulso > AMPLITUDE_MAXIMA_DE_PULSO) {
             throw new IllegalArgumentException("amplitude_de_pulso deve estar entre 0 e "
@@ -217,7 +221,7 @@ public record AuraPerfilVisual(
                 // um halo residual de quem esta suprimido entrega justamente
                 // quem esta se escondendo, e o passe de brilho e o mais delator
                 // que existe (ADR-016 secao 7).
-                this.pressao.apagado(), 0.0F, 0.0F);
+                this.pressao.apagado(), this.brilho.apagado(), 0.0F);
     }
 
     /**
@@ -255,7 +259,7 @@ public record AuraPerfilVisual(
                 ler(a.tamanhoDeParticula, b.tamanhoDeParticula, u),
                 AuraRibbonProfile.interpolar(a.filamentos, b.filamentos, u),
                 AuraPerfilDePressao.interpolar(a.pressao, b.pressao, u),
-                ler(a.bloom, b.bloom, u),
+                AuraPerfilDeBrilho.interpolar(a.brilho, b.brilho, u),
                 ler(a.amplitudeDePulso, b.amplitudeDePulso, u));
     }
 

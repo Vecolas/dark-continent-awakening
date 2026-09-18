@@ -45,7 +45,7 @@ class AuraPerfilVisualTest {
                     + " \"altura_maxima\": 0.0, \"anel\": 0.0,"
                     + " \"anel_raio_minimo\": 0.0, \"anel_raio_maximo\": 0.0,"
                     + " \"anel_segmentos\": 0, \"detritos\": 0},"
-                    + " \"bloom\": 0.2, \"amplitude_de_pulso\": 0.025";
+                    + " \"bloom\": {\"forca\": 0.2, \"raio\": 2.5}," + " \"amplitude_de_pulso\": 0.025";
 
     private static List<Path> arquivos() {
         List<Path> encontrados = new ArrayList<>(Repo.varrer(DIRETORIO, ".json"));

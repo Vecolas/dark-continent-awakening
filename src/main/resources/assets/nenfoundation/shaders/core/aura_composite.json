@@ -1,0 +1,10 @@
+{
+    "vertex": "nenfoundation:aura_blit",
+    "fragment": "nenfoundation:aura_composite",
+    "samplers": [
+        { "name": "Sampler0" }
+    ],
+    "uniforms": [
+        { "name": "AuraPesoDoBrilho", "type": "float", "count": 1, "values": [ 1.0 ] }
+    ]
+}

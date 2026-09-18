@@ -98,6 +98,9 @@ public final class NenFoundationClient {
             anelDePressao =
             new com.darkcontinent.nenfoundation.client.vfx.render.AuraGroundRenderer(
                     this.sondagemDeChao);
+    private final com.darkcontinent.nenfoundation.client.vfx.render.AuraBloomRenderer
+            brilhoDaAura =
+            new com.darkcontinent.nenfoundation.client.vfx.render.AuraBloomRenderer();
     private long ticksDaSessao;
     private final com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer overlayDeVfx =
             new com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer();
@@ -136,9 +139,19 @@ public final class NenFoundationClient {
         // custo, alcance nem visibilidade -- e um datapack deixaria o servidor
         // ditar como a aura aparece na tela de cada um.
         modEventBus.addListener((net.neoforged.neoforge.client.event
-                .RegisterClientReloadListenersEvent evento) ->
-                evento.registerReloadListener(
-                        new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis()));
+                .RegisterClientReloadListenersEvent evento) -> {
+            evento.registerReloadListener(
+                    new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis());
+            // F3+T SOLTA OS ALVOS E ESQUECE O REBAIXAMENTO. Framebuffer nao
+            // recriado NAO DA ERRO: da tela que some, ou memoria que sobe
+            // devagar ao longo de uma sessao. E se a queda para FAST veio de um
+            // resource pack com shader torto, recarregar depois de remove-lo
+            // precisa devolver o nivel escolhido -- caso contrario a unica saida
+            // seria reiniciar o jogo.
+            evento.registerReloadListener(
+                    new com.darkcontinent.nenfoundation.client.vfx.shader
+                            .RecarregarBrilhoDaAura());
+        });
 
         // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
         // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a
@@ -161,6 +174,12 @@ public final class NenFoundationClient {
         // rotacao de corpo e o scale(-1,-1,1) ja aplicados. Ver o javadoc de
         // AuraGroundRenderer.
         NeoForge.EVENT_BUS.addListener(this.anelDePressao::aoRenderizarMundo);
+        // O PASSE DE BRILHO SAO DOIS MOMENTOS, e a ordem deles e o efeito
+        // inteiro: a profundidade da cena e copiada para o alvo ANTES de a aura
+        // ser desenhada -- ela e a mascara de oclusao --, e a cadeia roda depois
+        // de todo o mundo. Ver o javadoc de AuraBloomRenderer.
+        NeoForge.EVENT_BUS.addListener(this.brilhoDaAura::aoPreparar);
+        NeoForge.EVENT_BUS.addListener(this.brilhoDaAura::aoAplicar);
         // O IMPULSO DE CAMERA SO EXISTE PARA O JOGADOR LOCAL. Este evento e
         // sobre a camera de quem esta jogando, e quem o dispara e a borda de
         // ativacao da sessao DELE -- observadores nunca chegam aqui.
@@ -204,6 +223,11 @@ public final class NenFoundationClient {
         // limpar de dois lugares e como um deles acaba esquecido.
         this.sondagemDeChao.limpar();
         this.anelDePressao.limpar();
+        // QUEM LIGA, DESLIGA -- e aqui os dois contadores voltam a bater. Sem
+        // esta linha, os alvos do mundo anterior continuariam vivos ate a
+        // proxima mudanca de resolucao, que pode nunca acontecer.
+        this.brilhoDaAura.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.ZumbidoDeRen.limparContagem();
         // A FONTE DO AuraVisualSystem NAO E DESLIGADA AQUI, e isso e
         // deliberado. `ligar` acontece uma vez, no construtor, e este objeto
         // vive tanto quanto o mod; desligar no logout deixaria a aura morta

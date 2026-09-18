@@ -31,7 +31,7 @@ class SobreposicaoDeVfxTest {
             // TEN NAO TOCA O CHAO: o bloco de pressao existe e e todo zero. A
             // ausencia mora no dado, e nao numa guarda do renderer.
             com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDePressao.NENHUMA,
-            0.20F, 0.025F);
+            new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDeBrilho(0.20F, 2.5F), 0.025F);
 
     @BeforeEach
     @AfterEach

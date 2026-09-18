@@ -108,7 +108,8 @@ class AuraRenAcabamentoTest {
     @DisplayName("o perfil apagado zera TAMBEM a pressao e o bloom")
     void apagadoZeraTudo() {
         AuraPerfilVisual apagado = ler("ren.json").apagado();
-        assertEquals(0.0F, apagado.bloom(),
+        assertEquals(com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDeBrilho.NENHUM,
+                apagado.brilho(),
                 "UM HALO RESIDUAL DE QUEM ESTA SUPRIMIDO entrega justamente quem esta"
                         + " se escondendo -- e o passe de brilho e o mais delator que existe");
         assertEquals(0.0F, apagado.amplitudeDePulso());

@@ -132,6 +132,16 @@ public final class AuraDebugRenderer {
                 com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle.totalAtivos(),
                 com.darkcontinent.nenfoundation.client.vfx.ZumbidoDeRen.vivos(),
                 MedidorDeVfx.jogadoresComAura(),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                        .nivelEfetivo().name().toLowerCase(Locale.ROOT),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                        .tamanhoDoAlvo(),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                        .passePulado(),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess.criados(),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess.liberados(),
+                com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                        .motivoDoRebaixamento(),
                 captura.ligado(),
                 captura.emLote() ? captura.progressoDoLote() : null,
                 InfoDeBuild.commit(),
@@ -217,9 +227,20 @@ public final class AuraDebugRenderer {
 
         l.add("regioes: " + regioes(d.distribuicao()));
 
-        // O QUE AINDA NAO EXISTE, DITO COMO NAO EXISTINDO.
-        l.add("alvo de bloom: " + SEM_CONSUMIDOR + " (AV5)   visibilidade: "
-                + SEM_CONSUMIDOR + " (AV6)");
+        // O ALVO DE BLOOM GANHOU CONSUMIDOR NO AV5, e por isso ele saiu da
+        // lista de tracos. A visibilidade por observador continua sem um --
+        // escrever um numero nela seria afirmar que o resolvedor rodou.
+        l.add("bloom: " + d.bloom() + "   alvo: "
+                + (d.tamanhoDoAlvo() == null ? "nenhum" : d.tamanhoDoAlvo())
+                + "   passe pulado: " + (d.passePulado() ? "sim" : "nao"));
+        // OS DOIS CONTADORES LADO A LADO, e essa e a unica forma de ver um
+        // vazamento de alvo: framebuffer nao liberado nao da erro, da memoria
+        // subindo devagar. Se eles nao baterem depois de dez resizes, vazou.
+        l.add("alvos: " + d.alvosCriados() + " criados / " + d.alvosLiberados()
+                + " liberados / " + (d.alvosCriados() - d.alvosLiberados()) + " vivos"
+                + (d.motivoDoRebaixamento() == null ? ""
+                        : "   REBAIXADO: " + d.motivoDoRebaixamento()));
+        l.add("visibilidade: " + SEM_CONSUMIDOR + " (AV6)");
 
         if (d.capturaLigada()) {
             l.add("modo de captura: LIGADO"
@@ -337,6 +358,12 @@ public final class AuraDebugRenderer {
             int detritos,
             int zumbidos,
             int jogadoresComAura,
+            String bloom,
+            String tamanhoDoAlvo,
+            boolean passePulado,
+            int alvosCriados,
+            int alvosLiberados,
+            String motivoDoRebaixamento,
             boolean capturaLigada,
             String progressoDoLote,
             String commit,

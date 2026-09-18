@@ -266,8 +266,8 @@ existir**:
 | Chave | Valores | Nasce em |
 | --- | --- | --- |
 | `vfx.qualidade` | OFF, LOW, MEDIUM, HIGH, ULTRA | AV3 |
-| `vfx.bloom` | OFF, FAST, HIGH | AV5 |
-| `vfx.distanciaMaxima` | blocos | AV3 |
+| `vfx.bloom` | OFF, FAST, HIGH | AV5 — **existe** |
+| `vfx.distanciaMaxima` | blocos | AV3 — **não feita**: o corte por distância mora no LOD, e `vfx.qualidade` já o limita |
 | `vfx.primeiraPessoa` | ligado/desligado | AV3 |
 | `vfx.detritos` | ligado/desligado | AV4 — **existe** |
 | `vfx.distorcao` | ligado/desligado | AV8 (opcional) |
@@ -343,7 +343,7 @@ informação e o código responde com o perfil apagado.
 | `tamanho_de_particula` | 0–1 | **acabamento**: o quanto cada faísca cresce com a intensidade |
 | `filamentos` | objeto | o bloco das ribbons, abaixo |
 | `pressao` | objeto | o bloco de coluna, anel e detrito, abaixo — **chegou no AV4** |
-| `bloom` | 0–1 | quanto este modo contribui para o passe de brilho (AV5) |
+| `bloom` | objeto | `forca` (0–1) e `raio` (0–8 px de TELA) do halo — **virou objeto no AV5, quando o raio ganhou consumidor** |
 | `amplitude_de_pulso` | 0–0.25 | o quanto a shell respira. Ten **não pisca**: 0.02–0.05 |
 
 O bloco `filamentos` é **obrigatório** — um perfil sem ele é recusado inteiro.

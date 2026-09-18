@@ -1,0 +1,10 @@
+{
+    "vertex": "nenfoundation:aura_blit",
+    "fragment": "nenfoundation:aura_downsample",
+    "samplers": [
+        { "name": "Sampler0" }
+    ],
+    "uniforms": [
+        { "name": "AuraMeioTexel", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] }
+    ]
+}

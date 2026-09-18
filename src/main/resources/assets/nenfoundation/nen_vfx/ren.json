@@ -39,6 +39,7 @@
   },
 
   "_brilho": "Ren respira: 0.09 de amplitude e visivel sem virar estroboscopio. O bloom mais forte alimenta o passe do AV5 -- e e ele que separa 'pixels claros' de 'luz'.",
-  "bloom": 0.55,
+  "_raio": "Em PIXELS DE TELA, e nao em texels do alvo: o alvo e de meia resolucao, e a conversao e do pipeline. Ten pede 2 a 3 px; Ren, 4 a 7. O teto de 8 px e constante de codigo -- trinta pixels de halo e nevoa, e nevoa apaga a silhueta.",
+  "bloom": { "forca": 0.55, "raio": 5.5 },
   "amplitude_de_pulso": 0.09
 }

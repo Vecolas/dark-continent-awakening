@@ -93,6 +93,30 @@ public final class AuraPlayerRenderLayer
     private static final float LARGURA_DA_COLUNA = 1.8F;
 
     /**
+     * Quanto o filme interno e o halo externo pesam no ALVO DE BRILHO.
+     *
+     * <p>A BORDA ENTRA INTEIRA; OS OUTROS DOIS, REDUZIDOS. A hierarquia de
+     * brilho manda: nucleo de ribbon, depois borda da shell, depois a shell,
+     * depois o halo. Jogar as tres camadas com o mesmo peso no alvo faria tudo
+     * saturar junto, e a aura vira um borrao branco -- que e o modo de falha que
+     * o AV5 mais precisa evitar.
+     */
+    private static final float PESO_DE_BRILHO_SECUNDARIO = 0.35F;
+
+    /**
+     * Quanto o halo externo engrossa e clareia no modo {@code FAST}.
+     *
+     * <p>E A APROXIMACAO INTEIRA. Sem framebuffer nenhum, o que resta e alargar
+     * o que ja e geometria: dois degraus a mais na escada de espessuras e um
+     * alpha maior. O resultado NAO sangra luz para fora da silhueta, e por isso
+     * {@code FAST} e declaradamente mais pobre que {@code HIGH} -- e a trava
+     * contra os dois divergirem e a captura de comparacao arquivada, e nao um
+     * portao.
+     */
+    private static final int DEGRAUS_EXTRAS_EM_FAST = 2;
+    private static final float REFORCO_DE_HALO_EM_FAST = 1.9F;
+
+    /**
      * As malhas: um modelo por degrau de espessura, por passe.
      *
      * <p>ASSADAS UMA VEZ, no construtor da layer, e nunca no desenho. O custo
@@ -162,12 +186,26 @@ public final class AuraPlayerRenderLayer
         // dimensao recriam a entidade, e o fluxo da um salto.
         float tempo = idadeEmTicks / 20.0F;
 
+        var nivelDeBrilho = com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                .nivelEfetivo();
+        boolean capturandoBrilho = com.darkcontinent.nenfoundation.client.vfx.shader
+                .AuraPostProcess.capturando();
+        float forcaDoBrilho = perfil.brilho().forca();
+
         for (AuraShellPass passe : AuraShellPass.values()) {
             float alphaDoPasse = perfil.alphaDe(passe) * estado.intensity() * peso(passe, fases);
+            if (passe == AuraShellPass.EXTERNA
+                    && nivelDeBrilho == com.darkcontinent.nenfoundation.client.vfx
+                            .AuraBloomLevel.FAST) {
+                // FAST NAO TEM ALVO: o halo e simulado engrossando e clareando a
+                // camada que ja separa a aura do fundo.
+                alphaDoPasse *= 1.0F + (REFORCO_DE_HALO_EM_FAST - 1.0F) * forcaDoBrilho;
+            }
             if (alphaDoPasse < ALPHA_MINIMO) {
                 continue;
             }
-            AuraPlayerModel modelo = this.modelos[degrau][passe.ordinal()];
+            AuraPlayerModel modelo = this.modelos[degrauDoPasse(passe, degrau, nivelDeBrilho)]
+                    [passe.ordinal()];
             // COPIA A POSE FINAL. Ver o javadoc: `setupAnim` aqui DESCARTARIA
             // o que acabou de ser copiado.
             this.getParentModel().copyPropertiesTo(modelo);
@@ -188,10 +226,43 @@ public final class AuraPlayerRenderLayer
             // O preco e uma chamada de desenho por passe, por jogador. Esta
             // declarado, e e o AV8 que o ataca.
             descarregar(buffers, tipo);
+
+            // A SEGUNDA EMISSAO VAI PARA O ALVO DE BRILHO, e ela e a razao de o
+            // halo ser LUZ em vez de um punhado de pixels claros. Ela so
+            // acontece quando o passe esta capturando -- sem aura na tela, sem
+            // nivel HIGH, ou com o alvo nao criado, ela nem e montada.
+            if (capturandoBrilho && forcaDoBrilho > 0.0F) {
+                float alphaDeBrilho = alphaDoPasse * forcaDoBrilho
+                        * (passe == AuraShellPass.BORDA ? 1.0F : PESO_DE_BRILHO_SECUNDARIO);
+                if (alphaDeBrilho >= ALPHA_MINIMO) {
+                    RenderType brilho = AuraRenderTypes.shellDeBrilho();
+                    desenharPorRegiao(modelo, pilha, buffers.getBuffer(brilho), luzEmpacotada,
+                            estado, alphaDeBrilho);
+                    descarregar(buffers, brilho);
+                }
+            }
         }
 
         desenharFilamentos(pilha, buffers, luzEmpacotada, jogador, estado, perfil, fases, tempo,
                 degrau);
+    }
+
+    /**
+     * O degrau da escada que ESTE passe usa.
+     *
+     * <p>SO O HALO EXTERNO SE MOVE, e so em {@code FAST}. Engrossar os tres
+     * juntos seria engordar a aura inteira -- e o teto de design diz que poder
+     * extremo aumenta densidade, brilho, velocidade e pressao, nao TAMANHO. O
+     * que {@code FAST} precisa e de uma camada externa mais larga para simular o
+     * sangramento que o alvo de brilho faria de verdade.
+     */
+    private static int degrauDoPasse(AuraShellPass passe, int degrau,
+            com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel nivel) {
+        if (passe != AuraShellPass.EXTERNA
+                || nivel != com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel.FAST) {
+            return degrau;
+        }
+        return Math.min(AuraGeometryLadder.DEGRAUS - 1, degrau + DEGRAUS_EXTRAS_EM_FAST);
     }
 
     /**
@@ -271,6 +342,13 @@ public final class AuraPlayerRenderLayer
         float folga = AuraCurve.folgaBase(AuraGeometryLadder.espessuraDaBordaDe(degrau));
         long semeadura = jogador.getUUID().getLeastSignificantBits();
         VertexConsumer buffer = buffers.getBuffer(AuraRenderTypes.ribbon());
+        // O NUCLEO DA RIBBON E O PONTO MAIS BRILHANTE DA AURA INTEIRA
+        // (hierarquia de brilho, direcao visual secao 3), entao ele entra no
+        // alvo com peso CHEIO -- ao contrario do filme interno e do halo.
+        float forcaDoBrilho = perfil.brilho().forca();
+        VertexConsumer brilho = com.darkcontinent.nenfoundation.client.vfx.shader
+                .AuraPostProcess.capturando() && forcaDoBrilho > 0.0F
+                ? buffers.getBuffer(AuraRenderTypes.ribbonDeBrilho()) : null;
 
         AuraAnchor[] ancoras = AuraAnchor.values();
         for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
@@ -310,13 +388,22 @@ public final class AuraPlayerRenderLayer
                 this.filamentos.desenhar(buffer, pose, ancora, this.slim, semente, folga,
                         filamento.comprimentoDe(semente), filamento.largura(),
                         CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
+                if (brilho != null) {
+                    this.filamentos.desenhar(brilho, pose, ancora, this.slim, semente, folga,
+                            filamento.comprimentoDe(semente), filamento.largura(),
+                            CorDaAura.comAlpha(estado.primaryColor(), alpha * forcaDoBrilho),
+                            luz);
+                }
             }
 
-            desenharColunas(buffer, pose, regiao, colunas, estado, filamento, pressao, fases,
-                    semeadura, folga, tempo, luz, pesoDaRegiao);
+            desenharColunas(buffer, brilho, forcaDoBrilho, pose, regiao, colunas, estado,
+                    filamento, pressao, fases, semeadura, folga, tempo, luz, pesoDaRegiao);
             pilha.popPose();
         }
         descarregar(buffers, AuraRenderTypes.ribbon());
+        if (brilho != null) {
+            descarregar(buffers, AuraRenderTypes.ribbonDeBrilho());
+        }
     }
 
     /**
@@ -333,7 +420,8 @@ public final class AuraPlayerRenderLayer
      * na sessao de arte ajusta o da coluna junto -- em vez de deixar um numero
      * proprio aqui, esquecido.
      */
-    private void desenharColunas(VertexConsumer buffer, PoseStack.Pose pose,
+    private void desenharColunas(VertexConsumer buffer, VertexConsumer brilho,
+            float forcaDoBrilho, PoseStack.Pose pose,
             AuraBodyRegion regiao, int colunas, AuraVisualState estado,
             AuraRibbonProfile filamento, AuraPerfilDePressao pressao, AuraTransitionSample fases,
             long semeadura, float folga, float tempo, int luz, float pesoDaRegiao) {
@@ -370,6 +458,11 @@ public final class AuraPlayerRenderLayer
             this.filamentos.desenharColuna(buffer, pose, ancora, this.slim, semente, folga,
                     altura, filamento.largura() * LARGURA_DA_COLUNA,
                     CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
+            if (brilho != null) {
+                this.filamentos.desenharColuna(brilho, pose, ancora, this.slim, semente, folga,
+                        altura, filamento.largura() * LARGURA_DA_COLUNA,
+                        CorDaAura.comAlpha(estado.primaryColor(), alpha * forcaDoBrilho), luz);
+            }
         }
     }
 

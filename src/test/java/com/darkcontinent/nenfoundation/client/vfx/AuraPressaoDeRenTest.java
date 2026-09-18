@@ -77,7 +77,10 @@ class AuraPressaoDeRenTest {
     void brilhoEPulso() {
         AuraPerfilVisual ten = ler("ten.json");
         AuraPerfilVisual ren = ler("ren.json");
-        assertTrue(ren.bloom() > ten.bloom(), "Ren alimenta mais o passe de brilho");
+        assertTrue(ren.brilho().forca() > ten.brilho().forca(),
+                "Ren alimenta mais o passe de brilho");
+        assertTrue(ren.brilho().raio() > ten.brilho().raio(),
+                "e o halo de Ren e maior: 4 a 7 px contra 2 a 3");
         assertTrue(ren.amplitudeDePulso() > ten.amplitudeDePulso());
         assertTrue(ten.amplitudeDePulso() >= 0.02F && ten.amplitudeDePulso() <= 0.05F,
                 "TEN NAO PISCA: a amplitude fica entre 0,02 e 0,05, e veio "
@@ -97,7 +100,7 @@ class AuraPressaoDeRenTest {
                  "taxa_de_faiscas": 0.4, "tamanho_de_particula": 0.18,
                  "filamentos": {"quantidade": 8, "comprimento_min": 0.15,
                    "comprimento_max": 0.6, "largura": 0.009, "ciclo_segundos": 1.1},
-                 "bloom": 0.2, "amplitude_de_pulso": 0.025}
+                 "bloom": {"forca": 0.2, "raio": 2.5}, "amplitude_de_pulso": 0.025}
                 """);
         assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, semPressao).error().isPresent(),
                 "o bloco de pressao e OBRIGATORIO");

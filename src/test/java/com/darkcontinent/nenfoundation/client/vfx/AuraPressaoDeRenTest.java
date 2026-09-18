@@ -100,7 +100,8 @@ class AuraPressaoDeRenTest {
                  "taxa_de_faiscas": 0.4, "tamanho_de_particula": 0.18,
                  "filamentos": {"quantidade": 8, "comprimento_min": 0.15,
                    "comprimento_max": 0.6, "largura": 0.009, "ciclo_segundos": 1.1},
-                 "bloom": {"forca": 0.2, "raio": 2.5}, "amplitude_de_pulso": 0.025}
+                 "bloom": {"forca": 0.2, "raio": 2.5}, "amplitude_de_pulso": 0.025,
+                 "borda_com_armadura": 0.065}
                 """);
         assertTrue(AuraPerfilVisual.CODEC.parse(JsonOps.INSTANCE, semPressao).error().isPresent(),
                 "o bloco de pressao e OBRIGATORIO");

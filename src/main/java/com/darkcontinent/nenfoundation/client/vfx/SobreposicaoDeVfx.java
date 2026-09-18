@@ -323,7 +323,8 @@ public final class SobreposicaoDeVfx {
                 // criterio que aquele gate existe para verificar. Quando a
                 // sessao de arte precisar girar o raio do anel, isso nasce como
                 // sobreposicao PROPRIA, com o mesmo cuidado que os alphas.
-                base.pressao(), base.brilho(), base.amplitudeDePulso());
+                base.pressao(), base.brilho(), base.amplitudeDePulso(),
+                base.bordaComArmadura());
     }
 
     private static float alpha(float sobreposto, float original) {

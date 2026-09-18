@@ -39,5 +39,7 @@
   },
 
   "bloom": { "forca": 0.0, "raio": 0.0 },
+  "_armadura": "Zero, como tudo o mais: Zetsu nao tem borda para engrossar.",
+  "borda_com_armadura": 0.0,
   "amplitude_de_pulso": 0.0
 }

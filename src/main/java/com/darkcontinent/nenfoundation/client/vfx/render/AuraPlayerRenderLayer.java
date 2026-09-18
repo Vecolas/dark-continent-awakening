@@ -178,6 +178,12 @@ public final class AuraPlayerRenderLayer
         // Ver `AuraGeometryLadder` para por que a espessura nao pode ser um
         // uniform nem um `poseStack.scale`.
         int degrau = AuraGeometryLadder.degrauPara(espessuraDaBorda(estado, fases));
+        // A ESPESSURA COM ARMADURA E POR REGIAO, e nao do corpo inteiro. Um elmo
+        // sozinho engrossa a cabeca e deixa o resto como esta; engrossar tudo
+        // porque uma peca esta vestida daria a leitura de "a aura cresceu", que
+        // e justamente o que o teto de design proibe.
+        int degrauComArmadura = AuraGeometryLadder.degrauPara(
+                perfil.bordaComArmadura() * fases.shell());
 
         // O TEMPO E POR ENTIDADE, e nao global. `idadeEmTicks` conta desde que
         // AQUELA entidade nasceu, entao dois jogadores nunca estao na mesma fase
@@ -204,18 +210,14 @@ public final class AuraPlayerRenderLayer
             if (alphaDoPasse < ALPHA_MINIMO) {
                 continue;
             }
-            AuraPlayerModel modelo = this.modelos[degrauDoPasse(passe, degrau, nivelDeBrilho)]
-                    [passe.ordinal()];
-            // COPIA A POSE FINAL. Ver o javadoc: `setupAnim` aqui DESCARTARIA
-            // o que acabou de ser copiado.
-            this.getParentModel().copyPropertiesTo(modelo);
-
+            int degrauDoPasse = degrauDoPasse(passe, degrau, nivelDeBrilho);
             AuraShaders.configurar(tempo, perfil.fresnelDe(passe),
                     perfil.velocidadeDeFluxo(), perfil.escalaDeRuido(),
                     perfil.reforcoDaBorda());
 
             VertexConsumer vertices = buffers.getBuffer(tipo);
-            desenharPorRegiao(modelo, pilha, vertices, luzEmpacotada, estado, alphaDoPasse);
+            desenharPorRegiao(passe, degrauDoPasse, degrauComArmadura, jogador, pilha,
+                    vertices, luzEmpacotada, estado, alphaDoPasse);
 
             // DESCARREGA O LOTE AGORA, e nao no fim do quadro. Os uniformes sao
             // do PROGRAMA, e nao do vertice: sem esta descarga, os tres passes
@@ -236,8 +238,8 @@ public final class AuraPlayerRenderLayer
                         * (passe == AuraShellPass.BORDA ? 1.0F : PESO_DE_BRILHO_SECUNDARIO);
                 if (alphaDeBrilho >= ALPHA_MINIMO) {
                     RenderType brilho = AuraRenderTypes.shellDeBrilho();
-                    desenharPorRegiao(modelo, pilha, buffers.getBuffer(brilho), luzEmpacotada,
-                            estado, alphaDeBrilho);
+                    desenharPorRegiao(passe, degrauDoPasse, degrauComArmadura, jogador, pilha,
+                            buffers.getBuffer(brilho), luzEmpacotada, estado, alphaDeBrilho);
                     descarregar(buffers, brilho);
                 }
             }
@@ -330,7 +332,8 @@ public final class AuraPlayerRenderLayer
         // perguntas do AV2 e exatamente "quanto da leitura vem dos filamentos".
         int quantidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
                 .aplicarNasRibbons(filamento.quantidade());
-        int colunas = fases.colunas() > 0.0F ? pressao.colunas() : 0;
+        int colunas = fases.colunas() > 0.0F && poseAceitaColuna(jogador)
+                ? pressao.colunas() : 0;
         if (quantidade == 0 && colunas == 0) {
             return;
         }
@@ -510,16 +513,75 @@ public final class AuraPlayerRenderLayer
      * repouso todas valem o mesmo e o resultado e uma aura uniforme; com Gyo,
      * uma regiao acende e as outras recuam, sem nenhum codigo novo.
      */
-    private static void desenharPorRegiao(AuraPlayerModel modelo, PoseStack pilha,
-            VertexConsumer vertices, int luz, AuraVisualState estado, float alphaDoPasse) {
+    private void desenharPorRegiao(AuraShellPass passe, int degrau, int degrauComArmadura,
+            AbstractClientPlayer jogador, PoseStack pilha, VertexConsumer vertices, int luz,
+            AuraVisualState estado, float alphaDoPasse) {
         for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
             float alpha = alphaDoPasse * estado.distribution().intensidade(regiao);
             if (alpha < ALPHA_MINIMO) {
                 continue;
             }
+            // O MODELO E ESCOLHIDO POR REGIAO, e a pose e copiada para ele antes
+            // de desenhar. Copiar e barato -- sao seis rotacoes de ModelPart --,
+            // e e o que permite que o elmo engrosse so a cabeca.
+            AuraPlayerModel modelo = this.modelos[
+                    vestido(jogador, regiao) ? degrauComArmadura : degrau][passe.ordinal()];
+            // COPIA A POSE FINAL. Ver o javadoc da classe: `setupAnim` aqui
+            // DESCARTARIA o que acabou de ser copiado.
+            this.getParentModel().copyPropertiesTo(modelo);
             parteDe(modelo, regiao).render(pilha, vertices, luz, OverlayTexture.NO_OVERLAY,
                     CorDaAura.comAlpha(estado.primaryColor(), alpha));
         }
+    }
+
+    /**
+     * Se a peca de armadura que cobre esta regiao esta vestida.
+     *
+     * <p>E APARENCIA, E NAO REGRA. Nada aqui decide gameplay: a consulta e ao
+     * inventario que o cliente ja tem para desenhar a armadura, e a unica coisa
+     * que ela muda e qual malha da escada a shell usa naquela parte.
+     *
+     * <p>OS BRACOS SEGUEM O PEITORAL, e as pernas seguem as calcas -- e nao as
+     * botas. E o mapeamento das pecas vanilla: o peitoral cobre tronco e bracos,
+     * as calcas cobrem quadril e coxas. A bota cobre so o pe, que e uma fracao
+     * pequena demais da perna para justificar um sétimo modelo.
+     *
+     * <p><b>ARMADURA DE OUTROS MODS ESTA FORA, e e custo assumido</b>
+     * (ADR-015): uma peca modded arbitrariamente grande engole qualquer
+     * deformacao que caiba no teto de design, e perseguir isso e perseguir o
+     * infinito.
+     */
+    private static boolean vestido(AbstractClientPlayer jogador, AuraBodyRegion regiao) {
+        net.minecraft.world.entity.EquipmentSlot slot = switch (regiao) {
+            case HEAD -> net.minecraft.world.entity.EquipmentSlot.HEAD;
+            case TORSO, LEFT_ARM, RIGHT_ARM -> net.minecraft.world.entity.EquipmentSlot.CHEST;
+            case LEFT_LEG, RIGHT_LEG -> net.minecraft.world.entity.EquipmentSlot.LEGS;
+        };
+        return !jogador.getItemBySlot(slot).isEmpty();
+    }
+
+    /**
+     * Se as colunas verticais podem nascer nesta pose.
+     *
+     * <p><b>DEITADO, UMA COLUNA VERTICAL E LIDA COMO BUG.</b> As ancoras nascem
+     * no espaco da PARTE, e e isso que faz o filamento acompanhar o membro. Mas
+     * a coluna sobe ao longo do eixo da parte -- e com o corpo na horizontal,
+     * {@code HEAD_TOP} aponta para o lado. O resultado nao e uma coluna
+     * inclinada: e uma coluna saindo do topo da cabeca na direcao dos pes, o que
+     * ninguem le como energia subindo.
+     *
+     * <p>Corrigir isso projetando a coluna para a vertical do MUNDO seria
+     * desfazer justamente o que faz a coluna acompanhar o ombro ao correr. A
+     * saida honesta e nao desenhar coluna nas poses horizontais, e dizer isso em
+     * voz alta.
+     *
+     * <p>ISSO NAO E AJUSTE DE PERFIL, e por isso mora no codigo: e uma regra
+     * sobre a FORMA do efeito em determinadas poses, e nao um numero de arte.
+     */
+    private static boolean poseAceitaColuna(AbstractClientPlayer jogador) {
+        return !jogador.isSleeping()
+                && !jogador.isVisuallySwimming()
+                && !jogador.isFallFlying();
     }
 
     private static ModelPart parteDe(AuraPlayerModel modelo, AuraBodyRegion regiao) {

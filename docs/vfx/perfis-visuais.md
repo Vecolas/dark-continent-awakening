@@ -65,6 +65,12 @@ Faixas de partida sugeridas: interno 0.025–0.040, borda 0.045–0.065, externo
 As três precisam ser **distintas**. Duas superfícies na mesma posição é
 z-fighting garantido.
 
+> **Com armadura, a espessura sobe por REGIÃO, e não no corpo inteiro.** Um elmo
+> sozinho engrossa a cabeça e deixa o resto como está; engrossar tudo porque uma
+> peça está vestida daria a leitura de *a aura cresceu*, que é exatamente o que o
+> teto abaixo proíbe. O mapeamento é o das peças vanilla: peitoral cobre tronco e
+> braços, calças cobrem as pernas.
+
 E há um teto que **não** é botão de ajuste: espessura máxima de ~0.12 bloco em
 Ten e ~0.20–0.25 em Ren. Poder extremo aumenta densidade, brilho, velocidade e
 pressão — **não tamanho**. Um personagem dez vezes mais forte não vira uma
@@ -352,6 +358,7 @@ arquivo.
 | `pressao` | objeto | o bloco de coluna, anel e detrito, abaixo — **chegou no AV4** |
 | `bloom` | objeto | `forca` (0–1) e `raio` (0–8 px de TELA) do halo — **virou objeto no AV5, quando o raio ganhou consumidor** |
 | `amplitude_de_pulso` | 0–0.25 | o quanto a shell respira. Ten **não pisca**: 0.02–0.05 |
+| `borda_com_armadura` | 0–0.25 | espessura da borda, em BLOCOS, na região que tem peça vestida — **chegou no AV7** |
 
 O bloco `filamentos` é **obrigatório** — um perfil sem ele é recusado inteiro.
 Assumir um padrão daria um Ren que carrega e desenha filamento de Ten, e

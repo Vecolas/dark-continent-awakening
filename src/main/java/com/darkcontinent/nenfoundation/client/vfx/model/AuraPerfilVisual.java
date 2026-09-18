@@ -45,6 +45,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param pressao              colunas, anel de chao e detritos; tudo zero em Ten
  * @param brilho               forca e raio do halo do passe de bloom (AV5)
  * @param amplitudeDePulso     o quanto a shell respira; Ten NAO pisca
+ * @param bordaComArmadura     espessura da borda, em BLOCOS, com peca vestida
  */
 public record AuraPerfilVisual(
         float alphaInterno, float alphaBorda, float alphaExterno,
@@ -52,7 +53,8 @@ public record AuraPerfilVisual(
         float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda,
         float taxaDeFaiscas, float tamanhoDeParticula,
         AuraRibbonProfile filamentos,
-        AuraPerfilDePressao pressao, AuraPerfilDeBrilho brilho, float amplitudeDePulso) {
+        AuraPerfilDePressao pressao, AuraPerfilDeBrilho brilho, float amplitudeDePulso,
+        float bordaComArmadura) {
 
     /**
      * Amplitude de pulso acima da qual a aura PISCA.
@@ -81,7 +83,7 @@ public record AuraPerfilVisual(
             // perfil de emergencia existe para ser DISCRETO -- "nao carregou"
             // precisa ser perceptivel como aura fraca, nunca como Ren completo
             // desenhado por engano.
-            AuraPerfilDePressao.NENHUMA, AuraPerfilDeBrilho.NENHUM, 0.02F);
+            AuraPerfilDePressao.NENHUMA, AuraPerfilDeBrilho.NENHUM, 0.02F, 0.06F);
 
     /** Alpha de 0 a 1. Fora disso o codec RECUSA, em vez de lancar. */
     private static final Codec<Float> ALPHA = Codec.floatRange(0.0F, 1.0F);
@@ -127,7 +129,14 @@ public record AuraPerfilVisual(
                     .forGetter(AuraPerfilVisual::pressao),
             AuraPerfilDeBrilho.CODEC.fieldOf("bloom").forGetter(AuraPerfilVisual::brilho),
             Codec.floatRange(0.0F, AMPLITUDE_MAXIMA_DE_PULSO).fieldOf("amplitude_de_pulso")
-                    .forGetter(AuraPerfilVisual::amplitudeDePulso))
+                    .forGetter(AuraPerfilVisual::amplitudeDePulso),
+            // O TETO E O MESMO DA GEOMETRIA, e nao um proprio: a espessura com
+            // armadura continua sendo espessura, e o limite de design de 0,25
+            // bloco vale para ela igual. Poder extremo aumenta densidade,
+            // brilho, velocidade e pressao -- nao TAMANHO.
+            Codec.floatRange(0.0F, AuraGeometryProfile.ESPESSURA_MAXIMA)
+                    .fieldOf("borda_com_armadura")
+                    .forGetter(AuraPerfilVisual::bordaComArmadura))
             .apply(i, AuraPerfilVisual::new))
             .validate(AuraPerfilVisual::ordemDoFresnel);
 
@@ -180,6 +189,11 @@ public record AuraPerfilVisual(
             throw new NullPointerException("filamentos e obrigatorio; um perfil sem o bloco"
                     + " desenharia zero filamento e pareceria um perfil de Zetsu");
         }
+        if (!Float.isFinite(bordaComArmadura) || bordaComArmadura < 0.0F
+                || bordaComArmadura > AuraGeometryProfile.ESPESSURA_MAXIMA) {
+            throw new IllegalArgumentException("borda_com_armadura fora de 0.."
+                    + AuraGeometryProfile.ESPESSURA_MAXIMA + " bloco: " + bordaComArmadura);
+        }
         if (pressao == null) {
             throw new NullPointerException("pressao e obrigatorio; um perfil sem o bloco"
                     + " desenharia Ren sem coluna, sem anel e sem detrito -- e a ausencia"
@@ -221,7 +235,8 @@ public record AuraPerfilVisual(
                 // um halo residual de quem esta suprimido entrega justamente
                 // quem esta se escondendo, e o passe de brilho e o mais delator
                 // que existe (ADR-016 secao 7).
-                this.pressao.apagado(), this.brilho.apagado(), 0.0F);
+                this.pressao.apagado(), this.brilho.apagado(), 0.0F,
+                this.bordaComArmadura);
     }
 
     /**
@@ -260,7 +275,8 @@ public record AuraPerfilVisual(
                 AuraRibbonProfile.interpolar(a.filamentos, b.filamentos, u),
                 AuraPerfilDePressao.interpolar(a.pressao, b.pressao, u),
                 AuraPerfilDeBrilho.interpolar(a.brilho, b.brilho, u),
-                ler(a.amplitudeDePulso, b.amplitudeDePulso, u));
+                ler(a.amplitudeDePulso, b.amplitudeDePulso, u),
+                ler(a.bordaComArmadura, b.bordaComArmadura, u));
     }
 
     private static float ler(float a, float b, float t) {

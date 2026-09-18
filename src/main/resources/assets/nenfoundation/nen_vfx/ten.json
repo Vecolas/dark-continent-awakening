@@ -24,5 +24,21 @@
     "comprimento_max": 0.60,
     "largura": 0.009,
     "ciclo_segundos": 1.1
-  }
+  },
+
+  "_pressao": "TUDO ZERO, E ESCRITO. Ten NAO toca o chao: sem coluna, sem anel, sem detrito. A ausencia mora no dado em vez de numa guarda do renderer -- assim o alvo da interpolacao TEN->REN e um objeto legitimo, e nao um caso especial.",
+  "pressao": {
+    "colunas": 0,
+    "altura_minima": 0.0,
+    "altura_maxima": 0.0,
+    "anel": 0.0,
+    "anel_raio_minimo": 0.0,
+    "anel_raio_maximo": 0.0,
+    "anel_segmentos": 0,
+    "detritos": 0
+  },
+
+  "_brilho": "bloom e o peso deste modo no alvo de brilho do AV5. amplitude_de_pulso e o quanto a shell respira -- Ten NAO pisca, e por isso ela fica entre 0.02 e 0.05.",
+  "bloom": 0.20,
+  "amplitude_de_pulso": 0.025
 }

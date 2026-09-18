@@ -425,6 +425,9 @@
   "subtitles.nenfoundation.entity.wolf_runner.attack": "Wolf Runner attacks",
   "subtitles.nenfoundation.entity.wolf_runner.death": "Wolf Runner dies",
   "subtitles.nenfoundation.entity.wolf_runner.hurt": "Wolf Runner hurts",
+  "subtitles.nenfoundation.vfx.nen.ren_burst": "Ren aura bursts outward",
+  "subtitles.nenfoundation.vfx.nen.ren_loop": "Ren aura hums under pressure",
+  "subtitles.nenfoundation.vfx.nen.ren_release": "Ren aura draws back in",
   "subtitles.nenfoundation.vfx.nen.ten_activate": "Ten aura gathers around someone",
   "block.nenfoundation.world_tree_leaves_luminous": "Luminous World Tree Leaves"
 }

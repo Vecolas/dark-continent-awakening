@@ -100,6 +100,74 @@ public final class AuraCurve {
     }
 
     /**
+     * Quantos nos uma COLUNA tem.
+     *
+     * <p>MAIS QUE UMA RIBBON DE CORPO, e por uma razao de forma: a coluna sobe
+     * ate 2,5 blocos, e nove nos nesse comprimento dao segmentos de quase um
+     * terco de bloco -- longos o bastante para a curva virar uma sequencia de
+     * retas visiveis. Doze e o teto, e ele bate com o buffer de
+     * {@link AuraRibbonBatch}.
+     */
+    public static int nosDeColuna(float alturaEmBlocos) {
+        int calculado = 6 + (int) (alturaEmBlocos / 0.28F);
+        return Math.clamp(calculado, 6, 12);
+    }
+
+    /**
+     * Escreve os nos de uma COLUNA VERTICAL de Ren.
+     *
+     * <p>A DERIVA VERTICAL E DOMINANTE, e essa e a diferenca inteira para uma
+     * ribbon de corpo. A ribbon ENROLA em volta de um eixo; a coluna SOBE, e so
+     * vagueia de leve. Ondas horizontais fortes fazem o olho ler "vento" em vez
+     * de "aura", e um zigue-zague faz ele ler "raio" -- e Nen generico nao e
+     * eletricidade. Por isso aqui nao ha giro em volta do eixo e a frequencia
+     * lateral fica entre uma e duas ondas no comprimento inteiro.
+     *
+     * <p>ELA NASCE NO ESPACO DA PARTE, como a ribbon, e e por isso que acompanha
+     * o membro ao correr, pular, atacar e agachar. Uma coluna desenhada em
+     * espaco de mundo ficaria para tras -- e "coluna flutuando solta, sem origem
+     * visivel no corpo" e um dos criterios que reprovam.
+     *
+     * @param destino   vetor com pelo menos {@code nos * 3} posicoes
+     * @param altura    altura da coluna, em BLOCOS
+     * @return quantos nos foram escritos
+     */
+    public static int pontosDeColuna(float[] destino, AuraAnchor ancora, boolean slim,
+            long semente, float folgaBase, float altura) {
+        int n = nosDeColuna(altura);
+        float alturaEmUnidades = altura * UNIDADES_POR_BLOCO;
+
+        // A MESMA DISCIPLINA DA RIBBON: sorteios numa ordem fixa, que e
+        // contrato. Trocar duas linhas daqui muda TODAS as colunas de uma vez.
+        long estado = semente;
+        float amplitude = 0.8F + proximo(estado = mistura(estado)) * 1.6F;
+        float ondas = 1.0F + proximo(estado = mistura(estado)) * 1.0F;
+        float fase = proximo(estado = mistura(estado)) * 6.2831855F;
+        float inclinacao = (proximo(estado = mistura(estado)) - 0.5F) * 1.4F;
+        float jitterPsi = (proximo(estado = mistura(estado)) - 0.5F) * 0.8F;
+
+        float psi = ancora.psiInicial() + jitterPsi;
+        float cx = ancora.centroX(slim) + (ancora.raioX(slim) + folgaBase) * (float) Math.cos(psi);
+        float cz = (ancora.raioZ() + folgaBase) * (float) Math.sin(psi);
+        float y0 = ancora.alturaBase();
+
+        for (int i = 0; i < n; i++) {
+            float s = i / (float) (n - 1);
+            int base = i * 3;
+            // `s^1.4` abre a deriva devagar perto do corpo: a coluna sai colada
+            // e so se solta la em cima. Deriva linear desenha um cone, e cone e
+            // a leitura de jato, nao de corrente.
+            float abertura = amplitude * (float) Math.pow((double) s, 1.4D);
+            destino[base] = cx + abertura * sin(ondas * 3.1415927F * s + fase)
+                    + inclinacao * s;
+            // SUBTRAI porque +Y aponta para baixo nesta pilha.
+            destino[base + 1] = y0 - alturaEmUnidades * s;
+            destino[base + 2] = cz + abertura * cos(ondas * 3.1415927F * s + fase + 2.4F);
+        }
+        return n;
+    }
+
+    /**
      * A folga com que o no zero nasce, derivada da espessura da BORDA da shell.
      *
      * <p>DERIVADA, E NAO CONSTANTE. Copiar um {@code 1.0} fixo aqui e o erro

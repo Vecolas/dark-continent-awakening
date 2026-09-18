@@ -314,7 +314,16 @@ public final class SobreposicaoDeVfx {
                 // O BLOCO DE FILAMENTO PASSA INTACTO pelo mesmo motivo: quem
                 // quer mais ou menos filamento usa `/nenvfx ribbons`, que ja
                 // sobrepoe a CONTAGEM no ponto do desenho.
-                base.filamentos());
+                base.filamentos(),
+                // O BLOCO DE PRESSAO, O BLOOM E O PULSO TAMBEM PASSAM INTACTOS,
+                // e isto e uma decisao e nao uma lacuna. Coluna, anel e detrito
+                // sao os componentes cuja AUSENCIA o AV6 precisa provar; um
+                // slider capaz de acende-los em Zetsu transformaria a
+                // ferramenta de tuning numa forma de contradizer o unico
+                // criterio que aquele gate existe para verificar. Quando a
+                // sessao de arte precisar girar o raio do anel, isso nasce como
+                // sobreposicao PROPRIA, com o mesmo cuidado que os alphas.
+                base.pressao(), base.bloom(), base.amplitudeDePulso());
     }
 
     private static float alpha(float sobreposto, float original) {

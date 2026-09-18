@@ -33,8 +33,16 @@ import org.joml.Vector3f;
  */
 public final class AuraRibbonBatch {
 
-    /** O maior numero de nos que uma curva pode ter. */
-    private static final int NOS_MAXIMOS = 9;
+    /**
+     * O maior numero de nos que uma curva pode ter.
+     *
+     * <p>DOZE A PARTIR DO AV4, e nao nove. As COLUNAS de Ren sobem ate 2,5
+     * blocos; com nove nos, cada segmento passaria de um terco de bloco e a
+     * curva viraria uma sequencia de retas visiveis. As ribbons de corpo
+     * continuam em nove -- {@code AuraCurve.nos} nao mudou --, entao o custo
+     * extra so existe onde a coluna existe.
+     */
+    private static final int NOS_MAXIMOS = 12;
 
     private final float[] curva = new float[NOS_MAXIMOS * 3];
     private final Vector3f[] mundo = criarVetores(NOS_MAXIMOS);
@@ -62,6 +70,37 @@ public final class AuraRibbonBatch {
             int argb, int luz) {
 
         int n = AuraCurve.pontos(this.curva, ancora, slim, semente, folgaBase, comprimento);
+        return emitir(buffer, pose, n, largura, argb, luz);
+    }
+
+    /**
+     * Desenha uma COLUNA VERTICAL de Ren.
+     *
+     * <p>MESMO BATCH, MESMO MATERIAL, MESMA TIRA. A coluna e uma ribbon com
+     * outra CURVA -- e nao um componente novo. Se ela ganhasse renderer proprio,
+     * a proxima tecnica ganharia o quarto e a linguagem visual se fragmentaria,
+     * que e exatamente o que o ADR-015 secao 6 existe para impedir.
+     *
+     * @param altura altura da coluna, em BLOCOS
+     */
+    public boolean desenharColuna(VertexConsumer buffer, PoseStack.Pose pose, AuraAnchor ancora,
+            boolean slim, long semente, float folgaBase, float altura, float largura,
+            int argb, int luz) {
+
+        int n = AuraCurve.pontosDeColuna(this.curva, ancora, slim, semente, folgaBase, altura);
+        return emitir(buffer, pose, n, largura, argb, luz);
+    }
+
+    /**
+     * Transforma os {@code n} nos ja escritos em {@link #curva} numa tira.
+     *
+     * <p>UM CAMINHO SO PARA AS DUAS FORMAS. Ribbon de corpo e coluna diferem na
+     * CURVA, e so nela; duplicar a montagem da tira duplicaria tambem as duas
+     * armadilhas documentadas no javadoc da classe -- e uma das copias
+     * inevitavelmente as perderia.
+     */
+    private boolean emitir(VertexConsumer buffer, PoseStack.Pose pose, int n, float largura,
+            int argb, int luz) {
         if (n < 2 || largura <= 0.0F) {
             return false;
         }

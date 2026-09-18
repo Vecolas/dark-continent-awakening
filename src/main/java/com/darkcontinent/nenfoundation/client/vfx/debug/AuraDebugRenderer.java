@@ -126,7 +126,11 @@ public final class AuraDebugRenderer {
                 SobreposicaoDeVfx.ribbonsForcadas(),
                 MedidorDeVfx.chamadasDeDesenho(),
                 MedidorDeVfx.filamentos(),
+                MedidorDeVfx.colunas(),
+                MedidorDeVfx.aneisDePressao(),
                 AuraSparkParticle.totalAtivas(),
+                com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle.totalAtivos(),
+                com.darkcontinent.nenfoundation.client.vfx.ZumbidoDeRen.vivos(),
                 MedidorDeVfx.jogadoresComAura(),
                 captura.ligado(),
                 captura.emLote() ? captura.progressoDoLote() : null,
@@ -136,7 +140,35 @@ public final class AuraDebugRenderer {
                 // distribuicao de zeros. Zetsu zera de proposito e "nao ha
                 // estado" nao zera nada -- escrever `0.00` nos dois casos
                 // apagaria a diferenca, que e a regra desta tela inteira.
-                estado.enabled() ? estado.distribution() : null);
+                estado.enabled() ? estado.distribution() : null,
+                // A FASE DA TRANSICAO E A REGUA QUE O AV4 PEDE. Sem ela, "a
+                // contracao inicial acontece?" so se responde quadro a quadro
+                // num video -- e a resposta viraria opiniao. Aqui ela e um
+                // numero que da para ler durante o proprio gesto.
+                estado.enabled() ? transicao(estado) : null);
+    }
+
+    /**
+     * A fase corrente, o progresso e os pesos interpolados.
+     *
+     * <p>ELA MOSTRA O QUE A TABELA DE {@code AuraTransicao} ESTA FAZENDO AGORA,
+     * e nao o que ela deveria fazer. A diferenca importa: os pesos vem do MESMO
+     * {@code AuraVisualState} que o renderer consome, entao a linha nao pode
+     * discordar da tela.
+     *
+     * <p>SEPARADA E ESTATICA para poder ser provada sem jogo -- ela e a parte do
+     * overlay com aritmetica de verdade, e e a que erra.
+     */
+    static String transicao(AuraVisualState estado) {
+        var f = estado.fases();
+        String rumo = estado.mode().name().toLowerCase(Locale.ROOT);
+        if (estado.mode() != estado.modoAlvo()) {
+            rumo += "->" + estado.modoAlvo().name().toLowerCase(Locale.ROOT);
+        }
+        return String.format(Locale.ROOT,
+                "%s %.2f | shell %.2f borda %.2f fil %.2f col %.2f pres %.2f flash %.2f",
+                rumo, estado.transitionProgress(), f.shell(), f.borda(), f.filamentos(),
+                f.colunas(), f.pressao(), f.flash());
     }
 
     private static String ajustesDePerfil() {
@@ -168,8 +200,20 @@ public final class AuraDebugRenderer {
                 + " | desenho: " + (d.desenhoLigado() ? "on" : "OFF"));
 
         l.add("custo do ultimo quadro: " + d.chamadasDeDesenho() + " chamadas | "
-                + d.filamentos() + " filamentos | " + d.particulas() + " faiscas ativas | "
+                + d.filamentos() + " filamentos | " + d.colunas() + " colunas | "
+                + d.particulas() + " faiscas ativas | "
                 + d.jogadoresComAura() + " com aura");
+
+        // OS DOIS CONTADORES DE REN, com o TETO ao lado do numero de detrito.
+        // Um contador sem o teto nao responde a pergunta que importa -- "isto
+        // esta perto do limite?" --, e e essa pergunta que o AV8 vai fazer.
+        l.add("pressao: " + d.aneis() + " aneis | " + d.detritos() + "/"
+                + com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDePressao
+                        .TETO_DE_DETRITOS
+                + " detritos | " + d.zumbidos() + " zumbidos");
+
+        l.add("transicao: " + (d.transicao() == null ? SEM_CONSUMIDOR + " (sem aura)"
+                : d.transicao()));
 
         l.add("regioes: " + regioes(d.distribuicao()));
 
@@ -287,12 +331,17 @@ public final class AuraDebugRenderer {
             int ribbonsForcadas,
             int chamadasDeDesenho,
             int filamentos,
+            int colunas,
+            int aneis,
             int particulas,
+            int detritos,
+            int zumbidos,
             int jogadoresComAura,
             boolean capturaLigada,
             String progressoDoLote,
             String commit,
             String ajustesDePerfil,
-            AuraDistribution distribuicao) {
+            AuraDistribution distribuicao,
+            String transicao) {
     }
 }

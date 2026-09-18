@@ -27,7 +27,8 @@ class AuraDebugRendererTest {
 
     private static AuraDebugRenderer.Dados semNada() {
         return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
+                0, 0, 0, 0, 0, 0, 0, 0, false, null, "33ded12", null,
+                AuraDistribution.uniforme(), null);
     }
 
     private static String juntar(List<String> linhas) {
@@ -57,8 +58,8 @@ class AuraDebugRendererTest {
     void qualquerSobreposicaoGrita() {
         AuraDebugRenderer.Dados so1Slider = new AuraDebugRenderer.Dados(
                 true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", "alpha_borda=0.400",
-                AuraDistribution.uniforme());
+                0, 0, 0, 0, 0, 0, 0, 0, false, null, "33ded12", "alpha_borda=0.400",
+                AuraDistribution.uniforme(), null);
         String texto = juntar(AuraDebugRenderer.linhas(so1Slider));
 
         assertTrue(texto.contains("OVERRIDE ATIVO"),
@@ -71,7 +72,8 @@ class AuraDebugRendererTest {
     void desenhoDesligadoGrita() {
         AuraDebugRenderer.Dados desligado = new AuraDebugRenderer.Dados(
                 false, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
+                0, 0, 0, 0, 0, 0, 0, 0, false, null, "33ded12", null,
+                AuraDistribution.uniforme(), null);
         String texto = juntar(AuraDebugRenderer.linhas(desligado));
         assertTrue(texto.contains("OVERRIDE ATIVO"), texto);
         assertTrue(texto.contains("desenho=off"), texto);
@@ -82,7 +84,8 @@ class AuraDebugRendererTest {
     void custoAparece() {
         AuraDebugRenderer.Dados comCusto = new AuraDebugRenderer.Dados(
                 true, false, null, Float.NaN, Float.NaN, null, -1,
-                6, 48, 12, 2, false, null, "33ded12", null, AuraDistribution.uniforme());
+                6, 48, 4, 1, 12, 5, 1, 2, false, null, "33ded12", null,
+                AuraDistribution.uniforme(), null);
         String texto = juntar(AuraDebugRenderer.linhas(comCusto));
         assertTrue(texto.contains("6 chamadas"), texto);
         assertTrue(texto.contains("48 filamentos"), texto);
@@ -94,7 +97,7 @@ class AuraDebugRendererTest {
 
     private static AuraDebugRenderer.Dados com(AuraDistribution d) {
         return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, d);
+                0, 0, 0, 0, 0, 0, 0, 0, false, null, "33ded12", null, d, null);
     }
 
     @Test

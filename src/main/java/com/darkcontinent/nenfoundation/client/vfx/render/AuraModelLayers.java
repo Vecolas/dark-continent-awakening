@@ -22,12 +22,27 @@ public final class AuraModelLayers {
     }
 
     /**
-     * A camada deste passe, neste modelo de jogador.
+     * A camada deste passe, neste modelo de jogador, na espessura de Ten.
      *
      * @param slim {@code true} para o modelo de braco fino (Alex)
      */
     public static ModelLayerLocation de(AuraShellPass passe, boolean slim) {
-        String nome = "aura_shell_" + passe.name().toLowerCase(java.util.Locale.ROOT);
+        return de(passe, slim,
+                com.darkcontinent.nenfoundation.client.vfx.model.AuraGeometryLadder.DEGRAU_DE_TEN);
+    }
+
+    /**
+     * A camada deste passe, neste modelo, neste DEGRAU de espessura.
+     *
+     * <p>O DEGRAU ENTROU NO AV4, e o motivo esta no javadoc de
+     * {@code AuraGeometryLadder}: a espessura e geometria assada, e Ren precisa
+     * de uma malha mais grossa que Ten. Sem o degrau no identificador, as duas
+     * malhas se sobrescreveriam no {@code EntityModelSet} -- e a que sobrasse
+     * seria a ultima registrada, sem erro nenhum.
+     */
+    public static ModelLayerLocation de(AuraShellPass passe, boolean slim, int degrau) {
+        String nome = "aura_shell_" + passe.name().toLowerCase(java.util.Locale.ROOT)
+                + "_" + degrau;
         return new ModelLayerLocation(NenFoundation.id(nome), slim ? "slim" : "default");
     }
 }

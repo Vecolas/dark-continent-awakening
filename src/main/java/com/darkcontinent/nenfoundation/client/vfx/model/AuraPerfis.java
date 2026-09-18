@@ -53,7 +53,7 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
      * estar escrita aqui e nao depender de uma guarda em quem desenha.
      */
     public static AuraPerfilVisual de(AuraVisualMode modo) {
-        if (modo == null || modo == AuraVisualMode.ZETSU || modo == AuraVisualMode.OFF) {
+        if (semBrilho(modo)) {
             // O APAGADO NAO PASSA PELA SOBREPOSICAO, de proposito. Zetsu e
             // ausencia total (direcao visual, secao 2); deixar um slider
             // reacender a aura de quem esta suprimido faria a ferramenta de
@@ -63,6 +63,52 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
         AuraPerfilVisual perfil = CARREGADOS.get(modo);
         return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
                 perfil != null ? perfil : AuraPerfilVisual.SEGURO);
+    }
+
+    /**
+     * O perfil de um ESTADO, ja interpolado entre as duas pontas da transicao.
+     *
+     * <p><b>ELE CORRIGE A TROCA SECA DE PRESET.</b> Buscar o perfil por
+     * {@code estado.mode()} -- que era o que a layer fazia ate o AV3 -- devolve
+     * o perfil de ORIGEM durante a transicao inteira e o de DESTINO no ultimo
+     * tick. O resultado e uma intensidade que sobe suave com um material que
+     * salta num quadro: nao lanca, nao aparece em teste, e a pessoa relata como
+     * "bug de render".
+     *
+     * <p>QUEM SO TEM O MODO CONTINUA USANDO {@link #de(AuraVisualMode)} -- hoje
+     * isso e a primeira pessoa, que le apenas a borda e nao tem estado inteiro
+     * na mao. Tudo o que tem o estado usa esta sobrecarga, particula inclusive:
+     * a taxa de faisca de Ten aparecendo de uma vez no ultimo tick da subida e a
+     * mesma troca seca, numa escala menor.
+     */
+    public static AuraPerfilVisual de(
+            com.darkcontinent.nenfoundation.client.vfx.AuraVisualState estado) {
+        if (estado == null) {
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        if (semBrilho(estado.mode()) && semBrilho(estado.modoAlvo())) {
+            // ASSENTADO EM ZETSU OU EM NADA: ausencia total, e sem passar pela
+            // sobreposicao -- mesma razao de {@link #de(AuraVisualMode)}.
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        AuraPerfilVisual origem = cru(estado.mode());
+        AuraPerfilVisual alvo = cru(estado.modoAlvo());
+        return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
+                AuraPerfilVisual.interpolar(origem, alvo, estado.transitionProgress()));
+    }
+
+    /** O perfil de um modo SEM a sobreposicao: a materia-prima da interpolacao. */
+    private static AuraPerfilVisual cru(AuraVisualMode modo) {
+        if (semBrilho(modo)) {
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        AuraPerfilVisual perfil = CARREGADOS.get(modo);
+        return perfil != null ? perfil : AuraPerfilVisual.SEGURO;
+    }
+
+    /** Modos em que a ausencia e a informacao. */
+    private static boolean semBrilho(AuraVisualMode modo) {
+        return modo == null || modo == AuraVisualMode.ZETSU || modo == AuraVisualMode.OFF;
     }
 
     /** Se algum perfil chegou a ser carregado. Falso antes do primeiro reload. */

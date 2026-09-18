@@ -42,13 +42,27 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
  * @param taxaDeFaiscas        quantas faiscas de ACABAMENTO acompanham a shell por segundo
  * @param tamanhoDeParticula   o quanto cada faisca cresce com a intensidade
  * @param filamentos           quantos, de que tamanho e de quanto em quanto tempo
+ * @param pressao              colunas, anel de chao e detritos; tudo zero em Ten
+ * @param bloom                quanto este modo contribui para o brilho (AV5)
+ * @param amplitudeDePulso     o quanto a shell respira; Ten NAO pisca
  */
 public record AuraPerfilVisual(
         float alphaInterno, float alphaBorda, float alphaExterno,
         float fresnelInterno, float fresnelBorda, float fresnelExterno,
         float velocidadeDeFluxo, float escalaDeRuido, float reforcoDaBorda,
         float taxaDeFaiscas, float tamanhoDeParticula,
-        AuraRibbonProfile filamentos) {
+        AuraRibbonProfile filamentos,
+        AuraPerfilDePressao pressao, float bloom, float amplitudeDePulso) {
+
+    /**
+     * Amplitude de pulso acima da qual a aura PISCA.
+     *
+     * <p>Constante de desenho, e nao chave: a direcao de arte e explicita em que
+     * Ten nao pisca (0.02 a 0.05) e Ren respira (0.09). Uma amplitude de meio
+     * ja e um estroboscopio, e estroboscopio nao e "aura forte" -- e outro
+     * efeito, e um que cansa em minutos.
+     */
+    public static final float AMPLITUDE_MAXIMA_DE_PULSO = 0.25F;
 
     /**
      * O perfil de emergencia.
@@ -61,7 +75,13 @@ public record AuraPerfilVisual(
      */
     public static final AuraPerfilVisual SEGURO = new AuraPerfilVisual(
             0.03F, 0.10F, 0.02F, 3.0F, 2.5F, 2.0F, 0.10F, 4.0F, 0.6F, 0.4F, 0.15F,
-            new AuraRibbonProfile(4, 0.15F, 0.40F, 0.007F, 1.4F));
+            new AuraRibbonProfile(4, 0.15F, 0.40F, 0.007F, 1.4F),
+            // SEM PRESSAO NO PERFIL DE EMERGENCIA, e de proposito: coluna, anel
+            // e detrito sao os componentes mais caros e mais chamativos, e o
+            // perfil de emergencia existe para ser DISCRETO -- "nao carregou"
+            // precisa ser perceptivel como aura fraca, nunca como Ren completo
+            // desenhado por engano.
+            AuraPerfilDePressao.NENHUMA, 0.0F, 0.02F);
 
     /** Alpha de 0 a 1. Fora disso o codec RECUSA, em vez de lancar. */
     private static final Codec<Float> ALPHA = Codec.floatRange(0.0F, 1.0F);
@@ -102,7 +122,12 @@ public record AuraPerfilVisual(
             ALPHA.fieldOf("tamanho_de_particula")
                     .forGetter(AuraPerfilVisual::tamanhoDeParticula),
             AuraRibbonProfile.CODEC.fieldOf("filamentos")
-                    .forGetter(AuraPerfilVisual::filamentos))
+                    .forGetter(AuraPerfilVisual::filamentos),
+            AuraPerfilDePressao.CODEC.fieldOf("pressao")
+                    .forGetter(AuraPerfilVisual::pressao),
+            ALPHA.fieldOf("bloom").forGetter(AuraPerfilVisual::bloom),
+            Codec.floatRange(0.0F, AMPLITUDE_MAXIMA_DE_PULSO).fieldOf("amplitude_de_pulso")
+                    .forGetter(AuraPerfilVisual::amplitudeDePulso))
             .apply(i, AuraPerfilVisual::new))
             .validate(AuraPerfilVisual::ordemDoFresnel);
 
@@ -141,9 +166,20 @@ public record AuraPerfilVisual(
         naoNegativo(reforcoDaBorda, "reforco_da_borda");
         naoNegativo(taxaDeFaiscas, "taxa_de_faiscas");
         alpha(tamanhoDeParticula, "tamanho_de_particula");
+        alpha(bloom, "bloom");
+        if (!Float.isFinite(amplitudeDePulso) || amplitudeDePulso < 0.0F
+                || amplitudeDePulso > AMPLITUDE_MAXIMA_DE_PULSO) {
+            throw new IllegalArgumentException("amplitude_de_pulso deve estar entre 0 e "
+                    + AMPLITUDE_MAXIMA_DE_PULSO + ": " + amplitudeDePulso);
+        }
         if (filamentos == null) {
             throw new NullPointerException("filamentos e obrigatorio; um perfil sem o bloco"
                     + " desenharia zero filamento e pareceria um perfil de Zetsu");
+        }
+        if (pressao == null) {
+            throw new NullPointerException("pressao e obrigatorio; um perfil sem o bloco"
+                    + " desenharia Ren sem coluna, sem anel e sem detrito -- e a ausencia"
+                    + " precisa estar ESCRITA no dado, nunca assumida");
         }
     }
 
@@ -176,7 +212,55 @@ public record AuraPerfilVisual(
         return new AuraPerfilVisual(0.0F, 0.0F, 0.0F, this.fresnelInterno, this.fresnelBorda,
                 this.fresnelExterno, this.velocidadeDeFluxo, this.escalaDeRuido,
                 this.reforcoDaBorda, 0.0F, this.tamanhoDeParticula,
-                this.filamentos.semFilamentos());
+                this.filamentos.semFilamentos(),
+                // O BLOOM ZERA JUNTO, e essa linha e o AV6 inteiro em miniatura:
+                // um halo residual de quem esta suprimido entrega justamente
+                // quem esta se escondendo, e o passe de brilho e o mais delator
+                // que existe (ADR-016 secao 7).
+                this.pressao.apagado(), 0.0F, 0.0F);
+    }
+
+    /**
+     * O perfil a meio caminho entre dois.
+     *
+     * <p><b>ELE EXISTE PARA QUE NAO HAJA TROCA SECA DE PRESET.</b> Ate o AV3 a
+     * shell buscava o perfil pelo MODO, e o modo so vira no ultimo tick da
+     * transicao -- ou seja, a interpolacao movia a intensidade enquanto o
+     * MATERIAL saltava de Ten para Ren num quadro. Isso nao lanca nada e nao
+     * aparece em teste: aparece como um estalo que a pessoa relata como "bug de
+     * render".
+     *
+     * <p>A ORDEM DO FRESNEL SOBREVIVE A INTERPOLACAO, e isso e propriedade e nao
+     * sorte: a diferenca entre dois numeros interpolados linearmente com o mesmo
+     * {@code t} mantem o sinal, entao interno &gt; borda &gt; externo em A e em
+     * B implica o mesmo no meio. Ha teste fixando isso, porque a propriedade
+     * deixa de valer no dia em que alguem curvar um dos tres sozinho.
+     */
+    public static AuraPerfilVisual interpolar(AuraPerfilVisual a, AuraPerfilVisual b, float t) {
+        if (a == null || b == null) {
+            throw new NullPointerException("interpolar exige os dois perfis");
+        }
+        float u = Math.clamp(t, 0.0F, 1.0F);
+        return new AuraPerfilVisual(
+                ler(a.alphaInterno, b.alphaInterno, u),
+                ler(a.alphaBorda, b.alphaBorda, u),
+                ler(a.alphaExterno, b.alphaExterno, u),
+                ler(a.fresnelInterno, b.fresnelInterno, u),
+                ler(a.fresnelBorda, b.fresnelBorda, u),
+                ler(a.fresnelExterno, b.fresnelExterno, u),
+                ler(a.velocidadeDeFluxo, b.velocidadeDeFluxo, u),
+                ler(a.escalaDeRuido, b.escalaDeRuido, u),
+                ler(a.reforcoDaBorda, b.reforcoDaBorda, u),
+                ler(a.taxaDeFaiscas, b.taxaDeFaiscas, u),
+                ler(a.tamanhoDeParticula, b.tamanhoDeParticula, u),
+                AuraRibbonProfile.interpolar(a.filamentos, b.filamentos, u),
+                AuraPerfilDePressao.interpolar(a.pressao, b.pressao, u),
+                ler(a.bloom, b.bloom, u),
+                ler(a.amplitudeDePulso, b.amplitudeDePulso, u));
+    }
+
+    private static float ler(float a, float b, float t) {
+        return a + (b - a) * t;
     }
 
     private static void alpha(float valor, String nome) {

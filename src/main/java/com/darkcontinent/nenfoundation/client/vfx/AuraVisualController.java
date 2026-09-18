@@ -86,7 +86,13 @@ public final class AuraVisualController {
         float t = this.transicaoEmCurso.curva().aplicar(this.transicao);
         // DE `origem` PARA `alvo`, e nunca de `atual`: interpolar a partir do
         // valor ja movido transforma a curva num arrasto com estalo no fim.
-        this.atual = interpolar(this.origem, this.alvo, t, this.transicao);
+        //
+        // OS PESOS SAIEM DO PROGRESSO CRU, e nao do curvado: a linha do tempo
+        // ja esta escrita em milissegundos com as proprias curvas por janela, e
+        // curvar duas vezes deslocaria cada fase de um jeito que ninguem
+        // consegue prever lendo a tabela.
+        this.atual = interpolar(this.origem, this.alvo, t, this.transicao,
+                this.transicaoEmCurso.amostrar(this.transicao));
         return this.atual;
     }
 
@@ -103,7 +109,7 @@ public final class AuraVisualController {
      * @param progresso o progresso CRU, de 0 a 1, que decide quando o modo troca
      */
     private static AuraVisualState interpolar(AuraVisualState a, AuraVisualState b, float t,
-            float progresso) {
+            float progresso, AuraTransitionSample fases) {
         AuraDistribution d = new AuraDistribution(
                 ler(a.distribution().head(), b.distribution().head(), t),
                 ler(a.distribution().torso(), b.distribution().torso(), t),
@@ -124,8 +130,12 @@ public final class AuraVisualController {
         // `transitionProgress` entre 0 e 1 e lancaria. Excecao no tick de render
         // derruba o desenho do mundo, e nao so a aura.
         return new AuraVisualState(chegou ? b.mode() : a.mode(),
+                // O ALVO E SEMPRE O DESTINO, inclusive antes de chegar. E ele
+                // que permite interpolar o PERFIL entre as duas pontas em vez
+                // de trocar de preset num quadro so.
+                b.mode(),
                 Math.clamp(ler(a.intensity(), b.intensity(), t), 0.0F, 1.0F),
-                Math.clamp(t, 0.0F, 1.0F), d, b.primaryColor(), b.secondaryColor());
+                Math.clamp(t, 0.0F, 1.0F), d, b.primaryColor(), b.secondaryColor(), fases);
     }
 
     private static float ler(float a, float b, float t) { return a + (b - a) * t; }

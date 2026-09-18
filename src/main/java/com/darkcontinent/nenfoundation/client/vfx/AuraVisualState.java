@@ -16,19 +16,67 @@ package com.darkcontinent.nenfoundation.client.vfx;
  * cores. Os numeros de arte, que sao os mesmos para todos os jogadores no mesmo
  * modo, moram no perfil e se buscam com
  * {@code AuraPerfis.de(estado.mode())}.
+ *
+ * <p><b>DOIS MODOS, A PARTIR DO AV4, E ISSO CORRIGE UM DEFEITO REAL.</b>
+ * {@link #mode()} continua sendo o modo ASSENTADO -- ele so vira no ultimo tick
+ * da transicao, e tudo o que existia antes (LOD, audio, particula) continua
+ * lendo dele. O que faltava era {@link #modoAlvo()}: para onde a transicao esta
+ * indo. Sem ele, quem desenha buscava o perfil por {@code mode()} e o MATERIAL
+ * saltava de Ten para Ren num quadro, enquanto a intensidade subia suave. Isso
+ * nao lanca nada e nao aparece em teste: aparece como um estalo que a pessoa
+ * relata como "bug de render". Com os dois, o perfil se interpola entre as duas
+ * pontas e a troca deixa de ser seca.
+ *
+ * <p>{@link #fases()} carrega os PESOS por componente. Ver
+ * {@link AuraTransitionSample}: e o que permite que a shell contraia enquanto a
+ * borda ainda nem comecou a crescer.
  */
-public record AuraVisualState(AuraVisualMode mode, float intensity,
+public record AuraVisualState(AuraVisualMode mode, AuraVisualMode modoAlvo, float intensity,
         float transitionProgress, AuraDistribution distribution, int primaryColor,
-        int secondaryColor) {
+        int secondaryColor, AuraTransitionSample fases) {
     public AuraVisualState {
-        if (mode == null || distribution == null) {
-            throw new NullPointerException("modo e distribuicao sao obrigatorios");
+        if (mode == null || modoAlvo == null || distribution == null || fases == null) {
+            throw new NullPointerException(
+                    "modo, modo alvo, distribuicao e fases sao obrigatorios");
         }
         validar(intensity, "intensity");
         validar(transitionProgress, "transitionProgress");
     }
 
-    public boolean enabled() { return mode != AuraVisualMode.OFF && intensity > 0.0F; }
+    /**
+     * A forma curta: sem transicao em curso.
+     *
+     * <p>ELA EXISTE PARA QUEM NAO TEM INTERPOLADOR -- os outros jogadores, o
+     * estado forcado da sessao de arte, o desligado. Nesses casos o alvo E o
+     * modo, e os pesos sao os assentados daquele modo. Escrever isso em cada
+     * chamada convidaria alguem a passar um alvo diferente por engano, e o
+     * sintoma seria um perfil interpolado para um destino que nao existe.
+     */
+    public AuraVisualState(AuraVisualMode mode, float intensity, float transitionProgress,
+            AuraDistribution distribution, int primaryColor, int secondaryColor) {
+        this(mode, mode, intensity, transitionProgress, distribution, primaryColor,
+                secondaryColor, AuraTransitionSample.assentado(mode));
+    }
+
+    /**
+     * Se ha alguma coisa para desenhar.
+     *
+     * <p>O ALVO TAMBEM CONTA. Sem ele, a transicao {@code REN -> OFF} pararia de
+     * desenhar no instante em que {@code mode()} virasse OFF -- que e o ultimo
+     * tick, onde a intensidade ja chegou a zero -- e isso funcionaria. Mas a
+     * transicao {@code OFF -> TEN} tem {@code mode() == OFF} o caminho INTEIRO,
+     * e sem esta linha ela nao desenharia nada ate o ultimo quadro, aparecendo
+     * de uma vez. E o "poof" que a fase de LIGAR existe para nao produzir.
+     */
+    public boolean enabled() {
+        return (mode != AuraVisualMode.OFF || modoAlvo != AuraVisualMode.OFF)
+                && intensity > 0.0F;
+    }
+
+    /** O modo cujo PERFIL carrega a leitura agora: o alvo, quando ha transicao. */
+    public AuraVisualMode modoDominante() {
+        return this.transitionProgress >= 0.5F ? this.modoAlvo : this.mode;
+    }
 
     public static AuraVisualState desligado() {
         return new AuraVisualState(AuraVisualMode.OFF, 0.0F, 1.0F,

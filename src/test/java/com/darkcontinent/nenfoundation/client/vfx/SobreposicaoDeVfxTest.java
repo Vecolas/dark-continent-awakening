@@ -27,7 +27,11 @@ class SobreposicaoDeVfxTest {
 
     private static final AuraPerfilVisual BASE = new AuraPerfilVisual(
             0.055F, 0.20F, 0.035F, 3.4F, 2.7F, 2.0F, 0.12F, 4.0F, 0.9F, 0.4F, 0.18F,
-            new AuraRibbonProfile(8, 0.15F, 0.60F, 0.009F, 1.1F));
+            new AuraRibbonProfile(8, 0.15F, 0.60F, 0.009F, 1.1F),
+            // TEN NAO TOCA O CHAO: o bloco de pressao existe e e todo zero. A
+            // ausencia mora no dado, e nao numa guarda do renderer.
+            com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDePressao.NENHUMA,
+            0.20F, 0.025F);
 
     @BeforeEach
     @AfterEach

@@ -32,14 +32,18 @@ public final class AuraRenderRegistro {
     private static final Logger LOG = LoggerFactory.getLogger(AuraRenderRegistro.class);
 
     /**
-     * A geometria com que as malhas nascem.
+     * A geometria de referencia: a de Ten.
      *
-     * <p>E A DE TEN, e so ela. Ren usa a mesma malha com alpha maior no AV0 --
-     * limitacao declarada do spike, resolvida no AV4.
+     * <p><b>ELA NAO E MAIS A UNICA.</b> Ate o AV3 havia uma malha so, e Ren se
+     * contentava com alpha maior -- limitacao declarada do spike do AV0. O AV4
+     * assa uma ESCADA de espessuras ({@code AuraGeometryLadder}), e Ren passa a
+     * ter a malha que a direcao de arte pede. Este perfil continua aqui porque e
+     * dele que a folga dos filamentos e derivada: a ribbon nasce por fora da
+     * borda, e a borda de Ten e o piso.
      */
     private static final AuraGeometryProfile GEOMETRIA = AuraGeometryProfile.ten();
 
-    /** A geometria com que as malhas foram construidas. Fonte unica. */
+    /** A geometria de referencia das malhas. Fonte unica. */
     public static AuraGeometryProfile geometria() {
         return GEOMETRIA;
     }
@@ -47,12 +51,27 @@ public final class AuraRenderRegistro {
     private AuraRenderRegistro() {
     }
 
-    /** Constroi as seis malhas infladas. */
+    /**
+     * Constroi as malhas infladas: um passe x um modelo x um degrau da escada.
+     *
+     * <p>O CUSTO ESTA DECLARADO: sao {@code DEGRAUS x 3 x 2} malhas, assadas uma
+     * vez na entrada do cliente. Cada uma e o modelo de jogador -- seis caixas
+     * --, e nenhuma e reconstruida depois. O que a escada compra esta no javadoc
+     * de {@code AuraGeometryLadder}: espessura que muda por quadro sem
+     * {@code poseStack.scale}, que descolaria a aura nas articulacoes.
+     */
     public static void registrarDefinicoes(EntityRenderersEvent.RegisterLayerDefinitions evento) {
         for (AuraShellPass passe : AuraShellPass.values()) {
             for (boolean slim : new boolean[] {false, true}) {
-                evento.registerLayerDefinition(AuraModelLayers.de(passe, slim),
-                        () -> AuraPlayerModel.definicao(GEOMETRIA.deformacaoDe(passe), slim));
+                for (int degrau = 0; degrau < com.darkcontinent.nenfoundation.client.vfx.model
+                        .AuraGeometryLadder.DEGRAUS; degrau++) {
+                    final int atual = degrau;
+                    evento.registerLayerDefinition(AuraModelLayers.de(passe, slim, degrau),
+                            () -> AuraPlayerModel.definicao(
+                                    com.darkcontinent.nenfoundation.client.vfx.model
+                                            .AuraGeometryLadder.perfilDe(atual).deformacaoDe(passe),
+                                    slim));
+                }
             }
         }
     }

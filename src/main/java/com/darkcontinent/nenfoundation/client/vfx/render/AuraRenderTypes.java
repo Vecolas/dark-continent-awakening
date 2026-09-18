@@ -108,7 +108,60 @@ public final class AuraRenderTypes {
     private static final RenderType RIBBON =
             RenderType.entityTranslucentEmissive(TEXTURA_DE_RIBBON);
 
+    /** A textura do anel de pressao: arco IRREGULAR, sem simbolo. Autoral (ADR-007). */
+    public static final ResourceLocation TEXTURA_DO_ANEL =
+            NenFoundation.id("textures/vfx/nen/aura_ground_ring.png");
+
+    /**
+     * O anel de pressao no chao.
+     *
+     * <p>BLEND MISTO, e nao aditivo puro. Aditivo sobre terra escura some; sobre
+     * neve estoura. O material translucido emissivo da o meio-termo: o anel
+     * existe sobre qualquer bloco, e nao compete com o personagem -- que e o
+     * item 1 da hierarquia de leitura, contra os ~15% de esforco visual que o
+     * chao pode ocupar.
+     *
+     * <p>FILTRO LINEAR, e essa e a diferenca para o material de ribbon. O anel e
+     * uma textura de 128 pixels esticada por ate quatro blocos de diametro:
+     * amostrada sem suavizar, ela mostraria os degraus do proprio arquivo.
+     *
+     * <p>ESCRITA DE PROFUNDIDADE DESLIGADA e TESTE LIGADO, como todo o resto da
+     * aura. O teste ligado e o que impede o anel de aparecer atraves de uma
+     * parede -- e enquanto In e Zetsu existirem, isso e vazamento de informacao
+     * e nao feiura.
+     *
+     * <p>UMA INSTANCIA, criada aqui e cacheada. {@code RenderType} entra em
+     * mapas e em comparacoes de estado do buffer; um por entidade ou por frame
+     * quebraria o agrupamento das chamadas de desenho.
+     */
+    private static final RenderType GROUND = RenderType.create(
+            "nenfoundation_aura_ground",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            // Quarenta e oito segmentos vezes quatro vertices vezes o formato:
+            // um buffer modesto, e nao um chunk.
+            1024,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(new RenderStateShard.ShaderStateShard(
+                            net.minecraft.client.renderer.GameRenderer
+                                    ::getRendertypeEntityTranslucentEmissiveShader))
+                    .setTextureState(new RenderStateShard.TextureStateShard(
+                            TEXTURA_DO_ANEL, true, false))
+                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                    .setOverlayState(RenderStateShard.OVERLAY)
+                    .createCompositeState(false));
+
     private AuraRenderTypes() {
+    }
+
+    /** O tipo de render do anel de pressao. Sempre a mesma instancia. */
+    public static RenderType ground() {
+        return GROUND;
     }
 
     /**

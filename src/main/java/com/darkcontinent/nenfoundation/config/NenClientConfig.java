@@ -59,6 +59,17 @@ public final class NenClientConfig {
                     "Desligar aqui nao muda nada do que os OUTROS veem.")
             .define("vfx.primeiraPessoa", true);
 
+    private static final ModConfigSpec.BooleanValue DETRITOS = BUILDER
+            .comment("Se a pressao de Ren levanta fragmentos cosmeticos do chao.",
+                    "Eles NAO tocam o mundo: nao quebram bloco, nao criam item, nao",
+                    "colidem e nao empurram. O que muda aqui e so o desenho.",
+                    "",
+                    "A chave NASCE AGORA porque o consumidor nasce agora (AV4).",
+                    "Declarar antes seria config orfa -- alguem passaria uma tarde",
+                    "girando um botao morto. A DENSIDADE continua governada por",
+                    "vfx.densidadeDeParticulas; aqui e liga e desliga.")
+            .define("vfx.detritos", true);
+
     /** O spec deste arquivo, registrado como CLIENT. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -85,6 +96,11 @@ public final class NenClientConfig {
     /** Densidade de particulas escolhida por este cliente. */
     public static double densidadeDeParticulas() {
         return DENSIDADE_DE_PARTICULAS.get();
+    }
+
+    /** Se este cliente desenha os fragmentos cosmeticos levantados por Ren. */
+    public static boolean detritos() {
+        return DETRITOS.get();
     }
 
     /**

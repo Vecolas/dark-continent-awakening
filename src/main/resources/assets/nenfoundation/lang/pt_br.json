@@ -425,6 +425,9 @@
   "subtitles.nenfoundation.entity.wolf_runner.attack": "Lobo Corredor ataca",
   "subtitles.nenfoundation.entity.wolf_runner.death": "Lobo Corredor morre",
   "subtitles.nenfoundation.entity.wolf_runner.hurt": "Lobo Corredor se fere",
+  "subtitles.nenfoundation.vfx.nen.ren_burst": "Aura de Ren estoura para fora",
+  "subtitles.nenfoundation.vfx.nen.ren_loop": "Aura de Ren zumbe sob pressão",
+  "subtitles.nenfoundation.vfx.nen.ren_release": "Aura de Ren é puxada de volta",
   "subtitles.nenfoundation.vfx.nen.ten_activate": "Aura de Ten se envolve ao redor de alguém",
   "block.nenfoundation.world_tree_leaves_luminous": "Folhas Luminosas da Arvore-Mundo"
 }

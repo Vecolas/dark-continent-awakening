@@ -15,16 +15,33 @@ capturas faltam" era uma pergunta que só se respondia relendo dez issues.
 | Gate | Issue | Capturas | Feito |
 | --- | --- | --- | --- |
 | AV0 — a shell acompanha as animações | #169 | 14 | 0 |
-| AV1 — Ten convincente sem partícula | #176 | ver issue | 0 |
-| AV2 — filamentos nascem na superfície | #181 | ver issue | 0 |
-| AV3 — TEN aprovado | #187 | ver issue | 0 |
+| AV1 — Ten convincente sem partícula | #176 | 17 | 0 |
+| AV2 — filamentos nascem na superfície | #181 | 13 | 0 |
+| AV3 — TEN aprovado | #187 | 22 | 0 |
 | AV4 — REN aprovado, mundo intacto | #193 | 20 | 0 |
 | AV5 — o halo respeita parede | #198 | 13 | 0 |
 | AV6 — ausência para observadores | #201 | 7 | 0 |
 | AV7 — dois clientes, armadura e poses | #205, #104 | 21 | 0 |
 | AV8 — orçamento e release | #209, #206, #207 | perfis, não imagens | 0 |
 
-**Nenhuma captura existe.** Isso está declarado também em
+**São 127 itens de evidência visual nesta revisão (2026-09-21), e nenhum
+existe.** Três deles são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as
+duas de Zetsu no AV6. O total não promete 127 PNGs.
+
+**Este número é derivado.** A fonte de verdade de quais evidências cada gate
+exige continua sendo o `LEIA-ME.md` do gate, e a issue. Refaça a soma em vez de
+confiar nela: é assim que o 75 abaixo aconteceu.
+
+> A contagem desta tabela já disse **75**. Aquele número somava só os gates cuja
+> linha trazia um número; AV1, AV2 e AV3 apareciam como "ver issue" e ficavam de
+> fora da soma — uma subcontagem de 52 capturas que ninguém tinha como ver.
+> As três listas foram lidas das issues em 2026-09-21 e os números entraram na
+> tabela.
+
+A ordem de execução, a montagem de dois clientes e o checklist por gate estão em
+[`CAMPANHA-EVIDENCIAS.md`](../CAMPANHA-EVIDENCIAS.md).
+
+Isso está declarado também em
 [`o-que-nao-provamos.md`](../o-que-nao-provamos.md), e não deve ser deduzido de
 código que compila.
 

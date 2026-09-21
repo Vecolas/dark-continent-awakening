@@ -344,14 +344,64 @@ public final class AuraPlayerRenderLayer
         // os filamentos de Ren nascerem DENTRO dela -- sumindo, sem erro nenhum.
         float folga = AuraCurve.folgaBase(AuraGeometryLadder.espessuraDaBordaDe(degrau));
         long semeadura = jogador.getUUID().getLeastSignificantBits();
-        VertexConsumer buffer = buffers.getBuffer(AuraRenderTypes.ribbon());
         // O NUCLEO DA RIBBON E O PONTO MAIS BRILHANTE DA AURA INTEIRA
         // (hierarquia de brilho, direcao visual secao 3), entao ele entra no
         // alvo com peso CHEIO -- ao contrario do filme interno e do halo.
         float forcaDoBrilho = perfil.brilho().forca();
-        VertexConsumer brilho = com.darkcontinent.nenfoundation.client.vfx.shader
-                .AuraPostProcess.capturando() && forcaDoBrilho > 0.0F
-                ? buffers.getBuffer(AuraRenderTypes.ribbonDeBrilho()) : null;
+        boolean comBrilho = com.darkcontinent.nenfoundation.client.vfx.shader
+                .AuraPostProcess.capturando() && forcaDoBrilho > 0.0F;
+
+        // UM MATERIAL POR VEZ, E NUNCA DOIS CONSUMIDORES VIVOS AO MESMO TEMPO.
+        //
+        // <p><b>SEGURAR DOIS DERRUBA O JOGO, e o defeito e do lote e nao do
+        // desenho.</b> Um {@code MultiBufferSource.BufferSource} guarda UM
+        // buffer compartilhado para todo {@code RenderType} que nao esteja na
+        // tabela de buffers fixos -- e os tipos da aura nao estao. Pedir o
+        // segundo tipo ENCERRA o primeiro por dentro; o consumidor que ja
+        // estava na mao vira uma referencia morta, e o proximo vertice levanta
+        // {@code IllegalStateException: Not building!}.
+        //
+        // <p>Este metodo ja segurava os dois e alternava entre eles dentro do
+        // laco. Nao aparecia no build nem no teste: o segundo so existe quando
+        // {@code AuraPostProcess.capturando()} e verdadeiro, e o passe de
+        // brilho nunca tinha rodado numa GPU -- esta exata linha estava em
+        // o-que-nao-provamos.md. A primeira sessao de cliente derrubou o jogo
+        // em Ren, com dois jogadores. Ver #299.
+        //
+        // <p>O caminho da shell logo acima ja fazia certo, e e o modelo:
+        // desenha um tipo, {@link #descarregar} e so entao pede o proximo. As
+        // duas passagens produzem a MESMA geometria porque a semente e
+        // deterministica -- {@code uuid + ancora + indice + ciclo} -- e o tempo
+        // chega por parametro.
+        emitirRibbons(pilha, buffers.getBuffer(AuraRenderTypes.ribbon()), modelo, jogador,
+                estado, filamento, pressao, fases, quantidade, colunas, semeadura, folga,
+                tempo, luz, 1.0F, true);
+        descarregar(buffers, AuraRenderTypes.ribbon());
+
+        if (comBrilho) {
+            emitirRibbons(pilha, buffers.getBuffer(AuraRenderTypes.ribbonDeBrilho()), modelo,
+                    jogador, estado, filamento, pressao, fases, quantidade, colunas, semeadura,
+                    folga, tempo, luz, forcaDoBrilho, false);
+            descarregar(buffers, AuraRenderTypes.ribbonDeBrilho());
+        }
+    }
+
+    /**
+     * Emite filamentos e colunas num material SO.
+     *
+     * <p><b>O medidor conta na primeira passagem e nao na segunda.</b> A
+     * geometria do brilho e a mesma, reemitida noutro alvo; conta-la de novo
+     * daria ao AV8 o dobro de filamentos vivos, sem ninguem perceber -- o mesmo
+     * motivo pelo qual {@link #descarregar} conta chamada de desenho no lote, e
+     * nao por parte de corpo.
+     *
+     * @param fatorDeAlpha peso deste material; 1.0 na tela, a forca do brilho no alvo
+     * @param medir        se esta passagem alimenta o medidor do overlay
+     */
+    private void emitirRibbons(PoseStack pilha, VertexConsumer destino, AuraPlayerModel modelo,
+            AbstractClientPlayer jogador, AuraVisualState estado, AuraRibbonProfile filamento,
+            AuraPerfilDePressao pressao, AuraTransitionSample fases, int quantidade, int colunas,
+            long semeadura, float folga, float tempo, int luz, float fatorDeAlpha, boolean medir) {
 
         AuraAnchor[] ancoras = AuraAnchor.values();
         for (AuraBodyRegion regiao : AuraBodyRegion.values()) {
@@ -387,25 +437,17 @@ public final class AuraPlayerRenderLayer
                 }
 
                 long semente = AuraCurve.semente(semeadura, ancora, i, ciclo);
-                com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.filamento();
-                this.filamentos.desenhar(buffer, pose, ancora, this.slim, semente, folga,
-                        filamento.comprimentoDe(semente), filamento.largura(),
-                        CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
-                if (brilho != null) {
-                    this.filamentos.desenhar(brilho, pose, ancora, this.slim, semente, folga,
-                            filamento.comprimentoDe(semente), filamento.largura(),
-                            CorDaAura.comAlpha(estado.primaryColor(), alpha * forcaDoBrilho),
-                            luz);
+                if (medir) {
+                    com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.filamento();
                 }
+                this.filamentos.desenhar(destino, pose, ancora, this.slim, semente, folga,
+                        filamento.comprimentoDe(semente), filamento.largura(),
+                        CorDaAura.comAlpha(estado.primaryColor(), alpha * fatorDeAlpha), luz);
             }
 
-            desenharColunas(buffer, brilho, forcaDoBrilho, pose, regiao, colunas, estado,
+            desenharColunas(destino, fatorDeAlpha, medir, pose, regiao, colunas, estado,
                     filamento, pressao, fases, semeadura, folga, tempo, luz, pesoDaRegiao);
             pilha.popPose();
-        }
-        descarregar(buffers, AuraRenderTypes.ribbon());
-        if (brilho != null) {
-            descarregar(buffers, AuraRenderTypes.ribbonDeBrilho());
         }
     }
 
@@ -423,8 +465,8 @@ public final class AuraPlayerRenderLayer
      * na sessao de arte ajusta o da coluna junto -- em vez de deixar um numero
      * proprio aqui, esquecido.
      */
-    private void desenharColunas(VertexConsumer buffer, VertexConsumer brilho,
-            float forcaDoBrilho, PoseStack.Pose pose,
+    private void desenharColunas(VertexConsumer destino, float fatorDeAlpha, boolean medir,
+            PoseStack.Pose pose,
             AuraBodyRegion regiao, int colunas, AuraVisualState estado,
             AuraRibbonProfile filamento, AuraPerfilDePressao pressao, AuraTransitionSample fases,
             long semeadura, float folga, float tempo, int luz, float pesoDaRegiao) {
@@ -457,15 +499,12 @@ public final class AuraPlayerRenderLayer
             // output efetivo -- e nao da reserva. Reserva grande nao e aura
             // grande: aura e o que esta sendo liberado.
             float altura = pressao.alturaDe(semente) * (0.55F + 0.45F * estado.intensity());
-            com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.coluna();
-            this.filamentos.desenharColuna(buffer, pose, ancora, this.slim, semente, folga,
-                    altura, filamento.largura() * LARGURA_DA_COLUNA,
-                    CorDaAura.comAlpha(estado.primaryColor(), alpha), luz);
-            if (brilho != null) {
-                this.filamentos.desenharColuna(brilho, pose, ancora, this.slim, semente, folga,
-                        altura, filamento.largura() * LARGURA_DA_COLUNA,
-                        CorDaAura.comAlpha(estado.primaryColor(), alpha * forcaDoBrilho), luz);
+            if (medir) {
+                com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.coluna();
             }
+            this.filamentos.desenharColuna(destino, pose, ancora, this.slim, semente, folga,
+                    altura, filamento.largura() * LARGURA_DA_COLUNA,
+                    CorDaAura.comAlpha(estado.primaryColor(), alpha * fatorDeAlpha), luz);
         }
     }
 

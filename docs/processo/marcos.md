@@ -338,6 +338,7 @@ tecnica, e nao sobre brilho.
 **Decisoes:** [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md) e
 [ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md).
 **Como se prova:** [`av-aura-visual.md`](../testing/av-aura-visual.md).
+**Em que ordem, e com que montagem:** [`CAMPANHA-EVIDENCIAS.md`](../testing/CAMPANHA-EVIDENCIAS.md).
 
 Ela e **paralela**, e nao um degrau da escada M1–M8: nao gasta contrato de
 servidor, nao toca protocolo nem save, e nao bloqueia o M5. O prefixo `AV`

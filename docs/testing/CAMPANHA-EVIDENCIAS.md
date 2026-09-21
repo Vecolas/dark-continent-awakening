@@ -250,23 +250,90 @@ Isso transforma o último item pendente do passo 0 numa prova da própria migra�
 > uma instalação que precisa existir: rode `scripts/instancia.ps1 instalar`
 > primeiro, que baixa o servidor NeoForge dedicado, e só então `atualizar`.
 
+#### O oitavo check: **o destino já é um repositório?**
+
+```bash
+git -C <destino> rev-parse --git-dir   # e se responder, PARE e leia
+```
+
+Os sete anteriores olham para o clone de ORIGEM. Nenhum deles pergunta o que já
+existe no destino — e era ali que estava o risco maior.
+
+Em 2026-09-21, `C:\dev\dark-continent-awakening` **já existia**: era o clone de
+trabalho da outra frente, com **18 commits que só existiam ali**, sete branches
+locais, dois worktrees ativos e **26 mudanças não commitadas** — a camada de
+percepção de inimigos inteira (`EnemyPerceptionService`, `PerceptionBudget`,
+`TargetEvaluator`, `EnemyHearingBus` e os testes).
+
+Um `git clone` naquele caminho teria falhado por diretório não vazio — mas um
+`rm -rf` "para limpar o caminho" teria apagado dias de trabalho, sem erro
+nenhum. **A migração para um caminho curto quase virou o terceiro caso de
+recuperação manual deste repositório.**
+
+Terminou bem: a outra frente pushou tudo, e o resgate está na `main` em
+`8149c9c` — *"percepcao, audicao e avaliacao de alvo (WIP resgatado)"*.
+
 #### O gate do #19
 
-`#19` só é resolvida quando **todos** forem verdadeiros:
+Conferido em 2026-09-21 contra `C:\dev\dark-continent-awakening`, que não
+precisou ser criado: **ele já era o clone da outra frente**, e depois da limpeza
+dela virou o ambiente oficial.
 
-- [ ] `origin` correto
-- [ ] `main` == `origin/main` == `96f491c`
-- [ ] nenhum commit exclusivamente local ficou para trás
-- [ ] nenhum stash necessário ficou para trás
-- [ ] nenhum worktree necessário ficou para trás
-- [ ] **`transfer/` resolvido** — aproveitado, descartado ou commitado, com a decisão escrita
-- [ ] configurações locais importantes identificadas
-- [ ] `./gradlew build` verde, com a contagem de testes que a `main` tem hoje
-- [ ] `scripts/instancia.ps1 instalar` e depois `atualizar` funcionam a partir do clone novo
-- [ ] **dois `git worktree` criados sem `Filename too long`** — é o teste que justifica a migração
-- [ ] os dois apontam para os commits e branches esperados
+| Item | Estado |
+| --- | --- |
+| `origin` correto | ✅ `https://github.com/Vecolas/dark-continent-awakening.git` |
+| `main` == `origin/main` | ✅ `b7ba18d`, zero à frente e zero atrás |
+| nenhum commit exclusivamente local | ⚠️ **um**, em `archive/main-pre-pr294` — deliberado pelo nome, e não esquecimento. Precisa de uma linha dizendo se fica ou some |
+| nenhum stash ficou para trás | ✅ vazio |
+| nenhum worktree ficou para trás | ✅ só o principal |
+| **`transfer/` preservado fora do clone** | ✅ ver abaixo — **este era o único que bloqueava** |
+| conteúdo de `transfer/` classificado | ⬜ aberto, e **não bloqueia** |
+| configurações locais identificadas | ✅ nenhuma precisa migrar; ver a tabela acima |
+| `./gradlew build` verde | ✅ **1.540 testes** (`test --rerun-tasks`, para não ler cache) |
+| `instancia.ps1 instalar` + `atualizar` | ⬜ não executado |
+| **dois `git worktree` sem `Filename too long`** | ✅ **`C:/dca-a` e `C:/dca-b` criados**, e os dois contêm `worldtree/generation/WorldTreeFoliageAnchorGenerator.java` — o arquivo que estourava o MAX_PATH no OneDrive |
+| os dois apontam para o esperado | ✅ `b7ba18d` nos dois |
 
-Só então o clone do OneDrive sai da quarentena.
+> **Nenhum commit fixado neste gate.** A versão anterior dizia `== 96f491c` e
+> envelheceu em horas, quando a outra frente pushou 25 commits. É o mesmo
+> defeito do `1.409` e do `75`: número copiado à mão não sobrevive à entrega da
+> outra frente. O critério é `main == origin/main`, e não um hash.
+
+#### A quarentena de `transfer/`
+
+```
+C:\dev\quarantine\dark-continent-transfer-2026-09-21.zip
+SHA-256  75CB592222F3539856D4E51CEEE1759CD4D454E64E9B7A5F1DF8417688AC3CFD
+```
+
+Os quatro arquivos, com manifesto SHA-256 por arquivo **dentro do próprio zip**.
+O arquivo foi extraído num diretório temporário e os quatro hashes reconferidos
+contra o manifesto: batem byte a byte. *Hash de zip incompleto não prova nada.*
+
+`transfer/` continua intacta no clone do OneDrive — quarentena é **preservar**,
+e não mover.
+
+**A classificação é uma atividade separada, e não bloqueia nada.** Para cada um
+dos quatro arquivos, contra a versão atual da `main`:
+
+| Classe | Significa |
+| --- | --- |
+| SUPERADA | a versão atual implementa a mesma intenção, melhor |
+| OBSOLETA | referencia arquitetura que já não existe |
+| DUPLICADA | já existe em outro lugar da `main` |
+| ÚNICA | há lógica ou conteúdo que só existe em `transfer/` |
+| INDETERMINADA | não dá para estabelecer a intenção com segurança |
+
+`transfer/` só é descartável quando os quatro forem SUPERADA, OBSOLETA ou
+DUPLICADA. **Um só ÚNICA ou INDETERMINADA e o arquivo é preservado**, com issue
+curta de recuperação — nunca injetando código antigo na `main` automaticamente.
+
+#### O que falta para fechar o #19
+
+1. Decidir o destino de `archive/main-pre-pr294` (uma linha).
+2. `scripts/instancia.ps1 instalar` e depois `atualizar`, no clone de `C:\dev`.
+3. Aposentar o clone do OneDrive — que é o que sobra da migração, já que o
+   destino existia antes dela.
 
 Alternativa não testada, se mover for indesejável agora:
 `git config core.longpaths true`.
@@ -295,12 +362,18 @@ gamemode=creative
 
 ### 4.3 Os dois worktrees e os dois clientes
 
-Um worktree por cliente, **ambos em caminho curto**:
+Um worktree por cliente, **ambos em caminho curto e ambos `--detach`**:
 
 ```bash
-git worktree add C:/dca-a main
-git worktree add C:/dca-b --detach main
+git worktree add --detach C:/dca-a main
+git worktree add --detach C:/dca-b main
 ```
+
+> **O primeiro tinha `main` sem `--detach`, e falha.** Git recusa a mesma branch
+> em dois worktrees: `fatal: 'main' is already used by worktree at ...`. Se o
+> clone principal está em `main` — e normalmente está —, a receita morre no
+> primeiro comando. `--detach` nos dois resolve, e nenhum dos dois precisa de
+> branch: eles só rodam cliente. Medido em 2026-09-21.
 
 Servidor num, clientes em cada um:
 

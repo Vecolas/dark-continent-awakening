@@ -136,6 +136,25 @@ public final class AuraDebugCommands {
         }));
         raiz.then(lod);
 
+        raiz.then(Commands.literal("permissivo").executes(ctx -> {
+            // O MODO PERMISSIVO IGNORA A SUPRESSAO POR IN, e ele existe para
+            // conferir num mundo de teste que a geometria continua certa quando
+            // ela volta. Ele NAO muda o que o servidor envia -- nao ha como:
+            // quem esta em Zetsu chega como NENHUM, e nao ha o que revelar.
+            //
+            // ELE NAO E CONFIG DE CLIENTE de proposito. Uma chave em
+            // NenClientConfig seria um botao permanente na maquina de qualquer
+            // pessoa; aqui e estado de sessao, apagado no logout, e ele ACENDE o
+            // aviso de sobreposicao no overlay -- porque uma captura tirada com
+            // ele ligado nao vale como aprovacao.
+            boolean ligado = !com.darkcontinent.nenfoundation.client.vfx
+                    .AuraVisibilityResolver.permissivo();
+            com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver
+                    .permissivo(ligado);
+            return relatar(ctx, ligado ? "nenfoundation.vfx.permissivo_ligado"
+                    : "nenfoundation.vfx.permissivo_desligado");
+        }));
+
         raiz.then(Commands.literal("freeze").executes(ctx -> {
             boolean novo = !SobreposicaoDeVfx.congelado();
             SobreposicaoDeVfx.congelar(novo);

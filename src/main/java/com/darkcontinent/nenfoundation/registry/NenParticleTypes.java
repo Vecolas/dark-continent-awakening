@@ -31,6 +31,29 @@ public final class NenParticleTypes {
                         }
                     });
 
+    /**
+     * O fragmento cosmetico levantado por Ren.
+     *
+     * <p>PURAMENTE COSMETICO, E ISSO E REQUISITO E NAO LIMITACAO ACEITA A
+     * CONTRAGOSTO. VFX que altera o mundo e VFX que precisa de autoridade de
+     * servidor -- e a autoridade e do servidor, nao do renderer (ADR-001). Ele
+     * nao quebra bloco, nao cria {@code ItemEntity}, nao colide e nao empurra.
+     */
+    public static final DeferredHolder<ParticleType<?>, ParticleType<AuraDebrisParticleOptions>>
+            AURA_DEBRIS = TYPES.register("aura_debris",
+                    () -> new ParticleType<AuraDebrisParticleOptions>(false) {
+                        @Override
+                        public MapCodec<AuraDebrisParticleOptions> codec() {
+                            return AuraDebrisParticleOptions.CODEC;
+                        }
+
+                        @Override
+                        public StreamCodec<RegistryFriendlyByteBuf, AuraDebrisParticleOptions>
+                                streamCodec() {
+                            return AuraDebrisParticleOptions.STREAM_CODEC;
+                        }
+                    });
+
     private NenParticleTypes() {
     }
 

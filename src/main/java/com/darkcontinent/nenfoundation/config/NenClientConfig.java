@@ -59,6 +59,57 @@ public final class NenClientConfig {
                     "Desligar aqui nao muda nada do que os OUTROS veem.")
             .define("vfx.primeiraPessoa", true);
 
+    private static final ModConfigSpec.BooleanValue DETRITOS = BUILDER
+            .comment("Se a pressao de Ren levanta fragmentos cosmeticos do chao.",
+                    "Eles NAO tocam o mundo: nao quebram bloco, nao criam item, nao",
+                    "colidem e nao empurram. O que muda aqui e so o desenho.",
+                    "",
+                    "A chave NASCE AGORA porque o consumidor nasce agora (AV4).",
+                    "Declarar antes seria config orfa -- alguem passaria uma tarde",
+                    "girando um botao morto. A DENSIDADE continua governada por",
+                    "vfx.densidadeDeParticulas; aqui e liga e desliga.")
+            .define("vfx.detritos", true);
+
+    private static final ModConfigSpec.DoubleValue DISTANCIA_MAXIMA = BUILDER
+            .comment("Ate quantos blocos este cliente desenha aura de outras pessoas.",
+                    "Alem disso, nada -- nem shell, nem filamento, nem anel, nem brilho.",
+                    "",
+                    "ELA ESTAVA PROMETIDA DESDE O AV3 e nao tinha consumidor: uma chave",
+                    "anunciada que ninguem implementou e o numero orfao virado do",
+                    "avesso -- alguem configura e nada muda. O consumidor nasce com",
+                    "ela, e e um so: AuraLodEfetivo.",
+                    "",
+                    "O padrao e 72, que e onde a tabela de nivel de detalhe ja corta",
+                    "por conta propria. Abaixar aqui e escolha de desempenho; subir",
+                    "acima de 72 nao acrescenta nada, porque a tabela manda.")
+            .defineInRange("vfx.distanciaMaxima", 72.0D, 8.0D, 128.0D);
+
+    private static final ModConfigSpec.EnumValue<
+            com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel> BLOOM = BUILDER
+            .comment("Quanto a aura BRILHA neste cliente.",
+                    "OFF nao acrescenta passe nenhum -- a aura continua legivel pela",
+                    "borda e pelos filamentos, porque bloom e melhoria e nao",
+                    "identidade (ADR-016). FAST aproxima o halo sem criar nenhum",
+                    "alvo de render. HIGH roda a cadeia real: alvo com mascara de",
+                    "profundidade, meia resolucao, desfoque separavel e composite",
+                    "aditivo.",
+                    "",
+                    "A chave NASCE AGORA porque o consumidor nasce agora (AV5).",
+                    "",
+                    "Se o shader nao compilar ou o alvo nao puder ser criado, o nivel",
+                    "cai sozinho para FAST -- nunca para OFF -- e o motivo aparece UMA",
+                    "vez no log. Efeito visual nunca crasha o jogo.")
+            .defineEnum("vfx.bloom",
+                    com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel.HIGH);
+
+    private static final ModConfigSpec.DoubleValue INTENSIDADE_DO_BLOOM = BUILDER
+            .comment("Multiplicador do brilho, de 0 a 2.",
+                    "O RAIO nao esta aqui: ele e direcao de arte e mora no perfil",
+                    "visual, por tecnica. O que este slider move e a INTENSIDADE --",
+                    "o raio maximo e travado em codigo como limite de desenho,",
+                    "porque trinta pixels de halo deixa de ser brilho e vira nevoa.")
+            .defineInRange("vfx.intensidadeDoBloom", 1.0D, 0.0D, 2.0D);
+
     /** O spec deste arquivo, registrado como CLIENT. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -77,6 +128,17 @@ public final class NenClientConfig {
         return QUALIDADE.get();
     }
 
+    /**
+     * Ate onde este cliente desenha aura dos outros, em blocos.
+     *
+     * <p>Quem a le e {@code AuraLodEfetivo}, e mais ninguem: quatro caminhos de
+     * desenho perguntando a config direto seriam quatro chances de um deles
+     * esquecer o corte.
+     */
+    public static double distanciaMaxima() {
+        return DISTANCIA_MAXIMA.get();
+    }
+
     /** Se este cliente desenha a aura nos bracos em primeira pessoa. */
     public static boolean auraEmPrimeiraPessoa() {
         return AURA_EM_PRIMEIRA_PESSOA.get();
@@ -85,6 +147,28 @@ public final class NenClientConfig {
     /** Densidade de particulas escolhida por este cliente. */
     public static double densidadeDeParticulas() {
         return DENSIDADE_DE_PARTICULAS.get();
+    }
+
+    /**
+     * O nivel de brilho escolhido por este cliente.
+     *
+     * <p>ELE E UMA ESCOLHA, e nao o nivel EFETIVO. Quem responde "o que esta
+     * rodando agora" e {@code AuraPostProcess}, que pode ter rebaixado por falha
+     * de shader ou de alvo. Ler esta chave como se fosse o estado real faria o
+     * overlay de dev afirmar HIGH enquanto a tela mostra FAST.
+     */
+    public static com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel bloom() {
+        return BLOOM.get();
+    }
+
+    /** O multiplicador de brilho escolhido por este cliente. */
+    public static float intensidadeDoBloom() {
+        return INTENSIDADE_DO_BLOOM.get().floatValue();
+    }
+
+    /** Se este cliente desenha os fragmentos cosmeticos levantados por Ren. */
+    public static boolean detritos() {
+        return DETRITOS.get();
     }
 
     /**

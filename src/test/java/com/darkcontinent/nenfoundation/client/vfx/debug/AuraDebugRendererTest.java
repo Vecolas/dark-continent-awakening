@@ -25,9 +25,28 @@ import org.junit.jupiter.api.Test;
  */
 class AuraDebugRendererTest {
 
+    /**
+     * O caso base, num lugar so.
+     *
+     * <p>ELE VIROU UMA FABRICA POR NECESSIDADE. O record de dados do overlay
+     * cresceu duas vezes -- as reguas do AV4 e as do AV5 --, e cada crescimento
+     * quebrava CINCO construcoes posicionais espalhadas por este arquivo. Uma
+     * fabrica com os campos que cada teste realmente move deixa o teste falar do
+     * que ele testa; o resto e ruido que o compilador cobra sem que ninguem
+     * aprenda nada.
+     */
     private static AuraDebugRenderer.Dados semNada() {
-        return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
+        return base(true, null, AuraDistribution.uniforme(), 0, 0, 0, 0, 0, 0, 0);
+    }
+
+    private static AuraDebugRenderer.Dados base(boolean desenhoLigado, String ajustes,
+            AuraDistribution distribuicao, int chamadas, int filamentos, int colunas,
+            int aneis, int particulas, int detritos, int jogadores) {
+        return new AuraDebugRenderer.Dados(desenhoLigado, false, null, Float.NaN, Float.NaN,
+                null, -1,
+                chamadas, filamentos, colunas, aneis, particulas, detritos, 0, jogadores,
+                "off", null, true, 0, 0, null, false,
+                false, null, "33ded12", ajustes, distribuicao, null);
     }
 
     private static String juntar(List<String> linhas) {
@@ -38,10 +57,17 @@ class AuraDebugRendererTest {
     @DisplayName("campo sem consumidor aparece como traco, e nunca como zero")
     void semConsumidorNaoEZero() {
         String texto = juntar(AuraDebugRenderer.linhas(semNada()));
-        assertTrue(texto.contains("alvo de bloom: " + AuraDebugRenderer.SEM_CONSUMIDOR),
-                "o passe de bloom nasce no AV5; escrever um numero aqui seria mentir\n" + texto);
-        assertTrue(texto.contains("visibilidade: " + AuraDebugRenderer.SEM_CONSUMIDOR),
+        // O ALVO DE BLOOM SAIU DA LISTA DE TRACOS NO AV5, porque ele ganhou
+        // consumidor. A visibilidade por observador continua sem um -- e
+        // escrever um numero nela seria afirmar que o resolvedor rodou.
+        assertTrue(texto.contains("gyo/in: " + AuraDebugRenderer.SEM_CONSUMIDOR),
                 "o resolvedor de visibilidade nasce no AV6\n" + texto);
+        assertTrue(texto.contains("alvo: nenhum"),
+                "sem alvo criado, a linha diz NENHUM -- e nao um tamanho em pixels que"
+                        + " nao existe\n" + texto);
+        assertTrue(texto.contains("passe pulado: sim"),
+                "sem aura na tela o passe inteiro e pulado, e a regua precisa dizer\n"
+                        + texto);
     }
 
     @Test
@@ -55,10 +81,8 @@ class AuraDebugRendererTest {
     @Test
     @DisplayName("qualquer sobreposicao acende o aviso de que a captura nao vale")
     void qualquerSobreposicaoGrita() {
-        AuraDebugRenderer.Dados so1Slider = new AuraDebugRenderer.Dados(
-                true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", "alpha_borda=0.400",
-                AuraDistribution.uniforme());
+        AuraDebugRenderer.Dados so1Slider = base(true, "alpha_borda=0.400",
+                AuraDistribution.uniforme(), 0, 0, 0, 0, 0, 0, 0);
         String texto = juntar(AuraDebugRenderer.linhas(so1Slider));
 
         assertTrue(texto.contains("OVERRIDE ATIVO"),
@@ -69,9 +93,8 @@ class AuraDebugRendererTest {
     @Test
     @DisplayName("desenho desligado tambem conta como sobreposicao")
     void desenhoDesligadoGrita() {
-        AuraDebugRenderer.Dados desligado = new AuraDebugRenderer.Dados(
-                false, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, AuraDistribution.uniforme());
+        AuraDebugRenderer.Dados desligado = base(false, null, AuraDistribution.uniforme(),
+                0, 0, 0, 0, 0, 0, 0);
         String texto = juntar(AuraDebugRenderer.linhas(desligado));
         assertTrue(texto.contains("OVERRIDE ATIVO"), texto);
         assertTrue(texto.contains("desenho=off"), texto);
@@ -80,21 +103,26 @@ class AuraDebugRendererTest {
     @Test
     @DisplayName("o custo do quadro aparece sempre, inclusive quando e zero")
     void custoAparece() {
-        AuraDebugRenderer.Dados comCusto = new AuraDebugRenderer.Dados(
-                true, false, null, Float.NaN, Float.NaN, null, -1,
-                6, 48, 12, 2, false, null, "33ded12", null, AuraDistribution.uniforme());
+        AuraDebugRenderer.Dados comCusto = base(true, null, AuraDistribution.uniforme(),
+                6, 48, 4, 1, 12, 5, 2);
         String texto = juntar(AuraDebugRenderer.linhas(comCusto));
         assertTrue(texto.contains("6 chamadas"), texto);
         assertTrue(texto.contains("48 filamentos"), texto);
+        assertTrue(texto.contains("4 colunas"), texto);
         assertTrue(texto.contains("12 faiscas ativas"), texto);
         assertTrue(texto.contains("2 com aura"), texto);
+        assertTrue(texto.contains("1 aneis"), texto);
+        // O TETO AO LADO DO NUMERO. Um contador sem o teto nao responde a
+        // pergunta que importa -- "isto esta perto do limite?" --, e e essa
+        // pergunta que o AV8 vai fazer.
+        assertTrue(texto.contains("5/12 detritos"),
+                "o teto precisa aparecer ao lado da contagem\n" + texto);
     }
 
     // ------------------------------------------------- os seis fatores
 
     private static AuraDebugRenderer.Dados com(AuraDistribution d) {
-        return new AuraDebugRenderer.Dados(true, false, null, Float.NaN, Float.NaN, null, -1,
-                0, 0, 0, 0, false, null, "33ded12", null, d);
+        return base(true, null, d, 0, 0, 0, 0, 0, 0, 0);
     }
 
     @Test

@@ -41,6 +41,38 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
     private static final Map<AuraVisualMode, AuraPerfilVisual> CARREGADOS =
             new EnumMap<>(AuraVisualMode.class);
 
+    /**
+     * O ultimo perfil interpolado, e a chave dele.
+     *
+     * <p><b>UMA ENTRADA SO, E ELA BASTA.</b> Num quadro, cada jogador com aura
+     * pergunta o perfil quatro vezes -- a shell, os filamentos, o anel e a
+     * particula --, e as quatro chegam com a MESMA chave. Dez jogadores no mesmo
+     * estado tambem compartilham a chave. O que uma entrada nao cobre e dez
+     * jogadores em estados diferentes intercalados, e ai ela simplesmente erra e
+     * recalcula -- que e o comportamento de antes, e nao uma regressao.
+     *
+     * <p><b>POR QUE ISTO EXISTE.</b> {@code AuraPerfilVisual.interpolar} aloca um
+     * record com dois records dentro. Quatro chamadas por jogador por quadro,
+     * vezes sessenta quadros, vezes dez jogadores, sao 2400 objetos por segundo
+     * no caminho quente -- e alocacao por quadro nao da erro: aparece como FPS
+     * caindo devagar ao longo de uma sessao, que e o sintoma que o AV8 existe
+     * para nao encontrar.
+     *
+     * <p>A CHAVE INCLUI A VERSAO DO DADO E A DA SOBREPOSICAO. Sem elas, recarregar
+     * com F3+T ou girar um slider devolveria o perfil velho -- e o botao
+     * pareceria morto, que e o erro numero 7 do {@code CLAUDE.md} chegando pela
+     * porta dos fundos.
+     */
+    private static AuraVisualMode memoModo;
+    private static AuraVisualMode memoAlvo;
+    private static float memoProgresso = Float.NaN;
+    private static int memoVersaoDoDado = -1;
+    private static int memoVersaoDaSobreposicao = -1;
+    private static AuraPerfilVisual memoPerfil;
+
+    /** Avanca a cada recarga de recurso. Metade da chave do memo. */
+    private static int versaoDoDado;
+
     public AuraPerfis() {
         super(GSON, DIRETORIO);
     }
@@ -53,7 +85,7 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
      * estar escrita aqui e nao depender de uma guarda em quem desenha.
      */
     public static AuraPerfilVisual de(AuraVisualMode modo) {
-        if (modo == null || modo == AuraVisualMode.ZETSU || modo == AuraVisualMode.OFF) {
+        if (semBrilho(modo)) {
             // O APAGADO NAO PASSA PELA SOBREPOSICAO, de proposito. Zetsu e
             // ausencia total (direcao visual, secao 2); deixar um slider
             // reacender a aura de quem esta suprimido faria a ferramenta de
@@ -63,6 +95,112 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
         AuraPerfilVisual perfil = CARREGADOS.get(modo);
         return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
                 perfil != null ? perfil : AuraPerfilVisual.SEGURO);
+    }
+
+    /**
+     * O perfil de um ESTADO, ja interpolado entre as duas pontas da transicao.
+     *
+     * <p><b>ELE CORRIGE A TROCA SECA DE PRESET.</b> Buscar o perfil por
+     * {@code estado.mode()} -- que era o que a layer fazia ate o AV3 -- devolve
+     * o perfil de ORIGEM durante a transicao inteira e o de DESTINO no ultimo
+     * tick. O resultado e uma intensidade que sobe suave com um material que
+     * salta num quadro: nao lanca, nao aparece em teste, e a pessoa relata como
+     * "bug de render".
+     *
+     * <p>QUEM SO TEM O MODO CONTINUA USANDO {@link #de(AuraVisualMode)} -- hoje
+     * isso e a primeira pessoa, que le apenas a borda e nao tem estado inteiro
+     * na mao. Tudo o que tem o estado usa esta sobrecarga, particula inclusive:
+     * a taxa de faisca de Ten aparecendo de uma vez no ultimo tick da subida e a
+     * mesma troca seca, numa escala menor.
+     */
+    public static AuraPerfilVisual de(
+            com.darkcontinent.nenfoundation.client.vfx.AuraVisualState estado) {
+        if (estado == null) {
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        if (semBrilho(estado.mode()) && semBrilho(estado.modoAlvo())) {
+            // ASSENTADO EM ZETSU OU EM NADA: ausencia total, e sem passar pela
+            // sobreposicao -- mesma razao de {@link #de(AuraVisualMode)}.
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        int versaoDaSobreposicao =
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.versao();
+        if (estado.mode() == memoModo && estado.modoAlvo() == memoAlvo
+                && Float.compare(estado.transitionProgress(), memoProgresso) == 0
+                && versaoDoDado == memoVersaoDoDado
+                && versaoDaSobreposicao == memoVersaoDaSobreposicao
+                && memoPerfil != null) {
+            return memoPerfil;
+        }
+        AuraPerfilVisual origem = cru(estado.mode());
+        AuraPerfilVisual alvo = cru(estado.modoAlvo());
+        AuraPerfilVisual resultado =
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoPerfil(
+                        AuraPerfilVisual.interpolar(origem, alvo, estado.transitionProgress()));
+        memoModo = estado.mode();
+        memoAlvo = estado.modoAlvo();
+        memoProgresso = estado.transitionProgress();
+        memoVersaoDoDado = versaoDoDado;
+        memoVersaoDaSobreposicao = versaoDaSobreposicao;
+        memoPerfil = resultado;
+        return resultado;
+    }
+
+    /**
+     * Esquece o perfil memorizado.
+     *
+     * <p>Chamado na recarga de recurso. Publico porque o teste precisa dele: sem
+     * um jeito de zerar, o memo faria um teste enxergar o perfil montado pelo
+     * teste ANTERIOR, e a falha apareceria conforme a ordem de execucao.
+     */
+    public static void esquecerMemo() {
+        versaoDoDado++;
+        memoPerfil = null;
+        memoProgresso = Float.NaN;
+    }
+
+    /**
+     * O perfil de um modo SEM a sobreposicao: a materia-prima da interpolacao.
+     *
+     * <p>ZETSU TEM ARQUIVO A PARTIR DO AV6, e ele e LIDO -- mas o codigo nao
+     * CONFIA nele. O que este metodo devolve para Zetsu e sempre o perfil
+     * apagado, venha o que vier do disco. A razao esta no javadoc de
+     * {@link #zetsuPrecisaSerZero}: um resource pack de terceiro chega por este
+     * mesmo caminho, e um Zetsu que brilha entrega justamente quem esta se
+     * escondendo.
+     */
+    private static AuraPerfilVisual cru(AuraVisualMode modo) {
+        if (semBrilho(modo)) {
+            return AuraPerfilVisual.SEGURO.apagado();
+        }
+        AuraPerfilVisual perfil = CARREGADOS.get(modo);
+        return perfil != null ? perfil : AuraPerfilVisual.SEGURO;
+    }
+
+    /**
+     * Reprova, com motivo, um perfil de Zetsu que nao seja zero.
+     *
+     * <p><b>A TRAVA E ESTRUTURAL, E ESTE LOG E O AVISO.</b> {@link #cru} ja
+     * devolve o apagado para Zetsu de qualquer jeito, entao um arquivo torto nao
+     * consegue acender nada. O que esta linha acrescenta e o motivo: sem ela,
+     * quem escreveu {@code alpha_borda: 0.3} no zetsu.json de um pack ficaria
+     * horas tentando entender por que nada muda -- e "nao muda" e o pior relato
+     * que existe, porque nao ha erro para procurar.
+     */
+    private static void zetsuPrecisaSerZero(ResourceLocation id, AuraPerfilVisual perfil) {
+        if (perfil.equals(perfil.apagado())) {
+            return;
+        }
+        LOG.error("O perfil de aura '{}' tem valores diferentes de zero, e Zetsu e ausencia"
+                + " TOTAL (referencia D). Os valores foram IGNORADOS -- o perfil apagado"
+                + " assume. Num servidor com dois clientes, brilho residual entrega"
+                + " justamente quem esta se escondendo, e por isso esta trava nao e"
+                + " negociavel por resource pack.", id);
+    }
+
+    /** Modos em que a ausencia e a informacao. */
+    private static boolean semBrilho(AuraVisualMode modo) {
+        return modo == null || modo == AuraVisualMode.ZETSU || modo == AuraVisualMode.OFF;
     }
 
     /** Se algum perfil chegou a ser carregado. Falso antes do primeiro reload. */
@@ -77,6 +215,11 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
         // continuaria valendo ate o jogo fechar -- e o sintoma seria um ajuste
         // que "nao volta atras".
         CARREGADOS.clear();
+        // O MEMO MORRE COM O DADO. Sem esta linha, F3+T carregaria o perfil novo
+        // e o desenho continuaria mostrando o antigo ate o estado mudar -- e a
+        // sessao de arte inteira depende de "mexer no numero, recarregar,
+        // olhar".
+        esquecerMemo();
 
         for (Map.Entry<ResourceLocation, JsonElement> arquivo : arquivos.entrySet()) {
             ResourceLocation id = arquivo.getKey();
@@ -92,7 +235,12 @@ public final class AuraPerfis extends SimpleJsonResourceReloadListener {
                             "Perfil de aura '{}' recusado: {}. O perfil de emergencia assume,"
                                     + " e ele e visivelmente mais fraco -- se a aura parecer"
                                     + " apagada, e este o motivo.", id, erro))
-                    .ifPresent(perfil -> CARREGADOS.put(modo, perfil));
+                    .ifPresent(perfil -> {
+                        if (modo == AuraVisualMode.ZETSU) {
+                            zetsuPrecisaSerZero(id, perfil);
+                        }
+                        CARREGADOS.put(modo, perfil);
+                    });
             } catch (RuntimeException erro) {
                 // CINTO E SUSPENSORIO. O codec ja transforma dado torto em erro,
                 // mas uma excecao aqui derrubaria o RELOAD DE RECURSOS inteiro

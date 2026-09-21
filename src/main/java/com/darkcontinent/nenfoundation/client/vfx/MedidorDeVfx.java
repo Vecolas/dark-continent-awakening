@@ -30,13 +30,19 @@ public final class MedidorDeVfx {
 
     private static int chamadasEmCurso;
     private static int filamentosEmCurso;
+    private static int colunasEmCurso;
     private static int particulasEmCurso;
+    private static int detritosEmCurso;
     private static int jogadoresEmCurso;
+    private static int aneisEmCurso;
 
     private static int chamadasFechadas;
     private static int filamentosFechados;
+    private static int colunasFechadas;
     private static int particulasFechadas;
+    private static int detritosFechados;
     private static int jogadoresFechados;
+    private static int aneisFechados;
 
     private MedidorDeVfx() {
     }
@@ -46,9 +52,34 @@ public final class MedidorDeVfx {
         chamadasEmCurso++;
     }
 
-    /** Um filamento montado neste quadro. */
+    /** Um filamento de CORPO montado neste quadro. */
     public static void filamento() {
         filamentosEmCurso++;
+    }
+
+    /**
+     * Uma COLUNA de Ren montada neste quadro.
+     *
+     * <p>CONTADOR SEPARADO, e nao somado ao de filamentos. A issue #189 pede
+     * explicitamente as duas contagens lado a lado, e a razao e pratica: coluna
+     * e ribbon de corpo custam vertices diferentes -- doze nos contra nove -- e
+     * saem por LOD em momentos diferentes. Um numero so esconderia qual dos dois
+     * cresceu.
+     */
+    public static void coluna() {
+        colunasEmCurso++;
+    }
+
+    /** Um anel de pressao desenhado neste quadro. */
+    public static void anelDePressao() {
+        aneisEmCurso++;
+    }
+
+    /** Detritos vivos neste tick. */
+    public static void detritos(int quantos) {
+        if (quantos > 0) {
+            detritosEmCurso += quantos;
+        }
     }
 
     /** Particulas emitidas neste tick. */
@@ -73,9 +104,13 @@ public final class MedidorDeVfx {
     public static void fecharQuadro() {
         chamadasFechadas = chamadasEmCurso;
         filamentosFechados = filamentosEmCurso;
+        colunasFechadas = colunasEmCurso;
+        aneisFechados = aneisEmCurso;
         jogadoresFechados = jogadoresEmCurso;
         chamadasEmCurso = 0;
         filamentosEmCurso = 0;
+        colunasEmCurso = 0;
+        aneisEmCurso = 0;
         jogadoresEmCurso = 0;
     }
 
@@ -91,19 +126,42 @@ public final class MedidorDeVfx {
      */
     public static void fecharTick() {
         particulasFechadas = particulasEmCurso;
+        detritosFechados = detritosEmCurso;
         particulasEmCurso = 0;
+        detritosEmCurso = 0;
     }
 
     /** Quem liga, desliga: no logout, os numeros do mundo anterior somem. */
     public static void limpar() {
         chamadasEmCurso = 0;
         filamentosEmCurso = 0;
+        colunasEmCurso = 0;
         particulasEmCurso = 0;
+        detritosEmCurso = 0;
         jogadoresEmCurso = 0;
+        aneisEmCurso = 0;
         chamadasFechadas = 0;
         filamentosFechados = 0;
+        colunasFechadas = 0;
         particulasFechadas = 0;
+        detritosFechados = 0;
         jogadoresFechados = 0;
+        aneisFechados = 0;
+    }
+
+    /** Colunas de Ren desenhadas no ultimo quadro fechado. */
+    public static int colunas() {
+        return colunasFechadas;
+    }
+
+    /** Aneis de pressao desenhados no ultimo quadro fechado. */
+    public static int aneisDePressao() {
+        return aneisFechados;
+    }
+
+    /** Detritos vivos no ultimo tick fechado. */
+    public static int detritos() {
+        return detritosFechados;
     }
 
     /** Chamadas de desenho de aura no ultimo quadro fechado. */
@@ -133,6 +191,7 @@ public final class MedidorDeVfx {
      * pequeno" em forma de pergunta que da para fazer na hora.
      */
     public static boolean custoZero() {
-        return chamadasFechadas == 0 && filamentosFechados == 0;
+        return chamadasFechadas == 0 && filamentosFechados == 0 && colunasFechadas == 0
+                && aneisFechados == 0;
     }
 }

@@ -24,5 +24,24 @@
     "comprimento_max": 1.60,
     "largura": 0.014,
     "ciclo_segundos": 0.55
-  }
+  },
+
+  "_pressao": "As correntes verticais, o anel irregular e os fragmentos da referencia C. SEIS colunas, e nao trinta: passar de oito transforma pressao em fogueira e inverte a hierarquia de leitura. O raio do anel e o MESMO que limita de onde os detritos nascem -- duas contas para o mesmo raio seriam duas verdades.",
+  "pressao": {
+    "colunas": 6,
+    "altura_minima": 0.8,
+    "altura_maxima": 2.5,
+    "anel": 0.65,
+    "anel_raio_minimo": 0.8,
+    "anel_raio_maximo": 2.0,
+    "anel_segmentos": 32,
+    "detritos": 8
+  },
+
+  "_brilho": "Ren respira: 0.09 de amplitude e visivel sem virar estroboscopio. O bloom mais forte alimenta o passe do AV5 -- e e ele que separa 'pixels claros' de 'luz'.",
+  "_raio": "Em PIXELS DE TELA, e nao em texels do alvo: o alvo e de meia resolucao, e a conversao e do pipeline. Ten pede 2 a 3 px; Ren, 4 a 7. O teto de 8 px e constante de codigo -- trinta pixels de halo e nevoa, e nevoa apaga a silhueta.",
+  "bloom": { "forca": 0.55, "raio": 5.5 },
+  "_armadura": "Com armadura, a borda de Ren sobe de 0.072 para 0.090. O teto de design de 0.25 bloco continua valendo: poder extremo aumenta densidade, brilho, velocidade e pressao -- nao tamanho.",
+  "borda_com_armadura": 0.09,
+  "amplitude_de_pulso": 0.09
 }

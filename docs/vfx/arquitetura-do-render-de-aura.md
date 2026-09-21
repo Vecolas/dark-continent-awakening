@@ -247,6 +247,12 @@ ribbons do mesmo material e emite um ou dois buffers.
 
 - **Colunas verticais** — 4 a 8 ribbons especiais, nascendo em ombros, costas,
   pernas e perímetro da cabeça, subindo de 0.8 a 2.5 blocos. Não trinta.
+  **Entregues no AV4**, e elas são ribbons de verdade: mesmo lote, mesmo
+  material, mesma tira — o que muda é a curva, que sobe em vez de enrolar. Os
+  oito lugares de nascimento vivem em `AuraAnchor.coluna(i)`, e há portão
+  fixando que a lista tem exatamente o tamanho do teto de design: com os dois
+  separados, ou o perfil pede oito e só seis nascem, ou duas colunas saem do
+  mesmo ponto e são lidas como uma coluna grossa.
 - **Anel de pressão** — malha horizontal perto do chão, com 24–48 segmentos e
   raio modulado por ruído (**não** um círculo perfeito). Sem símbolo, sem runa:
   é pressão de energia, não magia.
@@ -257,6 +263,18 @@ ribbons do mesmo material e emite um ou dois buffers.
 **Nada disso toca o mundo.** Sem quebra de bloco, sem `ItemEntity`, sem
 colisão. E nada disso decide física: o empurrão de Ren, se existir, é sistema
 de gameplay separado.
+
+O anel **não é uma layer**, e isso não é detalhe de organização: a pilha de uma
+`RenderLayer` chega com a rotação de corpo do jogador e com `scale(-1,-1,1)` já
+aplicados, e desfazer os dois na ordem certa não é óbvio — a inversão de eixos e
+a rotação em Y não comutam. Errar isso não lança: desenha um anel que gira junto
+com o jogador. `AuraGroundRenderer` desenha em `RenderLevelStageEvent`, onde o
+espaço é o do mundo por construção.
+
+A **sondagem do chão é compartilhada** entre o anel e os detritos
+(`SondagemDeChao`): o raio do anel limita de onde os fragmentos nascem, e duas
+sondagens com dois ritmos de cache produziriam um anel num degrau e detritos
+noutro.
 
 Ao **ativar** Ren, o jogador local recebe um impulso mínimo de câmera
 (0.1–0.25 grau). Observadores não recebem nada, e não existe tremor contínuo —
@@ -322,52 +340,80 @@ dá erro: dá tela que some ou memória que sobe devagar.
 
 ## 9. Classes previstas
 
+**Esta lista era um PLANO, e o código divergiu dela.** O que segue é o que
+existe de verdade no fim do AV8 — a regra do projeto é que o código ganha e o
+texto se atualiza, e a discrepância se relata em voz alta em vez de sumir.
+
 ```
 client/vfx/
   AuraVisualSystem        orquestra; o único ponto de entrada
-  AuraVisualState         snapshot interpolável (JÁ EXISTE)
-  model/AuraPerfilVisual  os números de arte, lidos de nen_vfx/*.json
-  AuraVisualController    interpolador (JÁ EXISTE)
+  AuraVisualState         snapshot interpolável, com modo ALVO e fases
+  AuraVisualController    interpolador
+  AuraTransicao           a tabela de trocas: duração, curva e linha do tempo
+  AuraTransitionProfile   as janelas por componente
+  AuraTransitionSample    os pesos de um instante
   AuraVisibilityResolver  observador x alvo -> 0..1
-  AuraLodController       distância -> nível de detalhe
+  AuraLodEfetivo          distância máxima + sobreposição + teto, num funil
+  AuraRenderLod           a tabela de cinco níveis
+  AuraVisualQuality       o teto escolhido pelo jogador
+  AuraBloomLevel          OFF / FAST / HIGH
+  SondagemDeChao          altura e cor do chão, com cache, compartilhada
+  ImpulsoDeCamera         o empurrão de Ren, só no jogador local
+  PulsoDeSupressao        o retorno de input de Zetsu
+  ZumbidoDeRen            o loop, uma instância por jogador
+  AudioDeAura             o dono de TODO o áudio da aura
+  MedidorDeVfx            as réguas do último quadro
+  SobreposicaoDeVfx       o que os comandos e sliders escrevem
 
   render/
-    AuraPlayerRenderLayer
-    AuraLivingRenderLayer
-    AuraShellRenderer
-    AuraRibbonRenderer
-    AuraGroundRenderer
-    AuraBloomRenderer
-    AuraFirstPersonRenderer
-    AuraRenderTypes
+    AuraPlayerRenderLayer   shell, filamentos e colunas
+    AuraGroundRenderer      o anel, em evento de MUNDO
+    AuraBloomRenderer       onde o passe se encaixa no quadro
+    AuraPrimeiraPessoa      RenderHandEvent / RenderArmEvent
+    FlashDeSupressao        o pulso de Zetsu, em HUD
+    AuraRenderTypes         a tabela única de materiais
+    AuraRenderRegistro      onde a aura se pendura
+    AuraModelLayers         os identificadores de malha
 
   model/
-    AuraPlayerModel
-    AuraPlayerSlimModel
-    AuraModelAdapter
-    AuraGeometryProfile
+    AuraPlayerModel         o modelo inflado
+    AuraGeometryProfile     as três espessuras
+    AuraGeometryLadder      a escada de espessuras assadas
+    AuraPerfilVisual        os números de arte, de nen_vfx/*.json
+    AuraPerfilDePressao     colunas, anel e detritos
+    AuraPerfilDeBrilho      força e raio do halo
+    AuraPerfis              o carregador, com memo
+    AuraModelAdapter        a costura para corpos que não são o jogador
+    HumanoidAuraAdapter     zumbi, esqueleto, piglin
+    GeoAuraAdapter          bones de GeckoLib
+    AuraOssosDoInimigo      os nomes de osso declarados pelo corpo
 
   ribbon/
-    AuraRibbon
-    AuraRibbonEmitter
-    AuraRibbonBatch
-    AuraAnchor
-    AuraCurve
+    AuraRibbonBatch  AuraAnchor  AuraCurve  AuraRibbonProfile
 
   shader/
-    AuraShaderManager
-    AuraShaderUniforms
-    AuraPostProcess
-
-  particle/
-    AuraSparkParticle
-    AuraFragmentParticle
-    AuraDebrisParticle
+    AuraShaders      o holder ÚNICO dos quatro shaders
+    AuraPostProcess  o alvo de brilho e a cadeia
+    KernelDeBorrao   os pesos do desfoque
+    DeteccaoDeShaderPack
+    RecarregarBrilhoDaAura
 
   debug/
-    AuraDebugRenderer
-    AuraDebugCommands
+    AuraDebugRenderer  AuraDebugCommands  AuraCaptureMode
+    TelaDeTuningDeAura  RoteiroDeCaptura  NomeDeCaptura  InfoDeBuild
 ```
+
+**O que o plano previa e NÃO existe, com o motivo:**
+
+| Previsto | Por que não existe |
+| --- | --- |
+| `AuraShellRenderer`, `AuraRibbonRenderer`, `AuraFirstPersonRenderer` | a layer desenha shell e filamentos; separá-los em três renderers criaria três lugares para a mesma pose divergir |
+| `AuraLodController` | virou `AuraLodEfetivo`, uma função pura e um funil — controlador implica estado, e não há |
+| `AuraPlayerSlimModel` | `AuraPlayerModel` recebe o flag `slim`, como `PlayerModel`. Uma segunda classe duplicaria a construção da malha |
+| `AuraRibbon`, `AuraRibbonEmitter` | **não há objeto de ribbon.** A curva é aritmética pura sobre um array reusado, o que é melhor que a pool prevista: não há o que alocar nem o que limpar |
+| `AuraShaderManager`, `AuraShaderUniforms` | um holder só (`AuraShaders`). Dois seriam dois ciclos de vida para shaders registrados no mesmo evento |
+| `AuraFragmentParticle` | `AuraSparkParticle` e `AuraDebrisParticle` cobrem faísca e fragmento; a terceira não achou papel |
+| `AuraLivingRenderLayer` | **declarado, e não esquecido**: `AuraVisualSystem` só responde por `Player`, e nenhum inimigo tem Nen antes do EN10. Layer sobre um estado que não pode existir é régua que mede o vazio. O adaptador — que é o trabalho de verdade — existe |
 
 **Regras de fronteira, que o portão `PacotesDeclaradosTest` cobra:**
 
@@ -510,6 +556,20 @@ O áudio é parte do efeito, e é onde a aura passa de visual para presença.
 
 Som abstrato. **Não usar som de eletricidade** se a aura não é elétrica — o
 ouvido classifica o efeito antes do olho.
+
+**Ren tem loop, e Ten não** — a assimetria é deliberada. Ten é uma técnica
+sustentada e discreta; um zumbido permanente nela é ruído permanente. Ren é um
+gesto grande e intermitente, e a presença sonora é parte do que o separa de Ten.
+Os três assets (`ren_burst`, `ren_loop`, `ren_release`) são sintetizados por
+`art-source/sons/aura.py` e são graves, escuros e sem transiente seco: o ouvido
+classifica o efeito antes do olho, e um estalo agudo transformaria a aura em
+eletricidade mesmo com o render certo.
+
+O **loop é emendável por construção** — todo componente é periódico no
+comprimento do arquivo, e o ruído é gerado no domínio da frequência, o que o
+torna periódico por definição. O que isso não resolve está declarado em
+[`o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md): o Vorbis acrescenta
+amostras de priming, e um clique residual na emenda é possível.
 
 **Decisão do AV3 (#185): a v1 de Ten não tem loop.** A ativação curta já
 comunica presença; adicionar agora um zumbido contínuo arriscaria transformar

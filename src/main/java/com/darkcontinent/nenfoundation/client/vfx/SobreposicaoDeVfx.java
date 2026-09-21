@@ -53,6 +53,21 @@ public final class SobreposicaoDeVfx {
     private static volatile float fluxo = NENHUM;
     private static volatile float escalaDeRuido = NENHUM;
 
+    /**
+     * Quantas vezes alguem escreveu aqui.
+     *
+     * <p>ELA EXISTE PARA O MEMO DE PERFIL DE {@code AuraPerfis}. O perfil
+     * interpolado e funcao pura de (modo, modo alvo, progresso, dado carregado,
+     * sobreposicao) -- e as duas ultimas mudam raramente. Sem um numero que
+     * avance a cada escrita, o memo teria de recalcular sempre, ou pior: ficaria
+     * devolvendo um perfil com o ajuste antigo, e o slider pareceria morto.
+     *
+     * <p>UM CONTADOR, E NAO UM {@code boolean} DE SUJEIRA. O leitor nao tem como
+     * limpar a marca -- ha varios leitores --, e um contador nao precisa que
+     * ninguem limpe.
+     */
+    private static volatile int versao;
+
     private SobreposicaoDeVfx() {
     }
 
@@ -60,6 +75,7 @@ public final class SobreposicaoDeVfx {
 
     /** Desliga TODO o desenho de aura deste cliente, sem tocar na tecnica. */
     public static void desligar(boolean valor) {
+        versao++;
         desligado = valor;
     }
 
@@ -71,16 +87,19 @@ public final class SobreposicaoDeVfx {
      * se a coisa parou de mudar entre eles.
      */
     public static void congelar(boolean valor) {
+        versao++;
         congelado = valor;
     }
 
     /** Forca o modo visual do jogador local. {@code null} devolve o controle ao servidor. */
     public static void forcarModo(AuraVisualMode modo) {
+        versao++;
         modoForcado = modo;
     }
 
     /** Forca o output visual do jogador local, de 0 a 1. Negativo devolve o controle. */
     public static void forcarOutput(float valor) {
+        versao++;
         outputForcado = Float.isFinite(valor) && valor >= 0.0F ? Math.min(valor, 1.0F) : NENHUM;
     }
 
@@ -100,16 +119,19 @@ public final class SobreposicaoDeVfx {
      * decidisse isso.
      */
     public static void forcarDensidade(float valor) {
+        versao++;
         densidadeForcada = Float.isFinite(valor) && valor >= 0.0F ? Math.min(valor, 2.0F) : NENHUM;
     }
 
     /** Forca o nivel de detalhe dos OUTROS jogadores. {@code null} volta a distancia. */
     public static void forcarLod(AuraRenderLod lod) {
+        versao++;
         lodForcado = lod;
     }
 
     /** Forca a contagem de filamentos. Negativo volta ao perfil. */
     public static void forcarRibbons(int quantidade) {
+        versao++;
         ribbonsForcadas = quantidade < 0 ? -1 : quantidade;
     }
 
@@ -118,6 +140,7 @@ public final class SobreposicaoDeVfx {
         if (ajuste == null) {
             return;
         }
+        versao++;
         float saneado = Float.isFinite(valor) && valor >= 0.0F ? valor : NENHUM;
         switch (ajuste) {
             case ALPHA_INTERNO -> alphaInterno = saneado;
@@ -137,6 +160,7 @@ public final class SobreposicaoDeVfx {
      * captura sairia com um numero que ninguem lembra de ter posto.
      */
     public static void limpar() {
+        versao++;
         desligado = false;
         congelado = false;
         modoForcado = null;
@@ -153,6 +177,17 @@ public final class SobreposicaoDeVfx {
     }
 
     // ------------------------------------------------------------- leitura
+
+    /**
+     * Quantas escritas ja aconteceram. Chave de invalidacao do memo de perfil.
+     *
+     * <p>Ela e lida por {@code AuraPerfis}, e por mais ninguem: um consumidor
+     * que a usasse para decidir APARENCIA estaria reagindo ao numero de vezes
+     * que alguem mexeu num slider, que nao significa nada.
+     */
+    public static int versao() {
+        return versao;
+    }
 
     /** Se existe QUALQUER sobreposicao ativa. E o que acende o aviso no overlay. */
     public static boolean ativa() {
@@ -314,7 +349,17 @@ public final class SobreposicaoDeVfx {
                 // O BLOCO DE FILAMENTO PASSA INTACTO pelo mesmo motivo: quem
                 // quer mais ou menos filamento usa `/nenvfx ribbons`, que ja
                 // sobrepoe a CONTAGEM no ponto do desenho.
-                base.filamentos());
+                base.filamentos(),
+                // O BLOCO DE PRESSAO, O BLOOM E O PULSO TAMBEM PASSAM INTACTOS,
+                // e isto e uma decisao e nao uma lacuna. Coluna, anel e detrito
+                // sao os componentes cuja AUSENCIA o AV6 precisa provar; um
+                // slider capaz de acende-los em Zetsu transformaria a
+                // ferramenta de tuning numa forma de contradizer o unico
+                // criterio que aquele gate existe para verificar. Quando a
+                // sessao de arte precisar girar o raio do anel, isso nasce como
+                // sobreposicao PROPRIA, com o mesmo cuidado que os alphas.
+                base.pressao(), base.brilho(), base.amplitudeDePulso(),
+                base.bordaComArmadura());
     }
 
     private static float alpha(float sobreposto, float original) {

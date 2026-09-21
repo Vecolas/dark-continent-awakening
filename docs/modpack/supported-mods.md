@@ -51,10 +51,11 @@ redistribuir ([ADR-007](../adr/ADR-007-assets-autorais.md)).
 | Patchouli | 2 | manual de Nen e lore | *a confirmar* | M6 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/patchouli) |
 | JEI **ou** EMI | 3 | viewer de receitas — escolher **um** | *a confirmar* | M6 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) / [EMI](https://www.curseforge.com/minecraft/mc-mods/emi) |
 | Jade | 3 | informacao contextual | *a confirmar* | M6 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/jade) |
-| spark | — | profiler; QA M2 executada | GPL-3.0-only | M2 | [Modrinth](https://modrinth.com/mod/spark/version/v5qtqRQi) |
+| spark | — | profiler; QA M2 executada. **É também a régua do AV8** (#206): os quatro cenários de orçamento saem dele | GPL-3.0-only | M2 | [Modrinth](https://modrinth.com/mod/spark/version/v5qtqRQi) |
 | ModernFix | — | correcoes e otimizacoes | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/modernfix) |
 | FerriteCore | — | uso de memoria | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/ferritecore) |
-| Embeddium | — | renderizacao client-side | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/embeddium) |
+| Embeddium | — | renderizacao client-side; **ambiente 2 da matriz do AV8** (#207) | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/embeddium) |
+| Iris / Oculus | — | shader pack; **ambientes 3 e 4 da matriz do AV8** (#207). O mod NAO e dependencia: `DeteccaoDeShaderPack` pergunta por reflexao e responde "nao ha pack" se qualquer coisa falhar | *a confirmar* | M7 | [Iris](https://www.curseforge.com/minecraft/mc-mods/irisshaders) / [Oculus](https://www.curseforge.com/minecraft/mc-mods/oculus) |
 | GeckoLib 4.8.3 | 6 | animacao de entidades do mesmo JAR | MIT | EN0 | [site/wiki oficial](https://wiki.geckolib.com/docs/geckolib4/) |
 | Curios API | 6 | Hunter License e acessorios | *a confirmar* | pos-MVP | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/curios) |
 | Epic Fight | 5 | combate e animacao — **so apos o gate** | *a confirmar* | M7 | [CurseForge](https://www.curseforge.com/minecraft/mc-mods/epic-fight-mod) |

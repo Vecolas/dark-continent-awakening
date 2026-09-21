@@ -24,5 +24,24 @@
     "comprimento_max": 0.60,
     "largura": 0.009,
     "ciclo_segundos": 1.1
-  }
+  },
+
+  "_pressao": "TUDO ZERO, E ESCRITO. Ten NAO toca o chao: sem coluna, sem anel, sem detrito. A ausencia mora no dado em vez de numa guarda do renderer -- assim o alvo da interpolacao TEN->REN e um objeto legitimo, e nao um caso especial.",
+  "pressao": {
+    "colunas": 0,
+    "altura_minima": 0.0,
+    "altura_maxima": 0.0,
+    "anel": 0.0,
+    "anel_raio_minimo": 0.0,
+    "anel_raio_maximo": 0.0,
+    "anel_segmentos": 0,
+    "detritos": 0
+  },
+
+  "_brilho": "bloom e o peso deste modo no alvo de brilho do AV5. amplitude_de_pulso e o quanto a shell respira -- Ten NAO pisca, e por isso ela fica entre 0.02 e 0.05.",
+  "_raio": "Em PIXELS DE TELA, e nao em texels do alvo: o alvo e de meia resolucao, e a conversao e do pipeline. Ten pede 2 a 3 px; Ren, 4 a 7. O teto de 8 px e constante de codigo -- trinta pixels de halo e nevoa, e nevoa apaga a silhueta.",
+  "bloom": { "forca": 0.2, "raio": 2.5 },
+  "_armadura": "Com armadura vestida a borda sobe de 0.052 para 0.065 -- o bastante para aparecer por fora da armadura PADRAO. Armadura de outro mod pode ser arbitrariamente grande, e perseguir isso e perseguir o infinito (ADR-015, custo assumido).",
+  "borda_com_armadura": 0.065,
+  "amplitude_de_pulso": 0.025
 }

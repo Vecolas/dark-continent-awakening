@@ -37,6 +37,21 @@ public final class EmissorDeParticulasDeAura {
     private static final int TETO_POR_TICK = 12;
     private static final double TICKS_POR_SEGUNDO = 20.0D;
 
+    /**
+     * O tamanho de um fragmento, em blocos.
+     *
+     * <p>CONSTANTES DE DESENHO, e nao chaves de perfil. Um fragmento de meio
+     * bloco nao e detrito: e destroco, e destroco pede uma explicacao de
+     * gameplay que nao existe -- alguem perguntaria de que bloco ele saiu e por
+     * que o bloco continua la.
+     */
+    private static final float TAMANHO_MINIMO_DE_DETRITO = 0.02F;
+    private static final float TAMANHO_MAXIMO_DE_DETRITO = 0.08F;
+
+    /** O quanto um fragmento sobe ao longo da vida, em blocos. */
+    private static final float SUBIDA_MINIMA = 0.05F;
+    private static final float SUBIDA_MAXIMA = 0.25F;
+
     private EmissorDeParticulasDeAura() {
     }
 
@@ -80,7 +95,11 @@ public final class EmissorDeParticulasDeAura {
         if (nivel == null || jogador == null || estado == null || !estado.enabled()) {
             return;
         }
-        AuraPerfilVisual perfil = AuraPerfis.de(estado.mode());
+        // O PERFIL VEM DO ESTADO, e nao do modo: buscar pelo modo devolveria a
+        // taxa de Ten durante a subida INTEIRA para Ren, e a nuvem de faiscas
+        // apareceria de uma vez no ultimo tick -- a mesma troca seca que a
+        // shell deixou de ter no AV4.
+        AuraPerfilVisual perfil = AuraPerfis.de(estado);
         RandomSource aleatorio = nivel.getRandom();
         int quantas = quantasEmitir(perfil, estado, densidade, aleatorio.nextFloat());
         if (quantas == 0) {
@@ -107,6 +126,110 @@ public final class EmissorDeParticulasDeAura {
                     jogador.getY() + local.y(),
                     jogador.getZ() + rotZ,
                     0.0D, 0.015D + aleatorio.nextDouble() * 0.015D, 0.0D);
+        }
+    }
+
+    /**
+     * Quantos detritos ainda faltam para chegar ao alvo deste tick.
+     *
+     * <p>ALVO, E NAO TAXA. A faisca e um evento -- nasce, brilha, morre --, e por
+     * isso ela e sorteada por segundo. O detrito e uma POPULACAO: a pressao
+     * mantem alguns fragmentos no ar enquanto durar. Emitir por taxa daria
+     * rajadas; manter uma populacao da a leitura continua que a referencia C
+     * mostra.
+     *
+     * <p>PURA E SEM MINECRAFT, pelo mesmo motivo de {@link #quantasEmitir}: a
+     * unica parte com aritmetica de verdade precisa rodar em JUnit.
+     *
+     * @param vivos quantos fragmentos deste jogador ja existem
+     */
+    public static int quantosDetritos(AuraPerfilVisual perfil, AuraVisualState estado,
+            double densidade, int vivos) {
+        if (perfil == null || estado == null || !estado.enabled() || densidade <= 0.0D) {
+            return 0;
+        }
+        float presenca = estado.fases().pressao();
+        if (presenca <= 0.0F) {
+            return 0;
+        }
+        int pedido = perfil.pressao().detritos();
+        if (pedido <= 0) {
+            return 0;
+        }
+        double alvo = pedido * presenca * estado.intensity() * densidade;
+        int teto = Math.min(
+                com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfilDePressao
+                        .TETO_DE_DETRITOS,
+                (int) Math.round(alvo));
+        if (vivos >= teto) {
+            return 0;
+        }
+        // NO MAXIMO DOIS POR TICK. Preencher a populacao inteira de uma vez
+        // produziria um "puff" na ativacao e nada depois -- e o fragmento
+        // levantado pela pressao precisa PARECER continuo, nao pontual.
+        return Math.min(2, teto - vivos);
+    }
+
+    /**
+     * Levanta os fragmentos cosmeticos deste tick.
+     *
+     * <p>NADA AQUI TOCA O MUNDO. Le a cor do bloco de baixo pela sondagem
+     * compartilhada -- que tem cache -- e cria particulas client-only. Sem quebra
+     * de bloco, sem {@code ItemEntity}, sem colisao, sem empurrao e sem nada
+     * atravessando a rede.
+     *
+     * <p>O RAIO E O DO ANEL, e nao um proprio: o fragmento nasce DENTRO da area
+     * que esta sob pressao. Dois raios seriam duas verdades, e a divergencia
+     * apareceria como detrito subindo fora do anel.
+     */
+    public static void emitirDetritos(SondagemDeChao sondagem, ClientLevel nivel, Player jogador,
+            AuraVisualState estado, double densidade) {
+        if (sondagem == null || nivel == null || jogador == null || estado == null
+                || !estado.enabled()) {
+            return;
+        }
+        if (!com.darkcontinent.nenfoundation.config.NenClientConfig.detritos()) {
+            return;
+        }
+        AuraPerfilVisual perfil = AuraPerfis.de(estado);
+        int vivos = com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle
+                .ativosDe(nivel, jogador.getId());
+        int quantos = quantosDetritos(perfil, estado, densidade, vivos);
+        if (quantos == 0) {
+            return;
+        }
+        SondagemDeChao.Amostra chao = sondagem.sob(nivel, jogador, 0.0F);
+        if (!chao.achou()) {
+            return;
+        }
+        MedidorDeVfx.detritos(quantos);
+
+        RandomSource aleatorio = nivel.getRandom();
+        float raio = perfil.pressao().raioPara(estado.intensity());
+        for (int i = 0; i < quantos; i++) {
+            double angulo = aleatorio.nextDouble() * Math.PI * 2.0D;
+            // RAIZ DO SORTEIO: sem ela, os fragmentos se amontoam no centro,
+            // porque area cresce com o quadrado do raio. Com ela, a distribuicao
+            // no disco fica uniforme -- e o anel parece pressionar a area toda.
+            double d = Math.sqrt(aleatorio.nextDouble()) * raio * 0.9D;
+            float lado = TAMANHO_MINIMO_DE_DETRITO
+                    + aleatorio.nextFloat() * (TAMANHO_MAXIMO_DE_DETRITO
+                            - TAMANHO_MINIMO_DE_DETRITO);
+            float subida = SUBIDA_MINIMA + aleatorio.nextFloat()
+                    * (SUBIDA_MAXIMA - SUBIDA_MINIMA);
+            // A COR VEM DO CHAO, e o alpha vem da aura: o fragmento e materia
+            // levantada, e materia levantada tem a cor de onde veio. Pintar de
+            // cor de aura o transformaria numa faisca grande, que ja existe.
+            int argb = com.darkcontinent.nenfoundation.client.vfx.CorDaAura.comAlpha(
+                    chao.cor(), 0.85F * estado.intensity());
+            nivel.addParticle(new com.darkcontinent.nenfoundation.registry
+                            .AuraDebrisParticleOptions(jogador.getId(), argb, lado,
+                            com.darkcontinent.nenfoundation.client.vfx.model
+                                    .AuraPerfilDePressao.TETO_DE_DETRITOS),
+                    jogador.getX() + Math.cos(angulo) * d,
+                    chao.y() + 0.02D,
+                    jogador.getZ() + Math.sin(angulo) * d,
+                    0.0D, subida / 20.0D, 0.0D);
         }
     }
 

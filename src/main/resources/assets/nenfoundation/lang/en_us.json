@@ -277,6 +277,8 @@
   "nenfoundation.tecnica.shu": "Shu",
   "nenfoundation.tecnica.ten": "Ten",
   "nenfoundation.tecnica.zetsu": "Zetsu",
+  "nenfoundation.vfx.permissivo_ligado": "Aura visibility: PERMISSIVE (dev) -- captures taken now are not approval",
+  "nenfoundation.vfx.permissivo_desligado": "Aura visibility back to normal",
   "nenfoundation.vfx.ajuste_automatico": "Adjustment %s handed back to the profile.",
   "nenfoundation.vfx.ajuste_forcado": "Adjustment %s forced to %s. This is a hypothesis, not a decision: write it to the profile to make it real.",
   "nenfoundation.vfx.captura_desligada": "Capture mode off. Camera and HUD restored.",
@@ -425,6 +427,9 @@
   "subtitles.nenfoundation.entity.wolf_runner.attack": "Wolf Runner attacks",
   "subtitles.nenfoundation.entity.wolf_runner.death": "Wolf Runner dies",
   "subtitles.nenfoundation.entity.wolf_runner.hurt": "Wolf Runner hurts",
+  "subtitles.nenfoundation.vfx.nen.ren_burst": "Ren aura bursts outward",
+  "subtitles.nenfoundation.vfx.nen.ren_loop": "Ren aura hums under pressure",
+  "subtitles.nenfoundation.vfx.nen.ren_release": "Ren aura draws back in",
   "subtitles.nenfoundation.vfx.nen.ten_activate": "Ten aura gathers around someone",
   "block.nenfoundation.world_tree_leaves_luminous": "Luminous World Tree Leaves"
 }

@@ -84,6 +84,23 @@ public final class NenFoundationClient {
     private int errosExibidos;
     private final SessaoDeVfxDeAura vfx;
     private final AudioDeAura audioDeAura;
+    /**
+     * A sondagem de chao, COMPARTILHADA entre o anel de pressao e os detritos.
+     *
+     * <p>O raio do anel limita de onde os fragmentos nascem; duas sondagens com
+     * dois ritmos de cache produziriam um anel num degrau e detritos noutro.
+     * Ela vive aqui porque quem a cria e quem a limpa, e a limpeza mora no
+     * mesmo ponto de saida que ja limpa o cache e a sessao.
+     */
+    private final com.darkcontinent.nenfoundation.client.vfx.SondagemDeChao sondagemDeChao =
+            new com.darkcontinent.nenfoundation.client.vfx.SondagemDeChao();
+    private final com.darkcontinent.nenfoundation.client.vfx.render.AuraGroundRenderer
+            anelDePressao =
+            new com.darkcontinent.nenfoundation.client.vfx.render.AuraGroundRenderer(
+                    this.sondagemDeChao);
+    private final com.darkcontinent.nenfoundation.client.vfx.render.AuraBloomRenderer
+            brilhoDaAura =
+            new com.darkcontinent.nenfoundation.client.vfx.render.AuraBloomRenderer();
     private long ticksDaSessao;
     private final com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer overlayDeVfx =
             new com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer();
@@ -111,16 +128,30 @@ public final class NenFoundationClient {
         modEventBus.addListener(AuraRenderRegistro::registrarDefinicoes);
         modEventBus.addListener(AuraRenderRegistro::adicionarLayers);
         modEventBus.addListener(AuraShaders::registrar);
-        modEventBus.addListener((RegisterParticleProvidersEvent evento) ->
-                evento.registerSpriteSet(
-                        NenParticleTypes.AURA_SPARK.get(), AuraSparkParticle.Provider::new));
+        modEventBus.addListener((RegisterParticleProvidersEvent evento) -> {
+            evento.registerSpriteSet(
+                    NenParticleTypes.AURA_SPARK.get(), AuraSparkParticle.Provider::new);
+            evento.registerSpriteSet(NenParticleTypes.AURA_DEBRIS.get(),
+                    com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle
+                            .Provider::new);
+        });
         // O PERFIL VISUAL E RECURSO DE CLIENTE, e nao datapack: ele nao muda
         // custo, alcance nem visibilidade -- e um datapack deixaria o servidor
         // ditar como a aura aparece na tela de cada um.
         modEventBus.addListener((net.neoforged.neoforge.client.event
-                .RegisterClientReloadListenersEvent evento) ->
-                evento.registerReloadListener(
-                        new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis()));
+                .RegisterClientReloadListenersEvent evento) -> {
+            evento.registerReloadListener(
+                    new com.darkcontinent.nenfoundation.client.vfx.model.AuraPerfis());
+            // F3+T SOLTA OS ALVOS E ESQUECE O REBAIXAMENTO. Framebuffer nao
+            // recriado NAO DA ERRO: da tela que some, ou memoria que sobe
+            // devagar ao longo de uma sessao. E se a queda para FAST veio de um
+            // resource pack com shader torto, recarregar depois de remove-lo
+            // precisa devolver o nivel escolhido -- caso contrario a unica saida
+            // seria reiniciar o jogo.
+            evento.registerReloadListener(
+                    new com.darkcontinent.nenfoundation.client.vfx.shader
+                            .RecarregarBrilhoDaAura());
+        });
 
         // A LAYER NAO CONHECE CACHE NEM REDE. Ela pergunta ao
         // AuraVisualSystem, e quem sabe responder e este objeto -- que tem a
@@ -138,6 +169,29 @@ public final class NenFoundationClient {
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.overlayDeVfx::aoRenderizar);
+        // O RETORNO DE INPUT DE ZETSU E HUD, e nao aura: na interface ele
+        // existe so na tela de quem apertou a tecla, e nao ha por onde vazar
+        // para um observador.
+        NeoForge.EVENT_BUS.addListener(
+                new com.darkcontinent.nenfoundation.client.vfx.render
+                        .FlashDeSupressao()::aoRenderizar);
+        // O ANEL DE PRESSAO E EVENTO DE MUNDO, e nao layer: ele precisa de
+        // espaco alinhado ao MUNDO, e a pilha de uma RenderLayer chega com a
+        // rotacao de corpo e o scale(-1,-1,1) ja aplicados. Ver o javadoc de
+        // AuraGroundRenderer.
+        NeoForge.EVENT_BUS.addListener(this.anelDePressao::aoRenderizarMundo);
+        // O PASSE DE BRILHO SAO DOIS MOMENTOS, e a ordem deles e o efeito
+        // inteiro: a profundidade da cena e copiada para o alvo ANTES de a aura
+        // ser desenhada -- ela e a mascara de oclusao --, e a cadeia roda depois
+        // de todo o mundo. Ver o javadoc de AuraBloomRenderer.
+        NeoForge.EVENT_BUS.addListener(this.brilhoDaAura::aoPreparar);
+        NeoForge.EVENT_BUS.addListener(this.brilhoDaAura::aoAplicar);
+        // O IMPULSO DE CAMERA SO EXISTE PARA O JOGADOR LOCAL. Este evento e
+        // sobre a camera de quem esta jogando, e quem o dispara e a borda de
+        // ativacao da sessao DELE -- observadores nunca chegam aqui.
+        NeoForge.EVENT_BUS.addListener(
+                com.darkcontinent.nenfoundation.client.vfx.ImpulsoDeCamera
+                        ::aoComputarAngulos);
         // COMANDO DE CLIENTE, e nao de servidor: nada de /nenvfx muda estado
         // autoritativo. Registrado no evento errado, o mesmo codigo passaria a
         // decidir aparencia para os outros jogadores.
@@ -176,6 +230,16 @@ public final class NenFoundationClient {
         this.vfx.limpar();
         this.audioDeAura.limpar(Minecraft.getInstance());
         AuraSparkParticle.limparContagem();
+        com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle.limparContagem();
+        // A SONDAGEM E LIMPA AQUI, e num lugar so: ela e compartilhada, e
+        // limpar de dois lugares e como um deles acaba esquecido.
+        this.sondagemDeChao.limpar();
+        this.anelDePressao.limpar();
+        // QUEM LIGA, DESLIGA -- e aqui os dois contadores voltam a bater. Sem
+        // esta linha, os alvos do mundo anterior continuariam vivos ate a
+        // proxima mudanca de resolucao, que pode nunca acontecer.
+        this.brilhoDaAura.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.ZumbidoDeRen.limparContagem();
         // A FONTE DO AuraVisualSystem NAO E DESLIGADA AQUI, e isso e
         // deliberado. `ligar` acontece uma vez, no construtor, e este objeto
         // vive tanto quanto o mod; desligar no logout deixaria a aura morta
@@ -189,6 +253,11 @@ public final class NenFoundationClient {
         // logout faria a proxima captura sair com um numero que nao esta em
         // perfil nenhum, e ela seria aprovada como se fosse o jogo.
         com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.limpar();
+        // QUEM LIGA, DESLIGA -- e o modo permissivo e o caso mais caro de
+        // esquecer: ele ignora a supressao por In, e sobreviver ao logout faria
+        // a proxima captura mostrar a aura de quem deveria estar escondido.
+        com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.limpar();
+        com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.limpar();
         com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.limpar();
         com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
                 .desligar(Minecraft.getInstance());
@@ -288,11 +357,25 @@ public final class NenFoundationClient {
         if (!com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.congelado()) {
             this.vfx.aoTick(ativas, output, cor, NenClientConfig.escalaDeTransicao(), distribuicao);
         }
-        // O SOM CONSOME A BORDA DA MESMA SESSAO que move a transicao visual.
-        // Assim OFF -> TEN tem um relogio so, e uma mudanca pequena de output
-        // nao reproduz a ativacao outra vez.
+        // O SOM CONSOME AS BORDAS DA MESMA SESSAO que move a transicao visual.
+        // Assim OFF -> TEN e TEN -> REN tem um relogio so, e uma mudanca pequena
+        // de output nao reproduz a ativacao outra vez.
+        //
+        // O OUTPUT VAI COMO FUNCAO, e nao como valor: o zumbido de Ren pergunta
+        // a cada tick, e congelar o numero na ativacao seria o erro numero 1 do
+        // CLAUDE.md -- multiplicador preso no instante em que ligou, cego a todo
+        // ajuste posterior.
         this.audioDeAura.aoTick(mc, this.vfx.consumirAtivacaoDeTen(),
-                this.cache::presencaDe);
+                this.vfx.consumirAtivacaoDeRen(), this.vfx.consumirSaidaDeRen(),
+                this::outputLocalEmMilesimos, this.cache::presencaDe);
+        // O RETORNO DE INPUT DE ZETSU VIVE SO NESTA TELA. Ele nao e aura: nao
+        // passa pelo perfil, nao entra no alvo de brilho, nao e desenhado no
+        // mundo e nao atravessa a rede. Zetsu continua sendo ausencia total para
+        // qualquer observador.
+        if (this.vfx.consumirSupressao()) {
+            com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.disparar();
+        }
+        com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.aoTick();
         double densidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
                 .aplicarNaDensidade(NenClientConfig.densidadeDeParticulas());
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e
@@ -303,11 +386,57 @@ public final class NenFoundationClient {
             // crua. Antes ela lia this.vfx.estado() direto -- e com uma
             // sobreposicao ativa, a shell mostraria Ren enquanto a particula
             // continuaria emitindo Ten, sem nada acusar.
-            EmissorDeParticulasDeAura.emitir(
-                    mc.level, mc.player, this.estadoVisualDe(mc.player), densidade);
+            var estadoLocal = this.estadoVisualDe(mc.player);
+            EmissorDeParticulasDeAura.emitir(mc.level, mc.player, estadoLocal, densidade);
+            // OS DETRITOS PASSAM PELO MESMO FUNIL que a faisca e o renderer:
+            // com uma sobreposicao ativa, um caminho que lesse a sessao crua
+            // levantaria fragmentos enquanto a shell mostra outra coisa.
+            EmissorDeParticulasDeAura.emitirDetritos(
+                    this.sondagemDeChao, mc.level, mc.player, estadoLocal, densidade);
         }
 
         this.tickDaAuraDosOutros(mc, densidade);
+    }
+
+    /**
+     * Quanto da aura deste alvo o jogador local enxerga.
+     *
+     * <p>UM PONTO SO PERGUNTA, e os dois caminhos de desenho -- a layer e a
+     * particula -- leem daqui. Repetir a chamada em cada um faria os dois
+     * divergirem no dia em que Gyo chegasse e um deles fosse esquecido: a shell
+     * mostraria a aura e a faisca nao, ou o contrario.
+     *
+     * <p><b>GYO E IN CHEGAM SEMPRE FALSOS HOJE, e isso esta declarado.</b> As
+     * duas tecnicas sao marcos de Nen (F1 e F2), e nao da trilha AV; o laco por
+     * OBSERVADOR no servidor depende de #126. Ate la a coluna "observador" do
+     * resolvedor nunca foi exercitada com valor diferente de falso -- e isso
+     * esta em o-que-nao-provamos.md, e nao escondido aqui.
+     */
+    private static float visibilidadeDe(net.minecraft.world.entity.player.Player observador,
+            net.minecraft.world.entity.player.Player alvo, SinalDeAura sinal) {
+        return com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.visibilidade(
+                new com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver
+                        .ObservadorDeAura(observador.getId()),
+                new com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver
+                        .AlvoDeAura(alvo.getId()),
+                sinal, false, false);
+    }
+
+    /**
+     * O output efetivo do jogador local, em milesimos.
+     *
+     * <p>PERGUNTADO NA HORA, e nunca guardado. O zumbido de Ren o consulta a
+     * cada tick; um valor congelado na ativacao ignoraria todo ajuste posterior
+     * -- e o sintoma seria um som que nao responde ao botao de output, sem erro
+     * nenhum para procurar.
+     *
+     * <p>VEM DO OUTPUT, E NAO DA RESERVA, pela mesma razao que o brilho: aura e
+     * combustivel, output e o quanto esta sendo liberado. Ligar o som a reserva
+     * faria o zumbido CAIR justamente enquanto o jogador gasta.
+     */
+    private int outputLocalEmMilesimos() {
+        return Math.round(this.cache.delta().map(d -> d.outputPercent()).orElse(0.0F)
+                * 1000.0F);
     }
 
     /**
@@ -349,8 +478,9 @@ public final class NenFoundationClient {
         // que nao prova nada sobre o jogo.
         return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
                 EstadoVisualDeTerceiro.de(sinal,
-                        com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                                AuraRenderLod.porDistancia(mc.player.distanceTo(jogador)))));
+                        com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo.doCliente(
+                                mc.player.distanceTo(jogador)),
+                        visibilidadeDe(mc.player, jogador, sinal)));
     }
 
     /**
@@ -379,16 +509,21 @@ public final class NenFoundationClient {
             // AQUI O LOD FINALMENTE RECEBE DISTANCIA DE VERDADE. Para o proprio
             // jogador ela e sempre zero, entao ate agora ele so tinha teste
             // unitario -- o corte por distancia nunca mordia em jogo.
-            AuraRenderLod lod = NenClientConfig.qualidade().limitar(
-                    com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarNoLod(
-                            AuraRenderLod.porDistancia(mc.player.distanceTo(outro))));
+            // O FUNIL DECIDE TUDO: distancia maxima do jogador, sobreposicao do
+            // dev e teto de qualidade, nesta ordem. Antes esta corrente estava
+            // copiada em quatro lugares, com tres cortes proprios em numero cru.
+            AuraRenderLod lod = com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
+                    .doCliente(mc.player.distanceTo(outro));
             if (!lod.visivel()) {
                 continue;
             }
 
             var estado = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
-                    .aplicarEmTerceiro(EstadoVisualDeTerceiro.de(sinal, lod));
+                    .aplicarEmTerceiro(EstadoVisualDeTerceiro.de(sinal, lod,
+                            visibilidadeDe(mc.player, outro, sinal)));
             EmissorDeParticulasDeAura.emitir(mc.level, outro, estado, densidade);
+            EmissorDeParticulasDeAura.emitirDetritos(
+                    this.sondagemDeChao, mc.level, outro, estado, densidade);
         }
     }
 }

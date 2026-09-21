@@ -1199,6 +1199,36 @@
       }
     ]
   },
+  "vfx.nen.ren_burst": {
+    "subtitle": "subtitles.nenfoundation.vfx.nen.ren_burst",
+    "sounds": [
+      {
+        "name": "nenfoundation:vfx/nen/ren_burst",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "vfx.nen.ren_loop": {
+    "subtitle": "subtitles.nenfoundation.vfx.nen.ren_loop",
+    "sounds": [
+      {
+        "name": "nenfoundation:vfx/nen/ren_loop",
+        "stream": false,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "vfx.nen.ren_release": {
+    "subtitle": "subtitles.nenfoundation.vfx.nen.ren_release",
+    "sounds": [
+      {
+        "name": "nenfoundation:vfx/nen/ren_release",
+        "stream": false,
+        "attenuation_distance": 12
+      }
+    ]
+  },
   "vfx.nen.ten_activate": {
     "subtitle": "subtitles.nenfoundation.vfx.nen.ten_activate",
     "sounds": [

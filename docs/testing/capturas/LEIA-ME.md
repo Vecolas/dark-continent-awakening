@@ -47,16 +47,24 @@ código que compila.
 
 ---
 
-## A bancada existe, e nunca rodou
+## A bancada rodou, e funciona
 
 O AV0 (#168) entregou `/nenvfx`, o overlay em **F6**, os sliders e o lote de
-capturas nomeadas com data, commit e nível de bloom. Tudo isso tem teste
-unitário da lógica e **nenhuma linha foi digitada num cliente de verdade** — é o
-ponto cego mais antigo da trilha.
+capturas nomeadas com data, commit e nível de bloom. Por meses isso teve apenas
+teste unitário da lógica, e **nenhuma linha tinha sido digitada num cliente** —
+era o ponto cego mais antigo da trilha.
 
-A primeira sessão de captura é, portanto, também o primeiro teste da bancada. Se
-o comando não aparecer, se o lote fotografar o quadro errado ou se o modo de
-captura não devolver a câmera, o achado é da bancada, não do efeito.
+**Em 2026-09-21 ela foi validada**, numa sessão que existia só para isso e que
+deliberadamente não arquivou captura nenhuma. Comando, overlay, sliders, lote,
+nomenclatura e restauração de câmera passaram item a item — os detalhes estão em
+[`../CAMPANHA-EVIDENCIAS.md`](../CAMPANHA-EVIDENCIAS.md) seção 5.
+
+A sessão custou três defeitos: #299 (o cliente morria ao ligar Ren), #300 (toda
+captura saía com o mesmo sufixo de bloom) e #301 (a shell de primeira pessoa
+desenhava fora do braço). **Nenhum deles aparecia em 1.549 testes verdes.**
+
+Foi exatamente o que a sessão existia para descobrir — e por isso ela vinha
+antes das 127 evidências, e não junto delas.
 
 ---
 

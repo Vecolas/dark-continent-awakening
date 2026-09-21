@@ -424,11 +424,25 @@ Servidor num, clientes em cada um:
 ./gradlew runServer
 
 # terminal 2, em C:/dca-a
-./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Gon
+./gradlew runClient "-PentrarEm=127.0.0.1:25565" "-Pjogador=Gon"
 
 # terminal 3, em C:/dca-b
-./gradlew runClient -PentrarEm=localhost:25565 -Pjogador=Kurapika
+./gradlew runClient "-PentrarEm=127.0.0.1:25565" "-Pjogador=Kurapika"
 ```
+
+> **AS ASPAS SÃO OBRIGATÓRIAS NO POWERSHELL, e a campanha roda em PowerShell.**
+> Sem elas o PowerShell parte o argumento no primeiro ponto depois de um dígito:
+> `-PentrarEm=127.0.0.1:25565` vira **dois** argumentos, `-PentrarEm=127` e
+> `.0.0.1:25565`, e o Gradle responde `Cannot locate tasks that match
+> '.0.0.1:25565'` — uma mensagem que não menciona o PowerShell em lugar nenhum.
+> Medido em 2026-09-21. Alternativa: `./gradlew.bat --% runClient -PentrarEm=...`,
+> que manda o PowerShell parar de interpretar o resto da linha.
+>
+> **E é `127.0.0.1`, não `localhost`.** `localhost` resolve para IPv6 nesta
+> máquina, e o servidor está preso a `server-ip=127.0.0.1`, que é IPv4: a
+> conexão é recusada com `[0:0:0:0:0:0:0:1]`. `localhost` não precisa de aspas —
+> não tem dígito antes do ponto —, e foi por isso que funcionou antes de alguém
+> trocar pelo IP.
 
 `-Pjogador` passa `--username` **e** dá a cada nome o próprio diretório de
 execução. Dois clientes dividindo `run/client` brigam pelo `options.txt` e pelo
@@ -472,8 +486,10 @@ A conta acima foi verificada contra o `ops.json` existente: os UUIDs calculados
 para `Dev` e `Gon` batem caractere por caractere com os que o servidor já tinha
 gravado.
 
-**Confira na sessão, não no papel.** Aperte `F3` em cada cliente e veja o modelo
-antes de tirar a primeira captura. Uma tabela em documento é derivada — a mesma
+**Confira na sessão, não no papel.** Aperte **`F5`** em cada cliente e compare a
+largura do braço com os dois no mesmo quadro — slim tem 3 pixels, wide tem 4.
+**`F3` não serve**: é o debug da vanilla e não mostra o modelo; o overlay F6
+também não o reporta. Isolado, cada corpo parece normal. Uma tabela em documento é derivada — a mesma
 regra do total de 127.
 
 Ao terminar: `git worktree remove --force C:/dca-a` e `C:/dca-b`.
@@ -547,11 +563,45 @@ servidor.
 
 ---
 
-## 5. Passo 2 — validar a bancada, antes de aprovar nada
+## 5. Passo 2 — a bancada, validada em 2026-09-21 ✅
 
-A bancada de captura (`/nenvfx`, overlay **F6**, sliders, lote) entregue em #168
-tem teste unitário da lógica e **nunca foi digitada num cliente de verdade**. É
-o ponto cego mais antigo da trilha.
+**A bancada funciona.** Em 2026-09-21 o projeto abriu `runClient` pela primeira
+vez, com dois clientes e servidor dedicado, e a bancada de captura (`/nenvfx`,
+overlay **F6**, sliders, lote) passou item a item.
+
+| O que a sessão perguntou | Resposta |
+| --- | --- |
+| `/nenvfx` aparece e responde | ✅ |
+| Overlay **F6** abre, com as réguas do AV4–AV8 | ✅ |
+| Os sliders (`/nenvfx tuning`) mudam algo visível | ✅ cada config mexe numa coisa distinta |
+| O lote fotografa o quadro certo | ✅ |
+| Nome com data, commit e nível de bloom | ✅ **depois do #300** |
+| O modo de captura devolve a câmera | ✅ |
+| `/nenvfx permissivo` acende `OVERRIDE ATIVO` | ✅ |
+| `/nenvfx off`, morte e relog não prendem estado | ✅ |
+
+**Ela custou três defeitos, e nenhum deles aparecia em 1.549 testes verdes:**
+
+| | O que era | Sintoma |
+| --- | --- | --- |
+| **#299** | ribbons seguravam dois `VertexConsumer` | o cliente **morria** ao ligar Ren com dois jogadores |
+| **#300** | o nível de bloom estava fixo em `bloom-ausente` | toda captura com o mesmo sufixo — a comparação do gate #198 ficaria impossível de ler |
+| **#301** | a posição do `ModelPart` era zerada | shell no centro do corpo em vez do braço; Ten sumia |
+
+Os três foram corrigidos, ganharam portão que **reprova sem o código**, e foram
+**confirmados em jogo** na mesma sessão.
+
+> **O argumento inteiro desta campanha, numa sessão.** O código compilava, a
+> suíte estava verde e os GameTests passavam 143/143. O jogo morria ao ligar
+> Ren. *O defeito não estava no que o código fazia, e sim no que nenhuma régua
+> media.*
+
+### O que a sessão NÃO fez
+
+Nenhuma captura dela conta como evidência, e nenhuma foi arquivada em
+`capturas/`. O AV0 não começou. Isso era a regra da sessão, e ela foi cumprida.
+
+### A regra, que continua valendo para a próxima primeira vez
 
 ```
 SESSÃO DE VALIDAÇÃO DA BANCADA
@@ -566,13 +616,17 @@ de alguém descobrir que o FOV, a câmera ou o lote estavam errados, entra no
 repositório com cara de evidência e sai de lá como aprovação. **Arquivar em
 `capturas/` só começa no passo 4.**
 
-Esta sessão responde:
+Se a bancada ganhar recurso novo, ele repete este ciclo antes de entrar numa
+campanha: a ferramenta se prova primeiro, e sozinha.
 
-- [ ] `/nenvfx` aparece e responde? Os subcomandos existem?
-- [ ] O overlay **F6** abre, e as réguas novas do AV4–AV8 aparecem (colunas,
+<details>
+<summary>O roteiro que foi usado, para a próxima ferramenta</summary>
+
+- [x] `/nenvfx` aparece e responde? Os subcomandos existem?
+- [x] O overlay **F6** abre, e as réguas novas do AV4–AV8 aparecem (colunas,
       anéis, detritos com o teto ao lado, zumbidos vivos, fase da transição,
       contadores de alvo criado/liberado)?
-- [ ] O lote fotografa **o quadro certo**, e não o de antes?
+- [x] O lote fotografa **o quadro certo**, e não o de antes?
 - [ ] O modo de captura **devolve a câmera** ao sair?
 - [ ] O nome do arquivo sai com data, commit e nível de bloom?
 - [ ] `/nenvfx permissivo` acende o aviso de sobreposição no overlay?

@@ -45,7 +45,7 @@ repositório. Ver a seção 6.
        |
   VALIDAR A BANCADA DE CAPTURA
        |
-  DECIDIR #160 E EMENDAR O ADR-010
+  DECIDIR #160  (feito, 2026-09-21)
        |
   AV0 -> AV1 -> AV2 -> AV3 -> AV4 -> AV5 -> AV6 -> AV7
        |                 |
@@ -66,7 +66,7 @@ repositório. Ver a seção 6.
 | Sair do OneDrive | a QA de dois clientes **exige dois worktrees**, e `git worktree add` falha aqui por caminho longo — ver seção 3 |
 | Criar os dois worktrees | é a montagem que o passo seguinte usa, e ela só é possível depois do caminho curto. Falhar aqui é barato; falhar com o servidor de pé custa a sessão |
 | Validar a bancada | `/nenvfx`, o overlay F6 e o lote **nunca foram digitados num cliente**. Se a ferramenta estiver quebrada, o achado é dela — melhor descobrir antes dos 127 itens do que no quinquagésimo |
-| Decidir #160 | Ren dura ~11 s hoje, e há duas regras contraditórias escritas sobre Zetsu. Capturar Ren sustentado antes disso documenta um balanceamento que vai ser substituído |
+| ~~Decidir #160~~ ✅ | **feito em 2026-09-21.** Ren durava 11 s; `tecnica.ren.custoPorSegundo` foi de 10,0 para 4,0 e ele passa a durar ~33 s, com o resto vindo de `auraPotential` no M6. A "contradição do Zetsu" já estava resolvida pelo ADR-013 desde 2026-09-12 — metade da issue tinha envelhecido sem que ninguém notasse |
 | AV(n) antes de AV(n+1) | aprovar Ren sem ter aprovado Ten mede duas mudanças ao mesmo tempo. O AV0 existe para ser o ponto de parada barato |
 | #91, #139, #123 juntos | usam a mesma montagem de dois clientes + dedicado. Subir tudo de novo para eles paga o custo duas vezes, por nada |
 | AV8 por último | perfil de `spark` tirado antes de AV5 e AV7 estabilizarem mede uma implementação que ainda vai mudar |

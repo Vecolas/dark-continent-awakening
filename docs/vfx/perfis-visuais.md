@@ -238,6 +238,13 @@ liberado.
 Ligar o brilho à reserva tem um sintoma específico e desagradável: a aura
 **apaga** justamente enquanto o jogador está gastando.
 
+> **A fronteira, para quem vier depois:** o que a reserva pode governar é
+> **alcance e duração — nunca intensidade**. En projeta um campo cujo raio
+> depende de quanta aura há para espalhar, e isso é legítimo; o que esta seção
+> proíbe é a reserva mandar no brilho, na espessura ou na contagem de
+> filamentos. Sem esta linha, quem implementar En no F2 lê "reserva não toca o
+> visual" e trava a técnica errada.
+
 ---
 
 ## 8. Constantes de código — e por que não são config

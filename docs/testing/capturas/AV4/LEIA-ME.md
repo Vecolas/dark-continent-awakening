@@ -54,6 +54,23 @@ Cinco minutos de Ren contínuo sobre **terra, pedra, areia, grama alta e água
 rasa**, com `BlockState` comparado antes e depois na área do anel, e contagem de
 entidades antes e depois.
 
+> **OS CINCO MINUTOS NAO CABEM NA RESERVA BASE, e a saida e o config do
+> servidor de QA.** Com `aura.maximaBase = 100`, sustentar Ren por 5 min
+> exigiria custo 1,33/s -- abaixo de Ten. A escada do
+> [ADR-018](../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
+> segundos**, e isso e o desenho, nao um defeito.
+>
+> Suba `aura.maximaBase` no config do servidor do **mundo de regressao**. Config
+> e por servidor; o balanceamento distribuido nao muda.
+>
+> **Isso e legitimo porque a reserva nao toca o visual** -- `perfis-visuais.md`
+> §7: a intensidade vem do *output efetivo*. Um Ren sustentado com reserva 5.000
+> e visualmente IDENTICO ao de reserva 100, e a captura continua mostrando o que
+> o jogador vera.
+>
+> **O que NAO vale:** forcar com `/nenvfx state ren`. Isso acende `OVERRIDE
+> ATIVO` no overlay, e a captura deixa de valer como aprovacao.
+
 - **zero bloco alterado**
 - **zero `ItemEntity` novo**
 - **zero entidade órfã**

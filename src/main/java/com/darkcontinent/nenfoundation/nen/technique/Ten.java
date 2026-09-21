@@ -20,10 +20,16 @@ import net.minecraft.server.level.ServerPlayer;
  *
  * <p>DECISOES QUE ESTE ARQUIVO CARREGA:
  *
- * <p>1. O SALDO E NEGATIVO, de proposito (ADR-010, item 6). Ten cobra mais do
- * que a regeneracao devolve. Uma tecnica que rendesse mais do que custa viraria
- * o estado obviamente sempre-ligado, e o jogo perderia a escolha. Ha portao
- * exigindo isso dos numeros distribuidos.
+ * <p>1. O SALDO E POSITIVO, de proposito -- e ate 2026-09-12 este item dizia o
+ * contrario. O ADR-010 item 6 mandava todo estado sustentado ter saldo
+ * negativo; o <b>ADR-013</b> estreitou a regra para quem <b>LIBERA</b> aura.
+ * Ten nao libera: ele RETEM, e o preco dele e nao poder liberar acima do teto
+ * de repouso. Cobrar saldo negativo dele era exigir que a retencao cansasse.
+ *
+ * <p>A escada que o portao {@code TenTest.aEscadaDeRecuperacao} exige hoje e
+ * <b>Zetsu &gt; ficar parado &gt; Ten &gt; 0 &gt; Ren</b>: Ten recupera pouco,
+ * menos do que nao fazer nada, porque a protecao tem de custar alguma coisa.
+ * Quem paga em aura e Ren -- e Ken, Gyo, Shu e Ko, que tambem liberam.
  *
  * <p>2. OS NUMEROS SAO LIDOS NO TICK, e nao guardados na ativacao. Congelar o
  * custo em {@code onActivate} faria a tecnica ignorar toda recarga de config

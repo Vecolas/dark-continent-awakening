@@ -112,9 +112,14 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue REN_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Ren consome por segundo enquanto estiver ativo.",
+                    "COMPRA ~29 SEGUNDOS com a reserva base de 100. A escada do ADR-018",
+                    "e desenhada em SEGUNDOS, e o custo e consequencia:",
+                    "  custo = aura.maximaBase / duracao + aura.regeneracaoPorSegundo",
                     "MUITO maior que o de Ten, e a proporcao entre os dois e que faz Ren",
-                    "ser estado de combate e Ten estado de repouso.")
-            .defineInRange("tecnica.ren.custoPorSegundo", 10.0D, 0.0D, 1_000.0D);
+                    "ser estado de combate e Ten estado de repouso.",
+                    "Era 10.0 ate 2026-09-21, quando durava 11 s -- um golpe, e nao uma",
+                    "luta. Ver a issue #160 e o ADR-018.")
+            .defineInRange("tecnica.ren.custoPorSegundo", 4.4D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue REN_TETO_DE_OUTPUT = BUILDER
             .comment("Teto de Output enquanto Ren estiver ativo.",
@@ -139,10 +144,12 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue GYO_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Gyo consome por segundo.",
+                    "COMPRA ~59 SEGUNDOS com a reserva base de 100.",
                     "Gyo LIBERA aura -- ele e aplicacao de Ren -- entao pelo ADR-013 o",
                     "saldo dele tem de ser negativo. Menor que o de Ren: concentrar",
-                    "custa menos que abrir a torneira toda.")
-            .defineInRange("tecnica.gyo.custoPorSegundo", 4.0D, 0.0D, 1_000.0D);
+                    "custa menos que abrir a torneira toda.",
+                    "Era 4.0 ate 2026-09-21; ver o ADR-018.")
+            .defineInRange("tecnica.gyo.custoPorSegundo", 2.7D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue GYO_FRACAO_CONCENTRADA = BUILDER
             .comment("Quanto da aura total Gyo concentra na regiao escolhida, de 0 a 1.",
@@ -154,10 +161,13 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue SHU_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Shu consome por segundo.",
+                    "COMPRA ~71 SEGUNDOS com a reserva base de 100 -- a mais longa das",
+                    "que liberam, porque e a que menos redistribui.",
                     "Shu LIBERA aura para envolver o objeto, entao pelo ADR-013 o saldo",
                     "dela e negativo. Mais barata que Gyo: cobrir o que esta na mao",
-                    "custa menos que concentrar metade da aura numa regiao.")
-            .defineInRange("tecnica.shu.custoPorSegundo", 3.0D, 0.0D, 1_000.0D);
+                    "custa menos que concentrar metade da aura numa regiao.",
+                    "Era 3.0 ate 2026-09-21; ver o ADR-018.")
+            .defineInRange("tecnica.shu.custoPorSegundo", 2.4D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue SHU_FRACAO_CONCENTRADA = BUILDER
             .comment("Quanto da aura total Shu leva para o braco da mao dominante.",
@@ -167,11 +177,14 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue KEN_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Ken consome por segundo.",
+                    "COMPRA ~45 SEGUNDOS com a reserva base de 100 -- metade a mais que",
+                    "Ren, e e nisso que a troca 'pico por duracao' aparece em numero.",
                     "MENOR que o de Ren, e maior que todo o resto. Ren e o pico -- a",
                     "torneira aberta, cara e insustentavel. Ken e a versao que se",
                     "aguenta, e por isso e ele que se treina para durar.",
-                    "Se este numero alcancar o de Ren, Ken vira Ren com outro nome.")
-            .defineInRange("tecnica.ken.custoPorSegundo", 6.0D, 0.0D, 1_000.0D);
+                    "Se este numero alcancar o de Ren, Ken vira Ren com outro nome.",
+                    "Era 6.0 ate 2026-09-21; ver o ADR-018.")
+            .defineInRange("tecnica.ken.custoPorSegundo", 3.2D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue KEN_TETO_DE_OUTPUT = BUILDER
             .comment("Teto de Output com Ken ativo.",
@@ -248,7 +261,12 @@ public final class NenConfig {
 
     private static final ModConfigSpec.DoubleValue KO_CUSTO_POR_SEGUNDO = BUILDER
             .comment("Aura que Ko consome por segundo. O MAIOR de todas.",
-                    "Ko e um golpe, nao um estado: ele custa muito por pouco tempo.")
+                    "Ko e um golpe, nao um estado: ele custa muito por pouco tempo.",
+                    "NAO MUDOU no rebalanceamento do ADR-018, e isso e escolha. Com",
+                    "duracaoEmTicks = 20 ele cobra 20 de aura por golpe -- um quinto da",
+                    "reserva base. Como a escada baixou em volta dele, um Ko passou a",
+                    "valer ~4,6 s de Ren em vez de ~1,8 s: ficou RELATIVAMENTE mais caro,",
+                    "de proposito. Ko e compromisso, e errar o golpe tem de doer.")
             .defineInRange("tecnica.ko.custoPorSegundo", 20.0D, 0.0D, 1_000.0D);
 
     private static final ModConfigSpec.DoubleValue KO_FRACAO_CONCENTRADA = BUILDER

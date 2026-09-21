@@ -23,17 +23,42 @@ import java.util.Locale;
 public final class NomeDeCaptura {
 
     /**
-     * O que aparece onde o nivel de bloom vai ficar, ate o AV5 existir.
+     * O que aparece onde o nivel de bloom vai ficar quando nao ha passe algum.
      *
      * <p>NAO E "0" NEM "off", e a diferenca importa. Zero significaria "o
-     * passe de bloom rodou e estava em zero"; o que e verdade hoje e outra
-     * coisa: <b>o passe nao existe</b>. Escrever um numero aqui faria uma
-     * captura do AV1 parecer comparavel com uma do AV5, e ela nao e.
+     * passe de bloom rodou e estava em zero"; {@code off} significaria "o
+     * jogador escolheu desligar". Ausente e a terceira coisa: <b>o passe nao
+     * existe</b>. Escrever um numero aqui faria uma captura do AV1 parecer
+     * comparavel com uma do AV5, e ela nao e.
      *
-     * <p>Quando o {@code AuraGlowTarget} nascer (ADR-016), este campo passa a
-     * carregar {@code off}, {@code fast} ou {@code high}.
+     * <p><b>ELE DEIXOU DE SER O VALOR PADRAO EM 2026-09-21.</b> O AV5 entregou
+     * o {@code AuraGlowTarget}, e este javadoc ja dizia que a partir dai o
+     * campo passaria a carregar {@code off}, {@code fast} ou {@code high} --
+     * mas o ponto de chamada continuou passando a constante, fixa. A primeira
+     * sessao de bancada tirou uma captura chamada {@code ...__bloom-ausente},
+     * com o passe de brilho vivo. Ver #300.
+     *
+     * <p>O estrago que isso faria: o gate #198 compara {@code bloom_off},
+     * {@code bloom_fast} e {@code bloom_high} DO MESMO QUADRO. Com as tres
+     * saindo com o mesmo sufixo, o arquivo nao distingue mais a comparacao que
+     * o gate inteiro existe para fazer -- e ninguem descobre olhando a pasta.
      */
     public static final String BLOOM_AUSENTE = "bloom-ausente";
+
+    /**
+     * O sufixo de um nivel de bloom, ou {@link #BLOOM_AUSENTE} se nao houver.
+     *
+     * <p>Recebe {@code null} sem reclamar: quem chama esta no caminho de uma
+     * captura, e uma ferramenta de captura nao pode ser o motivo de um crash
+     * durante uma sessao de arte -- e o mesmo motivo do {@code catch} de
+     * {@code ReportedException} em {@code AuraCaptureMode}.
+     */
+    public static String nivelDeBloom(
+            @javax.annotation.Nullable
+            com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel nivel) {
+        return nivel == null ? BLOOM_AUSENTE
+                : "bloom-" + nivel.name().toLowerCase(Locale.ROOT);
+    }
 
     /** Separador entre os campos. Duplo para nao colidir com o proprio nome. */
     private static final String SEPARADOR = "__";

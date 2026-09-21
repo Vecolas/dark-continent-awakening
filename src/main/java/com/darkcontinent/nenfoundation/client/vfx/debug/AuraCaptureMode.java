@@ -258,8 +258,14 @@ public final class AuraCaptureMode {
                     destino.getAbsolutePath()));
             return;
         }
+        // O NIVEL VEM DO PASSE, E NAO DA CONFIG. `nivelEfetivo` ja devolve o
+        // rebaixamento quando algo falhou -- e uma captura tirada com HIGH
+        // pedido e FAST na tela tem de dizer FAST, senao a comparacao dos tres
+        // niveis do gate #198 compara duas imagens que sao a mesma coisa.
         String arquivo = PASTA + "/" + NomeDeCaptura.de(nome, LocalDate.now(),
-                InfoDeBuild.commit(), NomeDeCaptura.BLOOM_AUSENTE);
+                InfoDeBuild.commit(), NomeDeCaptura.nivelDeBloom(
+                        com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                                .nivelEfetivo()));
         Consumer<Component> relato = mensagem -> avisar(mc, mensagem);
         try {
             Screenshot.grab(raiz, arquivo, mc.getMainRenderTarget(), relato);

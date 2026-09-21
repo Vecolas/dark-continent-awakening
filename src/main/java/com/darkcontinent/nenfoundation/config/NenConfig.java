@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.config;
 
 import com.darkcontinent.nenfoundation.nen.aura.ParametrosDeAura;
+import com.darkcontinent.nenfoundation.enemy.ai.PerceptionTuning;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 /**
@@ -61,6 +62,34 @@ public final class NenConfig {
     private static final ModConfigSpec.IntValue INTERVALO_DE_SYNC = BUILDER
             .comment("Intervalo minimo, em ticks, entre deltas alterados. Tick limpo nao envia.")
             .defineInRange("network.runtimeSyncTicks", 5, 1, 100);
+
+    private static final ModConfigSpec.DoubleValue INIMIGO_ALCANCE_DE_VISAO = BUILDER
+            .comment("Alcance maximo da visao server-side dos inimigos.")
+            .defineInRange("enemy.perception.visionRange", 32.0D, 1.0D, 128.0D);
+
+    private static final ModConfigSpec.DoubleValue INIMIGO_CONE_DE_VISAO = BUILDER
+            .comment("Meia-abertura, em graus, do cone de visao dos inimigos.")
+            .defineInRange("enemy.perception.visionHalfAngleDegrees", 65.0D, 1.0D, 180.0D);
+
+    private static final ModConfigSpec.DoubleValue INIMIGO_ALCANCE_DE_AUDICAO = BUILDER
+            .comment("Alcance maximo de sinais sonoros registrados por evento.")
+            .defineInRange("enemy.perception.hearingRange", 24.0D, 1.0D, 128.0D);
+
+    private static final ModConfigSpec.IntValue INIMIGO_INTERVALO_DE_SCAN = BUILDER
+            .comment("Intervalo entre scans de candidatos; nao usar 1 para gameplay normal.")
+            .defineInRange("enemy.perception.scanIntervalTicks", 5, 1, 40);
+
+    private static final ModConfigSpec.IntValue INIMIGO_MAX_CANDIDATOS = BUILDER
+            .comment("Numero maximo de candidatos ordenados por distancia por scan.")
+            .defineInRange("enemy.perception.maxCandidates", 32, 1, 128);
+
+    private static final ModConfigSpec.IntValue INIMIGO_MEMORIA = BUILDER
+            .comment("Ticks que um ruido identificado permanece na memoria de ameaca.")
+            .defineInRange("enemy.perception.memoryTicks", 160, 0, 1200);
+
+    private static final ModConfigSpec.DoubleValue INIMIGO_RAIO_DE_TERRITORIO = BUILDER
+            .comment("Raio default da origem territorial para inimigos territoriais.")
+            .defineInRange("enemy.perception.territoryRadius", 12.0D, 1.0D, 128.0D);
 
     private static final ModConfigSpec.IntValue INTERPOLACAO_DE_AURA = BUILDER
             .comment("Duracao visual em ticks de cliente. Zero aplica o delta imediatamente.")
@@ -266,6 +295,13 @@ public final class NenConfig {
     };
 
     public static int intervaloDeSync() { return INTERVALO_DE_SYNC.get(); }
+
+    public static PerceptionTuning enemyPerceptionTuning() {
+        return new PerceptionTuning(INIMIGO_ALCANCE_DE_VISAO.get(), INIMIGO_CONE_DE_VISAO.get(),
+                INIMIGO_ALCANCE_DE_AUDICAO.get(), INIMIGO_INTERVALO_DE_SCAN.get(),
+                INIMIGO_MAX_CANDIDATOS.get(), INIMIGO_MEMORIA.get(),
+                INIMIGO_RAIO_DE_TERRITORIO.get());
+    }
     public static int interpolacaoDeAura() { return INTERPOLACAO_DE_AURA.get(); }
     public static int interpolacaoDeOutput() { return INTERPOLACAO_DE_OUTPUT.get(); }
 

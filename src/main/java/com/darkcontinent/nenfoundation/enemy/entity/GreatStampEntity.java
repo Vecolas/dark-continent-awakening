@@ -434,7 +434,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
     private AwarenessInput lerSensores() {
         LivingEntity alvo = getTarget();
         boolean alvoVivo = alvo != null && alvo.isAlive();
-        boolean visivel = alvoVivo && hasLineOfSight(alvo);
+        boolean visivel = alvoVivo && isPerceivedVisible(alvo);
         double distancia = alvoVivo ? distanceTo(alvo) : Double.NaN;
 
         if (visivel) memoriaDeAlvo = MEMORIA_DE_ALVO_TICKS;
@@ -444,7 +444,7 @@ public final class GreatStampEntity extends BaseHxHMob implements GeoEntity {
                 && distancia > distanciaAnteriorDoAlvo + TOLERANCIA_DE_RECUO;
         distanciaAnteriorDoAlvo = distancia;
 
-        boolean audivel = !visivel && memoriaDeAlvo > 0;
+        boolean audivel = !visivel && (isPerceivedAudible(alvo) || memoriaDeAlvo > 0);
         boolean noTerritorio = visivel && distancia <= RAIO_DE_TERRITORIO;
         boolean vidaCritica = getHealth() <= getMaxHealth() * FRACAO_DE_VIDA_CRITICA;
 

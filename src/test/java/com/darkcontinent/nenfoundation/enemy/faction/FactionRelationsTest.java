@@ -14,5 +14,7 @@ class FactionRelationsTest {
         assertEquals(FactionRelation.NEUTRAL, relations.relation(EnemyFaction.WILDLIFE, EnemyFaction.CIVILIAN));
         assertEquals(FactionRelation.PREY, relations.relation(EnemyFaction.CHIMERA_ANT, EnemyFaction.CIVILIAN));
         assertEquals(FactionRelation.HOSTILE, relations.relation(EnemyFaction.CHIMERA_ANT, EnemyFaction.HUNTER_ASSOCIATION));
+        assertEquals(FactionRelation.HOSTILE,
+                relations.relation(EnemyFaction.WILDLIFE, EnemyFaction.HUNTER_ASSOCIATION));
     }
 }

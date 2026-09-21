@@ -913,7 +913,7 @@ public final class MasterOfTheSwampEntity extends BaseHxHMob implements GeoEntit
         // escolhida. Ele nao caca ninguem, e por isso nao tem targetSelector.
         LivingEntity alvo = pescador;
         boolean alvoVivo = alvo != null && alvo.isAlive();
-        boolean visivel = alvoVivo && hasLineOfSight(alvo);
+        boolean visivel = alvoVivo && isPerceivedVisible(alvo);
         double distancia = alvoVivo ? distanceTo(alvo) : Double.NaN;
 
         if (visivel) memoriaDeAlvo = MEMORIA_DE_ALVO_TICKS;
@@ -925,7 +925,8 @@ public final class MasterOfTheSwampEntity extends BaseHxHMob implements GeoEntit
 
         // A isca percebida e o que o vanilla chamaria de "ouvi alguma coisa": o peixe
         // sabe que ha algo ali antes de ver quem jogou.
-        boolean audivel = !visivel && (anzolAlvo != null || memoriaDeAlvo > 0);
+        boolean audivel = !visivel && (anzolAlvo != null || isPerceivedAudible(alvo)
+                || memoriaDeAlvo > 0);
         // "No territorio" aqui e literal: o jogador esta amarrado a ele pela linha.
         boolean noTerritorio = estaFisgado();
         boolean vidaCritica = getHealth() <= getMaxHealth() * FRACAO_DE_VIDA_CRITICA;

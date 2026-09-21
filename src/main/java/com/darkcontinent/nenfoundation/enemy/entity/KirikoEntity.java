@@ -1061,7 +1061,7 @@ public final class KirikoEntity extends BaseHxHMob implements GeoEntity {
         // isso nao tem targetSelector.
         LivingEntity alvo = veredito == Veredito.REPROVADO ? getTarget() : candidato;
         boolean alvoVivo = alvo != null && alvo.isAlive();
-        boolean visivel = alvoVivo && hasLineOfSight(alvo);
+        boolean visivel = alvoVivo && isPerceivedVisible(alvo);
         double distancia = alvoVivo ? distanceTo(alvo) : Double.NaN;
 
         if (visivel) {
@@ -1074,7 +1074,7 @@ public final class KirikoEntity extends BaseHxHMob implements GeoEntity {
                 && distancia > distanciaAnteriorDoAlvo;
         distanciaAnteriorDoAlvo = distancia;
 
-        boolean audivel = !visivel && memoriaDeAlvo > 0;
+        boolean audivel = !visivel && (isPerceivedAudible(alvo) || memoriaDeAlvo > 0);
         boolean vidaCritica = getHealth() <= getMaxHealth() * FRACAO_DE_VIDA_CRITICA;
 
         // ambushOpportunity FALSO, sempre, e isto e a ficha escrita em codigo: o

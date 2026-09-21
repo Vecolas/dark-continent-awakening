@@ -627,7 +627,7 @@ public final class SpiderEagleEntity extends BaseHxHMob implements GeoEntity {
     /** Leitura de mundo do tick: e isto que faz awarenessState() parar de ser decorativo. */
     private AwarenessInput lerSensores(LivingEntity intruso) {
         boolean alvoVivo = intruso != null;
-        boolean visivel = alvoVivo && hasLineOfSight(intruso);
+        boolean visivel = alvoVivo && isPerceivedVisible(intruso);
         // RECUAR, para este mob, e afastar-se do NINHO -- nao da ave. Medir a partir
         // do corpo faria a ave em voo "sentir" recuo so por ter passado do alvo.
         double distancia = alvoVivo ? distanciaDoNinho(intruso) : Double.NaN;
@@ -639,7 +639,7 @@ public final class SpiderEagleEntity extends BaseHxHMob implements GeoEntity {
                 && distancia > distanciaAnteriorAoNinho + TOLERANCIA_DE_RECUO;
         distanciaAnteriorAoNinho = distancia;
 
-        boolean audivel = !visivel && memoriaDeAlvo > 0;
+        boolean audivel = !visivel && (isPerceivedAudible(intruso) || memoriaDeAlvo > 0);
         boolean vidaCritica = getHealth() <= getMaxHealth() * FRACAO_DE_VIDA_CRITICA;
 
         // AQUI o targetInTerritory deixa de ser papel: este e o primeiro mob do

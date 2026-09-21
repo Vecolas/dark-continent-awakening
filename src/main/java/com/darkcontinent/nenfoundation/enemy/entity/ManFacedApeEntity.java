@@ -527,7 +527,7 @@ public final class ManFacedApeEntity extends BaseHxHMob implements GeoEntity {
     /** Leitura de mundo do tick: e isto que faz awarenessState() parar de ser decorativo. */
     private AwarenessInput lerSensores(LivingEntity alvo) {
         boolean alvoVivo = alvo != null;
-        boolean visivel = alvoVivo && hasLineOfSight(alvo);
+        boolean visivel = alvoVivo && isPerceivedVisible(alvo);
         double distancia = alvoVivo ? distanceTo(alvo) : Double.NaN;
 
         if (visivel) memoriaDeAlvo = MEMORIA_DE_ALVO_TICKS;
@@ -537,7 +537,7 @@ public final class ManFacedApeEntity extends BaseHxHMob implements GeoEntity {
                 && distancia > distanciaAnteriorDoAlvo + TOLERANCIA_DE_RECUO;
         distanciaAnteriorDoAlvo = distancia;
 
-        boolean audivel = !visivel && memoriaDeAlvo > 0;
+        boolean audivel = !visivel && (isPerceivedAudible(alvo) || memoriaDeAlvo > 0);
         boolean vidaCritica = getHealth() <= getMaxHealth() * FRACAO_DE_VIDA_CRITICA;
 
         // AQUI o ambushOpportunity deixa de ser papel: disfarcado, com alvo perto, e

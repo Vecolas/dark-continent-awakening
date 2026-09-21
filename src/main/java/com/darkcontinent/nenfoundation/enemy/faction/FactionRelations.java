@@ -32,7 +32,17 @@ public final class FactionRelations {
         values.put(EnemyFaction.CHIMERA_ANT_REBEL, Map.of(
                 EnemyFaction.CHIMERA_ANT, FactionRelation.HOSTILE,
                 EnemyFaction.CIVILIAN, FactionRelation.NEUTRAL));
-        values.put(EnemyFaction.WILDLIFE, Map.of(EnemyFaction.CIVILIAN, FactionRelation.NEUTRAL));
+        values.put(EnemyFaction.WILDLIFE, Map.of(
+                EnemyFaction.CIVILIAN, FactionRelation.NEUTRAL,
+                EnemyFaction.HUNTER_ASSOCIATION, FactionRelation.HOSTILE));
+        values.put(EnemyFaction.MAGICAL_BEAST, Map.of(
+                EnemyFaction.HUNTER_ASSOCIATION, FactionRelation.HOSTILE));
+        values.put(EnemyFaction.GREED_ISLAND_MONSTER, Map.of(
+                EnemyFaction.HUNTER_ASSOCIATION, FactionRelation.HOSTILE));
+        values.put(EnemyFaction.CRIMINAL, Map.of(
+                EnemyFaction.HUNTER_ASSOCIATION, FactionRelation.HOSTILE));
+        values.put(EnemyFaction.MAFIA, Map.of(
+                EnemyFaction.HUNTER_ASSOCIATION, FactionRelation.HOSTILE));
         return new FactionRelations(values);
     }
 }

@@ -114,23 +114,31 @@ class TenTest {
                 "Zetsu devia ser mais barato que Ten: " + custoZetsu + "/s contra "
                         + custoTen + "/s. E o estado de descanso.");
         assertTrue(custoZetsu > 0.0D,
-                "Zetsu de graca contraria o item 6 do ADR-010: usar Nen gasta.");
+                "Zetsu de graca contraria o item 6 do ADR-010, mesmo com a emenda do"
+                        + " ADR-013: a emenda tirou dele o SALDO negativo, e nao o custo."
+                        + " Usar Nen gasta; o que muda e que a recuperacao de Zetsu pode"
+                        + " passar do gasto.");
         assertTrue(multZetsu > 1.0D,
                 "Zetsu nao recupera melhor; o canone e explicito em dizer que sim.");
 
-        // CONTRADICAO ABERTA, E DECLARADA. Esta linha exige que Zetsu tenha
-        // saldo POSITIVO -- ele recupera mais do que gasta -- e o item 6 do
-        // ADR-010 diz que nenhum estado sustentado se paga. As duas regras nao
-        // cabem juntas, e quem escreveu as duas fui eu.
+        // A CONTRADICAO QUE ESTAVA DECLARADA AQUI FOI FECHADA pelo ADR-013,
+        // em 2026-09-12. Este bloco dizia que esta linha -- Zetsu com saldo
+        // POSITIVO -- brigava com o item 6 do ADR-010, e que qual regra cederia
+        // era decisao conjunta em aberto.
         //
-        // O desenho que resolveria: Zetsu e o estado de descanso, entao ele
-        // RECUPERA de proposito, e o preco dele nao e aura -- e ficar sem
-        // defesa de Nen. Essa defesa nao existe (#127), e por isso hoje Zetsu e
-        // um buff permanente sem desvantagem nenhuma.
+        // Cedeu o item 6, e de proposito: o ADR-013 estreitou a regra para os
+        // estados que LIBERAM aura. Zetsu nao libera nada, entao nao tem como
+        // "se pagar em aura" -- cobrar dele saldo negativo era exigir que o
+        // descanso cansasse. O preco de Zetsu e ficar sem defesa de Nen, e essa
+        // defesa passou a existir quando o #127 fechou.
         //
-        // Qual regra cede e decisao conjunta, e esta na issue de balanceamento.
-        // Ate la esta assercao fica, dizendo o que o projeto faz HOJE em vez de
-        // fingir coerencia que ele nao tem.
+        // A assercao fica, e agora ela AFIRMA o desenho em vez de registrar uma
+        // incoerencia: Zetsu recupera mais do que gasta porque e o estado de
+        // descanso, e e assim que o canone o descreve.
+        //
+        // O QUE CONTINUA SEM PROVA: que a vulnerabilidade MORDA em jogo. Ela
+        // existe em codigo desde o #127, e ninguem a sentiu numa sessao -- isso
+        // e o gate do M4 (#91), que nunca rodou.
         double saldo = regenBase * multZetsu - custoZetsu;
         assertTrue(saldo > 0.0D,
                 "Zetsu drena mais do que recupera, e ai ninguem descansa nele.");

@@ -1,9 +1,6 @@
 package com.darkcontinent.nenfoundation.enemy.chimera;
 
 import com.darkcontinent.nenfoundation.enemy.base.BaseChimeraAnt;
-import com.darkcontinent.nenfoundation.enemy.entity.BatScoutEntity;
-import com.darkcontinent.nenfoundation.enemy.entity.CrabHeavyEntity;
-import com.darkcontinent.nenfoundation.enemy.entity.WolfRunnerEntity;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;

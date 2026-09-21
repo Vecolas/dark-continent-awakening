@@ -5,7 +5,6 @@ import java.util.Set;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.saveddata.SavedData;
 
 /** Persistência dos candidatos de chunk que já receberam o posto. */

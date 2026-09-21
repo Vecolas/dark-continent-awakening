@@ -2,7 +2,6 @@ package com.darkcontinent.nenfoundation.network;
 
 import com.darkcontinent.nenfoundation.network.handler.Recebedores;
 import com.darkcontinent.nenfoundation.network.handler.PedidosC2S;
-import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Motivo;
 import com.darkcontinent.nenfoundation.network.handler.ValidacaoDePedido.Recusa;
 import com.darkcontinent.nenfoundation.network.payload.AtivarTecnicaC2S;
 import com.darkcontinent.nenfoundation.network.payload.DesativarTecnicaC2S;

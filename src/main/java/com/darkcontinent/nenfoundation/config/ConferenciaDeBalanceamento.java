@@ -25,6 +25,16 @@ import org.slf4j.Logger;
  * <b>+0.5 por segundo</b> -- Ten passou a se pagar, virando buff permanente de
  * graca. Os 321 testes continuaram verdes, porque nenhum deles le o toml.
  *
+ * <p><b>ATENCAO AO LER O PARAGRAFO ACIMA HOJE: o numero se inverteu de lado.</b>
+ * O custo de Ten distribuido HOJE e {@code 1.5}, e o saldo dele E {@code +0.5}
+ * por segundo -- exatamente o que aquele relato chama de desastre. A diferenca
+ * nao esta no numero, esta na REGRA: o ADR-013 (2026-09-12) decidiu que o saldo
+ * negativo vale so para quem LIBERA aura, e Ten retem. O que era defeito virou
+ * desenho, e por isso Ten nao entra mais na lista conferida abaixo.
+ *
+ * <p>O relato fica porque a licao continua valendo inteira: <b>toml velho contra
+ * codigo novo nao da erro nenhum</b>. So mudou qual numero seria o errado.
+ *
  * <p>ELE AVISA, E NAO RECUSA. Numero de balanceamento errado nao e motivo para
  * um servidor nao subir: quem esta girando botao precisa poder testar valores
  * ruins de proposito. Mas o aviso vai para o log em ERROR, com o numero, a
@@ -99,8 +109,20 @@ public final class ConferenciaDeBalanceamento {
         // M4 (#91), com dois clientes -- e ele nunca rodou.
         //
         // Ate o #91, o preco de Zetsu e regra provada e comportamento suposto.
+        // TODOS OS QUE LIBERAM, e nao so Ren. Ate 2026-09-21 esta lista tinha um
+        // item: Ken, Gyo, Shu e Ko liberam aura pelo mesmo ADR-013 e ficavam de
+        // fora da regua de runtime. O portao cobria menos do que parecia.
+        //
+        // Nenhum deles implementa ModificaRegeneracao, entao o multiplicador e
+        // 1.0 para os cinco -- e isso e verificavel: se algum ganhar
+        // multiplicador um dia, ele tem de entrar aqui com o valor de verdade,
+        // senao a conferencia aprova um estado que se paga.
         List<String> achados = problemas(NenConfig.auraRegeneracaoPorSegundo(), List.of(
-                new Estado("Ren", 1.0D, NenConfig.renCustoPorSegundo())));
+                new Estado("Ren", 1.0D, NenConfig.renCustoPorSegundo()),
+                new Estado("Ken", 1.0D, NenConfig.kenCustoPorSegundo()),
+                new Estado("Gyo", 1.0D, NenConfig.gyoCustoPorSegundo()),
+                new Estado("Shu", 1.0D, NenConfig.shuCustoPorSegundo()),
+                new Estado("Ko", 1.0D, NenConfig.koCustoPorSegundo())));
 
         for (String achado : achados) {
             LOG.error("[balanceamento] {}", achado);

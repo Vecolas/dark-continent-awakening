@@ -17,6 +17,23 @@ com data, commit, GPU, resolução e nível de bloom no nome.
 3. **nenhuma aura visível** — custo **zero**, e não *custo pequeno*
 4. **10 minutos de Ren contínuo**, medindo memória
 
+> **OS DEZ MINUTOS NAO CABEM NA RESERVA BASE, e a saida e o config do
+> servidor de QA.** Com `aura.maximaBase = 100`, sustentar Ren por 10 min
+> exigiria custo 1,17/s -- abaixo de Ten. A escada do
+> [ADR-018](../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
+> segundos**, e isso e o desenho, nao um defeito.
+>
+> Suba `aura.maximaBase` no config do servidor do **mundo de regressao**. Config
+> e por servidor; o balanceamento distribuido nao muda.
+>
+> **Isso e legitimo porque a reserva nao toca o visual** -- `perfis-visuais.md`
+> §7: a intensidade vem do *output efetivo*. Um Ren sustentado com reserva 5.000
+> e visualmente IDENTICO ao de reserva 100, e a captura continua mostrando o que
+> o jogador vera.
+>
+> **O que NAO vale:** forcar com `/nenvfx state ren`. Isso acende `OVERRIDE
+> ATIVO` no overlay, e a captura deixa de valer como aprovacao.
+
 E a medição do **servidor dedicado**: tick time com 10 jogadores em Ren
 comparado a 10 parados.
 

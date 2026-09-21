@@ -15,11 +15,18 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Medida | Valor |
 | --- | --- |
-| Testes JUnit na trilha inteira | **1.409 executados, 0 falhas** |
-| GameTests da trilha de inimigos | **143 executados, 0 falhas** |
+| Testes JUnit no repositório | ver a saída de `./gradlew build` — *snapshot: 1.528 em 2026-09-21, `f99d75e`* |
+| GameTests executados | **143 de 143, 0 falhas** — *`runGameTestServer`, 2026-09-21, `f99d75e`* |
 | Ids de inimigo registrados | 24 (7 do exame + 7 de Greed Island + 9 de Chimera + o boneco) |
 | Arquivos de som gerados e conferidos | 120, todos Ogg Vorbis validados byte a byte |
 | Geradores de arte com validação semântica | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, Wolf Pack Hunter, King White Stag Beetle, Boneco de Treino |
+
+> **Contagem de teste é SNAPSHOT, e não invariante.** Ela estava copiada aqui e
+> em `../inimigos/release-candidate.md` como se fosse um fato do documento, e as
+> duas cópias envelheceram juntas no merge da trilha AV — 1.409 virou 1.528 sem
+> que nenhum portão acusasse. Um número copiado à mão entre dois documentos
+> diverge na primeira entrega da outra frente. Quem quiser o número de hoje roda
+> o `build`; o snapshot existe só para datar o que foi visto.
 
 ---
 
@@ -29,7 +36,7 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Item | Estado | Evidência |
 | --- | --- | --- |
-| build verde, contagem > 0 | ✅ | 1.409 testes |
+| build verde, contagem > 0 | ✅ | a contagem sai do `build`; ver a régua acima |
 | datagen auditado quando dados mudarem | ✅ | loot, lang, `sounds.json` e tags conferidos por portão, não por leitura |
 | GameTests do dummy cobrem percepção, fases, hitbox, weak point e stagger | ✅ | executados dentro dos 143 GameTests |
 | `runClient` renderiza e anima o dummy | ⬜ | não executado |

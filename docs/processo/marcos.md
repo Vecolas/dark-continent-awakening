@@ -455,8 +455,14 @@ O codigo de **AV5, AV6, AV7 e AV8** tambem esta entregue, na mesma branch:
 **TODOS OS DEZ GATES CONTINUAM ABERTOS** -- #169, #176, #181, #187, #193, #198,
 #201, #205, #209 e #104. Nenhum deles se fecha com codigo: os dez exigem
 servidor dedicado, dois clientes reais e capturas arquivadas, e
-`docs/testing/capturas/` continua vazio. A issue #103 (ripple de impacto)
-tambem segue bloqueada, por #127 -- nao ha dano de Nen para disparar.
+`docs/testing/capturas/` continua vazio.
+
+A issue #103 (ripple de impacto) **deixou de estar bloqueada**. Este paragrafo
+dizia que ela dependia de #127 -- "nao ha dano de Nen para disparar" --, e #127
+fechou: a camada de dano existe em `nen/combat/`, e a tabela do M4 acima ja a
+registra como entregue. O que falta em #103 e outra coisa, e menor:
+`AuraImpactState` valida, decrementa e nunca e alimentado. Falta ligar a camada
+de dano a ele.
 
 Tres coisas foram deliberadamente NAO feitas, e as tres estao no codigo com o
 motivo e em `o-que-nao-provamos.md`:

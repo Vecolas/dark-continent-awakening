@@ -87,9 +87,18 @@ public final class ConferenciaDeBalanceamento {
         // nao gasta aura para existir. Cobrar dele o saldo negativo era exigir
         // que o descanso cansasse.
         //
-        // PONTO CEGO ENQUANTO #127 NAO EXISTIR: os precos de Zetsu e de Ten sao
-        // vulnerabilidade e teto, e a vulnerabilidade nao esta implementada.
-        // Ate la os dois sao mais baratos do que deveriam ser.
+        // O PONTO CEGO DO #127 FECHOU PELA METADE, e a metade que sobrou tem
+        // nome. Este comentario dizia "enquanto #127 nao existir (...) os dois
+        // sao mais baratos do que deveriam ser". O #127 fechou: a camada de
+        // dano existe em nen/combat/, e com Zetsu o golpe doi o mesmo que sem
+        // aura nenhuma.
+        //
+        // Entao o PRECO existe. O que ninguem verificou e se ele MORDE: nenhuma
+        // sessao de jogo exercitou a vulnerabilidade, e "existe em codigo" nao
+        // e "custa alguma coisa para quem joga". Quem responde isso e o gate do
+        // M4 (#91), com dois clientes -- e ele nunca rodou.
+        //
+        // Ate o #91, o preco de Zetsu e regra provada e comportamento suposto.
         List<String> achados = problemas(NenConfig.auraRegeneracaoPorSegundo(), List.of(
                 new Estado("Ren", 1.0D, NenConfig.renCustoPorSegundo())));
 

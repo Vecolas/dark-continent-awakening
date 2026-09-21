@@ -41,6 +41,8 @@ repositório. Ver a seção 6.
        |
   MOVER O REPO PARA FORA DO ONEDRIVE
        |
+  CRIAR OS DOIS WORKTREES
+       |
   VALIDAR A BANCADA DE CAPTURA
        |
   DECIDIR #160 E EMENDAR O ADR-010
@@ -62,7 +64,8 @@ repositório. Ver a seção 6.
 | --- | --- |
 | Drift e docs | medir contra um documento que se contradiz produz evidência que ninguém consegue interpretar depois |
 | Sair do OneDrive | a QA de dois clientes **exige dois worktrees**, e `git worktree add` falha aqui por caminho longo — ver seção 3 |
-| Validar a bancada | `/nenvfx`, o overlay F6 e o lote **nunca foram digitados num cliente**. Se a ferramenta estiver quebrada, o achado é dela — melhor descobrir antes de 127 capturas do que na quinquagésima |
+| Criar os dois worktrees | é a montagem que o passo seguinte usa, e ela só é possível depois do caminho curto. Falhar aqui é barato; falhar com o servidor de pé custa a sessão |
+| Validar a bancada | `/nenvfx`, o overlay F6 e o lote **nunca foram digitados num cliente**. Se a ferramenta estiver quebrada, o achado é dela — melhor descobrir antes dos 127 itens do que no quinquagésimo |
 | Decidir #160 | Ren dura ~11 s hoje, e há duas regras contraditórias escritas sobre Zetsu. Capturar Ren sustentado antes disso documenta um balanceamento que vai ser substituído |
 | AV(n) antes de AV(n+1) | aprovar Ren sem ter aprovado Ten mede duas mudanças ao mesmo tempo. O AV0 existe para ser o ponto de parada barato |
 | #91, #139, #123 juntos | usam a mesma montagem de dois clientes + dedicado. Subir tudo de novo para eles paga o custo duas vezes, por nada |
@@ -131,11 +134,27 @@ resto do MAX_PATH de 260 do Windows. **Não dá erro de git: dá erro de sistema
 arquivos, e o worktree fica pela metade** — exigindo `git worktree prune` e
 `rm -rf` para limpar.
 
-- [ ] Clonar em `C:\dev\dark-continent-awakening`.
+**Clone novo, e não mover a pasta.** Mover arrasta `build/`, `run/`, `.gradle/`
+e o estado de IDE junto — exatamente o que causa o problema que se quer resolver.
+
+- [ ] `git clone` em `C:\dev\dark-continent-awakening`.
 - [ ] Conferir que `scripts/instancia.ps1` não guarda caminho absoluto do clone
       antigo. **Isto não foi verificado por ninguém ainda.**
 - [ ] Conferir o mesmo em configuração local de IDE e em `run/`.
-- [ ] `./gradlew build` verde no clone novo, antes de apagar o antigo.
+- [ ] `./gradlew build` verde no clone novo.
+- [ ] `git worktree add` funciona no clone novo — é o teste que justifica a mudança.
+
+**Antes de abandonar o clone do OneDrive**, comparar os dois lado a lado:
+
+```bash
+git status            # nada não commitado ficando para trás
+git rev-parse HEAD    # o mesmo commit nos dois
+git stash list        # vazio, ou o stash veio junto
+git worktree list     # nenhum worktree órfão apontando para o clone antigo
+```
+
+O clone antigo só é apagado depois que os quatro respondem igual. Um `git status`
+sujo no antigo é trabalho de alguém que ninguém commitou.
 
 Alternativa não testada, se mover for indesejável agora:
 `git config core.longpaths true`.
@@ -198,15 +217,45 @@ com skin Alex entra.
 
 Ao terminar: `git worktree remove --force C:/dca-a` e `C:/dca-b`.
 
-### 4.4 O recurso único
+### 4.4 Posse do servidor de QA
 
-A issue #169 registra, e vale para a campanha toda:
+A `fronteira-de-arquivos.md` cobre um recurso compartilhado: **arquivo**, e a
+exclusão é por *edição*. Esta campanha expõe um segundo, que não está escrito em
+lugar nenhum: **o servidor de QA**, e a exclusão dele é por *execução*.
+
+| Recurso | Exclusão por | Onde está a regra |
+| --- | --- | --- |
+| `NenFoundationClient.java`, `NenSoundEvents.java`, … | edição | `../processo/fronteira-de-arquivos.md` |
+| `runServer` + porta 25565 + mundo de regressão | **execução** | **aqui** |
+
+A issue #169 já registrava o fato, solto:
 
 > **Só uma frente por vez roda `runServer`** (porta fixa) e mexe no mundo de
 > teste compartilhado. Combinar a janela antes de começar.
 
-Isto é o que impede a campanha de evidência e a lane de inimigos de rodarem
-servidor ao mesmo tempo. Trabalho de código em EN6–EN16 continua livre.
+Vira convenção explícita:
+
+```
+POSSE DO SERVIDOR DE QA
+
+Uma frente por vez. Antes de iniciar:
+  [ ] declarar a sessão para a outra frente
+  [ ] confirmar que nenhum outro teste está usando a porta
+  [ ] confirmar o mundo e o commit esperados
+
+Ao terminar:
+  [ ] encerrar o servidor
+  [ ] liberar a sessão, dizendo que terminou
+```
+
+**Convenção, e não lock.** Nada de script de trava, arquivo de posse ou segunda
+porta por enquanto: a campanha já é grande, e infraestrutura construída antes de
+a convenção provar que não basta é custo sem consumidor. O dia em que duas
+sessões colidirem mesmo assim é o dia de automatizar — e aí existe o caso real
+que diz qual automação serve.
+
+Trabalho de código em EN6–EN16 continua livre; o que se combina é a janela de
+servidor.
 
 ### 4.5 A regra de toda captura
 
@@ -230,7 +279,20 @@ A bancada de captura (`/nenvfx`, overlay **F6**, sliders, lote) entregue em #168
 tem teste unitário da lógica e **nunca foi digitada num cliente de verdade**. É
 o ponto cego mais antigo da trilha.
 
-Esta sessão **não produz aprovação**. Ela responde:
+```
+SESSÃO DE VALIDAÇÃO DA BANCADA
+
+Nenhum arquivo produzido nesta sessão conta como evidência de gate.
+
+Objetivo: provar a FERRAMENTA de captura, e não o efeito.
+```
+
+Isto é normativo, e não conselho. Uma imagem aparentemente válida, tirada antes
+de alguém descobrir que o FOV, a câmera ou o lote estavam errados, entra no
+repositório com cara de evidência e sai de lá como aprovação. **Arquivar em
+`capturas/` só começa no passo 4.**
+
+Esta sessão responde:
 
 - [ ] `/nenvfx` aparece e responde? Os subcomandos existem?
 - [ ] O overlay **F6** abre, e as réguas novas do AV4–AV8 aparecem (colunas,
@@ -243,8 +305,14 @@ Esta sessão **não produz aprovação**. Ela responde:
 - [ ] `/nenvfx off`, relog, morte e troca de dimensão não deixam estado visual
       preso?
 
-Se qualquer um falhar, o resultado da sessão é **uma issue nova na bancada**, e
-a campanha espera. Isso é sucesso, não atraso.
+Se **qualquer um** deles falhar — `/nenvfx`, F6, slider, lote, nomenclatura,
+restauração de câmera, Steve/Alex —, a sessão **para** e vira issue da bancada.
+
+> Não se começa o AV0 "já que o cliente está aberto". Uma bancada meio
+> verificada produz 127 itens cuja validade ninguém consegue defender depois.
+
+Uma sessão que termina com uma issue nova e zero capturas é **sucesso**: ela
+achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 
 ---
 
@@ -264,13 +332,21 @@ a campanha espera. Isso é sucesso, não atraso.
 | AV7 | #205, #104 | 21 | `capturas/AV7/LEIA-ME.md` | **sim** |
 | AV8 | #209, #206, #207 | perfis | `capturas/AV8/LEIA-ME.md` | sim (10 e 20) |
 
-**Total: 127 capturas**, das quais três são vídeo quadro a quadro
-(`transicao_ten_ren` no AV4, `ten_para_zetsu` e `ren_para_zetsu` no AV6).
+**Total: 127 itens de evidência visual nesta revisão (2026-09-21).** Três deles
+são vídeo quadro a quadro (`transicao_ten_ren` no AV4, `ten_para_zetsu` e
+`ren_para_zetsu` no AV6) — o número não promete 127 PNGs.
 
-> **O `LEIA-ME.md` do diretório de capturas diz 75.** Aquele número soma só os
-> gates cujo `LEIA-ME` carrega uma contagem; AV1, AV2 e AV3 aparecem como "ver
-> issue" e ficaram de fora da soma. O número real é 127. Corrigir o
-> `LEIA-ME.md` faz parte do passo 0.
+> **Este total é DERIVADO, e a fonte de verdade continua sendo cada gate.**
+> Ele foi somado a partir das listas em 2026-09-21 e envelhece no dia em que uma
+> issue ganhar ou perder uma linha. Refazer a soma é barato; confiar nela sem
+> refazer é como o 75 nasceu.
+
+> **O `LEIA-ME.md` do diretório de capturas dizia 75**, e o número está
+> corrigido lá junto com o motivo. Ele somava só os gates cuja linha trazia uma
+> contagem; AV1, AV2 e AV3 apareciam como "ver issue" e ficavam de fora da
+> própria soma — 52 itens que ninguém tinha como ver. O "75" ficou registrado de
+> propósito: apagá-lo em silêncio tiraria a trilha de auditoria de como um total
+> derivado erra.
 
 ### 6.2 Os quatro roteiros que só existiam na issue
 

@@ -21,18 +21,34 @@ medir.
 | Loot, tradução, perfil publicado, renderer, ficha de bestiário | 24 de 24 |
 | Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
 | Assets reproduzíveis byte a byte | **199 de 199** |
-| Testes JUnit | **1.409 executados, 0 falhas** |
-| GameTests escritos / **executados** | **143 / 143**, 0 falhas |
+| Testes JUnit | ver a saída de `./gradlew build` — *snapshot: 1.528 em 2026-09-21, `f99d75e`* |
+| GameTests escritos / **executados** | **143 / 143**, 0 falhas — *`runGameTestServer`, 2026-09-21, `f99d75e`* |
 
 ---
 
 ## Os oito bloqueios de RC, por ordem de custo
 
-### 1. Nada rodou com o jogo de pé
+### 1. Validação manual e de multiplayer ainda ausente
 
-Nem `runClient`, nem `runServer`, nem `runGameTestServer`. É o bloqueio maior, e
-ele invalida qualquer afirmação de "funciona" — inclusive as que este repositório
-faz com cuidado. O que está provado é regra; o que falta é comportamento.
+`runGameTestServer` **já foi executado**, com 143 de 143 GameTests, e `runServer`
+chega a `Done` — a evidência está em [`../testing/en-gates.md`](../testing/en-gates.md).
+
+O que continua ausente é o outro lado:
+
+- **nenhuma sessão registrada de `runClient`**;
+- **nenhuma validação manual com dois jogadores e dois clientes reais**.
+
+Portanto: **servidor dedicado automatizado está provado; cliente visual e
+autoridade observada por dois clientes, não.**
+
+> Este bloqueio já dizia "nem `runClient`, nem `runServer`, nem
+> `runGameTestServer`", e contradizia a tabela acima do próprio arquivo. A frase
+> ficou para trás quando os gates passaram a rodar; a contradição foi encontrada
+> na revisão de 2026-09-21. **Um bloqueio exagerado custa o mesmo que um
+> otimista** — nos dois casos ninguém sabe mais qual afirmação acreditar.
+
+A ordem de fechar o que falta está em
+[`../testing/CAMPANHA-EVIDENCIAS.md`](../testing/CAMPANHA-EVIDENCIAS.md).
 
 ### 2. Nenhum save passou por disco
 

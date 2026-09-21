@@ -87,25 +87,37 @@ escrever código. A condição é a fronteira de arquivos: uma pessoa por vez em
 
 Itens pequenos, todos com evidência já levantada. Nenhum exige o jogo de pé.
 
-- [ ] **Fechar #298.** O critério era `runGameTestServer` fechar com 143 de 143,
+**Quatro dos cinco foram feitos em 2026-09-21**, na branch
+`docs/higiene-qa-drift`. Ficam escritos aqui, marcados, em vez de apagados: uma
+lista que só mostra o que falta esconde o que já custou trabalho, e a próxima
+pessoa reabre a discussão do zero.
+
+- [x] **Fechar #298.** O critério era `runGameTestServer` fechar com 143 de 143,
       e a causa escrita. Ambos satisfeitos: o merge de 2026-09-21 respondeu
       `All 143 required tests passed`, e a causa é que os quatro testes usavam
       `makeMockPlayer` — que não entra na lista de jogadores do servidor, a
       mesma que `EncounterController` consulta. **O teste estava errado, não o
       sistema**; `40ec661` trocou para `makeMockServerPlayerInLevel`.
-- [ ] **Desbloquear #103.** Ela está marcada como bloqueada por #127, que está
-      fechada — a camada de dano existe. Corrigir também o parágrafo do AV em
-      `../processo/marcos.md` que repete o bloqueio.
-- [ ] **Corrigir o bloqueio nº 1 de `../inimigos/release-candidate.md`.** Ele diz
-      "nem `runClient`, nem `runServer`, nem `runGameTestServer`", e a tabela do
-      mesmo arquivo diz 143/143 executados. `en-gates.md` registra o dedicado
-      chegando a `Done`. O que falta de verdade é `runClient` e dois jogadores.
-- [ ] **Resolver as contagens de teste duplicadas.** `en-gates.md` e
-      `release-candidate.md` dizem "1.409"; depois do merge são **1.528**.
-      Atualizar, ou trocar o número por "ver a saída do `build`" — a segunda
-      opção acaba com a classe inteira de problema.
+      *Fechada com o critério satisfeito — e isso NÃO é "o sistema de encontros
+      foi provado em cliente". O gate de encontro continua pedindo `runClient`.*
+- [x] **Desbloquear #103.** #127 fechou e a camada de dano existe. A issue e o
+      parágrafo do AV em `../processo/marcos.md` passaram de "bloqueada por
+      #127" para "disponível; falta alimentar `AuraImpactState` a partir da
+      camada de dano". *Ela continua ABERTA: o que mudou é que a espera acabou,
+      e não que o ripple exista.*
+- [x] **Corrigir o bloqueio nº 1 de `../inimigos/release-candidate.md`.** Ele
+      afirmava que `runGameTestServer` não tinha rodado, contra a tabela do
+      próprio arquivo. Agora separa o que está provado (dedicado automatizado)
+      do que não está (cliente visual e dois clientes reais).
+- [x] **Resolver as contagens de teste duplicadas.** `en-gates.md` e
+      `release-candidate.md` deixaram de carregar o número como verdade do
+      documento: apontam para a saída do `build`, com o snapshot datado e com
+      commit ao lado. Trocar 1.409 por 1.528 só teria criado o próximo número
+      envelhecido.
 - [ ] **`scripts/instancia.ps1 atualizar`.** A `main` mudou; sem isso o teste
-      manual roda o JAR velho, em silêncio.
+      manual roda o JAR velho, em silêncio. *Único item que sobra, e ele é da
+      máquina de quem for rodar a sessão — não tem como ser feito por uma
+      branch.*
 
 ---
 
@@ -147,13 +159,26 @@ e o estado de IDE junto — exatamente o que causa o problema que se quer resolv
 **Antes de abandonar o clone do OneDrive**, comparar os dois lado a lado:
 
 ```bash
-git status            # nada não commitado ficando para trás
-git rev-parse HEAD    # o mesmo commit nos dois
-git stash list        # vazio, ou o stash veio junto
-git worktree list     # nenhum worktree órfão apontando para o clone antigo
+git status                                   # nada não commitado ficando para trás
+git rev-parse HEAD                           # o mesmo commit nos dois
+git stash list                               # vazio, ou o stash veio junto
+git worktree list                            # nenhum worktree órfão no clone antigo
+git branch -vv                               # nenhuma branch só local
+git log --branches --not --remotes --oneline # nenhum commit que não foi pushado
 ```
 
-O clone antigo só é apagado depois que os quatro respondem igual. Um `git status`
+**Os dois últimos são o motivo de esta lista não ter quatro linhas.**
+`git clone` traz o que está no *remoto*: ele **não** leva stash, **não** leva
+branch que só existe local e **não** leva commit que nunca foi pushado. O
+`stash list` cobre o primeiro caso; os outros dois só aparecem nesses dois
+comandos.
+
+Isso não é hipotético aqui: a árvore primária está numa feature branch, e este
+repositório já perdeu trabalho exatamente assim duas vezes — `374b07c` resgatou
+um portão que só existia num worktree, e `e392ec1` resgatou três assets soltos
+fora do git.
+
+O clone antigo só é apagado depois que os seis respondem igual. Um `git status`
 sujo no antigo é trabalho de alguém que ninguém commitou.
 
 Alternativa não testada, se mover for indesejável agora:

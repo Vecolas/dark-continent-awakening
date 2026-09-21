@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.client.vfx.debug;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -68,5 +69,30 @@ class NomeDeCapturaTest {
                 NomeDeCaptura.de("ten_dia", DATA, "abc1234", "off"),
                 "'Ten Dia' e 'ten_dia' sao a mesma captura; arquivos separados quebram"
                         + " a comparacao A/B sem que nada acuse");
+    }
+    @Test
+    @DisplayName("cada nivel de bloom vira um sufixo PROPRIO")
+    void cadaNivelTemSufixoProprio() {
+        java.util.Set<String> sufixos = new java.util.HashSet<>();
+        for (com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel nivel
+                : com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel.values()) {
+            String sufixo = NomeDeCaptura.nivelDeBloom(nivel);
+            assertTrue(sufixos.add(sufixo),
+                    "dois niveis de bloom produzem o MESMO sufixo (" + sufixo + "). O gate #198 "
+                    + "compara bloom_off, bloom_fast e bloom_high DO MESMO QUADRO -- com sufixos "
+                    + "iguais, o arquivo nao distingue mais a comparacao que o gate existe para "
+                    + "fazer, e ninguem descobre olhando a pasta.");
+            assertNotEquals(NomeDeCaptura.BLOOM_AUSENTE, sufixo,
+                    "o nivel " + nivel + " esta saindo como AUSENTE. Ausente significa que o "
+                    + "passe NAO EXISTE; foi assim que a primeira sessao de bancada tirou uma "
+                    + "captura chamada bloom-ausente com o passe de brilho vivo (#300).");
+        }
+    }
+
+    @Test
+    @DisplayName("sem nivel nenhum, o campo diz AUSENTE em vez de crashar")
+    void semNivelNaoDerrubaACaptura() {
+        assertEquals(NomeDeCaptura.BLOOM_AUSENTE, NomeDeCaptura.nivelDeBloom(null),
+                "uma ferramenta de captura nao pode ser o motivo de um crash numa sessao de arte");
     }
 }

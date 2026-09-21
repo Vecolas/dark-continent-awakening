@@ -438,11 +438,58 @@ se quer comparar.
 Com `online-mode=false` o UUID vem do nome: nomes diferentes são jogadores
 diferentes de verdade, com perfis separados no save.
 
-**Um Steve (default) e um Alex (slim).** Não é opcional: usar `AURA_DEFAULT`
-num braço slim deixa a aura larga demais, e o defeito só aparece quando alguém
-com skin Alex entra.
+#### Um corpo de cada, e o nome NÃO escolhe o corpo
+
+Um cliente com modelo `wide` (Steve) e um com `slim` (Alex). Não é opcional:
+usar `AURA_DEFAULT` num braço slim deixa a aura larga demais, e o defeito só
+aparece quando alguém com skin Alex entra.
+
+**Em `online-mode=false`, quem decide o corpo é o UUID — e o UUID vem do nome
+por uma função de hash.** O servidor calcula
+`UUID.nameUUIDFromBytes("OfflinePlayer:" + nome)`, e o cliente escolhe o modelo
+com `(uuid.hashCode() & 1) == 1 ? SLIM : WIDE`. Não há como escolher o corpo
+pelo nome; só há como **descobrir** qual nome dá qual corpo.
+
+| `-Pjogador` | UUID offline | Corpo |
+| --- | --- | --- |
+| `Gon` | `143d4426-466c-3cbf-ba52-6033489ff015` | **SLIM** (Alex) |
+| `Kurapika` | `7a9cf585-6597-30cf-a91c-e1fccb448316` | **WIDE** (Steve) |
+| `Steve` | `5627dd98-e6be-3c21-b8a8-e92344183641` | **SLIM** — o oposto do nome |
+| `Alex` | `36532b5e-c442-3dbb-a24c-c7e55d0f979a` | **WIDE** — o oposto do nome |
+
+> **Por isso a receita usa `Gon` e `Kurapika`, e não `Steve` e `Alex`.** Chamar
+> os clientes de Steve e Alex dá um de cada corpo — o par funciona —, mas com os
+> rótulos **invertidos**. E várias capturas são nomeadas pelo corpo:
+> `ten_slim`, `ren_slim`, `av2_ten_slim`, `ten_armadura_slim`. Quem tirasse
+> `ten_slim` no cliente chamado "Alex" fotografaria o corpo errado, e a imagem
+> ficaria plausível, arquivada e inválida — o defeito só apareceria quando
+> alguém comparasse duas capturas e não entendesse por que o braço mudou de
+> largura.
+>
+> Nomes que não prometem corpo nenhum não têm como mentir sobre ele.
+
+A conta acima foi verificada contra o `ops.json` existente: os UUIDs calculados
+para `Dev` e `Gon` batem caractere por caractere com os que o servidor já tinha
+gravado.
+
+**Confira na sessão, não no papel.** Aperte `F3` em cada cliente e veja o modelo
+antes de tirar a primeira captura. Uma tabela em documento é derivada — a mesma
+regra do total de 127.
 
 Ao terminar: `git worktree remove --force C:/dca-a` e `C:/dca-b`.
+
+#### Op para os dois clientes
+
+Comando de dev (`/nenvfx`, `/nen`, `/freeze`) é permissionado. Sem op, a sessão
+da bancada não sai do lugar — e a recusa é silenciosa o bastante para custar
+meia hora.
+
+`ops.json`, no diretório do servidor que for usado (`run/server/` para o
+`runServer`, `instancia/servidor/` para o `instancia.ps1`), com o UUID **offline**
+da tabela acima e `"level": 4`. O arquivo é lido no boot: editar com o servidor
+de pé não vale.
+
+Em 2026-09-21 os dois servidores do clone oficial receberam `Gon` e `Kurapika`.
 
 ### 4.4 Posse do servidor de QA
 

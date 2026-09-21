@@ -28,9 +28,10 @@ divergência não dá erro.
 | onde o projeto está | `../processo/marcos.md` e `../inimigos/estado-en.md` |
 | **a ordem de executar tudo isso, e o que travar antes** | **este arquivo** |
 
-A seção 6 é a única exceção, e ela existe para **fechar um buraco**, não para
-duplicar: quatro gates têm a lista de capturas só na issue do GitHub, e não no
-repositório. Ver a seção 6.
+Não há exceção. Houve uma: até 2026-09-21, AV0, AV1, AV2 e AV3 tinham a lista
+de capturas **só na issue do GitHub**, e a §6.2 deste arquivo a transcrevia como
+medida temporária. As quatro foram para o `LEIA-ME.md` de cada gate, e a seção
+foi apagada — que era exatamente o que ela mandava fazer.
 
 ---
 
@@ -650,10 +651,10 @@ achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 
 | Gate | Issue | Capturas | Onde mora a lista | 2 clientes |
 | --- | --- | --- | --- | --- |
-| AV0 | #169 | 14 | **§6.2 deste arquivo** + issue | sim |
-| AV1 | #176 | 17 | **§6.2 deste arquivo** + issue | não |
-| AV2 | #181 | 13 | **§6.2 deste arquivo** + issue | não |
-| AV3 | #187 | 22 | **§6.2 deste arquivo** + issue | sim |
+| AV0 | #169 | 14 | `capturas/AV0/LEIA-ME.md` | sim |
+| AV1 | #176 | 17 | `capturas/AV1/LEIA-ME.md` | não |
+| AV2 | #181 | 13 | `capturas/AV2/LEIA-ME.md` | não |
+| AV3 | #187 | 22 | `capturas/AV3/LEIA-ME.md` | sim |
 | AV4 | #193 | 20 | `capturas/AV4/LEIA-ME.md` | sim |
 | AV5 | #198 | 13 | `capturas/AV5/LEIA-ME.md` | não |
 | AV6 | #201 | 7 | `capturas/AV6/LEIA-ME.md` | **sim** |
@@ -676,62 +677,6 @@ promete 127 PNGs.
 > própria soma — 52 itens que ninguém tinha como ver. O "75" ficou registrado de
 > propósito: apagá-lo em silêncio tiraria a trilha de auditoria de como um total
 > derivado erra.
-
-### 6.2 Os quatro roteiros que só existiam na issue
-
-AV0, AV1, AV2 e AV3 têm `LEIA-ME.md` dizendo "a lista de capturas está na
-issue". **Isso é um buraco**, e não uma escolha: a evidência de como se prova um
-gate é do repositório. Uma issue editada, fechada ou renumerada leva o roteiro
-junto, e não se lê offline.
-
-As quatro listas estão transcritas abaixo. **Quando forem para os `LEIA-ME.md`
-de cada gate, apagar esta seção** — senão ela vira exatamente a segunda fonte
-que a seção 0 proíbe.
-
-**AV0 (#169) — 14.** A shell é crua aqui, sem shader próprio: avalia-se
-*aderência*, não semelhança com a referência B.
-
-```
-ten_dia   ten_noite   ten_caverna
-ten_slim  ten_overlay_skin  ten_armadura
-ten_correndo   ten_agachado   ten_nadando
-ten_2b   ten_5b   ten_10b   ten_20b   ten_40b
-```
-
-**AV1 (#176) — 17.** `sem_particulas_ten` é a captura que decide o gate: com
-`vfx.densidadeDeParticulas = 0.0`, ainda se lê Ten?
-
-```
-ten_dia   ten_noite   ten_caverna   ten_neve   ten_nether   ten_chuva   ten_agua
-ten_slim  ten_overlay_skin
-ten_2b   ten_5b   ten_10b   ten_20b   ten_40b
-ten_ruido_ampliado        ten_360   (serie girando a camera)
-sem_particulas_ten        <- decide o gate
-```
-
-**AV2 (#181) — 13.** `av2_frame_congelado_1` e `_2` **têm de ser idênticos**.
-
-```
-av2_ten_2b   av2_ten_5b   av2_ten_10b
-av2_ten_correndo   av2_ten_agachado   av2_ten_nadando   av2_ten_atacando
-av2_ten_slim   av2_ten_default
-av2_frame_congelado_1   av2_frame_congelado_2   (identicos)
-av2_sem_particulas_ten
-av2_overlay_contadores
-```
-
-**AV3 (#187) — 22.**
-
-```
-ten_dia   ten_noite   ten_caverna   ten_nether   ten_neve   ten_agua   ten_chuva
-ten_2b    ten_5b      ten_10b       ten_20b      ten_40b
-ten_correndo   ten_agachado   ten_nadando
-ten_slim       ten_armadura   ten_overlay_skin
-primeira_pessoa_ten
-sem_particulas_ten     <- o criterio do ADR-015
-sem_bloom_ten
-overlay_contadores     (ribbons vivas, particulas vivas, draw calls, LOD)
-```
 
 ### 6.3 Ao fechar cada gate
 

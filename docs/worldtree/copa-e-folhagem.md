@@ -1,6 +1,6 @@
 # A copa da World Tree — por que ela não aparecia, e o que a substitui
 
-**Referência de arte:** [`../insp/arvoremundo.png`](../insp/arvoremundo.png).
+**Referência de arte:** `arvoremundo.png` — **não versionada**. A imagem nunca entrou em `docs/insp/`, e o link que apontava para ela quebrava. O critério abaixo é o que fecha o gate; a referência era apoio.
 **Critério que fecha:** *desligue a madeira e olhe a silhueta. Se lê como copa de
 árvore, passou. Se lê como confete, luva ou ilha, reprovou.*
 

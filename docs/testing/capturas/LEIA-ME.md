@@ -25,8 +25,8 @@ capturas faltam" era uma pergunta que só se respondia relendo dez issues.
 | AV8 — orçamento e release | #209, #206, #207 | perfis, não imagens | 0 |
 
 **São 127 itens de evidência visual nesta revisão (2026-09-21), e nenhum
-existe.** Três deles são vídeo quadro a quadro (`transicao_ten_ren` no AV4,
-`ten_para_zetsu` e `ren_para_zetsu` no AV6) — o total não promete 127 PNGs.
+existe.** Três deles são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as
+duas de Zetsu no AV6. O total não promete 127 PNGs.
 
 **Este número é derivado.** A fonte de verdade de quais evidências cada gate
 exige continua sendo o `LEIA-ME.md` do gate, e a issue. Refaça a soma em vez de

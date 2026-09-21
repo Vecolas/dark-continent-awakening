@@ -333,8 +333,9 @@ achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 | AV8 | #209, #206, #207 | perfis | `capturas/AV8/LEIA-ME.md` | sim (10 e 20) |
 
 **Total: 127 itens de evidência visual nesta revisão (2026-09-21).** Três deles
-são vídeo quadro a quadro (`transicao_ten_ren` no AV4, `ten_para_zetsu` e
-`ren_para_zetsu` no AV6) — o número não promete 127 PNGs.
+são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as duas de
+Zetsu no AV6, cujos nomes moram no `LEIA-ME.md` de cada gate. O número não
+promete 127 PNGs.
 
 > **Este total é DERIVADO, e a fonte de verdade continua sendo cada gate.**
 > Ele foi somado a partir das listas em 2026-09-21 e envelhece no dia em que uma

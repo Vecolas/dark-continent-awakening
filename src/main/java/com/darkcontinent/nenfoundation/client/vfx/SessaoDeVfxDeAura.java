@@ -30,6 +30,9 @@ public final class SessaoDeVfxDeAura {
     private AuraDistribution distribuicaoDesteTick = AuraDistribution.uniforme();
     private boolean recebeuAlgumaVez;
     private boolean ativacaoDeTenPendente;
+    private boolean ativacaoDeRenPendente;
+    private boolean saidaDeRenPendente;
+    private boolean supressaoPendente;
 
     /** O estado interpolado deste tick. Nunca nulo. */
     public AuraVisualState estado() {
@@ -65,8 +68,24 @@ public final class SessaoDeVfxDeAura {
             // O AUDIO LE A MESMA TROCA QUE O CONTROLADOR. Reconstituir a
             // borda OFF -> TEN em outro relogio faria o som adiantar ou
             // atrasar justamente quando a escala da transicao mudasse.
-            if (AuraTransicao.de(this.ultimoModo, modo) == AuraTransicao.LIGAR) {
+            AuraTransicao troca = AuraTransicao.de(this.ultimoModo, modo);
+            if (troca == AuraTransicao.LIGAR) {
                 this.ativacaoDeTenPendente = true;
+            }
+            if (troca == AuraTransicao.ELEVAR) {
+                this.ativacaoDeRenPendente = true;
+            }
+            // SAIR DE REN E QUALQUER CAMINHO QUE DEIXE REN, e nao apenas
+            // BAIXAR. Morrer, suprimir com Zetsu e desligar tambem fecham -- e
+            // uma condicao escrita como "troca == BAIXAR" deixaria o zumbido
+            // tocando para sempre nos outros tres. E o erro numero 3 do
+            // CLAUDE.md: limpeza espalhada pelos pontos de saida, com um deles
+            // faltando.
+            if (this.ultimoModo == AuraVisualMode.REN && modo != AuraVisualMode.REN) {
+                this.saidaDeRenPendente = true;
+            }
+            if (troca == AuraTransicao.SUPRIMIR) {
+                this.supressaoPendente = true;
             }
             this.controlador.receber(modo, alvo, distribuicao, cor, cor);
             this.ultimoModo = modo;
@@ -95,6 +114,9 @@ public final class SessaoDeVfxDeAura {
         this.distribuicaoDesteTick = AuraDistribution.uniforme();
         this.recebeuAlgumaVez = false;
         this.ativacaoDeTenPendente = false;
+        this.ativacaoDeRenPendente = false;
+        this.saidaDeRenPendente = false;
+        this.supressaoPendente = false;
     }
 
     /**
@@ -107,6 +129,47 @@ public final class SessaoDeVfxDeAura {
     public boolean consumirAtivacaoDeTen() {
         boolean pendente = this.ativacaoDeTenPendente;
         this.ativacaoDeTenPendente = false;
+        return pendente;
+    }
+
+    /**
+     * Consome a borda para REN observada pela propria sessao.
+     *
+     * <p>E ELA QUE DISPARA O ESTOURO E O IMPULSO DE CAMERA, e o fato de a borda
+     * nascer AQUI -- e nao num detector paralelo -- e o que garante que o som
+     * caia na janela de 0 a 220 ms da transicao. Um relogio proprio para o audio
+     * adiantaria ou atrasaria o estouro exatamente quando a escala de transicao
+     * do jogador mudasse.
+     *
+     * <p>RECUSA NAO PASSA POR AQUI. A borda so existe quando o servidor ja
+     * confirmou Ren ligado: uma ativacao recusada nunca chega a mudar o modo, e
+     * por isso nao toca o estouro. Recusa tem mensagem com chave de traducao --
+     * nunca um som ambiguo.
+     */
+    public boolean consumirAtivacaoDeRen() {
+        boolean pendente = this.ativacaoDeRenPendente;
+        this.ativacaoDeRenPendente = false;
+        return pendente;
+    }
+
+    /** Consome a borda que SAI de Ren, por qualquer caminho. */
+    public boolean consumirSaidaDeRen() {
+        boolean pendente = this.saidaDeRenPendente;
+        this.saidaDeRenPendente = false;
+        return pendente;
+    }
+
+    /**
+     * Consome a borda para ZETSU observada pela propria sessao.
+     *
+     * <p>ELA SO EXISTE PARA O RETORNO DE INPUT LOCAL. Zetsu e ausencia total
+     * para observadores -- nenhum contorno, nenhum halo, nem cintilacao --, e
+     * esta borda nao desenha nada no mundo: ela dispara um pulso que vive apenas
+     * na tela de quem apertou a tecla. Ver {@link PulsoDeSupressao}.
+     */
+    public boolean consumirSupressao() {
+        boolean pendente = this.supressaoPendente;
+        this.supressaoPendente = false;
         return pendente;
     }
 

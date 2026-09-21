@@ -56,6 +56,42 @@ public enum AuraAnchor {
     FOOT_LEFT(AuraBodyRegion.LEFT_LEG, Familia.RADIAL, 0.0F, 11.5F, 0, 2.0F, 2.0F),
     FOOT_RIGHT(AuraBodyRegion.RIGHT_LEG, Familia.RADIAL, 180.0F, 11.5F, 0, 2.0F, 2.0F);
 
+    /**
+     * De onde as COLUNAS de Ren nascem, nesta ordem.
+     *
+     * <p>OITO, E E O MESMO NUMERO DO TETO DE DESIGN
+     * ({@code AuraPerfilDePressao.TETO_DE_COLUNAS}). Nao e coincidencia: a
+     * direcao de arte pede ombros, costas, pernas e o perimetro da cabeca, e
+     * isso da exatamente oito lugares. Um nono lugar so existiria repetindo uma
+     * ancora, e duas colunas saindo do mesmo ponto sao lidas como uma coluna
+     * grossa -- que e o caminho para a fogueira.
+     *
+     * <p>A ORDEM E A DE ENTRADA: com seis colunas no perfil, as seis primeiras
+     * desta lista sao as que aparecem. Ombros e costas vem primeiro porque sao
+     * os que a referencia C mostra com mais forca.
+     */
+    private static final AuraAnchor[] COLUNAS = {
+            SHOULDER_LEFT, SHOULDER_RIGHT, BACK_CENTER,
+            THIGH_LEFT, THIGH_RIGHT,
+            HEAD_TOP, HEAD_LEFT, HEAD_RIGHT};
+
+    /** Quantos lugares de coluna existem no corpo. */
+    public static int lugaresDeColuna() {
+        return COLUNAS.length;
+    }
+
+    /**
+     * A ancora da coluna de indice {@code i}.
+     *
+     * <p>SEM {@code clone()} E SEM COPIA: este metodo e chamado por coluna, por
+     * jogador, por quadro. Devolver o vetor inteiro alocaria oito referencias
+     * sessenta vezes por segundo para nada -- e alocacao por quadro e o defeito
+     * que o AV8 existe para nao encontrar.
+     */
+    public static AuraAnchor coluna(int indice) {
+        return COLUNAS[Math.floorMod(indice, COLUNAS.length)];
+    }
+
     /** Como o filamento sai do corpo. */
     public enum Familia {
         /** Enrola em volta de um eixo -- braco, perna, tronco. */

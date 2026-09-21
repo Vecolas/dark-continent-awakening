@@ -65,6 +65,12 @@ Faixas de partida sugeridas: interno 0.025–0.040, borda 0.045–0.065, externo
 As três precisam ser **distintas**. Duas superfícies na mesma posição é
 z-fighting garantido.
 
+> **Com armadura, a espessura sobe por REGIÃO, e não no corpo inteiro.** Um elmo
+> sozinho engrossa a cabeça e deixa o resto como está; engrossar tudo porque uma
+> peça está vestida daria a leitura de *a aura cresceu*, que é exatamente o que o
+> teto abaixo proíbe. O mapeamento é o das peças vanilla: peitoral cobre tronco e
+> braços, calças cobrem as pernas.
+
 E há um teto que **não** é botão de ajuste: espessura máxima de ~0.12 bloco em
 Ten e ~0.20–0.25 em Ren. Poder extremo aumenta densidade, brilho, velocidade e
 pressão — **não tamanho**. Um personagem dez vezes mais forte não vira uma
@@ -266,10 +272,10 @@ existir**:
 | Chave | Valores | Nasce em |
 | --- | --- | --- |
 | `vfx.qualidade` | OFF, LOW, MEDIUM, HIGH, ULTRA | AV3 |
-| `vfx.bloom` | OFF, FAST, HIGH | AV5 |
-| `vfx.distanciaMaxima` | blocos | AV3 |
+| `vfx.bloom` | OFF, FAST, HIGH | AV5 — **existe** |
+| `vfx.distanciaMaxima` | blocos | AV3 — **não feita**: o corte por distância mora no LOD, e `vfx.qualidade` já o limita |
 | `vfx.primeiraPessoa` | ligado/desligado | AV3 |
-| `vfx.detritos` | ligado/desligado | AV4 |
+| `vfx.detritos` | ligado/desligado | AV4 — **existe** |
 | `vfx.distorcao` | ligado/desligado | AV8 (opcional) |
 
 Declarar `vfx.bloom` antes de existir bloom é exatamente o erro nº 7 da lista
@@ -306,6 +312,16 @@ consumida uma vez, na construção das malhas, e não pode recarregar sem
 reconstruí-las — então ela continua no código, e isso é limite real, não
 preguiça.
 
+**Correção do AV4:** a geometria deixou de ser *uma* malha. `CubeDeformation`
+entra na construção da malha, e o AV4 precisou de duas coisas que não cabem num
+alpha — Ren mais espesso que Ten (0.072 contra 0.052 na borda) e a shell
+*contraindo* 3–5% nos primeiros 100 ms da subida. A saída foi assar uma
+**escada** de espessuras (`AuraGeometryLadder`) e escolher o degrau mais próximo
+por quadro: sem alocação, sem desenho a mais, e com degraus tão finos na faixa
+de Ten a Ren que a troca é invisível. Os três caminhos descartados —
+`poseStack.scale`, deslocamento por normal no shader e cruzar duas malhas —
+estão documentados no javadoc da classe, com o motivo de cada um.
+
 ### O esquema que o código lê hoje
 
 **As §3–§5 acima são o PLANO, e o código diverge delas.** O JSON real é
@@ -315,8 +331,15 @@ código ganha, o texto se atualiza, e a discrepância se relata em voz alta em v
 de sumir. Quem for mexer num perfil usa esta lista, e não as de cima.
 
 `assets/nenfoundation/nen_vfx/<modo>.json` — um arquivo por modo com brilho
-(`ten`, `ren`); `zetsu` e `off` não têm arquivo, porque a ausência é a
-informação e o código responde com o perfil apagado.
+(`ten`, `ren`) **e, a partir do AV6, também `zetsu`**. `off` continua sem
+arquivo.
+
+> **O `zetsu.json` existe, e o código NÃO CONFIA nele.** Ele existe para que o
+> alvo da interpolação seja um objeto legítimo em vez de um caso especial
+> espalhado pelo renderer. Mas `AuraPerfis` força o perfil apagado para Zetsu e
+> registra erro no log se o arquivo tiver qualquer valor diferente de zero —
+> um resource pack de terceiro chega pelo mesmo caminho que o nosso, e um Zetsu
+> que brilha entrega justamente quem está se escondendo.
 
 | Chave | Faixa | O que é |
 | --- | --- | --- |
@@ -332,6 +355,10 @@ informação e o código responde com o perfil apagado.
 | `taxa_de_faiscas` | ≥ 0 | **acabamento**: quantas faíscas acompanham a shell por segundo |
 | `tamanho_de_particula` | 0–1 | **acabamento**: o quanto cada faísca cresce com a intensidade |
 | `filamentos` | objeto | o bloco das ribbons, abaixo |
+| `pressao` | objeto | o bloco de coluna, anel e detrito, abaixo — **chegou no AV4** |
+| `bloom` | objeto | `forca` (0–1) e `raio` (0–8 px de TELA) do halo — **virou objeto no AV5, quando o raio ganhou consumidor** |
+| `amplitude_de_pulso` | 0–0.25 | o quanto a shell respira. Ten **não pisca**: 0.02–0.05 |
+| `borda_com_armadura` | 0–0.25 | espessura da borda, em BLOCOS, na região que tem peça vestida — **chegou no AV7** |
 
 O bloco `filamentos` é **obrigatório** — um perfil sem ele é recusado inteiro.
 Assumir um padrão daria um Ren que carrega e desenha filamento de Ten, e
@@ -346,6 +373,30 @@ Assumir um padrão daria um Ren que carrega e desenha filamento de Ten, e
 | `ciclo_segundos` | > 0 | quanto uma curva dura antes de ser trocada |
 
 Invariante conferida na leitura: **`comprimento_min` ≤ `comprimento_max`**.
+
+O bloco `pressao` é **obrigatório**, e em Ten ele é todo zero — escrito, e não
+omitido. A razão é a mesma do bloco `filamentos`: um bloco opcional com padrão
+zero daria o mesmo resultado hoje e permitiria amanhã um perfil que *esqueceu*
+a pressão, e "esqueceu" é indistinguível de "zero de propósito" quando ninguém
+escreveu qual era.
+
+| Chave em `pressao` | Faixa | O que é |
+| --- | --- | --- |
+| `colunas` | 0–8 | correntes verticais; **8 é teto de design**, não de ajuste |
+| `altura_minima` | 0–2.5 | em blocos |
+| `altura_maxima` | 0–2.5 | em blocos; a curva sorteia dentro da faixa |
+| `anel` | 0–1 | quanto o anel de pressão aparece |
+| `anel_raio_minimo` | 0–2.0 | raio com intensidade zero, em blocos |
+| `anel_raio_maximo` | 0–2.0 | raio com intensidade cheia, em blocos |
+| `anel_segmentos` | 0–48 | segmentos da malha horizontal; 48 é teto |
+| `detritos` | 0–12 | fragmentos cosméticos; 12 é teto |
+
+Invariantes conferidas na leitura: **`altura_minima` ≤ `altura_maxima`** e
+**`anel_raio_minimo` ≤ `anel_raio_maximo`**.
+
+> **O raio do anel é o mesmo que limita de onde os detritos nascem.** Duas
+> definições de raio seriam duas verdades, e a divergência apareceria como
+> fragmento subindo fora do anel.
 
 Uma invariante viaja com o dado e é conferida na leitura: **o expoente de
 Fresnel precisa DIMINUIR** da camada interna para a externa. Com os três iguais

@@ -168,6 +168,9 @@ tasks.named('test', Test).configure {
     inputs.files(fileTree(dir: 'src/main/resources', include: '**/*.json'))
             .withPropertyName('recursosLidosPelosPortoes')
             .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file('scripts/instancia.ps1')
+            .withPropertyName('scriptDaInstanciaLidoPeloPortao')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
 
     // Portao que morde: suite que nao executou nada NAO passa.
     //

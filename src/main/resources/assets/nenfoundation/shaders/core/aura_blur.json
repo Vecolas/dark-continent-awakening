@@ -1,0 +1,12 @@
+{
+    "vertex": "nenfoundation:aura_blit",
+    "fragment": "nenfoundation:aura_blur",
+    "samplers": [
+        { "name": "Sampler0" }
+    ],
+    "uniforms": [
+        { "name": "AuraPassoDoBorrao", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
+        { "name": "AuraPesosA", "type": "float", "count": 4, "values": [ 1.0, 0.0, 0.0, 0.0 ] },
+        { "name": "AuraPesosB", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] }
+    ]
+}

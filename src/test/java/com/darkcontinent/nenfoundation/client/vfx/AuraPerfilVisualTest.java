@@ -28,11 +28,25 @@ class AuraPerfilVisualTest {
 
     private static final String DIRETORIO = "src/main/resources/assets/nenfoundation/nen_vfx";
 
-    /** O bloco obrigatorio, para os JSON inline que testam OUTRA coisa. */
+    /**
+     * Os blocos OBRIGATORIOS, para os JSON inline que testam OUTRA coisa.
+     *
+     * <p>ELES CRESCERAM NO AV4, e isso e o esquema funcionando. {@code pressao},
+     * {@code bloom} e {@code amplitude_de_pulso} entraram como campos exigidos --
+     * nao opcionais com padrao zero --, porque "esqueceu o bloco" precisa ser
+     * distinguivel de "escreveu zero de proposito". O preco e este: toda fixture
+     * inline passa a carregar o bloco, mesmo quando testa o Fresnel.
+     */
     private static final String FILAMENTOS =
             "\"filamentos\": {\"quantidade\": 8, \"comprimento_min\": 0.15,"
                     + " \"comprimento_max\": 0.6, \"largura\": 0.009,"
-                    + " \"ciclo_segundos\": 1.1}";
+                    + " \"ciclo_segundos\": 1.1},"
+                    + " \"pressao\": {\"colunas\": 0, \"altura_minima\": 0.0,"
+                    + " \"altura_maxima\": 0.0, \"anel\": 0.0,"
+                    + " \"anel_raio_minimo\": 0.0, \"anel_raio_maximo\": 0.0,"
+                    + " \"anel_segmentos\": 0, \"detritos\": 0},"
+                    + " \"bloom\": {\"forca\": 0.2, \"raio\": 2.5}," + " \"amplitude_de_pulso\": 0.025,"
+                    + " \"borda_com_armadura\": 0.065";
 
     private static List<Path> arquivos() {
         List<Path> encontrados = new ArrayList<>(Repo.varrer(DIRETORIO, ".json"));

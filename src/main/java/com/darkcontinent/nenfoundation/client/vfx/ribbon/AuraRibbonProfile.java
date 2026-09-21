@@ -121,6 +121,37 @@ public record AuraRibbonProfile(int quantidade, float comprimentoMin, float comp
                 this.largura, this.cicloSegundos);
     }
 
+    /**
+     * O perfil a meio caminho entre dois.
+     *
+     * <p>A QUANTIDADE ARREDONDA, e nao trunca. Com truncamento, o ultimo passo
+     * antes de chegar a Ren desenharia dezessete filamentos de dezoito -- e o
+     * decimo oitavo apareceria de uma vez no quadro final. E o mesmo estalo que
+     * a transicao em fases existe para nao produzir, numa escala menor e por
+     * isso ainda mais dificil de atribuir a uma causa.
+     *
+     * <p>OS COMPRIMENTOS SOBREVIVEM A {@code semFilamentos}, e e por isso que
+     * interpolar contra um perfil apagado funciona: a quantidade cai a zero, mas
+     * as faixas continuam validas, e o construtor -- que RECUSA comprimento zero
+     * -- nao e alcancado com um numero torto no meio do caminho.
+     */
+    public static AuraRibbonProfile interpolar(AuraRibbonProfile a, AuraRibbonProfile b, float t) {
+        if (a == null || b == null) {
+            throw new NullPointerException("interpolar exige os dois perfis");
+        }
+        float u = Math.clamp(t, 0.0F, 1.0F);
+        return new AuraRibbonProfile(
+                Math.round(a.quantidade + (b.quantidade - a.quantidade) * u),
+                ler(a.comprimentoMin, b.comprimentoMin, u),
+                ler(a.comprimentoMax, b.comprimentoMax, u),
+                ler(a.largura, b.largura, u),
+                ler(a.cicloSegundos, b.cicloSegundos, u));
+    }
+
+    private static float ler(float a, float b, float t) {
+        return a + (b - a) * t;
+    }
+
     /** O comprimento do filamento de indice {@code i}, espalhado na faixa. */
     public float comprimentoDe(long semente) {
         float t = ((semente >>> 40) & 0xFFFF) / 65535.0F;

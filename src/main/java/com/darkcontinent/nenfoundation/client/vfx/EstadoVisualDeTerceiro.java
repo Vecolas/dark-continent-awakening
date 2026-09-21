@@ -36,6 +36,22 @@ public final class EstadoVisualDeTerceiro {
      * seja visivel.
      */
     public static AuraVisualState de(SinalDeAura sinal, AuraRenderLod lod) {
+        return de(sinal, lod, 1.0F);
+    }
+
+    /**
+     * Idem, com a VISIBILIDADE que o resolvedor respondeu.
+     *
+     * <p>ELA ENTRA COMO MULTIPLICADOR DA INTENSIDADE, e nao como um corte
+     * separado. A diferenca importa: multiplicada, ela participa da mesma conta
+     * que o nivel de detalhe e some junto com ele; como um {@code if} a parte,
+     * ela seria mais um lugar de onde a aura pode desaparecer -- e quando Gyo e
+     * In existirem, "por que essa aura sumiu" teria duas respostas possiveis.
+     *
+     * <p>Hoje a resposta e quase sempre 1,0. O ponto do resolvedor nao e o valor
+     * de hoje: e que amanha ele seja um NUMERO, e nao um renderer novo.
+     */
+    public static AuraVisualState de(SinalDeAura sinal, AuraRenderLod lod, float visibilidade) {
         // GUARDA REDUNDANTE, e sabidamente: o `switch` abaixo ja manda NENHUM
         // para OFF, e HIDDEN ja zera a intensidade -- `enabled()` recusa os dois
         // de qualquer jeito. Alimentar o portao com o defeito mostrou isso:
@@ -71,7 +87,14 @@ public final class EstadoVisualDeTerceiro {
         // local. Carregar os numeros dentro do estado abriria a porta para dois
         // caminhos com valores diferentes para o mesmo Ren, e a divergencia
         // apareceria como "a aura dos outros esta mais fraca" sem nenhum erro.
-        return new AuraVisualState(modo, intensidadePara(lod), 1.0F,
+        float intensidade = Math.clamp(intensidadePara(lod) * visibilidade, 0.0F, 1.0F);
+        if (intensidade <= 0.0F) {
+            // VISIBILIDADE ZERO E AUSENCIA TOTAL, e nao uma aura fraquissima.
+            // Um alpha de 0,001 ainda desenha geometria, ainda alimenta o alvo
+            // de brilho e ainda aparece contra um fundo escuro.
+            return AuraVisualState.desligado();
+        }
+        return new AuraVisualState(modo, intensidade, 1.0F,
                 AuraDistribution.uniforme(), cor, cor);
     }
 

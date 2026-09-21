@@ -108,7 +108,144 @@ public final class AuraRenderTypes {
     private static final RenderType RIBBON =
             RenderType.entityTranslucentEmissive(TEXTURA_DE_RIBBON);
 
+    /** A textura do anel de pressao: arco IRREGULAR, sem simbolo. Autoral (ADR-007). */
+    public static final ResourceLocation TEXTURA_DO_ANEL =
+            NenFoundation.id("textures/vfx/nen/aura_ground_ring.png");
+
+    /**
+     * O anel de pressao no chao.
+     *
+     * <p>BLEND MISTO, e nao aditivo puro. Aditivo sobre terra escura some; sobre
+     * neve estoura. O material translucido emissivo da o meio-termo: o anel
+     * existe sobre qualquer bloco, e nao compete com o personagem -- que e o
+     * item 1 da hierarquia de leitura, contra os ~15% de esforco visual que o
+     * chao pode ocupar.
+     *
+     * <p>FILTRO LINEAR, e essa e a diferenca para o material de ribbon. O anel e
+     * uma textura de 128 pixels esticada por ate quatro blocos de diametro:
+     * amostrada sem suavizar, ela mostraria os degraus do proprio arquivo.
+     *
+     * <p>ESCRITA DE PROFUNDIDADE DESLIGADA e TESTE LIGADO, como todo o resto da
+     * aura. O teste ligado e o que impede o anel de aparecer atraves de uma
+     * parede -- e enquanto In e Zetsu existirem, isso e vazamento de informacao
+     * e nao feiura.
+     *
+     * <p>UMA INSTANCIA, criada aqui e cacheada. {@code RenderType} entra em
+     * mapas e em comparacoes de estado do buffer; um por entidade ou por frame
+     * quebraria o agrupamento das chamadas de desenho.
+     */
+    private static final RenderType GROUND = RenderType.create(
+            "nenfoundation_aura_ground",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            // Quarenta e oito segmentos vezes quatro vertices vezes o formato:
+            // um buffer modesto, e nao um chunk.
+            1024,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(new RenderStateShard.ShaderStateShard(
+                            net.minecraft.client.renderer.GameRenderer
+                                    ::getRendertypeEntityTranslucentEmissiveShader))
+                    .setTextureState(new RenderStateShard.TextureStateShard(
+                            TEXTURA_DO_ANEL, true, false))
+                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                    .setOverlayState(RenderStateShard.OVERLAY)
+                    .createCompositeState(false));
+
+    /**
+     * O destino do passe de brilho.
+     *
+     * <p>ELE E A UNICA PORTA PARA O ALVO DE BRILHO, e e por isso que "a skin
+     * nunca entra no alvo" e verdade por CONSTRUCAO e nao por ordem de desenho
+     * feliz: nada mais no jogo conhece este {@code OutputStateShard}.
+     *
+     * <p>O {@code setup} amarra o alvo; o {@code clear} devolve o principal. Se
+     * o quadro nao esta capturando -- passe pulado, nivel abaixo de HIGH, alvo
+     * nao criado --, os DOIS viram no-op e quem desenha nao chega aqui, porque a
+     * layer nem pede o buffer. A guarda dupla existe porque desenhar aura duas
+     * vezes no alvo PRINCIPAL nao lanca: so deixa o efeito com o dobro do brilho,
+     * e ninguem liga isso a um framebuffer que nao foi amarrado.
+     */
+    private static final RenderStateShard.OutputStateShard SAIDA_DE_BRILHO =
+            new RenderStateShard.OutputStateShard("nenfoundation_aura_glow", () -> {
+                var alvo = com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
+                        .alvo();
+                if (alvo != null) {
+                    alvo.bindWrite(false);
+                }
+            }, () -> net.minecraft.client.Minecraft.getInstance().getMainRenderTarget()
+                    .bindWrite(false));
+
+    /**
+     * A shell, escrita no alvo de brilho.
+     *
+     * <p>ADITIVO AQUI, e alpha no passe normal. A diferenca e de proposito: no
+     * alvo de brilho o que interessa e ACUMULAR luz -- dois jogadores em Ren
+     * sobrepostos contribuem os dois --, enquanto na cena o mesmo material
+     * aditivo estouraria. Mesma geometria, papeis diferentes.
+     *
+     * <p>ESCRITA DE PROFUNDIDADE DESLIGADA e TESTE LIGADO, como todo o resto. O
+     * teste e a mascara: ele usa a profundidade da cena, copiada para o alvo
+     * antes das entidades, e e o que impede o halo de aparecer atraves de parede.
+     */
+    private static final RenderType SHELL_BRILHO = RenderType.create(
+            "nenfoundation_aura_shell_brilho",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            256,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(new RenderStateShard.ShaderStateShard(AuraShaders::shell))
+                    .setTextureState(new RenderStateShard.TextureStateShard(
+                            TEXTURA_DE_RUIDO, true, false))
+                    .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                    .setOutputState(SAIDA_DE_BRILHO)
+                    .createCompositeState(false));
+
+    /** Os filamentos e as colunas, escritos no alvo de brilho. */
+    private static final RenderType RIBBON_BRILHO = RenderType.create(
+            "nenfoundation_aura_ribbon_brilho",
+            DefaultVertexFormat.NEW_ENTITY,
+            VertexFormat.Mode.QUADS,
+            1536,
+            false,
+            true,
+            RenderType.CompositeState.builder()
+                    .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_EMISSIVE_SHADER)
+                    .setTextureState(new RenderStateShard.TextureStateShard(
+                            TEXTURA_DE_RIBBON, false, false))
+                    .setTransparencyState(RenderStateShard.ADDITIVE_TRANSPARENCY)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                    .setOverlayState(RenderStateShard.OVERLAY)
+                    .setOutputState(SAIDA_DE_BRILHO)
+                    .createCompositeState(false));
+
     private AuraRenderTypes() {
+    }
+
+    /** A shell no alvo de brilho. So use quando o passe estiver capturando. */
+    public static RenderType shellDeBrilho() {
+        return SHELL_BRILHO;
+    }
+
+    /** Os filamentos e as colunas no alvo de brilho. */
+    public static RenderType ribbonDeBrilho() {
+        return RIBBON_BRILHO;
+    }
+
+    /** O tipo de render do anel de pressao. Sempre a mesma instancia. */
+    public static RenderType ground() {
+        return GROUND;
     }
 
     /**

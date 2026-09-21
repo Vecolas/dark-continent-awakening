@@ -26,6 +26,7 @@ param(
     [ValidateSet('instalar', 'atualizar', 'servidor', 'cliente', 'status')]
     [string]$Comando = 'status',
 
+    [ValidatePattern('^[A-Za-z0-9_]{1,16}$')]
     [string]$Jogador = 'Dev',
     [int]$Porta = 25565,
     [switch]$SemEntrar,
@@ -83,6 +84,29 @@ function Escrever($texto) { Write-Host $texto }
 function Titulo($texto)   { Write-Host ""; Write-Host "== $texto" -ForegroundColor Cyan }
 function Aviso($texto)    { Write-Host "   $texto" -ForegroundColor Yellow }
 function Erro($texto)     { Write-Host "   $texto" -ForegroundColor Red }
+
+# Cada jogador precisa de gameDir proprio. O nome tambem define o UUID em
+# online-mode=false, entao caminho, espaco ou pontuacao nao sao aceitos aqui.
+function Pasta-Do-Cliente([string]$nome) {
+    if ($nome -ceq 'Dev') { return $Cliente }
+    return Join-Path $Instancia ("cliente-" + $nome)
+}
+
+# NTFS nao distingue maiusculas, mas o UUID offline do Minecraft distingue.
+# Sem o marcador, Kurapika e kurapika dividiriam arquivos com identidades
+# diferentes e o sumico de inventario pareceria perda de save.
+function Garantir-Identidade-Do-Cliente([string]$pastaCliente, [string]$nome) {
+    New-Item -ItemType Directory -Force -Path $pastaCliente | Out-Null
+    $marcador = Join-Path $pastaCliente '.jogador'
+    if (Test-Path -LiteralPath $marcador) {
+        $registrado = [System.IO.File]::ReadAllText($marcador).Trim()
+        if ($registrado -cne $nome) {
+            throw "A pasta '$pastaCliente' pertence ao jogador '$registrado', nao a '$nome'. Use exatamente as mesmas maiusculas."
+        }
+        return
+    }
+    Escrever-Arquivo $marcador @($nome)
+}
 
 # Escreve texto SEM BOM.
 #
@@ -503,7 +527,7 @@ function Comando-Servidor {
     }
 }
 
-function Limpar-JarQueSombreiaOCliente {
+function Limpar-JarQueSombreiaOCliente([string]$pastaCliente) {
     # O CLIENTE DE DESENVOLVIMENTO COMPILA O MOD; um JAR na pasta `mods/` dele
     # NAO e redundante -- ele GANHA, e em silencio.
     #
@@ -523,12 +547,12 @@ function Limpar-JarQueSombreiaOCliente {
     # APAGA EM VEZ DE RECUSAR, pelo mesmo motivo que `atualizar` apaga as
     # versoes antigas em `mods/` do servidor: e artefato de build, refeito a
     # qualquer momento, e nao dado de ninguem. Mas apaga EM VOZ ALTA.
-    $mods = Join-Path $Cliente 'mods'
+    $mods = Join-Path $pastaCliente 'mods'
     if (-not (Test-Path -LiteralPath $mods)) { return }
 
     Get-ChildItem -Path $mods -Filter 'nenfoundation-*.jar' -ErrorAction SilentlyContinue |
         ForEach-Object {
-            Aviso "removendo $($_.Name) de instancia\cliente\mods\ ($($_.LastWriteTime))."
+            Aviso "removendo $($_.Name) de $pastaCliente\mods\ ($($_.LastWriteTime))."
             Aviso "   O cliente de desenvolvimento COMPILA o mod: um JAR ali ganha do"
             Aviso "   codigo, e voce testaria a versao dele sem nada avisar."
             Remove-Item -LiteralPath $_.FullName -Force
@@ -536,23 +560,35 @@ function Limpar-JarQueSombreiaOCliente {
 }
 
 function Comando-Cliente {
+    $clienteDoJogador = Pasta-Do-Cliente $Jogador
+
     Titulo "Subindo um cliente de teste"
     Aviso "E o cliente de desenvolvimento (gradlew runClient), nao um instalado por launcher:"
     Aviso "um cliente de launcher exigiria conta Microsoft, e o de dev nao."
-    Escrever "   mundos, options.txt e capturas ficam em instancia\cliente\"
+    Escrever "   mundos, options.txt, logs e capturas ficam em $clienteDoJogador\"
     Escrever ""
 
     $java = Resolver-Java
     $env:JAVA_HOME = Split-Path -Parent (Split-Path -Parent $java)
 
-    New-Item -ItemType Directory -Force -Path $Cliente | Out-Null
-    Limpar-JarQueSombreiaOCliente
+    Garantir-Identidade-Do-Cliente $clienteDoJogador $Jogador
+    Limpar-JarQueSombreiaOCliente $clienteDoJogador
+
+    # A instalacao prepara o perfil Dev. Perfis nomeados nascem depois dela e
+    # precisam do mesmo diagnostico sem sobrescrever ajuste de execucao anterior.
+    $configDoJogador = Join-Path $clienteDoJogador 'config'
+    $commonDoJogador = Join-Path $configDoJogador 'nenfoundation-common.toml'
+    New-Item -ItemType Directory -Force -Path $configDoJogador | Out-Null
+    if (-not (Test-Path -LiteralPath $commonDoJogador)) {
+        $dev = @('[dev]', "`tenabled = true", "`tlogStateTransitions = false")
+        Escrever-Arquivo $commonDoJogador $dev
+    }
 
     # ABSOLUTO, e nao `instancia/cliente`. O caminho relativo e resolvido
     # contra a raiz do PROJETO -- entao com -Codigo ele apontaria para a
     # `instancia/` da outra arvore, e o jogador abriria um perfil vazio
     # achando que perdeu os mundos.
-    $argumentos = @('runClient', '--console=plain', "-PdirCliente=$Cliente", "-Pjogador=$Jogador")
+    $argumentos = @('runClient', '--console=plain', "-PdirCliente=$clienteDoJogador", "-Pjogador=$Jogador")
     if (-not $SemEntrar) { $argumentos += "-PentrarEm=localhost:$Porta" }
 
     # Mesma razao do Comando-Atualizar, com um agravante: -PdirCliente e

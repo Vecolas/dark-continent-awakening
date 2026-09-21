@@ -338,6 +338,7 @@ tecnica, e nao sobre brilho.
 **Decisoes:** [ADR-015](../adr/ADR-015-aura-e-geometria-e-shader.md) e
 [ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md).
 **Como se prova:** [`av-aura-visual.md`](../testing/av-aura-visual.md).
+**Em que ordem, e com que montagem:** [`CAMPANHA-EVIDENCIAS.md`](../testing/CAMPANHA-EVIDENCIAS.md).
 
 Ela e **paralela**, e nao um degrau da escada M1–M8: nao gasta contrato de
 servidor, nao toca protocolo nem save, e nao bloqueia o M5. O prefixo `AV`
@@ -410,6 +411,69 @@ O que falta para o **#169** e so evidencia: as catorze capturas do conjunto,
 tiradas com dois clientes reais (um Steve, um Alex) e arquivadas em
 `docs/testing/capturas/AV0/`. Nenhuma linha de codigo do AV0 continua em
 aberto.
+
+### Estado da trilha (2026-09-17)
+
+O codigo do **AV4** esta entregue: perfil `REN_STANDARD` com o bloco de pressao,
+transicao TEN->REN em fases (contracao, flash, ultrapassagem de borda, colunas,
+pressao de chao), colunas verticais como ribbons, `AuraGroundRenderer`,
+detritos cosmeticos com a chave `vfx.detritos`, audio de Ren (estouro, loop,
+fechamento) e impulso de camera. Reguas novas no overlay F6: colunas, aneis,
+detritos com o teto ao lado, zumbidos vivos e a fase corrente da transicao.
+
+**Os gates continuam todos abertos.** #169, #176, #181, #187 e #193 exigem
+servidor dedicado com dois clientes reais e capturas arquivadas, e nenhuma
+captura desta trilha existe em `docs/testing/capturas/`. Codigo compilavel e
+teste verde nao sao entrega de gate — ver
+[`o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md), que ganhou seis
+linhas novas no AV4.
+
+Duas decisoes do AV4 divergem do texto da issue, e as duas estao no codigo com
+o motivo:
+
+1. **Nao ha `AuraAudioController` novo.** Ten e Ren dividem o mesmo dono de
+   audio (`AudioDeAura`). Dois objetos guardando `SoundInstance` do mesmo
+   jogador seriam dois caminhos de limpeza, e o erro numero 3 do `CLAUDE.md` e
+   exatamente esse — com o sintoma aqui sendo um zumbido grave tocando para
+   sempre.
+2. **A geometria virou uma escada assada** (`AuraGeometryLadder`), e nao uma
+   malha so. A espessura da shell entra na construcao da malha, e Ren precisa
+   ser mais espesso que Ten. Os tres caminhos descartados estao no javadoc da
+   classe.
+
+### Estado da trilha (2026-09-17, segunda parte)
+
+O codigo de **AV5, AV6, AV7 e AV8** tambem esta entregue, na mesma branch:
+
+| Marco | O que entrou |
+| --- | --- |
+| **AV5** | alvo de brilho com mascara de profundidade, downsample, desfoque separavel, composite aditivo, os tres niveis `OFF`/`FAST`/`HIGH`, fallback lembrado na sessao, deteccao de shader pack, recriacao no resize e em `F3+T`, contadores de alvo criado/liberado |
+| **AV6** | `zetsu.json` com trava estrutural, `AuraVisibilityResolver` puro, pulso de supressao local em HUD, `/nenvfx permissivo` |
+| **AV7** | `borda_com_armadura` por REGIAO, colunas suprimidas nas poses horizontais, `AuraModelAdapter` com `HumanoidAuraAdapter`, `GeoAuraAdapter` e `AuraOssosDoInimigo` |
+| **AV8** | auditoria de alocacao por quadro: memo de perfil interpolado, `BlockPos` mutavel no anel, sem record por jogador no passe de brilho; matriz de renderizacao aberta em `compatibility.md` |
+
+**TODOS OS DEZ GATES CONTINUAM ABERTOS** -- #169, #176, #181, #187, #193, #198,
+#201, #205, #209 e #104. Nenhum deles se fecha com codigo: os dez exigem
+servidor dedicado, dois clientes reais e capturas arquivadas, e
+`docs/testing/capturas/` continua vazio.
+
+A issue #103 (ripple de impacto) **deixou de estar bloqueada**. Este paragrafo
+dizia que ela dependia de #127 -- "nao ha dano de Nen para disparar" --, e #127
+fechou: a camada de dano existe em `nen/combat/`, e a tabela do M4 acima ja a
+registra como entregue. O que falta em #103 e outra coisa, e menor:
+`AuraImpactState` valida, decrementa e nunca e alimentado. Falta ligar a camada
+de dano a ele.
+
+Tres coisas foram deliberadamente NAO feitas, e as tres estao no codigo com o
+motivo e em `o-que-nao-provamos.md`:
+
+1. **`AuraLivingRenderLayer`** -- `AuraVisualSystem` so responde por `Player`, e
+   nenhum inimigo tem Nen antes do EN10. Layer sobre um estado que nao pode
+   existir e regua que mede o vazio.
+2. **`AuraShaderManager` e `AuraAudioController` separados** -- os dois teriam
+   sido um segundo ciclo de vida para uma coisa so.
+3. **Medicao de performance** -- o AV8 pede numero medido e arquivado, e
+   arquivar um numero que ninguem mediu seria a pior versao de um numero.
 
 ---
 

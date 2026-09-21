@@ -283,14 +283,14 @@ dela virou o ambiente oficial.
 | --- | --- |
 | `origin` correto | ✅ `https://github.com/Vecolas/dark-continent-awakening.git` |
 | `main` == `origin/main` | ✅ `b7ba18d`, zero à frente e zero atrás |
-| nenhum commit exclusivamente local | ⚠️ **um**, em `archive/main-pre-pr294` — deliberado pelo nome, e não esquecimento. Precisa de uma linha dizendo se fica ou some |
+| nenhum commit exclusivamente local | ✅ **zero.** Havia um, em `archive/main-pre-pr294`; apagada em 2026-09-21 — ver abaixo |
 | nenhum stash ficou para trás | ✅ vazio |
 | nenhum worktree ficou para trás | ✅ só o principal |
 | **`transfer/` preservado fora do clone** | ✅ ver abaixo — **este era o único que bloqueava** |
 | conteúdo de `transfer/` classificado | ⬜ aberto, e **não bloqueia** |
 | configurações locais identificadas | ✅ nenhuma precisa migrar; ver a tabela acima |
 | `./gradlew build` verde | ✅ **1.540 testes** (`test --rerun-tasks`, para não ler cache) |
-| `instancia.ps1 instalar` + `atualizar` | ⬜ não executado |
+| `instancia.ps1 instalar` + `atualizar` | ✅ executados no clone de `C:\dev` — NeoForge 21.1.250 instalado, `nenfoundation-0.1.0.jar` e `geckolib-neoforge-1.21.1-4.8.3.jar` na instância |
 | **dois `git worktree` sem `Filename too long`** | ✅ **`C:/dca-a` e `C:/dca-b` criados**, e os dois contêm `worldtree/generation/WorldTreeFoliageAnchorGenerator.java` — o arquivo que estourava o MAX_PATH no OneDrive |
 | os dois apontam para o esperado | ✅ `b7ba18d` nos dois |
 
@@ -298,6 +298,41 @@ dela virou o ambiente oficial.
 > envelheceu em horas, quando a outra frente pushou 25 commits. É o mesmo
 > defeito do `1.409` e do `75`: número copiado à mão não sobrevive à entrega da
 > outra frente. O critério é `main == origin/main`, e não um hash.
+
+#### `archive/main-pre-pr294`: apagada, e por quê
+
+O nome dizia "arquivo", e isso sugeria que havia algo guardado ali. Não havia.
+
+A branch tinha **um único commit próprio**, `3d707b3`
+(*"fix(inimigos): tornar gates de encontro e sons executaveis"*). O teste
+decisivo não é comparar as árvores — isso mede tudo que aconteceu entre os dois
+commits —, e sim comparar os **patches**:
+
+```bash
+git diff 3d707b3^ 3d707b3   # 104 linhas
+git diff 40ec661^ 40ec661   # 104 linhas
+                            # diff entre os dois: vazio
+```
+
+**Byte a byte o mesmo patch**, e `40ec661` está na `main`. Provavelmente um
+rebase ou re-commit durante o PR #294.
+
+Os dois outros motivos pelos quais ela poderia ficar também caem:
+
+- *"Guarda o estado pré-PR #294."* O pai dela, `715b26c`, **é ancestral de
+  `origin/main`** — o estado anterior ao merge continua alcançável pelo
+  histórico, sem branch nenhuma.
+- *"Pode ter mais coisa."* `git log 3d707b3 --not --remotes` devolve **1**.
+
+Recuperação, enquanto o reflog viver:
+`git branch archive/main-pre-pr294 3d707b3d40ad5f5d1471c105d850ac1fed682a0d`.
+Mas `git show 40ec661` mostra o mesmo patch, para sempre.
+
+> **A lição é sobre o nome.** `archive/` fez a branch parecer conteúdo
+> preservado por dez dias, e ninguém olhou. Branch de segurança criada "por via
+> das dúvidas" precisa de uma linha dizendo **de que dúvida** — senão ela vira
+> dívida silenciosa, e quem a encontra não tem como decidir sem refazer a
+> investigação inteira.
 
 #### A quarentena de `transfer/`
 
@@ -330,10 +365,17 @@ curta de recuperação — nunca injetando código antigo na `main` automaticame
 
 #### O que falta para fechar o #19
 
-1. Decidir o destino de `archive/main-pre-pr294` (uma linha).
-2. `scripts/instancia.ps1 instalar` e depois `atualizar`, no clone de `C:\dev`.
-3. Aposentar o clone do OneDrive — que é o que sobra da migração, já que o
-   destino existia antes dela.
+**Um item.** Aposentar o clone do OneDrive — que é o que sobra da migração, já
+que o destino existia antes dela.
+
+Ele depende de `transfer/` classificada, e só disso: tudo o mais foi conferido
+em 2026-09-21. E a classificação **não é urgente**, porque o conteúdo já está
+preservado com hash fora dos dois clones.
+
+> **O ambiente oficial é `C:\dev\dark-continent-awakening`.** O do OneDrive
+> fica em quarentena: ninguém commita, ninguém troca de branch nele. Ele ainda
+> guarda `transfer/` e a branch `feat/av4-av8-aura-visual` — já mergeada, e
+> mantida só porque apagá-la exigiria mover o HEAD de uma árvore compartilhada.
 
 Alternativa não testada, se mover for indesejável agora:
 `git config core.longpaths true`.

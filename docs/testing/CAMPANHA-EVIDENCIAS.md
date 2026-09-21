@@ -117,7 +117,8 @@ pessoa reabre a discussão do zero.
 - [ ] **`scripts/instancia.ps1 atualizar`.** A `main` mudou; sem isso o teste
       manual roda o JAR velho, em silêncio. *Único item que sobra, e ele é da
       máquina de quem for rodar a sessão — não tem como ser feito por uma
-      branch.*
+      branch.* **Ele some sozinho se o clone do #19 vier antes:** a instância
+      nasce do JAR do ambiente novo, e não do antigo. Ver a §3.
 
 ---
 
@@ -178,8 +179,94 @@ repositório já perdeu trabalho exatamente assim duas vezes — `374b07c` resga
 um portão que só existia num worktree, e `e392ec1` resgatou três assets soltos
 fora do git.
 
-O clone antigo só é apagado depois que os seis respondem igual. Um `git status`
-sujo no antigo é trabalho de alguém que ninguém commitou.
+#### O sétimo check, que nenhum dos seis pega
+
+```bash
+git status --ignored --short | grep '^!!'
+```
+
+Os seis acima perguntam ao git. **O git não sabe o que ele ignora** — e o que
+ele ignora também não entra no clone.
+
+Executado em 2026-09-21, ele achou `transfer/`, que está no `.gitignore` e
+contém **quatro arquivos de código-fonte**:
+
+```
+transfer/src/main/java/com/darkcontinent/nenfoundation/NenFoundation.java
+transfer/src/main/java/com/darkcontinent/nenfoundation/client/NenFoundationClient.java
+transfer/src/main/resources/assets/nenfoundation/en_us.json
+transfer/src/main/resources/assets/nenfoundation/pt_br.json
+```
+
+São de 2026-09-11, menores que as versões da `main` (138 linhas contra 529 em
+`NenFoundationClient`), e **não batem com nenhum commit** da `main` até 12/09.
+Parecem uma área de passagem entre as duas frentes, superada por dez dias de
+commits — mas "parecem" não é conferido, e os dois arquivos Java são dos mais
+hostis a merge do repositório.
+
+> **Ninguém apaga o clone antigo antes de alguém dizer o que `transfer/` é.**
+> Esta é a decisão que a quarentena existe para permitir.
+
+#### Quarentena, e não deleção
+
+O clone do OneDrive **não é apagado quando o clone novo nasce.** Ele fica
+congelado — ninguém commita, ninguém troca de branch nele — até o gate abaixo
+fechar inteiro. Só então ele é arquivado ou removido.
+
+Os dois precedentes deste repositório justificam sozinhos a regra: `374b07c`
+resgatou um portão que só existia num worktree, e `e392ec1` resgatou três assets
+soltos fora do git. **Estado fora do git já custou recuperação manual aqui duas
+vezes**; a terceira não precisa acontecer.
+
+#### O que NÃO se copia para o clone novo
+
+Nada de `build/`, `run/`, `.gradle/`, `.gradle-local/`, `instancia/`, `logs/` ou
+`__pycache__/`. Medidos em 2026-09-21: **cerca de 1,3 GB** de artefato de build
+(`run/` 601 MB, `build/` 315 MB, `instancia/` 246 MB, `.gradle/` 177 MB) — e é
+exatamente esse estado que a migração existe para deixar para trás. Copiá-lo
+carrega o problema junto.
+
+> `git status --ignored` chegou a falhar com `Filename too long` dentro de
+> `.gradle-local/caches/`. O MAX_PATH já morde ferramenta de leitura, e não só
+> o `worktree add`.
+
+Só vai o que for **configuração local necessária e não versionada** — e a lista
+começa curta:
+
+| O quê | Decisão |
+| --- | --- |
+| `run/server/server.properties` | **não copiar.** O atual está com `enable-rcon=false`, `gamemode=survival` e `level-name=world` — não é o da §4.2, e nunca foi. Criar do zero pelo documento |
+| `instancia/` | **não copiar.** É recriada por `scripts/instancia.ps1`, que existe para isso |
+| `transfer/` | **decisão humana** antes de qualquer coisa |
+| configuração de IDE | conferir caso a caso; nada foi identificado ainda |
+
+#### Ordem dentro do clone novo
+
+`instancia.ps1 atualizar` vem **depois** do `build`, e não antes: a instância
+tem de nascer do JAR produzido pelo ambiente que a campanha vai usar de verdade.
+Isso transforma o último item pendente do passo 0 numa prova da própria migração.
+
+> **Num clone novo não existe instância ainda.** O `atualizar` troca o JAR de
+> uma instalação que precisa existir: rode `scripts/instancia.ps1 instalar`
+> primeiro, que baixa o servidor NeoForge dedicado, e só então `atualizar`.
+
+#### O gate do #19
+
+`#19` só é resolvida quando **todos** forem verdadeiros:
+
+- [ ] `origin` correto
+- [ ] `main` == `origin/main` == `96f491c`
+- [ ] nenhum commit exclusivamente local ficou para trás
+- [ ] nenhum stash necessário ficou para trás
+- [ ] nenhum worktree necessário ficou para trás
+- [ ] **`transfer/` resolvido** — aproveitado, descartado ou commitado, com a decisão escrita
+- [ ] configurações locais importantes identificadas
+- [ ] `./gradlew build` verde, com a contagem de testes que a `main` tem hoje
+- [ ] `scripts/instancia.ps1 instalar` e depois `atualizar` funcionam a partir do clone novo
+- [ ] **dois `git worktree` criados sem `Filename too long`** — é o teste que justifica a migração
+- [ ] os dois apontam para os commits e branches esperados
+
+Só então o clone do OneDrive sai da quarentena.
 
 Alternativa não testada, se mover for indesejável agora:
 `git config core.longpaths true`.

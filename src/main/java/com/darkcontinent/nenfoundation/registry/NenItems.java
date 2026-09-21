@@ -4,7 +4,6 @@ import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.item.HunterBestiaryItem;
 import com.darkcontinent.nenfoundation.item.FieldNoteItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;

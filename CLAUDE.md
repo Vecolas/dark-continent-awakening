@@ -264,6 +264,7 @@ O CI e **rede de seguranca, nao primeira verificacao**.
 | `ProtocoloCongeladoTest` | codigo e documento discordarem sobre id, direcao ou versao |
 | `IndiceDeAdrTest` | ADR fora do indice; ADR sem custo declarado |
 | `PacotesDeclaradosTest` | pacote sem documentacao; nucleo importando cliente |
+| `TraducaoDeConteudoTest` | bloco ou item registrado sem nome em `en_us` e `pt_br`; chave de nome orfa depois de um rename; um idioma cobrindo mais chaves que o outro |
 | suite vazia reprova | `build` sair verde com zero testes executados |
 
 Ao criar um portao novo: **alimente-o com um caso que DEVE reprovar e confirme

@@ -45,6 +45,7 @@ public final class ChimeraColony {
     private static final String MEMBROS = "members";
     private static final String GENES = "gene_pool";
     private static final String ULTIMO_TICK = "last_tick";
+    private static final String NASCIMENTOS_PENDENTES = "pending_births";
 
     private final UUID id;
     private UUID rainha;
@@ -53,6 +54,8 @@ public final class ChimeraColony {
     private int comida;
     private int alerta;
     private long ultimoTick;
+    /** Nascimentos autorizados que ainda nao couberam num tick de mundo. */
+    private int nascimentosPendentes;
 
     private final Set<UUID> membros = new LinkedHashSet<>();
     private final Map<String, Integer> genePool = new LinkedHashMap<>();
@@ -72,6 +75,7 @@ public final class ChimeraColony {
     public int comida() { return comida; }
     public int alerta() { return alerta; }
     public long ultimoTick() { return ultimoTick; }
+    public int nascimentosPendentes() { return nascimentosPendentes; }
     public Set<UUID> membros() { return Set.copyOf(membros); }
     public Map<String, Integer> genePool() { return Map.copyOf(genePool); }
     public int tamanho() { return membros.size(); }
@@ -174,12 +178,33 @@ public final class ChimeraColony {
         SimulacaoOffline.ResultadoOffline resultado =
                 simulacao.recuperar(decorridos, orcamento, peoesVivos, oficiaisVivos);
         comida += resultado.comida();
+        autorizarNascimentos(resultado.nascimentosAutorizados());
         ultimoTick = tickAtual;
         return resultado;
     }
 
     /** Marca o relogio sem recuperar nada -- usado no tick normal, com o chunk ativo. */
     public void marcarTick(long tickAtual) { this.ultimoTick = tickAtual; }
+
+    /**
+     * Guarda a autorizacao ate o mundo conseguir materializar a entidade.
+     *
+     * <p>Autorizacao e entidade sao momentos diferentes: o ninho pode estar em
+     * chunk descarregado no instante da recuperacao. Consumir aqui faria o
+     * nascimento desaparecer em silencio; manter o numero no save permite
+     * tentar de novo quando o jogador voltar a carregar o ninho.</p>
+     */
+    public void autorizarNascimentos(int quantidade) {
+        if (quantidade < 0) throw new IllegalArgumentException("nascimentos negativos");
+        nascimentosPendentes = Math.addExact(nascimentosPendentes, quantidade);
+    }
+
+    /** Consume uma autorizacao somente depois de a entidade entrar no mundo. */
+    public boolean consumirNascimento() {
+        if (nascimentosPendentes == 0) return false;
+        nascimentosPendentes--;
+        return true;
+    }
 
     // ------------------------------------------------------------ persistencia
 
@@ -192,6 +217,7 @@ public final class ChimeraColony {
         tag.putInt(COMIDA, comida);
         tag.putInt(ALERTA, alerta);
         tag.putLong(ULTIMO_TICK, ultimoTick);
+        tag.putInt(NASCIMENTOS_PENDENTES, nascimentosPendentes);
 
         ListTag lista = new ListTag();
         membros.forEach(membro -> lista.add(NbtUtils.createUUID(membro)));
@@ -217,6 +243,7 @@ public final class ChimeraColony {
         colonia.comida = tag.getInt(COMIDA);
         colonia.alerta = Math.min(ALERTA_MAXIMO, Math.max(0, tag.getInt(ALERTA)));
         colonia.ultimoTick = tag.getLong(ULTIMO_TICK);
+        colonia.nascimentosPendentes = Math.max(0, tag.getInt(NASCIMENTOS_PENDENTES));
 
         ListTag lista = tag.getList(MEMBROS, Tag.TAG_INT_ARRAY);
         for (Tag membro : lista) colonia.membros.add(NbtUtils.loadUUID(membro));

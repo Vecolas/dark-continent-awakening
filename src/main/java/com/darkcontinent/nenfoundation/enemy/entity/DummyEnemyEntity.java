@@ -21,7 +21,6 @@ import com.darkcontinent.nenfoundation.enemy.perception.PercepcaoDeAura;
 import com.darkcontinent.nenfoundation.enemy.perception.PerceptionBudget;
 import com.darkcontinent.nenfoundation.enemy.perception.PerceptionController;
 import com.darkcontinent.nenfoundation.enemy.perception.PerceptionSnapshot;
-import com.darkcontinent.nenfoundation.enemy.perception.SensorDeVisao;
 import com.darkcontinent.nenfoundation.enemy.perception.TargetCandidate;
 import com.darkcontinent.nenfoundation.enemy.perception.TargetEvaluator;
 import com.darkcontinent.nenfoundation.enemy.perception.ThreatMemory;

@@ -2,9 +2,7 @@ package com.darkcontinent.nenfoundation.server;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
 import com.darkcontinent.nenfoundation.nen.category.NenCategory;
 import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
 import com.darkcontinent.nenfoundation.nen.profile.RuntimeNenState;
@@ -14,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

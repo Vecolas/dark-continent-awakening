@@ -15,8 +15,8 @@ está* e este diz *o que foi conferido, com o quê*.
 
 | Medida | Valor |
 | --- | --- |
-| Testes JUnit no repositório | ver a saída de `./gradlew build` — *snapshot: 1.528 em 2026-09-21, `f99d75e`* |
-| GameTests executados | **143 de 143, 0 falhas** — *`runGameTestServer`, 2026-09-21, `f99d75e`* |
+| Testes JUnit no repositório | ver a saída de `./gradlew build` — *snapshot: 1.540 em 2026-09-21, no merge das tres trilhas* |
+| GameTests executados | **143 de 143, 0 falhas** — *`runGameTestServer`, 2026-09-21, `f99d75e`*. **NÃO remedido depois do merge das trilhas de Greed Island e da colônia Chimera**, que trouxeram cenários novos: o número acima é anterior a eles |
 | Ids de inimigo registrados | 24 (7 do exame + 7 de Greed Island + 9 de Chimera + o boneco) |
 | Arquivos de som gerados e conferidos | 120, todos Ogg Vorbis validados byte a byte |
 | Geradores de arte com validação semântica | Cyclops, Hyper Puffball, Melanin Lizard, Radio Rat, Bubble Horse, Wolf Pack Hunter, King White Stag Beetle, Boneco de Treino |

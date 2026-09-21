@@ -7,7 +7,6 @@ import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
 import com.darkcontinent.nenfoundation.registry.NenParticleTypes;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
-import com.darkcontinent.nenfoundation.server.NenTickScheduler;
 import com.darkcontinent.nenfoundation.sound.NenSoundEvents;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityEvents;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;

@@ -7,11 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.api.ability.ActiveAbility;
-import com.darkcontinent.nenfoundation.nen.aura.AuraPool;
-import com.darkcontinent.nenfoundation.nen.category.NenCategory;
-import com.darkcontinent.nenfoundation.nen.profile.PersistentNenData;
-import java.util.Map;
-import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

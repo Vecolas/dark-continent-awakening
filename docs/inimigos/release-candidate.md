@@ -1,7 +1,8 @@
 # EN16 — o que falta para os 23 encontros virarem Release Candidate
 
 Este documento é o **gate final** da trilha [INIMIGOS] (issue `#151`), e ele
-começa dizendo o que ainda não é verdade: **nada aqui está pronto para RC.**
+separa o que já foi provado automaticamente do que ainda exige uma sessão real
+de jogo. A existência de conteúdo completo não é, sozinha, aprovação de RC.
 
 Ele existe agora, e não no fim, por um motivo prático: um checklist escrito
 depois que o trabalho acabou lista o que foi feito. Escrito antes, ele lista o
@@ -21,8 +22,8 @@ medir.
 | Loot, tradução, perfil publicado, renderer, ficha de bestiário | 24 de 24 |
 | Perfis de interrupção alcançáveis | **17 de 17** (os 7 do exame não usam `StaggerState`) |
 | Assets reproduzíveis byte a byte | **199 de 199** |
-| Testes JUnit | ver a saída de `./gradlew build` — *snapshot: 1.528 em 2026-09-21, `f99d75e`* |
-| GameTests escritos / **executados** | **143 / 143**, 0 falhas — *`runGameTestServer`, 2026-09-21, `f99d75e`* |
+| Testes JUnit | ver a saída de `./gradlew build` — *snapshot: 1.540 em 2026-09-21, no merge das tres trilhas* |
+| GameTests escritos / **executados** | **143 / 143**, 0 falhas — *`runGameTestServer`, 2026-09-21, `f99d75e`*. **NÃO remedido depois do merge** das trilhas de Greed Island e da colônia Chimera |
 
 ---
 
@@ -78,11 +79,12 @@ encontro e há spawner — mas **não há gatilho de mundo**: nada cria uma
 `EncounterInstance` a não ser `/nenenemy encounter`. Sem worldgen ou estrutura, o
 jogador nunca encontra nada por acaso.
 
-### 5. A colônia de Chimera não existe em jogo
+### 5. ~~O produtor de colônia Chimera ainda não existe em jogo~~ — FECHADO EM CÓDIGO
 
-`ChimeraColony`, `ChimeraColonySavedData` e a simulação offline estão completos e
-sem produtor: não há ninho gerado, não há quem funde uma colônia, e não há quem
-materialize as formigas que a recuperação autoriza.
+`ChimeraColony`, `ChimeraColonySavedData`, a simulação offline, o ciclo de vida,
+o produtor natural por chunk e o materializador server-side agora formam o
+caminho completo de fundação até os três peões iniciais. A fundação é rara,
+determinística, protegida contra duplicação e não ocorre perto de jogadores.
 
 ### 6. O Nen das formigas decide e não ativa
 

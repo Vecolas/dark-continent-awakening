@@ -69,6 +69,14 @@ pack/*.zip
 # registro que sumiu. Ver docs/processo/fronteira-de-arquivos.md.
 /transfer/
 
+### Arvores de trabalho do git ###
+# `git worktree add .worktrees/<nome>` deixa o checkout da outra branch DENTRO
+# da arvore principal. Sem esta linha ele aparece como diretorio nao rastreado,
+# e um `git add -A` commitaria a copia inteira de outra branch por cima desta --
+# o mesmo acidente descrito em docs/processo/fronteira-de-arquivos.md, so que em
+# escala de repositorio. O diretorio e regeravel: `git worktree list` e a fonte.
+/.worktrees/
+
 # Cache do Python dos geradores de arte em art-source/.
 __pycache__/
 *.pyc

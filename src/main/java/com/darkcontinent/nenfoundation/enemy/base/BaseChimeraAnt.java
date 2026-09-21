@@ -4,6 +4,7 @@ import com.darkcontinent.nenfoundation.enemy.ai.AwarenessTuning;
 import com.darkcontinent.nenfoundation.enemy.api.EnemyMetadata;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraDefinition;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraIdentity;
+import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraColonySavedData;
 import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraNenStatus;
 import com.darkcontinent.nenfoundation.enemy.chimera.nen.TacticalNenController;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.Level;
 
@@ -105,6 +107,14 @@ public abstract class BaseChimeraAnt extends BaseHxHMob {
     public final ChimeraIdentity alistarEm(UUID colonia) {
         garantirIdentidade();
         aplicarIdentidade(exigirIdentidade().comColonia(colonia));
+        if (!level().isClientSide && level().getServer() != null) {
+            ChimeraColonySavedData.de(level().getServer()).colonia(colonia)
+                    .ifPresent(coloniaPersistente -> {
+                        if (coloniaPersistente.alistar(getUUID())) {
+                            ChimeraColonySavedData.de(level().getServer()).sujar();
+                        }
+                    });
+        }
         return identidade;
     }
 
@@ -122,7 +132,23 @@ public abstract class BaseChimeraAnt extends BaseHxHMob {
      * do jogador sem motivo visivel.</p>
      */
     public final void tornarOrfa() {
+        desligarDaColoniaPersistente();
         if (identidade != null) aplicarIdentidade(identidade.semColonia());
+    }
+
+    /** A entidade sai primeiro do registro persistente, depois do mundo. */
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (!level().isClientSide) desligarDaColoniaPersistente();
+        super.remove(reason);
+    }
+
+    private void desligarDaColoniaPersistente() {
+        if (identidade == null || identidade.colonia().isEmpty() || level().getServer() == null) return;
+        ChimeraColonySavedData dados = ChimeraColonySavedData.de(level().getServer());
+        dados.colonia(identidade.colonia().get()).ifPresent(colonia -> {
+            if (colonia.desligar(getUUID())) dados.sujar();
+        });
     }
 
     private ChimeraIdentity exigirIdentidade() {

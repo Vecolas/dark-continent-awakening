@@ -2,7 +2,6 @@ package com.darkcontinent.nenfoundation.client.worldtree;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.worldtree.WorldTreeAltitudeService;
-import com.darkcontinent.nenfoundation.worldtree.WorldTreeDebugCommands;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.sounds.SoundEvents;

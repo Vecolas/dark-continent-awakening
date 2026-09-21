@@ -104,6 +104,10 @@ class ChimeraColonyTest {
         assertEquals(0, colonia.tamanho(),
                 "A colonia so atualiza o proprio placar; quem materializa e o lado que tem"
                         + " mundo, e so quando o orcamento permitir.");
+        assertEquals(4, resultado.nascimentosAutorizados());
+        assertEquals(4, colonia.nascimentosPendentes(),
+                "A autorizacao precisa sobreviver ate o ninho estar carregado; descarta-la"
+                        + " no hook de restart faria a colonia crescer so no log.");
         assertTrue(colonia.comida() > 0);
         assertEquals(24_000L, colonia.ultimoTick());
     }
@@ -173,6 +177,7 @@ class ChimeraColonyTest {
         colonia.alimentar("minecraft:cow", 6);
         colonia.estagio(ChimeraColonyStage.HUNTING);
         colonia.relatar(AMEACA, 0L, 500);
+        colonia.autorizarNascimentos(2);
         colonia.marcarTick(1234L);
 
         ChimeraColony lida = ChimeraColony.carregar(colonia.salvar());
@@ -183,6 +188,9 @@ class ChimeraColonyTest {
         assertEquals(6, lida.comida());
         assertEquals(ChimeraColonyStage.HUNTING, lida.estagio());
         assertEquals(1234L, lida.ultimoTick());
+        assertEquals(2, lida.nascimentosPendentes(),
+                "Nascimentos autorizados nao podem sumir no restart enquanto o ninho esta"
+                        + " descarregado.");
         assertTrue(lida.ameacasConhecidas().isEmpty(),
                 "Prazo em ticks de mundo salvo atravessaria o restart com o relogio zerado do"
                         + " outro lado, e a colonia acordaria em alerta maximo por uma ameaca"
@@ -216,5 +224,17 @@ class ChimeraColonyTest {
         assertEquals(5, colonia.comida());
         assertTrue(colonia.gastar(5));
         assertEquals(0, colonia.comida());
+    }
+
+    @Test
+    @DisplayName("nascimento so e consumido depois da materializacao")
+    void nascimentoPendenteEConsumidoUmaVez() {
+        ChimeraColony colonia = colonia();
+        colonia.autorizarNascimentos(2);
+        assertTrue(colonia.consumirNascimento());
+        assertEquals(1, colonia.nascimentosPendentes());
+        assertTrue(colonia.consumirNascimento());
+        assertFalse(colonia.consumirNascimento());
+        assertEquals(0, colonia.nascimentosPendentes());
     }
 }

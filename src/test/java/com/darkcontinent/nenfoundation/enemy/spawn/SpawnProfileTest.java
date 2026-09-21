@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.darkcontinent.nenfoundation.Repo;
 import com.darkcontinent.nenfoundation.enemy.content.EnemyCatalog;
-import com.darkcontinent.nenfoundation.enemy.content.HunterExamProfiles;
 import com.darkcontinent.nenfoundation.enemy.data.EnemyDefinition;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

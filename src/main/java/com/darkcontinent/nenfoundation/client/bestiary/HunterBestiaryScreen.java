@@ -4,7 +4,6 @@ import com.darkcontinent.nenfoundation.bestiary.BestiaryEntryDefinition;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryKnowledgeLevel;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryRegistry;
 import com.darkcontinent.nenfoundation.bestiary.BestiaryProgress;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;

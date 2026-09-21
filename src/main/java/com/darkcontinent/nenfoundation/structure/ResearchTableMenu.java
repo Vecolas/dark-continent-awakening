@@ -4,7 +4,6 @@ import com.darkcontinent.nenfoundation.item.FieldNoteItem;
 import com.darkcontinent.nenfoundation.registry.NenMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;

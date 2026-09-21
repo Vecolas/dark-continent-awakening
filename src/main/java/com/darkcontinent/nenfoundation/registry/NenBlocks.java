@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
+import com.darkcontinent.nenfoundation.enemy.chimera.ChimeraNestBlock;
 import com.darkcontinent.nenfoundation.structure.ResearchTableBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -23,6 +24,12 @@ public final class NenBlocks {
                     .strength(2.5F).requiresCorrectToolForDrops()));
     public static final DeferredHolder<Item, Item> RESEARCH_TABLE_ITEM = ITEMS.register(
             "research_table", () -> new BlockItem(RESEARCH_TABLE.get(), new Item.Properties()));
+
+    public static final DeferredHolder<Block, Block> CHIMERA_NEST = BLOCKS.register(
+            "chimera_nest", () -> new ChimeraNestBlock(BlockBehaviour.Properties.of()
+                    .strength(3.0F).requiresCorrectToolForDrops()));
+    public static final DeferredHolder<Item, Item> CHIMERA_NEST_ITEM = ITEMS.register(
+            "chimera_nest", () -> new BlockItem(CHIMERA_NEST.get(), new Item.Properties()));
 
     private NenBlocks() { }
 

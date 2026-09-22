@@ -21,6 +21,38 @@ Decisão que este gate verifica:
 
 ---
 
+## O que o alvo COMPARTILHADO implica — leia antes de julgar
+
+O bloom é **um alvo para a cena inteira**, nunca um por entidade (dez jogadores
+em Ren seriam dez alvos de tela cheia por quadro — é o custo que o AV8 existe
+para barrar). Isso tem três consequências visíveis, e duas delas **não são
+defeito**:
+
+| O que se vê | É esperado? |
+| --- | --- |
+| **Dois Ren juntos brilham mais onde os halos se cruzam** | ✅ **sim.** O alvo acumula luz de propósito; duas fontes brilhantes lado a lado somam — é o que bloom faz |
+| **Com um Ren na tela, o halo de um Ten engrossa** | ✅ **sim.** Um alvo = **um raio** de borrão, e ele é o maior da tela. Pela média, um Ren ao lado de cinco Ten perderia o halo dele |
+| ~~Ativar Ren deixa a aura dos outros mais CLARA~~ | ❌ **era defeito**, corrigido em 2026-09-22 |
+
+> ### O defeito que a sessão do AV1 encontrou
+>
+> A força do perfil era aplicada **duas vezes**: uma por jogador na escrita do
+> alvo, outra no composite — e a segunda com `maiorForca`, o **valor de outra
+> pessoa**. Com um Ten na tela:
+>
+> ```
+> observador em Ten -> 0,20 (escrita) x 0,20 (composite) = 0,040
+> observador em Ren -> 0,20 (escrita) x 0,55 (composite) = 0,110
+> ```
+>
+> O Ten de um terceiro ficava **2,75× mais claro porque quem olhava trocou de
+> técnica**. Não lançava, não aparecia em teste nenhum, e o build ficava verde.
+> **Quem achou foi olho humano em jogo** — a sessão do AV1, perguntando "isso é
+> esperado?". `ForcaDoBrilhoTest` agora tranca a conta.
+
+---
+
+
 ## As treze capturas
 
 ```

@@ -122,6 +122,26 @@ public final class AuraDebugCommands {
                             return relatar(ctx, "nenfoundation.vfx.ribbons_forcadas", valor);
                         })));
 
+        // O BLOOM E O UNICO BOTAO QUE SO EXISTIA NA CONFIG, e dois gates
+        // dependem dele: o AV3 pede `sem_bloom_ten` e o AV5 compara os tres
+        // niveis do MESMO quadro. Sem isto, mudar de nivel exigia sair do jogo
+        // e reiniciar -- e duas imagens de sessoes diferentes nao se comparam,
+        // porque luz, pose e clima mudaram junto.
+        LiteralArgumentBuilder<CommandSourceStack> bloom = Commands.literal("bloom");
+        bloom.then(Commands.literal(AUTO).executes(ctx -> {
+            SobreposicaoDeVfx.forcarBloom(null);
+            return relatar(ctx, "nenfoundation.vfx.bloom_automatico");
+        }));
+        for (com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel nivel
+                : com.darkcontinent.nenfoundation.client.vfx.AuraBloomLevel.values()) {
+            String nome = nivel.name().toLowerCase(Locale.ROOT);
+            bloom.then(Commands.literal(nome).executes(ctx -> {
+                SobreposicaoDeVfx.forcarBloom(nivel);
+                return relatar(ctx, "nenfoundation.vfx.bloom_forcado", nome);
+            }));
+        }
+        raiz.then(bloom);
+
         LiteralArgumentBuilder<CommandSourceStack> lod = Commands.literal("lod");
         for (AuraRenderLod nivel : AuraRenderLod.values()) {
             String nome = nivel.name().toLowerCase(Locale.ROOT);

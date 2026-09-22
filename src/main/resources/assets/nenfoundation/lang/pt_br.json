@@ -311,6 +311,8 @@
   "nenfoundation.tecnica.zetsu": "Zetsu",
   "nenfoundation.vfx.ajuste_automatico": "Ajuste %s devolvido ao perfil.",
   "nenfoundation.vfx.ajuste_forcado": "Ajuste %s forcado em %s. E hipotese, nao decisao: escreva no perfil para valer.",
+  "nenfoundation.vfx.bloom_automatico": "Nível de brilho devolvido à config.",
+  "nenfoundation.vfx.bloom_forcado": "Nível de brilho forçado para %s. Não foi escrito na config.",
   "nenfoundation.vfx.captura_desligada": "Modo de captura desligado. Camera e HUD devolvidos.",
   "nenfoundation.vfx.captura_falhou": "A captura falhou. O motivo esta no log; nada foi gravado.",
   "nenfoundation.vfx.captura_ja_ligada": "O modo de captura ja esta ligado.",

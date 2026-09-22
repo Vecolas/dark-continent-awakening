@@ -42,6 +42,7 @@ public final class SobreposicaoDeVfx {
     private static volatile boolean congelado;
     private static volatile AuraVisualMode modoForcado;
     private static volatile AuraRenderLod lodForcado;
+    private static volatile AuraBloomLevel bloomForcado;
     private static volatile float outputForcado = NENHUM;
     private static volatile float densidadeForcada = NENHUM;
     private static volatile int ribbonsForcadas = -1;
@@ -179,6 +180,32 @@ public final class SobreposicaoDeVfx {
         densidadeForcada = Float.isFinite(valor) && valor >= 0.0F ? Math.min(valor, 2.0F) : NENHUM;
     }
 
+    /**
+     * Forca o nivel de brilho deste cliente. {@code null} devolve o controle a config.
+     *
+     * <p><b>ELE FALTAVA, e dois gates dependem dele.</b> O AV3 pede uma captura
+     * {@code sem_bloom_ten}, e o AV5 inteiro compara os tres niveis do mesmo
+     * quadro. Sem sobreposicao, a unica forma de mudar o nivel era sair do jogo,
+     * editar o {@code .toml} e reiniciar -- o que quebra a regra da propria
+     * campanha, que exige a comparacao NA MESMA SESSAO. Duas imagens de sessoes
+     * diferentes nao se comparam: luz, pose e clima mudaram junto.
+     *
+     * <p><b>ELE NAO BURLA O REBAIXAMENTO.</b> {@code AuraPostProcess} continua
+     * rebaixando quando o pipeline foi substituido por um shader pack ou quando
+     * o passe falhou em runtime. Forcar {@code HIGH} sobre um pipeline que nao o
+     * suporta produziria uma captura afirmando um nivel que a tela nao desenha
+     * -- e captura que mente e pior que captura que falta.
+     */
+    public static void forcarBloom(AuraBloomLevel nivel) {
+        versao++;
+        bloomForcado = nivel;
+    }
+
+    /** O nivel forcado, ou {@code null} quando a config manda. */
+    public static AuraBloomLevel bloomForcado() {
+        return bloomForcado;
+    }
+
     /** Forca o nivel de detalhe dos OUTROS jogadores. {@code null} volta a distancia. */
     public static void forcarLod(AuraRenderLod lod) {
         versao++;
@@ -217,6 +244,7 @@ public final class SobreposicaoDeVfx {
      */
     public static void limpar() {
         versao++;
+        bloomForcado = null;
         desligado = false;
         congelado = false;
         modoForcado = null;

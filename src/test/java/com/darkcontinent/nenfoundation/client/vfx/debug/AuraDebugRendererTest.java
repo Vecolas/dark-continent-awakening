@@ -43,7 +43,8 @@ class AuraDebugRendererTest {
             AuraDistribution distribuicao, int chamadas, int filamentos, int colunas,
             int aneis, int particulas, int detritos, int jogadores) {
         return new AuraDebugRenderer.Dados(desenhoLigado, false, null, Float.NaN, Float.NaN,
-                null, -1,
+                // lod e bloom sem sobreposicao: o estado normal de uma sessao
+                null, null, -1,
                 chamadas, filamentos, colunas, aneis, particulas, detritos, 0, jogadores,
                 // sem ripple: e o estado em repouso, e o que a maioria dos casos mede
                 0.0F, 0,

@@ -477,6 +477,50 @@ motivo e em `o-que-nao-provamos.md`:
 
 ---
 
+### Estado da trilha (2026-09-22) — **o #169 FECHOU**
+
+**O primeiro gate da trilha AV esta aprovado.** Ele nao fechou como estava
+escrito, e a diferenca importa: as catorze capturas foram **APOSENTADAS** por
+decisao do dono do projeto em 2026-09-22, e a evidencia do AV0 passou a ser o
+julgamento humano registrado em
+[`../testing/capturas/AV0/PERGUNTAS.md`](../testing/capturas/AV0/PERGUNTAS.md).
+O custo dessa decisao esta escrito em
+[`../testing/capturas/AV0/DIVIDAS.md`](../testing/capturas/AV0/DIVIDAS.md) — sem
+imagem nao ha o que reabrir, nao ha linha de base para o AV1, e uma regressao
+visual futura passa calada.
+
+**A decisao vale para o AV0 e nao se estende:** #176, #181, #187, #193, #198,
+#201, #205, #209 e #104 continuam pedindo captura pelo texto das proprias
+issues, e `docs/testing/capturas/` continua sem um PNG.
+
+O que foi respondido, e como:
+
+| Item | Como fechou |
+| --- | --- |
+| aderencia (correr, pular, atacar, agachar, nadar) | julgamento humano, servidor dedicado com **dois jogadores**, 51 min em 2026-09-21 — montagem conferida contra `run/server/logs/latest.log` |
+| luz, corpo (slim, overlay, armadura), LOD 2b→40b | idem |
+| classe client-only no dedicado | **varredura em servidor de PRODUCAO com jogador dentro**: 23 min, 2 jogadores, 37 pedidos C2S, 8 mortes por mobs do mod, as duas dimensoes carregadas, **zero** `NoClassDefFoundError`, `ClassNotFoundException`, mencao a `client` ou `[ERROR]` |
+| `poseStack.scale` | **portao** `EscalaDaShellTest` |
+| morte e troca de dimensao sem estado preso | **portao** `MorteETrocaDeDimensaoTest` |
+
+> **A varredura de classe client-only so vale porque rodou na INSTANCIA.** No
+> `runServer` as classes de cliente estao no classpath: um vazamento encontra a
+> classe e nao lanca nada, e o log sai limpo pelo motivo errado. E o erro
+> numero 10 do `CLAUDE.md` um nivel acima — nao basta sair do singleplayer, e
+> preciso sair do ambiente de desenvolvimento. A sessao de 51 min de 21/09,
+> apesar de limpa e longa, rodou em dev e por isso nao fechava este item
+> sozinha.
+
+**Dois itens do AV0 viraram portao**, e e a parte que sobrevive ao gate: o
+julgamento humano vale para um commit e uma sessao, e os dois testes valem para
+sempre. O que continua sem regua esta em
+[`../testing/o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md).
+
+**O AV1 esta destravado** pela regra "nao comecar o AV(n+1) sem fechar o AV(n)"
+— mas **nao autorizado**: um marco nao comeca sem instrucao explicita.
+
+---
+
 ## M5 — Framework de Hatsu / habilidades
 
 **Dev A:** `NenAbility`, pipeline de validacao, custo, cooldown e alvo comuns,

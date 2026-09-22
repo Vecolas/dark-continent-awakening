@@ -266,6 +266,7 @@ O CI e **rede de seguranca, nao primeira verificacao**.
 | `PacotesDeclaradosTest` | pacote sem documentacao; nucleo importando cliente |
 | `TraducaoDeConteudoTest` | bloco ou item registrado sem nome em `en_us` e `pt_br`; chave de nome orfa depois de um rename; um idioma cobrindo mais chaves que o outro |
 | `EscalaDaShellTest` | `scale` aplicado a um `PoseStack` na shell de aura -- a causa mais barata de a aura descolar nas articulacoes |
+| `MorteETrocaDeDimensaoTest` | estado por id de entidade sobrevivendo a morte ou troca de dimensao; e a poda por presenca deixar de ser chamada no tick |
 | suite vazia reprova | `build` sair verde com zero testes executados |
 
 Ao criar um portao novo: **alimente-o com um caso que DEVE reprovar e confirme

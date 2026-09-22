@@ -8,10 +8,13 @@ aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredict
 
 ## Resultado da sessão de 2026-09-21 (`5a9182b`)
 
-**As treze perguntas de julgamento passaram**, com a montagem confirmada:
-servidor dedicado, dois jogadores, 51 minutos. Com as imagens aposentadas e
-pular/atacar julgados, falta **uma** coisa: rodar a instância com um cliente
-dentro e reler o log. Ver [`DIVIDAS.md`](DIVIDAS.md) D5.
+**As treze perguntas de julgamento passaram**, com a montagem confirmada contra
+o log: servidor dedicado, dois jogadores, 51 minutos. As imagens foram
+aposentadas, pular e atacar julgados, o E1 fechado em produção com jogador
+dentro, e morte/troca de dimensão viraram portão.
+
+> ## O #169 FECHOU em 2026-09-22.
+> Nada em aberto. O que ficou declarado está em [`DIVIDAS.md`](DIVIDAS.md).
 
 | Bloco | Resultado |
 | --- | --- |
@@ -19,7 +22,7 @@ dentro e reler o log. Ver [`DIVIDAS.md`](DIVIDAS.md) D5.
 | B — corpo (slim, overlay, armadura) | ✅ PASSA nas três; o overlay **não engole** a shell |
 | C — **aderência** (correr, agachar, nadar) | ✅ PASSA — *"não descola, funciona perfeitamente"* |
 | D — distância (2b→40b) | ✅ PASSA — transição contínua, e em 40b ainda comunica |
-| E1 — log do dedicado | ✅ PASSA — log limpo nas quatro varreduras, **mas sem jogador conectado** |
+| E1 — log do dedicado | ✅ **PASSA — produção COM jogador**, 23 min, 2 jogadores, 8 mortes, as 2 dimensões, zero ocorrências |
 | E2 — morte e troca de dimensão | ✅ PASSA — *"desativa tudo, nenhum estado fica travado"* |
 | E3 — `poseStack.scale` | ✅ respondida por portão (`EscalaDaShellTest`) |
 

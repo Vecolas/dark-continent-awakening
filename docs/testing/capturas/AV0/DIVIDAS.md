@@ -4,8 +4,9 @@ Atualizado em **2026-09-22**, contra `ffb7e47`.
 
 **As treze perguntas de julgamento foram respondidas, e todas passaram.** Com
 as catorze imagens **aposentadas em 2026-09-22** (ver D1) e pular/atacar
-julgados (D4), e a montagem declarada e conferida contra o log (D2), o AV0 deve **uma
-coisa**: rodar a INSTÂNCIA com um jogador dentro, e reler o log (D5).
+julgados (D4), a montagem conferida contra o log (D2), o E1 fechado em produção com jogador
+dentro (D5) e morte/troca de dimensão convertidas em portão (D6), **o AV0 não
+deve mais nada. O #169 FECHOU em 2026-09-22.**
 
 > **Por que separar por dono.** A lista de pendências de um gate mistura o que
 > só um humano no jogo responde com o que uma régua responde melhor. Misturadas,
@@ -118,47 +119,73 @@ conjunto e passa a ter os cinco movimentos respondidos.
 
 ---
 
-### D5 · O E1 — o cruzamento que falta
+### D5 · O E1 — **FECHADO em 2026-09-22**
 
-Esta é a última dívida do gate, e agora dá para descrevê-la com precisão.
-**Existem duas execuções limpas, e cada uma tem metade do que o E1 pede:**
+O cruzamento que faltava aconteceu: **instância de produção, com jogador
+dentro.** 23 minutos, `Gon` e `Kurapika`, 12:49→13:12.
 
-| Execução | Classpath | Jogador entrou? | O que prova |
-| --- | --- | --- | --- |
-| instância (`instancia/servidor`), 23:29 de 21/09 | **produção** — classes de cliente AUSENTES | ❌ ninguém | carga do mod, registros, criação das dimensões e shutdown, sem vazamento |
-| sessão de vocês (`run/server`), 19:17→20:10 | **dev** — classes de cliente PRESENTES | ✅ dois, por 51 min | join, payload, jogo real, sem erro nenhum |
+| Caminho exercitado | Evidência |
+| --- | --- |
+| join em produção | `Gon` 12:50, `Kurapika` 12:51 |
+| técnicas / C2S | **37 pedidos admitidos, 0 cortados** |
+| combate com mobs do mod | **8 mortes** — Kiriko, Cheetah Leader, Zumbi |
+| morte e respawn | as 8, mais `Gon fell out of the world` |
+| troca de dimensão | chunks novos em `world_tree` **e** `greed_island` |
 
-**Nenhuma das duas cobre a caixa que importa: produção COM jogador.**
+Varredura nos dois logs (`latest.log` 118 linhas, `debug.log` 588):
 
-> **Por que o log da sessão não fecha sozinho**, apesar de limpo e longo: no
-> workspace de desenvolvimento as classes de cliente estão no classpath. Um
-> `net.minecraft.client.*` alcançado pelo servidor **encontra a classe e não
-> lança nada** — o log sai limpo pelo motivo errado. É o erro nº 10 do
-> `CLAUDE.md` um nível acima: não basta sair do singleplayer, é preciso sair do
-> ambiente de desenvolvimento.
+| Procurado | Ocorrências |
+| --- | --- |
+| `NoClassDefFoundError` / `ClassNotFoundException` | **0** |
+| `net.minecraft.client` / `nenfoundation.client` | **0** |
+| `[ERROR]` / `[FATAL]` / `Exception` / `Caused by` | **0** |
 
-**O que fecha, e é curto:** subir `scripts/instancia.ps1 servidor`, entrar com um
-cliente, ligar Ten, andar, apanhar, trocar de dimensão e sair. Dez minutos. Eu
-releio o log e a varredura passa a valer com jogador conectado.
+Os 22 WARN são vanilla e de terceiros: 12 `moved too quickly` (teleporte em
+creative), refmap da GeckoLib, URL de assets do NeoForge e o aviso de
+`offline-mode`. **Nenhum do `nenfoundation`.**
 
-- [ ] instância + um cliente entrando e ativando técnica — depois me avise
+> **O que esta execução NÃO cobriu:** o servidor não foi parado com `stop` — os
+> logs terminam na saída do `Gon`, sem sequência de shutdown. O save-ao-parar é
+> onde um bug de persistência apareceria. Ele foi exercitado limpo na execução
+> de 21/09 às 23:29 (sem jogador), e os chunks desta sessão foram gravados assim
+> mesmo — mas "produção + jogador + shutdown limpo" ainda não aconteceu numa
+> execução só. Não bloqueia o E1, que é sobre classe client-only.
+
+- [x] **fechado** — produção com jogador, log varrido
 
 ---
 
 ## 2. Não é sua — eu fecho no código
 
-### D6 · Morte e troca de dimensão não têm teste
+### D6 · Morte e troca de dimensão — **VIRARAM PORTÃO em 2026-09-22**
 
-Hoje **a sua resposta é a única prova que existe** de que elas não deixam estado
-preso. Ela vale para um commit e uma sessão; no próximo refactor do ciclo de
-vida do cliente, nada acusa se a limpeza sumir.
+`MorteETrocaDeDimensaoTest`, cinco testes. A investigação achou algo melhor do
+que o handler que eu ia escrever:
 
-O logout tem teste (`SobreposicaoDeVfxTest`). Morte e troca de dimensão, não.
+**Não existe ponto de saída para morte nem para troca de dimensão, e isso é
+proposital.** O cliente não faz logout nesses casos — ele **troca a entidade**,
+que volta com **id novo**. Quem guarda estado por id de entidade não é avisado
+de nada. O que impede o vazamento é a poda por presença:
+`DetectorDeAtivacaoDeTen.reterSomente(...)`, chamada a cada tick com quem está
+na tela **agora**. O id velho simplesmente deixa de estar na lista.
 
-**Peça e eu escrevo** — é a lacuna mais barata que restou, e converte uma
-evidência datada em algo que o `build` responde para sempre.
+Esse desenho é melhor que um handler por evento, e o motivo já estava escrito na
+própria classe: *"bastaria um `reterSomente` esquecido para as bordas de Ren
+continuarem sendo detectadas para alguém que já saiu do alcance — e o sintoma
+seria um zumbido tocando sem dono"*. **Handler cobre os eventos que alguém
+lembrou; poda por presença cobre todos.**
 
-- [ ] teste de morte e troca de dimensão
+O portão prova as duas metades:
+
+- **o mecanismo** — morrer em Ren não deixa o id antigo no mapa, renascer não
+  toca ativação fantasma, trocar de dimensão não acumula, e um teste-controle
+  confirma que **sem** a poda o estado ficaria preso;
+- **a ligação** — que `AudioDeAura` realmente chama `reterSomente` no tick.
+  Verificado removendo a chamada do código real: os quatro primeiros testes
+  continuaram **verdes** e só esse reprovou. Mecanismo correto não vale nada se
+  ninguém chama.
+
+- [x] **fechado** — `MorteETrocaDeDimensaoTest`
 
 ---
 
@@ -195,16 +222,16 @@ Para a lista não parecer maior do que é:
 
 ---
 
-## O que falta
+## O #169 fechou
 
-**Uma coisa: o D5.** Suba `scripts/instancia.ps1 servidor`, entre com um
-cliente, ligue Ten, ande, apanhe, troque de dimensão e saia. Me avise e eu releio
-o log — é o único cruzamento que nenhuma das duas execuções limpas cobriu.
+Nada em aberto. O que o gate deixou para trás, e que vale lembrar:
 
-Feito isso, o **#169 fecha**.
+- **a evidência do AV0 é humana e datada** — `PERGUNTAS.md`, preso a um commit.
+  Sem imagem, ela não é revisável por terceiro (ver o custo em D1);
+- **dois itens viraram portão** e sobrevivem ao gate: `EscalaDaShellTest` e
+  `MorteETrocaDeDimensaoTest`. São a parte que o `build` repete sozinho amanhã;
+- **"produção + jogador + shutdown limpo"** nunca aconteceu numa execução só —
+  está declarado em D5 e em `o-que-nao-provamos.md`.
 
-> **O D6 é o que sobrevive ao gate.** Ele não bloqueia nada, e é exatamente por
-> isso que dívida de cobertura some da lista: ninguém a cobra. Com o D1
-> aposentado, a folha `PERGUNTAS.md` virou a evidência inteira do AV0 — humana e
-> datada. Um teste de morte e troca de dimensão é a única parte disso que o
-> `build` consegue repetir sozinho amanhã.
+O AV1 fica destravado pela regra "não começar o AV(n+1) sem fechar o AV(n)" —
+mas **não autorizado**: marco não começa sem instrução explícita.

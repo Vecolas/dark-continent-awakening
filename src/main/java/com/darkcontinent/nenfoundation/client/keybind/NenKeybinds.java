@@ -82,6 +82,22 @@ public final class NenKeybinds {
             GLFW.GLFW_KEY_F6,
             CATEGORIA);
 
+    /**
+     * Percorre a regiao onde a aura se concentra -- Gyo, e depois Ko.
+     *
+     * <p>PERCORRER, e nao uma roda de seis fatias. Gyo se usa no meio da briga,
+     * e abrir menu para mirar e o oposto do gesto. Seis regioes numa tecla sao
+     * duas apertadas no pior caso; uma roda seriam duas telas e uma pausa.
+     *
+     * <p>{@code G} de Gyo, e porque esta livre no vanilla.
+     */
+    public static final KeyMapping ESCOLHER_FOCO = new KeyMapping(
+            "key.nenfoundation.escolher_foco",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_G,
+            CATEGORIA);
+
     private NenKeybinds() {
     }
 
@@ -91,5 +107,6 @@ public final class NenKeybinds {
         evento.register(OVERLAY_DE_DEBUG);
         evento.register(AJUSTAR_OUTPUT);
         evento.register(OVERLAY_DE_VFX);
+        evento.register(ESCOLHER_FOCO);
     }
 }

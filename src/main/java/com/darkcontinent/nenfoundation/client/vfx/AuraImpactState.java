@@ -9,24 +9,27 @@ package com.darkcontinent.nenfoundation.client.vfx;
  * deve ser, mas tempo suficiente para o olho registrar que algo aconteceu.
  * LIMITE DE DESENHO, e nao balanceamento: ele nao muda dano nem defesa.
  */
-public record AuraImpactState(AuraBodyRegion region, int remainingTicks, float strength) {
+public record AuraImpactState(
+        com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo faixa,
+        int remainingTicks, float strength) {
 
     /** Quanto tempo o ripple vive. Ver o javadoc da classe. */
     public static final int DURACAO_EM_TICKS = 12;
 
     public AuraImpactState {
-        if (region == null || remainingTicks < 0 || !Float.isFinite(strength)
+        if (faixa == null || remainingTicks < 0 || !Float.isFinite(strength)
                 || strength < 0.0F || strength > 1.0F) {
             throw new IllegalArgumentException("impacto visual invalido");
         }
     }
 
-    public static AuraImpactState iniciar(AuraBodyRegion region, float strength) {
-        return new AuraImpactState(region, DURACAO_EM_TICKS, strength);
+    public static AuraImpactState iniciar(
+            com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo faixa, float strength) {
+        return new AuraImpactState(faixa, DURACAO_EM_TICKS, strength);
     }
 
     public AuraImpactState avancar() {
-        return new AuraImpactState(region, Math.max(0, remainingTicks - 1), strength);
+        return new AuraImpactState(faixa, Math.max(0, remainingTicks - 1), strength);
     }
 
     /**

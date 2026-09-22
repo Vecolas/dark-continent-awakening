@@ -12,7 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.registration.HandlerThread;
 import com.darkcontinent.nenfoundation.network.payload.DeltaDeRuntimeS2C;
+import com.darkcontinent.nenfoundation.network.payload.EscolherFocoC2S;
 import com.darkcontinent.nenfoundation.network.payload.FeedbackDeErroS2C;
+import com.darkcontinent.nenfoundation.network.payload.ImpactoDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import com.darkcontinent.nenfoundation.network.payload.FxDeHabilidadeS2C;
 import com.darkcontinent.nenfoundation.network.payload.SnapshotDePerfilS2C;
@@ -89,6 +91,12 @@ public final class NenNetwork {
                 (payload, contexto) -> contexto.enqueueWork(
                         () -> Recebedores.atual().aoReceberBestiary(payload)));
 
+        registrar.playToClient(
+                ImpactoDeAuraS2C.TYPE,
+                ImpactoDeAuraS2C.STREAM_CODEC,
+                (payload, contexto) -> contexto.enqueueWork(
+                        () -> Recebedores.atual().aoReceberImpacto(payload)));
+
         PayloadRegistrar entrada = registrar.executesOn(HandlerThread.NETWORK);
         entrada.playToServer(AtivarTecnicaC2S.TYPE, AtivarTecnicaC2S.STREAM_CODEC,
                 (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
@@ -97,6 +105,8 @@ public final class NenNetwork {
         entrada.playToServer(DesativarTecnicaC2S.TYPE, DesativarTecnicaC2S.STREAM_CODEC,
                 (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
         entrada.playToServer(AtivarHabilidadeC2S.TYPE, AtivarHabilidadeC2S.STREAM_CODEC,
+                (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
+        entrada.playToServer(EscolherFocoC2S.TYPE, EscolherFocoC2S.STREAM_CODEC,
                 (pedido, contexto) -> PedidosC2S.receber(pedido, contexto, validar));
     }
 }

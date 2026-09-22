@@ -180,6 +180,29 @@ public final class NenClientCache implements RecebedorDeNen {
     private final java.util.Map<Integer, SinalDeAura> presencas =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /**
+     * Onde os impactos vao parar. Instalado por quem tambem os desenha.
+     *
+     * <p>O CACHE NAO CRIA O DESTINO, e isso e deliberado: {@code ImpactosDeAura}
+     * tem ciclo de vida proprio -- ele e limpo na troca de dimensao e na morte
+     * --, e dois donos seriam duas limpezas, das quais uma ficaria para tras.
+     */
+    private volatile com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura impactos;
+
+    public void instalarImpactos(
+            com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura destino) {
+        this.impactos = destino;
+    }
+
+    @Override
+    public void aoReceberImpacto(
+            com.darkcontinent.nenfoundation.network.payload.ImpactoDeAuraS2C payload) {
+        var destino = this.impactos;
+        if (destino != null && payload != null) {
+            destino.registrar(payload.entidadeId(), payload.faixa(), payload.forca());
+        }
+    }
+
     @Override
     public void aoReceberPresenca(PresencaDeAuraS2C payload) {
         if (payload.sinal() == SinalDeAura.NENHUM) {

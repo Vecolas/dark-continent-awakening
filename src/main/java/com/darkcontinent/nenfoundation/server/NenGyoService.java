@@ -25,10 +25,11 @@ import net.minecraft.world.entity.HumanoidArm;
  * <p>MEMORIA DE SESSAO, e nao progresso: a escolha morre com o logout, como
  * qualquer estado de combate (ADR-002).
  *
- * <p>PONTO CEGO DECLARADO: <b>o jogador ainda nao tem como escolher a
- * regiao</b>. Nao ha payload nem interface para isso, entao todo mundo
- * concentra no padrao. A tecnica funciona e a alocacao muda de verdade; o que
- * falta e o controle. Ver a issue #162.
+ * <p><b>O CONTROLE CHEGOU EM 2026-09-22.</b> Ate ali este javadoc declarava o
+ * proprio buraco: <i>"o jogador ainda nao tem como escolher a regiao. Nao ha
+ * payload nem interface para isso, entao todo mundo concentra no padrao."</i>
+ * Agora ha: {@code EscolherFocoC2S} e a tecla {@code G}, que percorre as seis
+ * regioes. O padrao continua sendo a CABECA, para quem nunca apertar.
  */
 public final class NenGyoService {
 

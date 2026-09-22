@@ -78,11 +78,53 @@ public final class NenDanoService {
         }
 
         float depoisDoAtaque = comReforcoDeQuemBateu(dano, evento.getSource());
-        float depoisDaDefesa = comDefesaDeQuemApanhou(depoisDoAtaque, evento);
+
+        // A FAIXA E CALCULADA UMA VEZ, e usada duas: a defesa pergunta quanta
+        // aura protege ALI, e o anuncio diz ao cliente onde acender o ripple.
+        // Chamar `faixaAtingida` nos dois lugares daria o mesmo numero hoje e
+        // duas verdades no dia em que a conta mudar de um lado so.
+        FaixaDoCorpo faixa = evento.getEntity() instanceof ServerPlayer vitima
+                ? faixaAtingida(vitima, evento.getSource())
+                : null;
+        float depoisDaDefesa = comDefesaDeQuemApanhou(depoisDoAtaque, evento, faixa);
 
         if (depoisDaDefesa != dano) {
             evento.setAmount(depoisDaDefesa);
         }
+
+        anunciarImpacto(evento.getEntity(), faixa, depoisDaDefesa);
+    }
+
+    /**
+     * Conta aos clientes que um golpe caiu, e ONDE (#103).
+     *
+     * <p>DEPOIS DA DEFESA, e nao antes: o ripple mede o que a aura ABSORVEU de
+     * verdade. Um golpe inteiramente comido por Ken acende pouco, e e isso que
+     * ele deve comunicar -- anunciar o dano bruto faria a aura piscar forte
+     * exatamente quando ela funcionou melhor.
+     *
+     * <p><b>VAI PARA QUEM ENXERGA, e nao so para quem apanhou.</b> O ripple e
+     * desenhado na aura de terceiros tambem, e {@code forca} ja chega
+     * normalizada -- ninguem aprende dano nem vida de ninguem por causa dele.
+     *
+     * <p>SILENCIO E RESPOSTA VALIDA. Forca zero -- dano abaixo do piso, escudo,
+     * invulnerabilidade -- nao manda pacote nenhum: um payload por tick de fome
+     * para cada jogador visivel e trafego que ninguem pediu.
+     */
+    private static void anunciarImpacto(net.minecraft.world.entity.LivingEntity vitima,
+            FaixaDoCorpo faixa, float dano) {
+        if (faixa == null || !(vitima instanceof ServerPlayer jogador)) {
+            return;
+        }
+        float forca = com.darkcontinent.nenfoundation.nen.combat.ForcaDeImpacto
+                .de(dano, jogador.getMaxHealth());
+        if (forca <= 0.0F) {
+            return;
+        }
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+                jogador,
+                new com.darkcontinent.nenfoundation.network.payload.ImpactoDeAuraS2C(
+                        jogador.getId(), faixa, forca));
     }
 
     /**
@@ -122,7 +164,7 @@ public final class NenDanoService {
 
     /** O lado defensivo, que ja existia. */
     private static float comDefesaDeQuemApanhou(float dano,
-            LivingIncomingDamageEvent evento) {
+            LivingIncomingDamageEvent evento, FaixaDoCorpo faixa) {
         if (!(evento.getEntity() instanceof ServerPlayer jogador)) {
             return dano;
         }
@@ -130,11 +172,10 @@ public final class NenDanoService {
         if (estado == null) {
             return dano;
         }
-        FaixaDoCorpo faixa = faixaAtingida(jogador, evento.getSource());
         float reducao = DefesaDeNen.reducao(
                 protecaoDe(estado.tecnicasAtivas()),
                 estado.alocacao(),
-                faixa,
+                faixa == null ? faixaAtingida(jogador, evento.getSource()) : faixa,
                 NenConfig.tetoDeReducaoDeDano());
 
         return reducao <= 0.0F ? dano : DefesaDeNen.danoDepoisDaAura(dano, reducao);

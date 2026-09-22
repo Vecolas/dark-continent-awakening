@@ -83,6 +83,28 @@ public final class NenPedidoService {
                     return Recusa.de(Motivo.ALVO_INVALIDO);
                 }
             }
+        } else if (pedido instanceof
+                com.darkcontinent.nenfoundation.network.payload.EscolherFocoC2S foco) {
+            // REGIAO NULA E PEDIDO INVALIDO, e nao um palpite. O codec devolve
+            // null para ordinal fora da faixa -- cliente de outra versao ou
+            // modificado --, e escolher uma regiao por ele seria aceitar um
+            // pedido que ninguem fez.
+            if (foco.regiao() == null) {
+                return Recusa.de(Motivo.PEDIDO_INVALIDO);
+            }
+            com.darkcontinent.nenfoundation.server.NenGyoService.escolher(jogador, foco.regiao());
+            // O RECALCULO E DO SERVICO DE TECNICA, e nao daqui: a alocacao e
+            // DERIVADA das tecnicas ativas mais o foco, e recalcular a mao neste
+            // ponto seria a segunda fonte da mesma conta.
+            //
+            // E ELE ACONTECE AGORA, e nao no proximo tick: sem isto a troca de
+            // regiao so apareceria quando outra coisa disparasse o recalculo, e
+            // o jogador veria a aura mudar de lugar segundos depois de pedir --
+            // ou nunca, se nada mais acontecesse.
+            NenTechniqueService.recalcularDerivados(
+                    NenRuntimeService.estadoDe(jogador),
+                    com.darkcontinent.nenfoundation.server.NenGyoService.focoDe(jogador));
+            return null;
         } else if (pedido instanceof com.darkcontinent.nenfoundation.network.payload.AjustarOutputC2S ajustar) {
             // ESTE PAYLOAD CARREGA UM NUMERO DO CLIENTE, e por isso o numero e
             // conferido aqui -- do mesmo jeito que a posicao candidata de

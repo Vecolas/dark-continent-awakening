@@ -105,6 +105,30 @@ precisa ser re-olhado depois desta mudança.
 
 ---
 
+## Respostas RETIRADAS — o comportamento mudou, e o veredito não vale mais
+
+Sair do registro não é o mesmo que reprovar. É a resposta deixar de descrever o
+jogo, e voltar a ser pergunta.
+
+### 2026-09-22 · `ripple-acende`
+
+**O que respondia:** *"o ripple ainda acende ao levar pancada — sim"* (AV2, e de
+novo no AV3).
+
+**Por que saiu:** o ripple deixou de ser de corpo inteiro. O servidor passou a
+dizer a FAIXA atingida (`ImpactoDeAuraS2C`), e a faixa acende mais que o resto.
+O `DetectorDeImpacto` — que inferia o golpe de uma queda de vida e era
+invalidador declarado desta resposta — **foi apagado**, e o portão reprovou por
+isso, que é exatamente o caso para o qual ele foi escrito.
+
+**O veredito antigo era sobre outro efeito.** Recarimbá-lo com os arquivos novos
+seria afirmar que alguém viu o ripple por faixa acender, e ninguém viu.
+
+> Ela volta ao registro quando alguém olhar. A pergunta ficou mais específica do
+> que era: **a faixa atingida acende mais que o resto do corpo?**
+
+---
+
 ## Procedência: nem toda resposta vem de uma sessão de gate
 
 A coluna **perguntada em** distingue duas origens, e a diferença não é
@@ -148,7 +172,6 @@ Colunas: **id** · **veredito** · **onde foi perguntada** · **o que a invalida
 | `nove-poses` | PASSA | AV7 · P1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraModelAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/HumanoidAuraAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraPlayerModel.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon/AuraAnchor.java` | `09fa0ecc6578` |
 | `grama-oclui-o-halo` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java` | `530f46a51bca` |
 | `ren-nao-acopla` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `c389492d7ce9` |
-| `ripple-acende` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/DetectorDeImpacto.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraImpactState.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraDistribution.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ImpactosDeAura.java` | `335bb0a13b58` |
 
 ---
 

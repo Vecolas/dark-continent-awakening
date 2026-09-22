@@ -106,6 +106,15 @@ public final class NenFoundationClient {
      * Os ripples de impacto (#103). Dono de estado por entidade, podado por
      * presenca -- ver {@code ImpactosDeAura}.
      */
+    /**
+     * Onde a tecla de foco esta, e NADA ALEM DISSO.
+     *
+     * <p>Nao e a regiao concentrada -- essa e do servidor, chega na alocacao do
+     * delta e pode divergir desta a qualquer momento (outro jogador com permissao,
+     * um comando, uma tecnica futura). Isto e a posicao de um menu.
+     */
+    private int cursorDeFoco;
+
     private final com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura impactos =
             new com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura();
 
@@ -123,6 +132,10 @@ public final class NenFoundationClient {
         this.vfx = new SessaoDeVfxDeAura();
         this.audioDeAura = new AudioDeAura();
 
+        // O DESTINO DOS IMPACTOS E INSTALADO JUNTO DO RECEBEDOR, e no mesmo
+        // ponto: um recebedor registrado sem destino engoliria os pacotes em
+        // silencio, e o ripple voltaria a "nao acende nunca" sem nada acusar.
+        this.cache.instalarImpactos(this.impactos);
         Recebedores.registrar(this.cache);
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, NenClientConfig.SPEC);
@@ -321,6 +334,28 @@ public final class NenFoundationClient {
             com.darkcontinent.nenfoundation.client.screen.RodaDeNen.abrir(this.cache);
         }
 
+        while (NenKeybinds.ESCOLHER_FOCO.consumeClick()) {
+            if (mc.player != null && mc.level != null && mc.screen == null) {
+                // O CURSOR E DO CLIENTE, e a REGIAO e do servidor. Este contador
+                // nao e estado de jogo -- e a posicao de um menu, como o item
+                // selecionado da hotbar. Quem decide o que a escolha faz com a
+                // aura, com a defesa e com o custo continua sendo o servidor.
+                var regioes = com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo.values();
+                this.cursorDeFoco = (this.cursorDeFoco + 1) % regioes.length;
+                var escolhida = regioes[this.cursorDeFoco];
+                PacketDistributor.sendToServer(
+                        new com.darkcontinent.nenfoundation.network.payload.EscolherFocoC2S(
+                                escolhida));
+                // O AVISO DIZ O QUE FOI PEDIDO, e nao o que foi aplicado. Sem
+                // Gyo ligado nada muda na tela, e um jogador que aperta a tecla
+                // sem retorno nenhum conclui que ela nao funciona.
+                mc.player.displayClientMessage(
+                        net.minecraft.network.chat.Component.translatable(
+                                "nenfoundation.foco." + escolhida.name().toLowerCase(
+                                        java.util.Locale.ROOT)),
+                        true);
+            }
+        }
         while (NenKeybinds.AJUSTAR_OUTPUT.consumeClick()) {
             if (mc.player != null && mc.level != null && mc.screen == null) {
                 // SO A DIRECAO. O tamanho do passo e do servidor -- ver o

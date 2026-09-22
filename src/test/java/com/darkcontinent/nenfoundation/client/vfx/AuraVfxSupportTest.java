@@ -30,7 +30,8 @@ class AuraVfxSupportTest {
      */
     @Test
     void rippleExpiraNaDuracaoDeclarada() {
-        AuraImpactState impacto = AuraImpactState.iniciar(AuraBodyRegion.RIGHT_ARM, 0.8F);
+        AuraImpactState impacto = AuraImpactState.iniciar(
+                com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo.TRONCO, 0.8F);
         assertEquals(AuraImpactState.DURACAO_EM_TICKS, impacto.remainingTicks());
         for (int i = 0; i < AuraImpactState.DURACAO_EM_TICKS; i++) {
             assertTrue(impacto.ativo(), "o ripple morreu antes da duracao declarada");
@@ -44,7 +45,8 @@ class AuraVfxSupportTest {
     void entradasNaoNumericasSaoRejeitadas() {
         assertThrows(IllegalArgumentException.class, () -> AuraRenderLod.porDistancia(Double.NaN));
         assertThrows(IllegalArgumentException.class, () -> AuraFlowPattern.sample(1, 0, 0, 2));
-        assertThrows(IllegalArgumentException.class, () -> AuraImpactState.iniciar(AuraBodyRegion.HEAD, -1));
+        assertThrows(IllegalArgumentException.class, () -> AuraImpactState.iniciar(
+                com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo.CABECA, -1));
     }
 
     @Test

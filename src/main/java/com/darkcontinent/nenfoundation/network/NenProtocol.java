@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 9;
+    public static final int VERSION = 10;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -119,6 +119,18 @@ public final class NenProtocol {
                     "o UNICO payload sobre terceiros; so o que alguem ao lado"
                             + " perceberia. Zetsu manda NENHUM, igual a quem nunca"
                             + " despertou -- o segredo nao atravessa a rede"),
+            c2s("set_focus_region_request",
+                    List.of("regiao"),
+                    "INTENCAO, e nada mais: o cliente diz ONDE concentrar, e o"
+                            + " servidor decide se Gyo esta ligado, quanto ele concentra"
+                            + " e o que isso faz com a defesa. A alocacao pronta nunca"
+                            + " sobe -- ela e derivada no servidor (ADR-014)"),
+            s2c("aura_impact",
+                    List.of("entidadeId", "faixa", "forca"),
+                    "onde um golpe acertou, para o ripple deixar de ser corpo inteiro."
+                            + " A forca ja chega NORMALIZADA em 0..1: quem recebe nao"
+                            + " aprende dano nem vida de ninguem, e por isso ele pode ir"
+                            + " a quem enxerga a entidade"),
             s2c("bestiary_snapshot",
                     List.of("entries", "definitions"),
                     "catalogo editorial e conhecimento do proprio jogador; nunca inclui dados de outro jogador")

@@ -107,6 +107,20 @@ public record AuraDistribution(float head, float torso, float leftArm, float rig
     private static final float GANHO_DO_RIPPLE = 2.5F;
 
     /**
+     * Quanto do ganho chega as regioes FORA da faixa atingida.
+     *
+     * <p>POR QUE NAO E ZERO. A versao de corpo inteiro foi a unica que alguem
+     * conseguiu VER -- <i>"no hit na aura toda passa um pulso azul"</i> --, e
+     * apagar o resto do corpo arriscaria voltar ao estado anterior, em que o
+     * medidor mostrava o ripple subindo e a tela nao mostrava nada.
+     *
+     * <p>O eco preserva a leitura de <b>"levei dano"</b>; a faixa acrescenta
+     * <b>"ali"</b>. Em 0,35 a regiao atingida recebe quase tres vezes o ganho
+     * do resto -- diferenca que o olho separa sem que o corpo apague.
+     */
+    private static final float ECO_FORA_DA_FAIXA = 0.35F;
+
+    /**
      * A distribuicao com o RIPPLE do impacto (#103).
      *
      * <p>O ripple entra POR AQUI, e nao por um campo novo em
@@ -141,12 +155,40 @@ public record AuraDistribution(float head, float torso, float leftArm, float rig
         if (impacto == null || !impacto.ativo()) {
             return this;
         }
-        float fator = 1.0F + impacto.strength() * impacto.progresso() * GANHO_DO_RIPPLE;
-        if (!(fator > 1.0F)) {
+        float ganho = impacto.strength() * impacto.progresso() * GANHO_DO_RIPPLE;
+        if (!(ganho > 0.0F)) {
             return this;
         }
-        return new AuraDistribution(head * fator, torso * fator, leftArm * fator,
-                rightArm * fator, leftLeg * fator, rightLeg * fator);
+        float naFaixa = 1.0F + ganho;
+        float fora = 1.0F + ganho * ECO_FORA_DA_FAIXA;
+        var faixa = impacto.faixa();
+        return new AuraDistribution(
+                head * (atinge(faixa, com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo.CABECA)
+                        ? naFaixa : fora),
+                torso * (atinge(faixa, com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo.TRONCO)
+                        ? naFaixa : fora),
+                leftArm * fora,
+                rightArm * fora,
+                leftLeg * (atinge(faixa,
+                        com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo.PERNA_ESQUERDA)
+                        ? naFaixa : fora),
+                rightLeg * (atinge(faixa,
+                        com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo.PERNA_DIREITA)
+                        ? naFaixa : fora));
+    }
+
+    /**
+     * Se esta faixa cobre esta regiao.
+     *
+     * <p>OS BRACOS NUNCA SAO A FAIXA, e isso e propriedade de {@code
+     * FaixaDoCorpo} e nao esquecimento: ela e derivada da ALTURA do golpe, e um
+     * braco ocupa a mesma altura do tronco. Incluir os bracos no TRONCO acenderia
+     * quase toda a silhueta e devolveria o ripple ao corpo inteiro com mais
+     * passos. Braco recebe o eco.
+     */
+    private static boolean atinge(com.darkcontinent.nenfoundation.nen.combat.FaixaDoCorpo faixa,
+            com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo regiao) {
+        return faixa != null && faixa.regioes().contains(regiao);
     }
 
     public float intensidade(AuraBodyRegion regiao) {

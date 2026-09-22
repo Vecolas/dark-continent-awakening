@@ -59,4 +59,14 @@ public interface RecebedorDeNen {
      * servidor, e o que chega aqui e so o que o observador tem direito de ver.
      */
     void aoReceberPresenca(PresencaDeAuraS2C payload);
+
+    /**
+     * Um golpe acertou alguem, e o servidor disse ONDE.
+     *
+     * <p>DEFAULT VAZIO, como {@code aoReceberBestiary}: quem nao desenha aura
+     * nao precisa aprender o conceito de impacto para compilar.
+     */
+    default void aoReceberImpacto(
+            com.darkcontinent.nenfoundation.network.payload.ImpactoDeAuraS2C payload) {
+    }
 }

@@ -468,11 +468,13 @@ Alternativa não testada, se mover for indesejável agora:
 
 > #### Um GameTest é INTERMITENTE, e isso muda o que este item prova
 >
-> Medido em `f5ae73b`, 2026-09-21: **uma reprovação em nove execuções** de
-> `runGameTestServer --rerun-tasks` (`1 required tests failed`); as outras oito
+> Medido em 2026-09-21: **uma reprovação em onze execuções** de
+> `runGameTestServer --rerun-tasks` (`1 required tests failed`); as outras dez
 > passaram com `All 146 required tests passed`. O teste que reprovou **não foi
 > identificado** — a saída daquela execução tinha sido filtrada por `grep`, e
-> oito tentativas de reproduzir não pegaram o flake.
+> dez tentativas de reproduzir não pegaram o flake. As duas últimas, em
+> `053ed81`, foram as exigidas por este item e ficaram com a saída **inteira**
+> arquivada (977 e 972 linhas), que é a condição para nomeá-lo se ele cair.
 >
 > *(A primeira redação desta caixa dizia "uma em cinco", com a amostra que havia
 > naquele momento. Quatro execuções depois o denominador mudou e a frase foi
@@ -487,8 +489,8 @@ Alternativa não testada, se mover for indesejável agora:
 >
 > Enquanto o flake não tiver nome, o item pede **duas execuções seguidas
 > limpas**, e a sessão que vier depois registra quantas rodou. Não é rigor
-> decorativo: a ~11% medidos, uma execução só erra o diagnóstico em cerca de uma
-> sessão a cada nove; exigir duas limpas derruba isso para ~1%. O que as duas
+> decorativo: a ~9% medidos, uma execução só erra o diagnóstico em cerca de uma
+> sessão a cada onze; exigir duas limpas derruba isso para menos de 1%. O que as duas
 > execuções NÃO fazem é achar o teste culpado — para isso é preciso guardar a
 > saída inteira de cada execução, que foi exatamente o que faltou aqui.
 >
@@ -496,6 +498,26 @@ Alternativa não testada, se mover for indesejável agora:
 > cache e a tarefa "passa" em 34 s **sem subir servidor nenhum** — foi assim
 > que a primeira execução desta medição disse `BUILD SUCCESSFUL` enquanto a
 > segunda, idêntica, reprovava.
+
+> #### A bancada foi conferida em `053ed81`, 2026-09-21
+>
+> | Item da 4.1 | Estado |
+> | --- | --- |
+> | `./gradlew build` verde | ✅ **1.559 testes**, 0 falhas |
+> | `runGameTestServer` | ✅ **duas execuções limpas seguidas**, `All 146 required tests passed`, com a saída inteira arquivada |
+> | `instancia.ps1 atualizar` | ✅ rodado; o JAR da instância e o de `build/libs/` batem por SHA-256 (`a66ad029…`) |
+> | as duas árvores no mesmo commit | ✅ `C:/dca-a` e `C:/dca-b` movidas de `73bfee8` para `053ed81` |
+> | janela combinada com a outra frente | ⬜ **não combinada** — é decisão humana, ver 4.4 |
+>
+> **O JAR da instância estava desatualizado e nada acusava.** Ele era das 17:55,
+> de antes dos merges; o `build/` era das 21:19. O `status` do script não
+> compara conteúdo, e o servidor sobe igual com os dois. É exatamente a falha
+> que `scripts/instancia.ps1` descreve por escrito na sua própria linha 475 —
+> *"o teste manual mede a versão de ontem, e nada em lugar nenhum diz que aquele
+> não é o código que acabou de ser escrito"*. **Conferir por hash**, e não por
+> data nem por lembrança de ter rodado `atualizar`.
+
+---
 
 ### 4.2 `run/server/server.properties`
 

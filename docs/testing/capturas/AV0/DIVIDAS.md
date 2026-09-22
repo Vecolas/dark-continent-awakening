@@ -2,9 +2,10 @@
 
 Atualizado em **2026-09-22**, contra `ffb7e47`.
 
-**As treze perguntas de julgamento já foram respondidas, e todas passaram.**
-O que falta não é opinião — é **procedência**: prova de onde o julgamento veio,
-em que montagem, sobre qual commit, e revisável por quem não estava lá.
+**As treze perguntas de julgamento foram respondidas, e todas passaram.** Com
+as catorze imagens **aposentadas em 2026-09-22** (ver D1) e pular/atacar
+julgados (D4), o AV0 deve **duas coisas**: a declaração da montagem (D2) e a
+releitura do log depois de alguém entrar (D5).
 
 > **Por que separar por dono.** A lista de pendências de um gate mistura o que
 > só um humano no jogo responde com o que uma régua responde melhor. Misturadas,
@@ -15,27 +16,47 @@ em que montagem, sobre qual commit, e revisável por quem não estava lá.
 
 ## 1. Só você responde
 
-### D1 · As 14 imagens — **a dívida principal**
+### D1 · As 14 imagens — **APOSENTADA em 2026-09-22**
 
-A sessão de 2026-09-21 foi verificação **ao vivo**. `capturas/AV0/` tem três
-documentos e **nenhum PNG**.
+**Decisão do dono do projeto:** a inspeção visual ao vivo foi suficiente, e o
+AV0 **não exigirá mais as catorze capturas**.
 
 ```
-ten_dia          ten_noite         ten_caverna
-ten_slim         ten_overlay_skin  ten_armadura
-ten_correndo     ten_agachado      ten_nadando
-ten_2b   ten_5b  ten_10b  ten_20b  ten_40b
+ten_dia          ten_noite         ten_caverna        ← dispensadas
+ten_slim         ten_overlay_skin  ten_armadura       ← dispensadas
+ten_correndo     ten_agachado      ten_nadando        ← dispensadas
+ten_2b   ten_5b  ten_10b  ten_20b  ten_40b            ← dispensadas
 ```
 
-Cada arquivo com **data, commit e bloom no nome** (§6.3 da campanha).
+#### O que esta decisão custa
 
-> **Por que o veredicto sozinho não fecha.** Você olhou e a shell não descola —
-> isso é verdade e está registrado. Mas ninguém pode **discordar** disso depois:
-> não há o que reabrir, comparar com a referência, nem mostrar a outra frente.
-> Um gate cuja evidência é irrevisável não é evidência, é memória. O PNG existe
-> para que o julgamento sobreviva a quem o fez.
+Está escrito porque decisão sem custo declarado é a que ninguém consegue revisar
+depois — e porque o custo é real, ainda que aceito:
 
-- [ ] as 14 capturas arquivadas
+- **o julgamento deixa de ser revisável.** Não há o que reabrir, comparar com a
+  referência de arte, nem mostrar à outra frente. Quem discordar em dezembro não
+  tem contra o que discordar;
+- **não há linha de base para o AV1.** O AV1 acrescenta shader próprio à mesma
+  shell. Sem o "antes", a única forma de saber o que o shader mudou é a memória
+  de quem viu os dois;
+- **uma regressão visual passa calada.** Se a shell começar a descolar em três
+  meses, nada diz que um dia ela não descolava — e este é o tipo de defeito que
+  o repositório inteiro está organizado para não deixar acontecer em silêncio.
+
+#### O que passa a carregar a prova
+
+Com a imagem fora, **sobra uma única fonte de procedência: a declaração da
+montagem (D2)**. Ela deixa de ser um item entre vários e passa a ser o que
+sustenta o gate — e a folha `PERGUNTAS.md`, com os veredictos datados, passa a
+ser a evidência inteira do AV0.
+
+> **Isto não se estende aos outros gates por tabela.** AV1 a AV8 continuam
+> pedindo captura pelo texto das próprias issues. Aposentar a evidência visual
+> de um gate cujo objeto É visual é uma decisão por gate, e esta valeu para o
+> AV0 — onde o que se mede é aderência, que o olho resolve em movimento melhor
+> do que um PNG parado resolve.
+
+- [x] **dispensadas** — decisão de 2026-09-22
 
 ---
 
@@ -57,38 +78,35 @@ qualquer montagem.
 
 ---
 
-### D3 · A sessão de ontem envelheceu — e a regra sabe disso
+### D3 · A comparação na mesma sessão — **DISSOLVIDA pela aposentadoria do D1**
 
-A §6.3 da campanha exige a comparação com a referência de arte **na mesma
-sessão**, *"lado a lado — olho humano cansa, e comparação de memória dias depois
-não vale"*.
+Esta dívida existia porque a §6.3 exige a comparação com a referência de arte
+**na mesma sessão** da captura, e os veredictos eram de 21/09 enquanto as
+imagens sairiam depois.
 
-Seus veredictos são de **2026-09-21**. Hoje é **2026-09-22**. Se as imagens
-forem tiradas agora, veredicto e imagem vêm de sessões diferentes — exatamente
-o que a regra proíbe.
+**Sem imagem, não há duas sessões para conciliar.** O julgamento ao vivo de
+2026-09-21 é a evidência, e ele foi dado na própria sessão em que o jogo estava
+aberto — que é o que a regra protege.
 
-**Isso não invalida o que você respondeu.** A saída barata é uma só:
+> **O que sobrou dela, e não é nada:** a regra existia porque *"olho humano
+> cansa, e comparação de memória dias depois não vale"*. Isso continua verdade.
+> O julgamento vale para `5a9182b`, e o que ele afirma é o que foi visto naquele
+> dia — não uma propriedade permanente da shell.
 
-> **Ao tirar as 14 imagens, responda a folha de novo na mesma sessão.** São as
-> mesmas treze perguntas, com as imagens na tela. Os veredictos de ontem ficam
-> como **pré-checagem datada** — eles já valeram por uma coisa cara: acharam
-> duas perguntas mal escritas antes de a sessão de captura ser gasta.
-
-- [ ] `PERGUNTAS.md` respondida de novo, na sessão que produzir as imagens
+- [x] **não se aplica** — sem captura, não há defasagem entre veredicto e imagem
 
 ---
 
-### D4 · O bloco C4 nunca foi julgado item a item
+### D4 · Pular e atacar — **RESPONDIDO em 2026-09-22**
 
-O critério de aceite lista **cinco** movimentos — correr, pular, atacar, agachar
-e nadar. Três têm captura própria; **pular e atacar não**.
+O critério de aceite lista cinco movimentos; três tinham captura própria e dois
+não. Agora os cinco estão julgados um a um:
 
-O veredicto *"funciona perfeitamente"* foi dado ao bloco C inteiro, e está
-registrado como **PASSA por arrasto**, não como prova separada. É honesto, e é
-menos do que o critério pede.
+- [x] **pular: acompanha** — *"funciona, não descola do personagem"*
+- [x] **atacar: acompanha** — idem
 
-- [ ] pular: acompanha? `____________`
-- [ ] atacar: acompanha? `____________`
+Sai o "PASSA por arrasto": o bloco C deixa de depender de um veredicto dado ao
+conjunto e passa a ter os cinco movimentos respondidos.
 
 ---
 
@@ -126,19 +144,19 @@ evidência datada em algo que o `build` responde para sempre.
 
 ---
 
-### D7 · As árvores de captura derivaram de novo
+### D7 · As árvores de captura — **só se houver sessão de dois clientes**
 
-`C:/dca-a` e `C:/dca-b` estão em `053ed81`; a `main` está em `ffb7e47`. **Três
-commits de diferença.**
+`C:/dca-a` e `C:/dca-b` estão em `053ed81`; a `main` está em `ffb7e47`.
 
-Os três são documento e teste — nenhum código de jogo mudou, então o que aparece
-na tela é o mesmo. O que fica errado é o **commit no nome da captura**, e a
-captura que mente sobre o próprio commit é pior que a captura que falta.
+A razão original desta dívida era o **commit no nome da captura**, e ela caiu
+junto com o D1. Ela volta a existir **apenas se o D2 pedir uma sessão nova** com
+dois clientes para refazer o bloco D — nesse caso as duas árvores precisam estar
+no commit do dia antes de começar.
 
-**Avise antes de abrir a sessão e eu movo as duas** — leva segundos, e tem de
-ser feito *imediatamente antes*, porque a `main` anda.
+**Avise antes e eu movo as duas** — leva segundos, e tem de ser imediatamente
+antes, porque a `main` anda.
 
-- [ ] as três árvores no mesmo commit, conferido no início da sessão
+- [ ] *(só se houver sessão nova)* as três árvores no mesmo commit
 
 ---
 
@@ -161,12 +179,19 @@ Para a lista não parecer maior do que é:
 
 ## A ordem que eu recomendo
 
-1. **Me avise** — eu movo as duas árvores para o commit do dia (**D7**).
-2. Suba o dedicado e **dois** clientes (**D2**).
-3. Tire as 14 imagens **e responda a folha na mesma sessão** (**D1**, **D3**).
-4. No caminho, julgue pular e atacar (**D4**).
-5. Ao terminar, **leia o log do servidor** — agora com jogador tendo entrado (**D5**).
-6. Peça o teste de morte e troca de dimensão quando quiser (**D6**).
+1. **Declare a montagem (D2)** — de que forma a sessão de 21/09 rodou. Se foi
+   dedicado com dois clientes, o AV0 fica a um item de fechar. Se o bloco D
+   rodou com um cliente só, é só esse bloco que precisa de sessão nova.
+2. **Suba o dedicado, entre e jogue um pouco; depois me avise (D5)** — eu releio
+   o log com jogador tendo conectado. Fecha a metade que a varredura automática
+   não alcança.
+3. **Peça o teste de morte e troca de dimensão (D6)** quando quiser. Não bloqueia
+   o gate, e é a única dívida que sobrevive a ele.
 
-Fechando D1 a D5, o **#169 fecha**. D6 não bloqueia o gate — é dívida de
-cobertura, e ela sobrevive ao gate se ninguém escrever o teste.
+Fechando **D2 e D5, o #169 fecha.**
+
+> **O D6 é o que fica.** Ele não bloqueia nada, e é exatamente por isso que
+> dívida de cobertura some da lista: ninguém a cobra. Com o D1 aposentado, a
+> folha `PERGUNTAS.md` passou a ser a evidência inteira do AV0 — e ela é humana
+> e datada. Um teste é a única parte disso que o `build` consegue repetir sozinho
+> amanhã.

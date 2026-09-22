@@ -66,7 +66,7 @@ foi apagada — que era exatamente o que ela mandava fazer.
 | Drift e docs | medir contra um documento que se contradiz produz evidência que ninguém consegue interpretar depois |
 | Sair do OneDrive | a QA de dois clientes **exige dois worktrees**, e `git worktree add` falha aqui por caminho longo — ver seção 3 |
 | Criar os dois worktrees | é a montagem que o passo seguinte usa, e ela só é possível depois do caminho curto. Falhar aqui é barato; falhar com o servidor de pé custa a sessão |
-| Validar a bancada | `/nenvfx`, o overlay F6 e o lote **nunca foram digitados num cliente**. Se a ferramenta estiver quebrada, o achado é dela — melhor descobrir antes dos 127 itens do que no quinquagésimo |
+| Validar a bancada | `/nenvfx`, o overlay F6 e o lote **nunca foram digitados num cliente**. Se a ferramenta estiver quebrada, o achado é dela — melhor descobrir antes da primeira dezena de itens do que no quinquagésimo |
 | ~~Decidir #160~~ ✅ | **feito em 2026-09-21.** Ren durava 11 s; `tecnica.ren.custoPorSegundo` foi de 10,0 para 4,0 e ele passa a durar ~33 s, com o resto vindo de `auraPotential` no M6. A "contradição do Zetsu" já estava resolvida pelo ADR-013 desde 2026-09-12 — metade da issue tinha envelhecido sem que ninguém notasse |
 | AV(n) antes de AV(n+1) | aprovar Ren sem ter aprovado Ten mede duas mudanças ao mesmo tempo. O AV0 existe para ser o ponto de parada barato |
 | #91, #139, #123 juntos | usam a mesma montagem de dois clientes + dedicado. Subir tudo de novo para eles paga o custo duas vezes, por nada |
@@ -778,7 +778,7 @@ achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 
 | Gate | Issue | Capturas | Onde mora a lista | 2 clientes |
 | --- | --- | --- | --- | --- |
-| AV0 | #169 | 14 | `capturas/AV0/LEIA-ME.md` | sim |
+| AV0 | #169 | **0 — aposentadas em 2026-09-22** | `capturas/AV0/DIVIDAS.md` | sim |
 | AV1 | #176 | 17 | `capturas/AV1/LEIA-ME.md` | não |
 | AV2 | #181 | 13 | `capturas/AV2/LEIA-ME.md` | não |
 | AV3 | #187 | 22 | `capturas/AV3/LEIA-ME.md` | sim |
@@ -788,7 +788,7 @@ achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 | AV7 | #205, #104 | 21 | `capturas/AV7/LEIA-ME.md` | **sim** |
 | AV8 | #209, #206, #207 | perfis | `capturas/AV8/LEIA-ME.md` | sim (10 e 20) |
 
-**Total: 127 itens de evidência visual nesta revisão (2026-09-21).** Três deles
+**Total: 113 itens de evidência visual (2026-09-22).** Eram 127 até o AV0 dispensar as suas catorze — ver [`capturas/AV0/DIVIDAS.md`](capturas/AV0/DIVIDAS.md), que registra a decisão e o custo dela. Três deles
 são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as duas de
 Zetsu no AV6, cujos nomes moram no `LEIA-ME.md` de cada gate. O número não
 promete 127 PNGs.

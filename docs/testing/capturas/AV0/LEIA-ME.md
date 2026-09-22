@@ -1,7 +1,9 @@
 # AV0 — a shell acompanha as animacoes em servidor dedicado (#169)
 
-**Nenhuma captura existe.** O código deste marco está na `main` desde antes da
-branch do AV4; o que falta é evidência.
+**Nenhuma captura existe, e não precisa existir.** O código deste marco está na
+`main` desde antes da branch do AV4. A evidência do AV0 é o julgamento humano
+registrado em [`PERGUNTAS.md`](PERGUNTAS.md), e o que ainda falta está em
+[`DIVIDAS.md`](DIVIDAS.md).
 
 > **A aparência final NÃO está em julgamento aqui.** No AV0 a shell é crua, sem
 > shader próprio: o que se avalia é **aderência** — se ela acompanha o corpo —,
@@ -10,7 +12,13 @@ branch do AV4; o que falta é evidência.
 
 ---
 
-## As catorze capturas
+## As catorze capturas — **APOSENTADAS em 2026-09-22**
+
+> **Elas não são mais exigidas para fechar o #169.** A inspeção visual ao vivo
+> de 2026-09-21 foi considerada suficiente pelo dono do projeto; o custo da
+> decisão está em [`DIVIDAS.md`](DIVIDAS.md). A lista fica abaixo porque ela
+> continua sendo **o roteiro do que precisa ser OLHADO** — só deixou de exigir
+> arquivo.
 
 ```
 ten_dia          ten_noite         ten_caverna

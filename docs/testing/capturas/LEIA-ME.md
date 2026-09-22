@@ -14,7 +14,7 @@ capturas faltam" era uma pergunta que só se respondia relendo dez issues.
 
 | Gate | Issue | Capturas | Feito |
 | --- | --- | --- | --- |
-| AV0 — a shell acompanha as animações | #169 | 14 | 0 |
+| AV0 — a shell acompanha as animações | #169 | **0 — aposentadas** | — |
 | AV1 — Ten convincente sem partícula | #176 | 17 | 0 |
 | AV2 — filamentos nascem na superfície | #181 | 13 | 0 |
 | AV3 — TEN aprovado | #187 | 22 | 0 |
@@ -24,9 +24,15 @@ capturas faltam" era uma pergunta que só se respondia relendo dez issues.
 | AV7 — dois clientes, armadura e poses | #205, #104 | 21 | 0 |
 | AV8 — orçamento e release | #209, #206, #207 | perfis, não imagens | 0 |
 
-**São 127 itens de evidência visual nesta revisão (2026-09-21), e nenhum
-existe.** Três deles são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as
-duas de Zetsu no AV6. O total não promete 127 PNGs.
+**São 113 itens de evidência visual (2026-09-22), e nenhum existe.** Eram 127
+até o AV0 dispensar as suas catorze — a inspeção visual ao vivo foi considerada
+suficiente, e o custo da decisão está em [`AV0/DIVIDAS.md`](AV0/DIVIDAS.md).
+Três dos 113 são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as duas de
+Zetsu no AV6. O total não promete 113 PNGs.
+
+> **O AV0 é o único gate desta trilha sem evidência visual arquivada**, e isso é
+> decisão registrada, não esquecimento. A evidência dele é o julgamento humano
+> em [`AV0/PERGUNTAS.md`](AV0/PERGUNTAS.md), datado e preso a um commit.
 
 **Este número é derivado.** A fonte de verdade de quais evidências cada gate
 exige continua sendo o `LEIA-ME.md` do gate, e a issue. Refaça a soma em vez de
@@ -64,7 +70,7 @@ captura saía com o mesmo sufixo de bloom) e #301 (a shell de primeira pessoa
 desenhava fora do braço). **Nenhum deles aparecia em 1.549 testes verdes.**
 
 Foi exatamente o que a sessão existia para descobrir — e por isso ela vinha
-antes das 127 evidências, e não junto delas.
+antes das evidências, e não junto delas.
 
 ---
 

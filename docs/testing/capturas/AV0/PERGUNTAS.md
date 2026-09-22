@@ -8,8 +8,9 @@ aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredict
 
 ## Resultado da sessão de 2026-09-21 (`5a9182b`)
 
-**As treze perguntas de julgamento passaram. E o gate ainda NÃO fecha** — pelo
-que falta abaixo, não pelo que foi respondido.
+**As treze perguntas de julgamento passaram.** Com as imagens aposentadas e
+pular/atacar julgados, faltam **duas** coisas — a montagem declarada e a
+releitura do log depois de alguém entrar. Ver [`DIVIDAS.md`](DIVIDAS.md).
 
 | Bloco | Resultado |
 | --- | --- |
@@ -23,11 +24,11 @@ que falta abaixo, não pelo que foi respondido.
 
 ### O que falta para o gate fechar, e por quê
 
-1. **Nenhum PNG existe.** A sessão foi verificação **ao vivo**, sem arquivar.
-   `capturas/AV0/` tem só documento. A §6.3 da campanha pede as 14 imagens com
-   **data, commit e bloom no nome** — sem elas ninguém pode discordar do
-   veredicto depois, e um gate cuja evidência é irrevisável não é evidência, é
-   memória.
+1. ~~Nenhum PNG existe.~~ **As 14 imagens foram APOSENTADAS em 2026-09-22**,
+   por decisão do dono do projeto: a inspeção visual ao vivo foi considerada
+   suficiente. O custo dessa decisão está escrito em
+   [`DIVIDAS.md`](DIVIDAS.md) — e a consequência imediata é que **esta folha
+   passou a ser a evidência inteira do AV0**.
 2. **O E1 passou sem jogador conectado.** O log do dedicado está limpo, mas o
    servidor subiu e desligou sozinho. Vazamento alcançado no join, no caminho de
    payload ou no de render não apareceria — e a sessão de captura conecta um
@@ -151,10 +152,9 @@ A pose horizontal é a que mais expõe erro de pivô.
 **Pular e atacar também acompanham?** O critério de aceite do `LEIA-ME.md` lista
 cinco movimentos; três têm captura própria, dois não. Olhe os dois e escreva.
 
-- [x] **PASSA** — `5a9182b`, 2026-09-21, por arrasto: o veredicto *"funciona
-  perfeitamente"* foi dado ao bloco C inteiro, e **pular e atacar não foram
-  julgados um a um**. Fica registrado assim em vez de ser contado como prova
-  separada.
+- [x] **PASSA — pular e atacar acompanham** — 2026-09-22: *"funciona, não
+  descola do personagem"*. Julgados um a um, e não mais por arrasto: os cinco
+  movimentos do critério de aceite estão respondidos.
 
 ---
 

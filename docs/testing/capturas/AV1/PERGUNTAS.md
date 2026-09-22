@@ -8,7 +8,8 @@ o que cada uma **pergunta**, com espaço para o veredicto ao lado.
 
 ## Resultado da sessão de 2026-09-22 (`b8b9295`)
 
-**O gate do #176 passou.** Treze das quinze perguntas respondidas, todas PASSA.
+## O #176 ESTÁ FECHADO.
+**As quinze perguntas do gate foram respondidas, e todas passaram.**
 
 | Bloco | Resultado |
 | --- | --- |
@@ -18,8 +19,8 @@ o que cada uma **pergunta**, com espaço para o veredicto ao lado.
 | D1 — ruído | ✅ **veios**, com `escala_de_ruido` em 4.0 sem precisar girar |
 | D2 — giro 360° | ✅ **sem z-fighting** |
 | E1 — log do dedicado | ✅ **limpo**, dois jogadores, varrido em produção |
-| **C1 · C2 — série de distância** | ⬜ **não respondidas** |
-| **E2 — ripple (#103)** | ⬜ **não respondida** |
+| C1 · C2 — série de distância | ✅ sem degrau de LOD; a 40 b ainda comunica |
+| E2 — ripple (#103) | ⚠️ **não acendia** — três defeitos corrigidos, **reteste pendente** |
 
 ### O que o Z1 prova, e é mais do que o gate pedia
 
@@ -29,14 +30,17 @@ a leitura se manteve para as **outras técnicas** também, com partícula em zer
 teme — uma shell fraca carregada pelo acabamento. Aqui o acabamento saiu e a
 shell ficou de pé sozinha.
 
-### O que continua sem resposta
+### O que a sessão encontrou além do gate
 
-**C1/C2 (a série 2b→40b)** é a única pergunta do AV1 que o AV0 também respondeu,
-e lá passou. Não vale herdar: o AV0 mediu a shell crua, e o que está em
-julgamento aqui é a shell **com shader**, cujo custo por distância é outro.
+**O E2 não é item do #176, e foi o mais produtivo.** O ripple **não acendia
+nunca**, e a resposta expôs **três** defeitos que nenhum dos onze testes pegava:
+o teto de 1.0 que o tornava impossível em Ten, o gatilho que exigia dois
+pacotes no mesmo tick, e uma força de 0,05 para um soco. Corrigidos; **o
+reteste é a única coisa que o AV1 ainda deve**.
 
-**E2 (o ripple #103)** nunca foi visto em tela por ninguém. Os onze testes medem
-`float` e `HashMap`, e a ligação no cliente não tem régua nenhuma.
+E dois defeitos do **bloom** saíram da mesma sessão: o halo atravessando grama
+(máscara copiada antes do passe de *cutout*) e o acoplamento em que o Ren de um
+jogador clareava a aura dos outros.
 
 ---
 
@@ -147,11 +151,16 @@ PASSA se a aura continua visível; REPROVA se as camadas a engolem.
 ### C1 · `ten_2b` · `ten_5b` · `ten_10b` · `ten_20b` · `ten_40b`
 **A troca de nível de detalhe passa SEM degrau perceptível?**
 PASSA se a transição é contínua; REPROVA se há *LOD popping*.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `1fdc965`, 2026-09-22: *"a aura vai ficando mais fraca à
+  medida que se afasta, sem degrau"*.
+
+> Vale para o build corrigido: a conta de um Ten **sozinho** é 0,04 antes e
+> depois do conserto do bloom. A sessão julgou com os dois em Ten, que é a
+> condição em que o acoplamento não contamina a leitura.
 
 ### C2
 **Em 40 blocos a aura ainda comunica "esta pessoa está com Ten ligado"?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `1fdc965`, 2026-09-22: *"comunica que está com Nen"*.
 
 ---
 

@@ -492,6 +492,36 @@ motivo e em `o-que-nao-provamos.md`:
 
 ---
 
+### Estado da trilha (2026-09-22, segunda parte) — **o #176 FECHOU**
+
+**O segundo gate da trilha AV esta aprovado.** As quinze perguntas do AV1 foram
+respondidas na mesma sessao, todas PASSA, e a folha esta em
+[`../testing/capturas/AV1/PERGUNTAS.md`](../testing/capturas/AV1/PERGUNTAS.md).
+
+O criterio do ADR-015 -- rodar com particula em ZERO e ainda ler "essa pessoa
+esta em Ten" -- passou com mais do que pedia: a leitura se manteve para as
+OUTRAS TECNICAS tambem. E o oposto do modo de falhar que o ADR teme, em que uma
+shell fraca e carregada pelo acabamento.
+
+**A SESSAO ACHOU QUATRO DEFEITOS, e nenhum aparecia em teste.** Vale listar,
+porque os quatro sao do tipo que o build nunca acusa:
+
+| Defeito | Como aparecia |
+| --- | --- |
+| halo atravessando **grama** | a mascara de oclusao era copiada antes do passe de *cutout*; grama, folhas e flores nao entravam nela |
+| **Ren clareando a aura dos outros** | a forca do perfil era aplicada duas vezes, e a segunda com o valor do jogador mais forte da tela |
+| ripple **nunca acendendo** | teto de 1.0 num Ten que ja vale 1.0 em toda regiao; mais gatilho dependente de dois pacotes no mesmo tick; mais forca de 0,05 para um soco |
+| duracao do ripple curta demais | 8 ticks (0,4 s) -- abaixo do que o olho registra |
+
+Os quatro vieram de **olho humano em jogo**, e tres deles de uma unica pergunta
+-- *"isso e esperado?"*. Nenhum portao existia para eles, e dois agora existem
+(`ForcaDoBrilhoTest`, e os casos novos de `ImpactoDeAuraTest`).
+
+**O AV2 fica destravado** pela regra "nao comecar o AV(n+1) sem fechar o AV(n)"
+-- e **NAO autorizado**. O codigo dele ja esta na `main`; o que falta e gate.
+
+---
+
 ### Estado da trilha (2026-09-22) — **o #169 FECHOU**
 
 **O primeiro gate da trilha AV esta aprovado.** Ele nao fechou como estava

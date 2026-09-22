@@ -60,22 +60,24 @@ casual responde, porque quase tudo exige *medir antes e depois*, e não olhar.
 | ~~R10~~ | A transição TEN→REN tem overshoot visível | — | ✅ **RESPONDIDA** (playtest) |
 | ~~R11~~ | Ren é mais intenso na mesma linguagem, sem virar raio elétrico | — | ✅ **RESPONDIDA** (playtest) |
 | ~~R12~~ | A skin continua legível sob Ren | — | ✅ **RESPONDIDA** (playtest) |
-| **R13** | Relog, morte e dimensão não deixam **anel, coluna, detrito ou loop de áudio** presos | sair e voltar **com o anel no chão** | ⚠️ **ver a nota abaixo** |
+| ~~R13~~ | Relog, morte e dimensão não deixam anel, coluna, detrito ou loop de áudio presos | — | ✅ **RESPONDIDA** (playtest) |
 | R14 | Log do dedicado limpo | meu | — |
 
-> **O R13 mudou de significado sem mudar de nome, e é o único da lista com esse
-> problema.** O AV0 já respondeu *"morte e troca de dimensão desativam tudo,
-> nenhum estado fica travado"* — **para Ten**, que não tem anel, não tem coluna,
-> não tem detrito e não tem loop de áudio. Nenhuma dessas quatro coisas existia
-> para ficar presa.
+> **O R13 estava certo em ser perguntado, e a resposta foi melhor que um
+> "passa".** A pergunta tinha mudado de significado sem mudar de nome: o AV0 já
+> respondera *"morte e troca de dimensão desativam tudo"* — mas **para Ten**,
+> que tem anel, coluna, detrito e loop de áudio todos em **zero**. Nenhuma das
+> quatro existia para ficar presa.
 >
-> Em Ren são quatro objetos novos, e três deles desenham **no mundo** e não no
-> jogador. É o erro nº 3 do `CLAUDE.md` — *limpeza espalhada pelos pontos de
-> saída* — com quatro pontos de saída e quatro coisas para limpar, e o nº 8:
-> construct órfão não dá erro, dá TPS caindo devagar ao longo de uma semana.
+> Resposta: *"o anel não fica preso"*. E ao procurar o porquê, a razão é
+> **estrutural**: anel, colunas e detritos não guardam estado — são desenhados
+> por quadro a partir do `AuraVisualState` vivo, atrás da mesma guarda. Não há
+> objeto com vida própria para vazar. O loop de áudio é o único com vida real, e
+> o `ZumbidoDeRen` já cobre os quatro caminhos por construção.
 >
-> **Não precisa de sessão montada.** Basta lembrar se, quando você testou, o
-> anel estava no chão e você saiu e voltou. Se estava, passa e eu registro.
+> **O erro nº 3 do `CLAUDE.md` não se aplica aqui**, e agora sabemos por quê —
+> ele fala de coisas que *seguram* estado. Fica sem prova apenas que alguém
+> **ouviu** o loop parar; isso é do AV4.
 
 **R1 a R8 são o gate.** É por isso que "já testei Ren" não fecha o AV4: o que
 sobra é justamente o que exige montagem deliberada.

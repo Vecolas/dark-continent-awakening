@@ -37,6 +37,30 @@ Declarado também em [`o-que-nao-provamos.md`](o-que-nao-provamos.md).
 
 ---
 
+## O que o `ren-nao-fica-preso` cobre, exatamente
+
+A observação foi de **uma** das quatro coisas: *"o anel não fica preso"*. As
+outras três entram por **construção**, e isso é dito em voz alta porque
+construção não é medição:
+
+- **Colunas e detritos** não guardam estado. Os três — anel, colunas, detritos —
+  são desenhados **por quadro** a partir do `AuraVisualState` vivo, atrás da
+  mesma guarda (`!estado.enabled() || fases().pressao() <= 0`). Não existe
+  objeto com vida própria para vazar: o anel ter sumido **é** o estado ter
+  sumido, e os outros dois saem pela mesma porta.
+- **O loop de áudio** é o único com vida real, e o `ZumbidoDeRen` documenta os
+  quatro caminhos: desligamento, morte, logout e troca de dimensão — três pela
+  poda por presença no tick, o logout por `AudioDeAura.limpar`.
+
+**O erro nº 3 do `CLAUDE.md`** — limpeza espalhada pelos pontos de saída — se
+aplica a coisas que *seguram* estado. Estas não seguram, e é por isso que a
+resposta de uma delas vale para as três.
+
+**O que fica sem prova:** ninguém *ouviu* o loop parar. A conta está no código e
+é convincente; o ouvido é do AV4.
+
+---
+
 ## Procedência: nem toda resposta vem de uma sessão de gate
 
 A coluna **perguntada em** distingue duas origens, e a diferença não é
@@ -73,6 +97,7 @@ Colunas: **id** · **veredito** · **onde foi perguntada** · **o que a invalida
 | `ren-transicao-overshoot` | PASSA | playtest · R10 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransicao.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransitionProfile.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransitionSample.java;src/main/resources/assets/nenfoundation/nen_vfx/ren.json` | `73b5d5fc9674` |
 | `ren-mesma-linguagem` | PASSA | playtest · R11 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/resources/assets/nenfoundation/nen_vfx/ten.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `d11cd2aaa66d` |
 | `ren-skin-legivel` | PASSA | playtest · R12 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraGeometryLadder.java` | `6b4c540e1b24` |
+| `ren-nao-fica-preso` | PASSA | playtest · R13 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraGroundRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ZumbidoDeRen.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AudioDeAura.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraVisualSystem.java` | `0c327a4bd2af` |
 | `grama-oclui-o-halo` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java` | `530f46a51bca` |
 | `ren-nao-acopla` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `578f8fe6b2da` |
 | `ripple-acende` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/DetectorDeImpacto.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraImpactState.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraDistribution.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ImpactosDeAura.java` | `335bb0a13b58` |

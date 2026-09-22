@@ -8,8 +8,8 @@ aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredict
 
 ## Resultado da sessão de 2026-09-21 (`5a9182b`)
 
-**Doze das treze perguntas de julgamento passaram. Uma ficou pendente. E o
-gate NÃO fecha** — pelo que falta abaixo, não pelo que foi respondido.
+**As treze perguntas de julgamento passaram. E o gate ainda NÃO fecha** — pelo
+que falta abaixo, não pelo que foi respondido.
 
 | Bloco | Resultado |
 | --- | --- |
@@ -17,7 +17,7 @@ gate NÃO fecha** — pelo que falta abaixo, não pelo que foi respondido.
 | B — corpo (slim, overlay, armadura) | ✅ PASSA nas três; o overlay **não engole** a shell |
 | C — **aderência** (correr, agachar, nadar) | ✅ PASSA — *"não descola, funciona perfeitamente"* |
 | D — distância (2b→40b) | ✅ PASSA — transição contínua, e em 40b ainda comunica |
-| E1 — log do dedicado | ⬜ **PENDENTE** — não lido |
+| E1 — log do dedicado | ✅ PASSA — log limpo nas quatro varreduras, **mas sem jogador conectado** |
 | E2 — morte e troca de dimensão | ✅ PASSA — *"desativa tudo, nenhum estado fica travado"* |
 | E3 — `poseStack.scale` | ✅ respondida por portão (`EscalaDaShellTest`) |
 
@@ -28,8 +28,10 @@ gate NÃO fecha** — pelo que falta abaixo, não pelo que foi respondido.
    **data, commit e bloom no nome** — sem elas ninguém pode discordar do
    veredicto depois, e um gate cuja evidência é irrevisável não é evidência, é
    memória.
-2. **O E1 não foi lido.** É o único item de julgamento sem resposta, e é o que
-   pega classe client-only vazada — que **singleplayer nunca acusa**.
+2. **O E1 passou sem jogador conectado.** O log do dedicado está limpo, mas o
+   servidor subiu e desligou sozinho. Vazamento alcançado no join, no caminho de
+   payload ou no de render não apareceria — e a sessão de captura conecta um
+   cliente de qualquer forma, então essa metade fecha junto com as imagens.
 3. **A montagem não foi declarada.** Esta folha exige servidor dedicado e dois
    clientes no bloco D. A sessão não disse em que montagem rodou, e a série de
    distância só vale com um segundo jogador: contra a própria câmera a distância
@@ -199,8 +201,41 @@ no núcleo, mas não pega vazamento por reflexão nem por nome de classe em stri
 **Singleplayer não serve** — ele roda o servidor no mesmo processo do cliente e
 nunca acusa (erro nº 10 do `CLAUDE.md`). Leia o log do **dedicado**.
 
-- [ ] **PENDENTE** — `5a9182b`, 2026-09-21: o log do dedicado **não foi
-  lido**. É o único item de julgamento do AV0 sem resposta.
+- [x] **PASSA — log limpo** — `93c630d`, 2026-09-21.
+
+  Rodado o **dedicado de verdade** (`instancia/servidor`, NeoForge 21.1.250
+  com o JAR conferido por SHA-256), até `Done (7.627s)` e parado com `stop`.
+  Quatro varreduras, todas com zero ocorrências:
+
+  | Procurado | Ocorrências |
+  | --- | --- |
+  | `NoClassDefFoundError` / `ClassNotFoundException` | 0 |
+  | `net.minecraft.client` / `net/minecraft/client` | 0 |
+  | `nenfoundation.client` / `nenfoundation/client` | 0 |
+  | `[ERROR]` / `[FATAL]` / `Exception` / `Caused by` | 0 |
+
+  **E o mod carregou** — sem isso o log limpo não prova nada:
+  `Nen Foundation registrado. Protocolo de rede v9`, com
+  `nenfoundation:world_tree` e `nenfoundation:greed_island` criadas e salvas.
+
+  > **A instância, e não o `runServer`.** No `runServer` do Gradle as classes
+  > de cliente estão no classpath: um vazamento **não lançaria**
+  > `NoClassDefFoundError` ali, e o log sairia limpo por motivo errado. É a
+  > mesma armadilha do erro nº 10 do `CLAUDE.md`, um nível acima — não basta
+  > sair do singleplayer, é preciso sair do workspace de desenvolvimento.
+
+  > **O QUE ESTA VARREDURA NÃO PROVA: ninguém entrou.** O servidor subiu, criou
+  > as dimensões e desligou **sem um único jogador conectado**. Um vazamento
+  > alcançado só no join, no caminho de payload ou no de render não dispara
+  > aqui. Fechar essa metade exige um cliente entrando — o que a sessão de
+  > captura já vai fazer de qualquer forma.
+
+  > **Um WARN ficou, e é nosso:** `nenfoundation-common.toml is not correct.
+  > Correcting`. Conferido: a config da instância precedia as chaves da escada
+  > de custo (ADR-018) e o NeoForge as acrescentou — o arquivo foi reescrito
+  > às 23:29 e agora tem `custoPorSegundo` com os comentários do ADR. Benigno e
+  > esperado depois de o mod ganhar chave nova; registrado para não virar
+  > mistério na próxima leitura.
 
 ### E2 · estado preso
 **`/nenvfx off`, relog, morte e troca de dimensão deixam estado preso?**

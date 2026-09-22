@@ -42,48 +42,67 @@ final class DetectorDeImpacto {
      * Piso de dano que vira ripple, como fracao da vida maxima.
      *
      * <p>LIMITE DE DESENHO, nao balanceamento. Sem ele, dano de fome, de veneno
-     * e o arranhao de meio coracao acenderiam a aura inteira a cada poucos
-     * segundos -- e um efeito que acende sempre deixa de comunicar qualquer
-     * coisa.
+     * e o arranhao de meio coracao acenderiam a aura a cada poucos segundos --
+     * e um efeito que acende sempre deixa de comunicar qualquer coisa.
      */
     private static final float PISO_DE_DANO = 0.02F;
 
-    private final Map<Integer, Leitura> anteriores = new HashMap<>();
+    /**
+     * A fracao da vida maxima que produz um ripple de forca TOTAL.
+     *
+     * <p>Um quarto da vida. Acima disso o efeito satura, e e proposital: a
+     * diferenca entre "levei uma pancada seria" e "quase morri" nao precisa
+     * caber no halo -- ela ja esta na barra de vida.
+     */
+    private static final float DANO_DE_FORCA_TOTAL = 0.25F;
+
+    private final Map<Integer, Float> vidaAnterior = new HashMap<>();
 
     /**
-     * Registra a leitura deste tick e devolve o impacto, se houve borda.
+     * Registra a vida deste tick e devolve o impacto, se ela CAIU.
+     *
+     * <p><b>O GATILHO E A QUEDA DE VIDA, e nao a borda de {@code hurtTime}.</b>
+     * A primeira versao exigia as duas coisas NO MESMO TICK -- o relogio de dano
+     * subindo e a vida caindo --, e elas chegam ao cliente em pacotes separados,
+     * que nao tem ordem garantida. Quando a vida chegava um tick depois, a borda
+     * ja tinha passado e o ripple nunca nascia. Foi um dos tres motivos de
+     * <i>"nao acende nunca"</i>, e o mais dificil de ver em teste: os testes
+     * entregavam as duas coisas juntas, porque quem os escreveu tambem escreveu
+     * o bug.
+     *
+     * <p>A queda de vida sozinha e o sinal mais honesto: ela SO acontece por
+     * dano. E pancada absorvida por escudo -- que nao tira vida -- continua nao
+     * acendendo, que e o comportamento desejado.
      *
      * @param entidadeId id da entidade observada
-     * @param hurtTime o {@code hurtTime} sincronizado pela vanilla
      * @param vida vida atual
      * @param vidaMaxima vida maxima; zero ou negativa desliga a medicao
-     * @return o impacto recem-nascido, ou {@code null} quando nao houve borda
+     * @return o impacto recem-nascido, ou {@code null} quando nao houve queda
      */
-    AuraImpactState registrar(int entidadeId, int hurtTime, float vida, float vidaMaxima) {
-        Leitura anterior = this.anteriores.put(entidadeId,
-                new Leitura(hurtTime, vida));
+    AuraImpactState registrar(int entidadeId, float vida, float vidaMaxima) {
+        Float anterior = this.vidaAnterior.put(entidadeId, vida);
 
-        // A PRIMEIRA OBSERVACAO ESTABELECE A BASE E NAO ACENDE NADA. Sem esta
-        // regra, aproximar-se de alguem que esta piscando de dano seria lido
-        // como uma pancada que nunca foi vista -- o mesmo contrato que o
-        // detector de Ten faz, e pelo mesmo motivo.
+        // A PRIMEIRA OBSERVACAO ESTABELECE A BASE E NAO ACENDE NADA. Sem isto,
+        // aproximar-se de alguem que ja esta ferido seria lido como uma pancada
+        // que nunca foi vista -- o mesmo contrato do detector de Ten.
         if (anterior == null) {
             return null;
         }
-        if (hurtTime <= anterior.hurtTime()) {
-            return null;
-        }
-        float forca = forcaDe(anterior.vida(), vida, vidaMaxima);
+        float forca = forcaDe(anterior, vida, vidaMaxima);
         return forca > 0.0F ? AuraImpactState.iniciar(AuraBodyRegion.TORSO, forca) : null;
     }
 
     /**
-     * A forca do ripple: quanto da vida maxima saiu nesta pancada.
+     * A forca do ripple: quanto da vida maxima saiu, numa curva.
      *
-     * <p>A QUEDA DE VIDA, e nao um valor fixo. Um ripple de mesma intensidade
-     * para meio coracao e para um golpe que quase matou nao informa nada. E a
-     * fracao e da vida MAXIMA, nao da atual: pela atual, o ultimo golpe de
-     * alguem quase morto seria sempre o mais forte da luta.
+     * <p>A CURVA EXISTE PORQUE A FRACAO CRUA E INVISIVEL. Um soco de mao vazia
+     * tira 1 de 20 -- 5% --, e um realce de 0,05 no multiplicador de alpha nao
+     * aparece na tela. Era o terceiro motivo de "nao acende nunca". Com a raiz
+     * sobre {@link #DANO_DE_FORCA_TOTAL}, o mesmo soco vale 0,45: um flash que
+     * se ve, sem igualar o golpe que quase mata.
+     *
+     * <p>E a fracao e da vida MAXIMA, nao da atual: pela atual, o ultimo golpe
+     * de alguem quase morto seria sempre o mais forte da luta.
      */
     private static float forcaDe(float vidaAnterior, float vidaAtual, float vidaMaxima) {
         if (!(vidaMaxima > 0.0F) || !Float.isFinite(vidaAnterior) || !Float.isFinite(vidaAtual)) {
@@ -91,24 +110,23 @@ final class DetectorDeImpacto {
         }
         float perdida = vidaAnterior - vidaAtual;
         if (!(perdida > 0.0F)) {
-            // Pancada sem perda de vida -- absorvida por escudo, por armadura ou
-            // por invulnerabilidade. O corpo pisca, e a aura nao reage: nao houve
-            // impacto NELA.
+            // Sem perda de vida nao houve impacto NA AURA: escudo, invulnerabilidade
+            // ou cura. O corpo pode ate piscar; a aura nao reage.
             return 0.0F;
         }
         float fracao = perdida / vidaMaxima;
-        return fracao < PISO_DE_DANO ? 0.0F : Math.min(1.0F, fracao);
+        if (fracao < PISO_DE_DANO) {
+            return 0.0F;
+        }
+        return (float) Math.min(1.0D, Math.sqrt(fracao / DANO_DE_FORCA_TOTAL));
     }
 
     /** Esquece quem nao esta mais presente. Chamado todo tick, com quem esta a vista. */
     void reterSomente(Set<Integer> presentes) {
-        this.anteriores.keySet().retainAll(presentes);
+        this.vidaAnterior.keySet().retainAll(presentes);
     }
 
     void limpar() {
-        this.anteriores.clear();
+        this.vidaAnterior.clear();
     }
-
-    /** O que foi visto de uma entidade no tick anterior. */
-    private record Leitura(int hurtTime, float vida) { }
 }

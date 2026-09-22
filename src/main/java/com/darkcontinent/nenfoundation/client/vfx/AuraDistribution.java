@@ -76,11 +76,19 @@ public record AuraDistribution(float head, float torso, float leftArm, float rig
      * de impacto; somado aqui, os tres ja sabem desenhar "esta regiao esta mais
      * acesa agora".
      *
-     * <p><b>SOMA COM TETO, e nao substituicao.</b> Trocar o valor apagaria a
+     * <p><b>SOMA SEM TETO, e nao substituicao.</b> Trocar o valor apagaria a
      * distribuicao que o servidor mandou -- alguem em Ko no braco levaria uma
      * pancada e perderia a concentracao na TELA, sem ter perdido nada no jogo.
-     * O teto de 1.0 existe porque acima dele o renderer satura e a diferenca
-     * entre "aceso" e "muito aceso" deixa de aparecer.
+     *
+     * <p><b>O TETO DE 1.0 EXISTIU, E TORNAVA O RIPPLE IMPOSSIVEL.</b> Ten desenha
+     * com {@link #uniforme()} -- 1.0 em TODAS as regiao --, entao
+     * {@code min(1.0, 1.0 + realce)} devolvia exatamente 1.0 e o efeito nao
+     * existia. Nao lancava, os onze testes passavam (eles mediam uma
+     * distribuicao zerada), e o relato de jogo foi seco: <i>"nao acende
+     * nunca"</i>. O teto era invencao minha: {@code validar} so recusa negativo
+     * e nao-finito, e o renderer usa o valor como MULTIPLICADOR de alpha
+     * ({@code alphaDoPasse * intensidade(regiao)}) -- acima de 1.0 ele clareia,
+     * que e precisamente o que um ripple precisa fazer.
      *
      * <p>O ripple DECAI porque {@link AuraImpactState#progresso()} decai: quem
      * chama passa o impacto ja avancado, e um impacto morto devolve esta mesma
@@ -104,7 +112,7 @@ public record AuraDistribution(float head, float torso, float leftArm, float rig
     }
 
     private static float somar(float base, float realce, boolean atingida) {
-        return atingida ? Math.min(1.0F, base + realce) : base;
+        return atingida ? base + realce : base;
     }
 
     public float intensidade(AuraBodyRegion regiao) {

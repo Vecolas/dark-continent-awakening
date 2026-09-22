@@ -28,28 +28,29 @@ class ImpactoDeAuraTest {
     private static final float VIDA_MAXIMA = 20.0F;
 
     @Test
-    @DisplayName("a primeira observacao e base: chegar perto de quem ja pisca nao acende nada")
+    @DisplayName("a primeira observacao e base: chegar perto de quem ja esta ferido nao acende")
     void primeiraObservacaoNaoAcende() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        assertNull(detector.registrar(ALGUEM, 10, 6.0F, VIDA_MAXIMA),
+        assertNull(detector.registrar(ALGUEM, 6.0F, VIDA_MAXIMA),
                 "A primeira leitura de alguem que ja estava piscando virou impacto. O jogador"
                         + " veria um ripple de uma pancada que nunca aconteceu na frente dele.");
     }
 
     @Test
-    @DisplayName("a borda de subida do hurtTime acende, e a forca vem da vida perdida")
-    void bordaDeDanoAcende() {
+    @DisplayName("a QUEDA DE VIDA acende -- e nao a borda de hurtTime, que chega noutro tick")
+    void quedaDeVidaAcende() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 20.0F, VIDA_MAXIMA);
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
 
-        AuraImpactState impacto = detector.registrar(ALGUEM, 10, 15.0F, VIDA_MAXIMA);
+        AuraImpactState impacto = detector.registrar(ALGUEM, 15.0F, VIDA_MAXIMA);
         assertNotNull(impacto, "Cinco de vinte de dano nao acendeu o ripple.");
         assertEquals(AuraBodyRegion.TORSO, impacto.region(),
                 "O ripple nasceu fora do TRONCO. O cliente NAO sabe onde o golpe acertou --"
                         + " em 1.21.1 o animateHurt descarta o yaw --, e escolher outra regiao"
                         + " seria inventar informacao.");
-        assertEquals(0.25F, impacto.strength(), 1.0E-4F,
-                "A forca deveria ser a fracao da vida MAXIMA perdida (5/20).");
+        // 5/20 = 0,25 de fracao; sqrt(0,25 / 0,25) = 1,0 -- forca total.
+        assertEquals(1.0F, impacto.strength(), 1.0E-4F,
+                "Um quarto da vida deveria dar forca TOTAL pela curva.");
         assertTrue(impacto.ativo(), "O impacto nasceu morto.");
     }
 
@@ -57,11 +58,12 @@ class ImpactoDeAuraTest {
     @DisplayName("a forca e fracao da vida MAXIMA, nao da atual")
     void forcaNaoEscalaComVidaBaixa() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 4.0F, VIDA_MAXIMA);
-        AuraImpactState quaseMorto = detector.registrar(ALGUEM, 10, 2.0F, VIDA_MAXIMA);
+        detector.registrar(ALGUEM, 4.0F, VIDA_MAXIMA);
+        AuraImpactState quaseMorto = detector.registrar(ALGUEM, 2.0F, VIDA_MAXIMA);
 
         assertNotNull(quaseMorto, "Dois de dano nao acendeu.");
-        assertEquals(0.10F, quaseMorto.strength(), 1.0E-4F,
+        // 2/20 = 0,10 de fracao; sqrt(0,10 / 0,25) = 0,632.
+        assertEquals(0.632F, quaseMorto.strength(), 1.0E-3F,
                 "Pela vida ATUAL isto seria 50% e o ultimo golpe de quem esta quase morto"
                         + " seria sempre o mais forte da luta, o que inverte a leitura.");
     }
@@ -70,8 +72,8 @@ class ImpactoDeAuraTest {
     @DisplayName("pancada ABSORVIDA nao acende: o corpo pisca, a aura nao reage")
     void danoAbsorvidoNaoAcende() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 20.0F, VIDA_MAXIMA);
-        assertNull(detector.registrar(ALGUEM, 10, 20.0F, VIDA_MAXIMA),
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
+        assertNull(detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA),
                 "Escudo, armadura ou invulnerabilidade fazem o corpo piscar sem tirar vida."
                         + " Nao houve impacto NA AURA.");
     }
@@ -80,31 +82,63 @@ class ImpactoDeAuraTest {
     @DisplayName("arranhao abaixo do piso nao acende -- senao a aura pisca o tempo todo")
     void arranhaoNaoAcende() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 20.0F, VIDA_MAXIMA);
-        assertNull(detector.registrar(ALGUEM, 10, 19.8F, VIDA_MAXIMA),
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
+        assertNull(detector.registrar(ALGUEM, 19.8F, VIDA_MAXIMA),
                 "1% da vida acendeu o ripple. Fome, veneno e queda de meio coracao acenderiam"
                         + " a aura a cada poucos segundos, e um efeito que acende sempre deixa"
                         + " de comunicar qualquer coisa.");
     }
 
     @Test
-    @DisplayName("hurtTime descendo nao e pancada nova -- e a mesma, desaparecendo")
-    void relogioDescendoNaoAcende() {
+    @DisplayName("vida parada nao acende de novo -- uma pancada nao pode virar dez")
+    void vidaParadaNaoAcende() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 20.0F, VIDA_MAXIMA);
-        assertNotNull(detector.registrar(ALGUEM, 10, 15.0F, VIDA_MAXIMA));
-        assertNull(detector.registrar(ALGUEM, 9, 15.0F, VIDA_MAXIMA),
-                "O relogio de dano descendo acendeu de novo. Uma pancada viraria dez.");
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
+        assertNotNull(detector.registrar(ALGUEM, 15.0F, VIDA_MAXIMA));
+        assertNull(detector.registrar(ALGUEM, 15.0F, VIDA_MAXIMA),
+                "A vida parada acendeu de novo: o ripple duraria enquanto o jogador nao"
+                        + " regenerasse.");
+    }
+
+    @Test
+    @DisplayName("um SOCO de mao vazia tem de acender de forma VISIVEL")
+    void socoDeMaoVaziaAcende() {
+        DetectorDeImpacto detector = new DetectorDeImpacto();
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
+        AuraImpactState soco = detector.registrar(ALGUEM, 19.0F, VIDA_MAXIMA);
+
+        assertNotNull(soco, "Um soco de 1 de dano nao acendeu. Foi assim que o efeito nasceu"
+                + " invisivel: jogador batendo em jogador e o teste mais obvio que existe.");
+        assertTrue(soco.strength() > 0.35F,
+                "O soco acendeu em " + soco.strength() + ", fraco demais para ver. Pela fracao"
+                        + " CRUA isto daria 0,05 -- um realce de 5% no multiplicador de alpha,"
+                        + " que nao aparece na tela. A curva existe para isto.");
+    }
+
+    @Test
+    @DisplayName("o ripple SOBE ACIMA de 1.0 -- em Ten a distribuicao ja esta saturada")
+    void realceUltrapassaOTeto() {
+        // Ten desenha com uniforme(): 1.0 em TODAS as regioes.
+        AuraDistribution ten = AuraDistribution.uniforme();
+        AuraDistribution comRipple = ten.comImpacto(
+                AuraImpactState.iniciar(AuraBodyRegion.TORSO, 1.0F));
+
+        assertTrue(comRipple.torso() > 1.0F,
+                "O realce foi cortado em 1.0, e em Ten TODA regiao ja vale 1.0 -- o ripple"
+                        + " virava no-op. Era o motivo principal de \"nao acende nunca\", e"
+                        + " nenhum dos onze testes pegava: todos mediam uma distribuicao"
+                        + " zerada. O renderer usa o valor como MULTIPLICADOR de alpha, e"
+                        + " acima de 1.0 ele clareia -- que e o que um ripple precisa fazer.");
     }
 
     @Test
     @DisplayName("quem sai da vista e esquecido, e ao voltar nao traz ripple atrasado")
     void podaPorPresencaEsquece() {
         DetectorDeImpacto detector = new DetectorDeImpacto();
-        detector.registrar(ALGUEM, 0, 20.0F, VIDA_MAXIMA);
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
         detector.reterSomente(Set.of());
 
-        assertNull(detector.registrar(ALGUEM, 10, 15.0F, VIDA_MAXIMA),
+        assertNull(detector.registrar(ALGUEM, 15.0F, VIDA_MAXIMA),
                 "Depois da poda, a proxima leitura tem de ser BASE outra vez. Sem isso, quem"
                         + " se afasta, apanha longe e volta traria o ripple de uma pancada que"
                         + " ninguem viu acontecer.");
@@ -128,14 +162,13 @@ class ImpactoDeAuraTest {
     }
 
     @Test
-    @DisplayName("o realce tem TETO: acima de 1 o renderer satura e o efeito some")
-    void realceNaoPassaDeUm() {
+    @DisplayName("regiao NAO atingida fica intacta, por mais forte que seja o ripple")
+    void regiaoNaoAtingidaNaoMuda() {
         AuraDistribution cheia = AuraDistribution.uniforme();
         AuraDistribution comRipple = cheia.comImpacto(
                 AuraImpactState.iniciar(AuraBodyRegion.TORSO, 1.0F));
-        assertEquals(1.0F, comRipple.torso(), 1.0E-4F,
-                "Passar de 1.0 nao acende mais nada e tira a diferenca entre aceso e"
-                        + " muito aceso.");
+        assertEquals(1.0F, comRipple.head(), 1.0E-4F,
+                "A cabeca acendeu com um impacto no tronco.");
     }
 
     @Test

@@ -4,8 +4,8 @@ Atualizado em **2026-09-22**, contra `ffb7e47`.
 
 **As treze perguntas de julgamento foram respondidas, e todas passaram.** Com
 as catorze imagens **aposentadas em 2026-09-22** (ver D1) e pular/atacar
-julgados (D4), o AV0 deve **duas coisas**: a declaração da montagem (D2) e a
-releitura do log depois de alguém entrar (D5).
+julgados (D4), e a montagem declarada e conferida contra o log (D2), o AV0 deve **uma
+coisa**: rodar a INSTÂNCIA com um jogador dentro, e reler o log (D5).
 
 > **Por que separar por dono.** A lista de pendências de um gate mistura o que
 > só um humano no jogo responde com o que uma régua responde melhor. Misturadas,
@@ -60,21 +60,29 @@ ser a evidência inteira do AV0.
 
 ---
 
-### D2 · A montagem, declarada por escrito
+### D2 · A montagem — **DECLARADA em 2026-09-22**
 
-A sessão não disse **em que montagem** rodou. A folha exige:
+**Servidor dedicado, dois jogadores.** Declarado pelo dono do projeto e
+**confirmado no log**, que foi localizado em `run/server/logs/latest.log`:
 
-| Exigência | Por quê |
+| Fato | Evidência no log |
 | --- | --- |
-| servidor **dedicado**, nunca singleplayer | singleplayer roda o servidor no processo do cliente e nunca acusa classe client-only vazada — erro nº 10 do `CLAUDE.md` |
-| **dois clientes** no bloco D | contra a própria câmera a distância é zero e o **LOD nunca morde em si mesmo**; com um cliente a série fotografa o LOD mais alto cinco vezes |
-| overlay `F6` **sem** `OVERRIDE ATIVO` | com override, a captura mostra um número que não está em perfil nenhum e seria aprovada como se fosse o jogo |
+| dedicado, não singleplayer | `--launchTarget forgeserverdev`, processo próprio |
+| **dois** jogadores | `Kurapika logged in ... entity id 16`, `Gon logged in ... entity id 36` |
+| sessão real, não um join de teste | 19:17 → 20:10 de 2026-09-21 — **51 minutos** |
+| o mod estava ativo | `Nen Foundation registrado. Protocolo de rede v9` |
+| o protocolo foi exercitado | `C2S: 15 pedidos admitidos, 0 cortados antes da fila` |
 
-**Se o bloco D rodou com um cliente só, ele não conta** — e é a única parte do
-julgamento de ontem que essa dúvida derruba. Os blocos A, B, C e E2 valem em
-qualquer montagem.
+**O bloco D é válido:** a série 2b→40b foi tirada com um segundo jogador de
+verdade, então o LOD foi medido contra outra entidade e não contra a própria
+câmera.
 
-- [ ] montagem escrita em `PERGUNTAS.md`: dedicado? dois clientes? F6 limpo?
+E a varredura daquele log não achou **nada**: zero `NoClassDefFoundError`, zero
+`ClassNotFoundException`, zero menção a `net.minecraft.client` ou
+`nenfoundation.client`, zero `[ERROR]`, `[FATAL]`, `Exception` ou `Caused by` —
+em 51 minutos de dois jogadores.
+
+- [x] **montagem declarada e conferida contra o log**
 
 ---
 
@@ -110,20 +118,30 @@ conjunto e passa a ter os cinco movimentos respondidos.
 
 ---
 
-### D5 · A metade do E1 que a varredura não alcança
+### D5 · O E1 — o cruzamento que falta
 
-O log do dedicado está limpo — zero `NoClassDefFoundError`, zero
-`ClassNotFoundException`, zero menção a `net.minecraft.client`. **Mas ninguém
-entrou.** O servidor subiu, criou as dimensões e desligou sozinho.
+Esta é a última dívida do gate, e agora dá para descrevê-la com precisão.
+**Existem duas execuções limpas, e cada uma tem metade do que o E1 pede:**
 
-Vazamento alcançado **no join, no caminho de payload ou no de render** não
-dispara nessa varredura.
+| Execução | Classpath | Jogador entrou? | O que prova |
+| --- | --- | --- | --- |
+| instância (`instancia/servidor`), 23:29 de 21/09 | **produção** — classes de cliente AUSENTES | ❌ ninguém | carga do mod, registros, criação das dimensões e shutdown, sem vazamento |
+| sessão de vocês (`run/server`), 19:17→20:10 | **dev** — classes de cliente PRESENTES | ✅ dois, por 51 min | join, payload, jogo real, sem erro nenhum |
 
-> **Esta dívida se paga sozinha**, e por isso não peça sessão própria: a sessão
-> de captura conecta cliente de qualquer forma. Só é preciso **ler o log do
-> servidor depois** — e é o log da instância, não o do `runServer`.
+**Nenhuma das duas cobre a caixa que importa: produção COM jogador.**
 
-- [ ] log do dedicado relido **depois** de um cliente ter entrado e jogado
+> **Por que o log da sessão não fecha sozinho**, apesar de limpo e longo: no
+> workspace de desenvolvimento as classes de cliente estão no classpath. Um
+> `net.minecraft.client.*` alcançado pelo servidor **encontra a classe e não
+> lança nada** — o log sai limpo pelo motivo errado. É o erro nº 10 do
+> `CLAUDE.md` um nível acima: não basta sair do singleplayer, é preciso sair do
+> ambiente de desenvolvimento.
+
+**O que fecha, e é curto:** subir `scripts/instancia.ps1 servidor`, entrar com um
+cliente, ligar Ten, andar, apanhar, trocar de dimensão e sair. Dez minutos. Eu
+releio o log e a varredura passa a valer com jogador conectado.
+
+- [ ] instância + um cliente entrando e ativando técnica — depois me avise
 
 ---
 
@@ -177,21 +195,16 @@ Para a lista não parecer maior do que é:
 
 ---
 
-## A ordem que eu recomendo
+## O que falta
 
-1. **Declare a montagem (D2)** — de que forma a sessão de 21/09 rodou. Se foi
-   dedicado com dois clientes, o AV0 fica a um item de fechar. Se o bloco D
-   rodou com um cliente só, é só esse bloco que precisa de sessão nova.
-2. **Suba o dedicado, entre e jogue um pouco; depois me avise (D5)** — eu releio
-   o log com jogador tendo conectado. Fecha a metade que a varredura automática
-   não alcança.
-3. **Peça o teste de morte e troca de dimensão (D6)** quando quiser. Não bloqueia
-   o gate, e é a única dívida que sobrevive a ele.
+**Uma coisa: o D5.** Suba `scripts/instancia.ps1 servidor`, entre com um
+cliente, ligue Ten, ande, apanhe, troque de dimensão e saia. Me avise e eu releio
+o log — é o único cruzamento que nenhuma das duas execuções limpas cobriu.
 
-Fechando **D2 e D5, o #169 fecha.**
+Feito isso, o **#169 fecha**.
 
-> **O D6 é o que fica.** Ele não bloqueia nada, e é exatamente por isso que
-> dívida de cobertura some da lista: ninguém a cobra. Com o D1 aposentado, a
-> folha `PERGUNTAS.md` passou a ser a evidência inteira do AV0 — e ela é humana
-> e datada. Um teste é a única parte disso que o `build` consegue repetir sozinho
-> amanhã.
+> **O D6 é o que sobrevive ao gate.** Ele não bloqueia nada, e é exatamente por
+> isso que dívida de cobertura some da lista: ninguém a cobra. Com o D1
+> aposentado, a folha `PERGUNTAS.md` virou a evidência inteira do AV0 — humana e
+> datada. Um teste de morte e troca de dimensão é a única parte disso que o
+> `build` consegue repetir sozinho amanhã.

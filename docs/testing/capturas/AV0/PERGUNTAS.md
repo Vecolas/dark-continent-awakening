@@ -8,9 +8,10 @@ aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredict
 
 ## Resultado da sessão de 2026-09-21 (`5a9182b`)
 
-**As treze perguntas de julgamento passaram.** Com as imagens aposentadas e
-pular/atacar julgados, faltam **duas** coisas — a montagem declarada e a
-releitura do log depois de alguém entrar. Ver [`DIVIDAS.md`](DIVIDAS.md).
+**As treze perguntas de julgamento passaram**, com a montagem confirmada:
+servidor dedicado, dois jogadores, 51 minutos. Com as imagens aposentadas e
+pular/atacar julgados, falta **uma** coisa: rodar a instância com um cliente
+dentro e reler o log. Ver [`DIVIDAS.md`](DIVIDAS.md) D5.
 
 | Bloco | Resultado |
 | --- | --- |
@@ -29,14 +30,17 @@ releitura do log depois de alguém entrar. Ver [`DIVIDAS.md`](DIVIDAS.md).
    suficiente. O custo dessa decisão está escrito em
    [`DIVIDAS.md`](DIVIDAS.md) — e a consequência imediata é que **esta folha
    passou a ser a evidência inteira do AV0**.
-2. **O E1 passou sem jogador conectado.** O log do dedicado está limpo, mas o
-   servidor subiu e desligou sozinho. Vazamento alcançado no join, no caminho de
-   payload ou no de render não apareceria — e a sessão de captura conecta um
-   cliente de qualquer forma, então essa metade fecha junto com as imagens.
-3. **A montagem não foi declarada.** Esta folha exige servidor dedicado e dois
-   clientes no bloco D. A sessão não disse em que montagem rodou, e a série de
-   distância só vale com um segundo jogador: contra a própria câmera a distância
-   é zero e o LOD não morde em si mesmo.
+2. **O E1 ainda não cruzou produção com jogador.** Há duas execuções limpas, e
+   cada uma tem metade: a **instância** (classpath de produção) rodou sem
+   ninguém; a **sessão de vocês** teve dois jogadores por 51 minutos, mas no
+   `runServer` — onde as classes de cliente estão no classpath e um vazamento
+   não lançaria nada. Fecha com dez minutos na instância, com um cliente
+   dentro. É a última dívida do gate — ver [`DIVIDAS.md`](DIVIDAS.md) D5.
+3. ~~A montagem não foi declarada.~~ **Declarada e conferida contra o log em
+   2026-09-22:** servidor dedicado, **dois jogadores** — `Kurapika` e `Gon`,
+   19:17→20:10 de 21/09, 51 minutos, em `run/server/logs/latest.log`. O bloco D
+   é válido: o LOD foi medido contra outra entidade, e não contra a própria
+   câmera. A varredura daquele log não achou um único erro.
 
 > **O que esta folha PROVA hoje**, e é bastante: um humano olhou, em `5a9182b`,
 > e a shell não estoura, não é engolida, não descola em movimento, o LOD não dá

@@ -59,7 +59,7 @@ public final class ImpactosDeAura {
             int id = entidade.getId();
             this.presentes.add(id);
             AuraImpactState novo = this.detector.registrar(
-                    id, entidade.hurtTime, entidade.getHealth(), entidade.getMaxHealth());
+                    id, entidade.getHealth(), entidade.getMaxHealth());
             if (novo != null) {
                 // A PANCADA NOVA SUBSTITUI a que ainda decaia, e nao soma: duas
                 // pancadas seguidas sao duas leituras, nao uma aura que acende

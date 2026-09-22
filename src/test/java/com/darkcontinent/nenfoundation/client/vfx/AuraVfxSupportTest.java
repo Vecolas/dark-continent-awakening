@@ -20,10 +20,22 @@ class AuraVfxSupportTest {
         assertTrue(primeiro.amplitude() >= 0.0F && primeiro.amplitude() <= 1.0F);
     }
 
+    /**
+     * O ripple expira na duracao DECLARADA, e o teste nao repete o numero.
+     *
+     * <p>Ele dizia "oito ticks", com o 8 escrito a mao ao lado do 8 do codigo.
+     * Quando a duracao virou 12 -- porque 0,4 s era rapido demais para o olho --
+     * o teste reprovou por ter a copia velha, e nao por comportamento errado.
+     * Duas fontes para a mesma verdade; agora e uma so.
+     */
     @Test
-    void rippleExpiraEmOitoTicks() {
+    void rippleExpiraNaDuracaoDeclarada() {
         AuraImpactState impacto = AuraImpactState.iniciar(AuraBodyRegion.RIGHT_ARM, 0.8F);
-        for (int i = 0; i < 8; i++) impacto = impacto.avancar();
+        assertEquals(AuraImpactState.DURACAO_EM_TICKS, impacto.remainingTicks());
+        for (int i = 0; i < AuraImpactState.DURACAO_EM_TICKS; i++) {
+            assertTrue(impacto.ativo(), "o ripple morreu antes da duracao declarada");
+            impacto = impacto.avancar();
+        }
         assertEquals(0, impacto.remainingTicks());
         assertFalse(impacto.ativo());
     }

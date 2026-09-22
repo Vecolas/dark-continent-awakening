@@ -144,12 +144,14 @@ Os 22 WARN são vanilla e de terceiros: 12 `moved too quickly` (teleporte em
 creative), refmap da GeckoLib, URL de assets do NeoForge e o aviso de
 `offline-mode`. **Nenhum do `nenfoundation`.**
 
-> **O que esta execução NÃO cobriu:** o servidor não foi parado com `stop` — os
-> logs terminam na saída do `Gon`, sem sequência de shutdown. O save-ao-parar é
-> onde um bug de persistência apareceria. Ele foi exercitado limpo na execução
-> de 21/09 às 23:29 (sem jogador), e os chunks desta sessão foram gravados assim
-> mesmo — mas "produção + jogador + shutdown limpo" ainda não aconteceu numa
-> execução só. Não bloqueia o E1, que é sobre classe client-only.
+> **E a lacuna do shutdown FECHOU em 2026-09-22.** Esta caixa dizia que
+> "produção + jogador + shutdown limpo" nunca tinha acontecido numa execução só.
+> Aconteceu: a sessão do AV1 rodou na instância com dois jogadores e foi
+> encerrada com `stop`, salvando **todas as dimensões** — `world`, `world_tree`,
+> `greed_island`, `DIM1` e `DIM-1` —, com `All dimensions are saved` e **zero**
+> `NoClassDefFoundError`, `ClassNotFoundException`, menção a `client` ou
+> `[ERROR]` nos dois logs. O save-ao-parar, que é onde um defeito de
+> persistência apareceria, foi exercitado e está limpo.
 
 - [x] **fechado** — produção com jogador, log varrido
 

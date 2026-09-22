@@ -28,6 +28,22 @@ package com.darkcontinent.nenfoundation.client.vfx;
  */
 public final class MedidorDeVfx {
 
+    /**
+     * O ripple do jogador local, para o overlay F6.
+     *
+     * <p>DIAGNOSTICO, e nao medicao de custo. Ele existe porque o ripple (#103)
+     * foi reportado como <i>"nao acende, ou nao da para perceber"</i> -- duas
+     * coisas MUITO diferentes que nenhum dado do jogo separava. Sem isto, cada
+     * tentativa de conserto era um palpite: subir o numero e perguntar de novo.
+     *
+     * <p>Com a regua na tela, a proxima sessao responde de uma vez: se o
+     * contador pisca, o efeito DISPARA e o problema e de leitura -- e a resposta
+     * e mudar o tratamento visual, nao o numero. Se nao pisca, o problema e a
+     * deteccao, e o numero nunca teria resolvido.
+     */
+    private static float impactoForca;
+    private static int impactoTicks;
+
     private static int chamadasEmCurso;
     private static int filamentosEmCurso;
     private static int colunasEmCurso;
@@ -133,6 +149,8 @@ public final class MedidorDeVfx {
 
     /** Quem liga, desliga: no logout, os numeros do mundo anterior somem. */
     public static void limpar() {
+        impactoForca = 0.0F;
+        impactoTicks = 0;
         chamadasEmCurso = 0;
         filamentosEmCurso = 0;
         colunasEmCurso = 0;
@@ -193,5 +211,22 @@ public final class MedidorDeVfx {
     public static boolean custoZero() {
         return chamadasFechadas == 0 && filamentosFechados == 0 && colunasFechadas == 0
                 && aneisFechados == 0;
+    }
+
+    /** Registra o ripple do jogador local neste tick. {@code null} zera a regua. */
+    public static void registrarImpacto(
+            com.darkcontinent.nenfoundation.client.vfx.AuraImpactState impacto) {
+        impactoForca = impacto == null ? 0.0F : impacto.strength();
+        impactoTicks = impacto == null ? 0 : impacto.remainingTicks();
+    }
+
+    /** Forca do ripple local agora, 0 quando nao ha. */
+    public static float impactoForca() {
+        return impactoForca;
+    }
+
+    /** Ticks restantes do ripple local, 0 quando nao ha. */
+    public static int impactoTicks() {
+        return impactoTicks;
     }
 }

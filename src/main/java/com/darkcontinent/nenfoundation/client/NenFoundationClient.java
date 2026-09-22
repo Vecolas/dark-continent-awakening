@@ -409,6 +409,12 @@ public final class NenFoundationClient {
         // os jogadores -- inclusive o local, que tambem leva pancada. Lido
         // dentro do laco dos outros, o proprio jogador nunca teria ripple.
         this.impactos.tick(mc.level.players());
+        // A REGUA DO F6 LE O IMPACTO DO JOGADOR LOCAL. Ela existe para separar
+        // "nao dispara" de "dispara e nao da para ver" -- duas causas opostas
+        // que o relato de jogo nao consegue distinguir, e que levaram a dois
+        // consertos por palpite antes de alguem poder medir.
+        com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.registrarImpacto(
+                this.impactos.de(mc.player.getId()));
         this.tickDaAuraDosOutros(mc, densidade);
     }
 

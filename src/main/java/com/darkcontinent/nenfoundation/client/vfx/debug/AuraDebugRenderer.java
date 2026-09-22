@@ -132,6 +132,8 @@ public final class AuraDebugRenderer {
                 com.darkcontinent.nenfoundation.client.particle.AuraDebrisParticle.totalAtivos(),
                 com.darkcontinent.nenfoundation.client.vfx.ZumbidoDeRen.vivos(),
                 MedidorDeVfx.jogadoresComAura(),
+                MedidorDeVfx.impactoForca(),
+                MedidorDeVfx.impactoTicks(),
                 com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
                         .nivelEfetivo().name().toLowerCase(Locale.ROOT),
                 com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
@@ -214,6 +216,18 @@ public final class AuraDebugRenderer {
                 + d.filamentos() + " filamentos | " + d.colunas() + " colunas | "
                 + d.particulas() + " faiscas ativas | "
                 + d.jogadoresComAura() + " com aura");
+
+        // O RIPPLE DE IMPACTO (#103), e a linha existe para separar duas causas
+        // que o relato de jogo nao distingue: "nao dispara" e "dispara e nao da
+        // para ver". Enquanto ela nao existiu, cada tentativa de conserto foi um
+        // palpite -- subir o numero e perguntar de novo. Com ela, uma pancada
+        // responde de uma vez: se o contador pisca, o problema e de LEITURA e a
+        // resposta e o tratamento visual; se nao pisca, e a DETECCAO, e numero
+        // nenhum teria resolvido.
+        l.add(d.impactoTicks() > 0
+                ? String.format(Locale.ROOT, "ripple: forca %.2f | %d ticks restantes",
+                        d.impactoForca(), d.impactoTicks())
+                : "ripple: nenhum (leve uma pancada com Ten ligado)");
 
         // OS DOIS CONTADORES DE REN, com o TETO ao lado do numero de detrito.
         // Um contador sem o teto nao responde a pergunta que importa -- "isto
@@ -370,6 +384,8 @@ public final class AuraDebugRenderer {
             int detritos,
             int zumbidos,
             int jogadoresComAura,
+            float impactoForca,
+            int impactoTicks,
             String bloom,
             String tamanhoDoAlvo,
             boolean passePulado,

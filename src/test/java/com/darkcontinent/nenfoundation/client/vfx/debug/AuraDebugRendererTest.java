@@ -45,6 +45,8 @@ class AuraDebugRendererTest {
         return new AuraDebugRenderer.Dados(desenhoLigado, false, null, Float.NaN, Float.NaN,
                 null, -1,
                 chamadas, filamentos, colunas, aneis, particulas, detritos, 0, jogadores,
+                // sem ripple: e o estado em repouso, e o que a maioria dos casos mede
+                0.0F, 0,
                 "off", null, true, 0, 0, null, false,
                 false, null, "33ded12", ajustes, distribuicao, null);
     }

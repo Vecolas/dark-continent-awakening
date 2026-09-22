@@ -1,5 +1,9 @@
 # Campanha de evidências: a ordem, a montagem e o checklist
 
+> **O que ainda precisa de uma pessoa** esta em
+> [`DIVIDAS-A-RESPONDER.md`](DIVIDAS-A-RESPONDER.md) — a fatia de
+> `o-que-nao-provamos.md` que se responde **jogando**, organizada por gate.
+
 > **Resposta ja dada nao se pergunta de novo.** O registro em
 > [`RESPOSTAS.md`](RESPOSTAS.md) guarda cada veredito **com os arquivos que o
 > invalidam**, e `RespostasAindaValidasTest` reprova o build quando um deles

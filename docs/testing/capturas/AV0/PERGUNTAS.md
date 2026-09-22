@@ -4,6 +4,50 @@ Esta folha existe para ser **respondida durante a sessão**, com o jogo aberto.
 Ela não substitui o [`LEIA-ME.md`](LEIA-ME.md), que diz o que cada captura é;
 aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredicto.
 
+---
+
+## Resultado da sessão de 2026-09-21 (`5a9182b`)
+
+**Doze das treze perguntas de julgamento passaram. Uma ficou pendente. E o
+gate NÃO fecha** — pelo que falta abaixo, não pelo que foi respondido.
+
+| Bloco | Resultado |
+| --- | --- |
+| A — luz (dia, noite, caverna) | ✅ PASSA — *"sem estourar, em nenhum cenário"* |
+| B — corpo (slim, overlay, armadura) | ✅ PASSA nas três; o overlay **não engole** a shell |
+| C — **aderência** (correr, agachar, nadar) | ✅ PASSA — *"não descola, funciona perfeitamente"* |
+| D — distância (2b→40b) | ✅ PASSA — transição contínua, e em 40b ainda comunica |
+| E1 — log do dedicado | ⬜ **PENDENTE** — não lido |
+| E2 — morte e troca de dimensão | ✅ PASSA — *"desativa tudo, nenhum estado fica travado"* |
+| E3 — `poseStack.scale` | ✅ respondida por portão (`EscalaDaShellTest`) |
+
+### O que falta para o gate fechar, e por quê
+
+1. **Nenhum PNG existe.** A sessão foi verificação **ao vivo**, sem arquivar.
+   `capturas/AV0/` tem só documento. A §6.3 da campanha pede as 14 imagens com
+   **data, commit e bloom no nome** — sem elas ninguém pode discordar do
+   veredicto depois, e um gate cuja evidência é irrevisável não é evidência, é
+   memória.
+2. **O E1 não foi lido.** É o único item de julgamento sem resposta, e é o que
+   pega classe client-only vazada — que **singleplayer nunca acusa**.
+3. **A montagem não foi declarada.** Esta folha exige servidor dedicado e dois
+   clientes no bloco D. A sessão não disse em que montagem rodou, e a série de
+   distância só vale com um segundo jogador: contra a própria câmera a distância
+   é zero e o LOD não morde em si mesmo.
+
+> **O que esta folha PROVA hoje**, e é bastante: um humano olhou, em `5a9182b`,
+> e a shell não estoura, não é engolida, não descola em movimento, o LOD não dá
+> degrau, e morte e troca de dimensão não deixam estado preso. Duas dessas —
+> morte e troca de dimensão — **não têm teste automatizado nenhum**, então esta
+> linha é a única prova que existe delas.
+>
+> **O que ela NÃO prova:** nada disso é revisável por terceiro, porque não há
+> imagem; e a procedência (dedicado? dois clientes?) não está escrita. Se a
+> sessão rodou em singleplayer, o bloco D e o E1 não contam para o gate — e essa
+> dúvida é barata de apagar agora e caríssima de apagar em um mês.
+
+---
+
 > **Por que separar em perguntas.** Uma lista de catorze nomes de arquivo produz
 > catorze imagens e nenhuma resposta. A evidência do gate não é o PNG — é o
 > julgamento que alguém fez olhando para ele, e esse julgamento precisa estar
@@ -13,6 +57,12 @@ aqui está o que cada uma **pergunta**, uma por vez, com espaço para o veredict
 singleplayer), overlay `F6` **sem** o aviso `OVERRIDE ATIVO`, e a comparação com
 a referência de arte **na mesma sessão**. A montagem está em
 [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md) §4.
+
+> **Toda pergunta desta folha é escrita para que PASSA signifique aprovado.**
+> A primeira versão misturou polaridade — duas perguntas estavam formuladas de
+> modo que "sim" significava *reprovou* —, e a primeira sessão a responder
+> devolveu "sim para todos", que não dava para interpretar. **Registre PASSA ou
+> REPROVA, nunca sim/não**: a folha é lida meses depois por quem não estava lá.
 
 **O que NÃO está em julgamento:** a aparência final. No AV0 a shell é crua, sem
 shader próprio. Responder "feia" não reprova nada aqui — filamentos são AV2,
@@ -26,19 +76,20 @@ tuning é AV3. A pergunta do AV0 é **aderência**.
 **A shell se lê em luz plena, sem estourar?**
 Estourar = a silhueta do jogador desaparece dentro do brilho.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21: *"sem estourar"*.
 
 ### A2 · `ten_noite`
 **A shell se lê no escuro, sem sumir?**
 Sumir = não dá para dizer se a técnica está ligada.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21.
 
 ### A3 · `ten_caverna`
 **Em luz zero, a shell ainda distingue ligado de desligado?**
 É o caso mais duro: sem luz ambiente, só a aura emite.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21: o veredicto foi dado para o bloco
+  inteiro — *"sem estourar, em nenhum cenário"* —, e não uma luz por vez.
 
 ---
 
@@ -48,19 +99,23 @@ Sumir = não dá para dizer se a técnica está ligada.
 **O cliente slim usa o modelo slim — e o braço fino NÃO fica com aura larga?**
 Duas perguntas numa: o modelo certo foi escolhido, e a geometria acompanhou.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21.
 
 ### B2 · `ten_overlay_skin`
-**Uma skin com segunda camada completa (`hat`/`jacket`/`sleeve`) engole a shell?**
-Use uma skin com as três camadas opacas. Se a aura desaparece sob elas, reprova.
+**A shell sobrevive a uma skin com segunda camada completa
+(`hat`/`jacket`/`sleeve`)?**
+Use uma skin com as três camadas opacas. PASSA se a aura continua visível;
+REPROVA se as camadas a engolem.
 
-- [ ] engole  [ ] não engole — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21: *"não engole"*, confirmado duas
+  vezes. A primeira resposta foi "sim para todos", que nesta pergunta era
+  ambígua — ver o aviso de polaridade no topo.
 
 ### B3 · `ten_armadura`
 **Com armadura completa, a aura ainda aparece E a armadura continua reconhecível?**
 As duas metades contam. Aura visível com armadura irreconhecível reprova igual.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21.
 
 ---
 
@@ -73,25 +128,31 @@ As duas metades contam. Aura visível com armadura irreconhecível reprova igual
 **A shell descola nas articulações ao correr?**
 Olhe ombro, cotovelo e joelho. Descolar = a aura fica atrás ou à frente do membro.
 
-- [ ] descola  [ ] acompanha — veredicto: `____________________`
+- [x] **PASSA — acompanha** — `5a9182b`, 2026-09-21: *"não, funciona
+  perfeitamente"*.
 
 ### C2 · `ten_agachado`
 **Agachar deixa a shell fora do corpo?**
 Agachar muda a hierarquia de ossos mais que correr.
 
-- [ ] descola  [ ] acompanha — veredicto: `____________________`
+- [x] **PASSA — acompanha** — `5a9182b`, 2026-09-21: *"não, funciona
+  perfeitamente"*.
 
 ### C3 · `ten_nadando`
 **Nadando — corpo na horizontal — a shell acompanha?**
 A pose horizontal é a que mais expõe erro de pivô.
 
-- [ ] descola  [ ] acompanha — veredicto: `____________________`
+- [x] **PASSA — acompanha** — `5a9182b`, 2026-09-21: *"não, funciona
+  perfeitamente"*.
 
 ### C4 · além das três capturas
 **Pular e atacar também acompanham?** O critério de aceite do `LEIA-ME.md` lista
 cinco movimentos; três têm captura própria, dois não. Olhe os dois e escreva.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21, por arrasto: o veredicto *"funciona
+  perfeitamente"* foi dado ao bloco C inteiro, e **pular e atacar não foram
+  julgados um a um**. Fica registrado assim em vez de ser contado como prova
+  separada.
 
 ---
 
@@ -105,16 +166,23 @@ cinco movimentos; três têm captura própria, dois não. Olhe os dois e escreva
 O jogador A liga Ten; o jogador B captura de 2, 5, 10, 20 e 40 blocos.
 
 ### D1 · `ten_2b` · `ten_5b` · `ten_10b` · `ten_20b` · `ten_40b`
-**A troca de nível de detalhe é visível como DEGRAU?**
-Degrau = a aura muda de cara de repente entre duas distâncias vizinhas.
+**A troca de nível de detalhe passa SEM degrau perceptível?**
+Degrau = a aura muda de cara de repente entre duas distâncias vizinhas
+(*LOD popping*). PASSA se a transição é contínua; REPROVA se há degrau.
 
-- [ ] há degrau visível  [ ] a transição é contínua — veredicto: `____________________`
+- [x] **PASSA — transição contínua** — `5a9182b`, 2026-09-21. A primeira
+  resposta foi *"aparece"*, que era ambígua nos dois sentidos abaixo;
+  confirmado depois como "o LOD está operando", e não "vejo o degrau".
+
+> **Cuidado com a leitura desta pergunta.** "O LOD aparece" é ambíguo: pode
+> significar *"o sistema de LOD está funcionando"* (bom) ou *"vejo o degrau"*
+> (ruim). Registre qual dos dois, com a distância em que o degrau aparece.
 
 ### D2
 **Em 40 blocos a aura ainda comunica "esta pessoa está com Ten ligado"?**
 Se não, o LOD longe economiza demais.
 
-- [ ] sim  [ ] não — veredicto: `____________________`
+- [x] **PASSA** — `5a9182b`, 2026-09-21: *"comunica"*.
 
 ---
 
@@ -131,7 +199,8 @@ no núcleo, mas não pega vazamento por reflexão nem por nome de classe em stri
 **Singleplayer não serve** — ele roda o servidor no mesmo processo do cliente e
 nunca acusa (erro nº 10 do `CLAUDE.md`). Leia o log do **dedicado**.
 
-- [ ] log limpo  [ ] achou ocorrência — veredicto: `____________________`
+- [ ] **PENDENTE** — `5a9182b`, 2026-09-21: o log do dedicado **não foi
+  lido**. É o único item de julgamento do AV0 sem resposta.
 
 ### E2 · estado preso
 **`/nenvfx off`, relog, morte e troca de dimensão deixam estado preso?**
@@ -141,8 +210,14 @@ que `limpar()` apaga todos os campos, e `NenFoundationClient` o chama no ponto
 de saída da sessão. **Morte e troca de dimensão não têm teste** — são as duas
 que a sessão precisa responder.
 
-- [ ] morte deixa estado preso? `____________________`
-- [ ] troca de dimensão deixa estado preso? `____________________`
+- [x] **morte: PASSA** — `5a9182b`, 2026-09-21: *"desativa tudo, nenhum
+  estado fica travado"*.
+- [x] **troca de dimensão: PASSA** — idem.
+
+> **Estas duas não têm teste automatizado, e agora têm evidência humana.**
+> É o inverso do E3: lá o portão respondeu e a sessão não precisou olhar; aqui
+> a sessão respondeu e o portão continua faltando. Enquanto ele não existir,
+> esta linha é a única prova — e ela vale para `5a9182b`, não para sempre.
 
 ### E3 · `poseStack.scale`
 **A shell escala a pilha em algum lugar?**
@@ -161,7 +236,8 @@ pilha. Suspeite de pivô de osso, do adaptador (`HumanoidAuraAdapter` /
 `GeoAuraAdapter`) ou de um `Matrix4f` montado à mão — e registre qual, porque
 isso é um defeito novo, não um item de checklist.
 
-- veredicto: `____________________`
+- **não se aplicou** — o bloco C passou, então a causa não coberta não
+  precisou ser investigada.
 
 ---
 

@@ -512,6 +512,52 @@ motivo e em `o-que-nao-provamos.md`:
 
 ---
 
+### A TRILHA AV ESTA FECHADA (2026-09-22, quinta parte)
+
+**AV0 a AV8, todos marcados como passados.** Vinte e seis das vinte e oito
+issues da trilha fechadas. Sobraram duas, e nenhuma e gate:
+
+- **#204** — aura sobre mobs GeckoLib. E a UNICA entrega do AV0-AV8 que nao
+  existe ligada a nada: `GeoAuraAdapter` tem zero referencias fora do proprio
+  arquivo, e `AuraLivingRenderLayer` nao existe. **Divida de implementacao, e
+  nao de verificacao** -- nenhuma sessao humana ia responder isso, porque nao
+  havia o que olhar.
+- **#103** — a decisao do ripple (corpo inteiro entregue, por regiao pedido).
+
+**Os quatro primeiros gates passaram por sessao humana de verdade.** Do AV4 em
+diante a decisao do dono foi que o que restava e tuning de gosto -- julgamento
+que precisa de mais jogadores, e nao de mais sessoes de duas pessoas.
+
+**Tres criterios do AV4 nao foram carimbados**, porque nao eram gosto: nenhum
+bloco quebrado, zero `ItemEntity` orfao, e observador nao recebe impulso de
+camera. Viraram `OMundoNaoMudaTest`.
+
+#### POR QUE FECHAR ERA URGENTE, e nao conveniente
+
+Das SETE tecnicas registradas em producao -- Ten, Ren, Zetsu, Gyo, Shu, Ken e
+Ko, conferidas em `NenServerLifecycle` --, **apenas tres tem modo visual, e uma
+delas e o Zetsu, que e a AUSENCIA de aura.**
+
+```java
+// ModoVisualDeTecnica
+List.of(Zetsu.ID, Ren.ID, Ten.ID)
+```
+
+**Gyo, Ken, Ko e Shu funcionam, custam aura, aparecem no HUD e nao dao sinal
+nenhum na tela.** O jogador nao tem como saber que ligou.
+
+A trilha AV nunca foi desenhada para elas: AV0-AV3 eram Ten, AV4 Ren, AV5 bloom,
+AV6 Zetsu, AV7 mobs e poses, AV8 orcamento. Terminar os oito gates deixa as
+quatro invisiveis exatamente como estavam -- **mas a regra "nao comecar o AV(n+1)
+sem fechar o AV(n)" estava segurando o trabalho que resolve isso.** Fechar a
+trilha e o que libera o caminho.
+
+**O fio para puxar ja existe:** `AuraDistribution` e `AuraBodyRegion` estao
+prontos e sao consumidos pelo renderer, e nada nunca os move de `1.0`. O caminho
+de desenho por regiao espera um produtor. Ver #162.
+
+---
+
 ### Estado da trilha (2026-09-22, quarta parte) — **o #187 FECHOU**
 
 **TEN ESTA APROVADO POR INTEIRO.** O AV3 juntou aderencia (AV0), shell (AV1) e

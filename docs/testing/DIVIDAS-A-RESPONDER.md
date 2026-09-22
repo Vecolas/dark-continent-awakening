@@ -13,57 +13,52 @@ que **se responde jogando**, organizada por quem deve perguntar.
 
 ---
 
-## O quadro único — tudo que ainda precisa de resposta
+## A trilha AV fechou — o que sobrou não é pergunta
 
-**21 itens na trilha AV**, mais 29 fora dela. A coluna **Como** é a que importa:
-ela diz se o item precisa de você num jogo aberto, de duas pessoas, de medição,
-de código — ou só de uma decisão.
+Em 2026-09-22 os gates AV0–AV8 foram todos marcados como passados. **Isto não
+apagou nenhuma ausência:** o que não foi verificado continua em
+[`o-que-nao-provamos.md`](o-que-nao-provamos.md), e cada veredito dado continua
+em [`RESPOSTAS.md`](RESPOSTAS.md) **com os arquivos que o invalidam**.
 
-| # | O que responder | Gate | Como | Bloqueio |
-| --- | --- | --- | --- | --- |
-| **B1** | Com `bloom off`, a aura se lê? | AV5 | 🔧 **CONSERTADO** — falta confirmar de olho | — |
-| ~~D3~~ | O `OFF` ganha compensação? | AV5 | ✅ **DECIDIDO e implementado** | — |
-| **B2** | `OFF` × `FAST` × `HIGH` são "menos do mesmo jogo"? | AV5 | 👁 olho — **respondido e invalidado pelo conserto** | depende de B1 |
-| ~~B4~~ | O halo respeita parede na tela? | AV5 | ✅ **PASSA** | — |
-| **B5** | Com shader pack, a detecção cai para `FAST`? | AV5 | ⚠️ **marcado por decisão, sem pack instalado** | — |
-| **B6** | Contadores criado/liberado após dez resizes | AV5 | 🔢 contar | pareamento provável por construção |
-| **B7** | O passe voltou a derrubar o cliente? | AV5 | 👁 olho | exige a GPU que falhou |
-| **Z1** | O **pulso de supressão** aparece? | AV6 | 👁 olho | — |
-| **Z2** | O **modo permissivo**, em jogo | AV6 | 👁 olho | — |
-| **Z3** | A coluna **observador**, em jogo | AV6 | 👥 dois clientes | **depende de Gyo (#126)** |
-| **Z4** | "O cliente de B não recebe o dado de A" | AV6 | 👥 dois clientes | — |
-| ~~P1~~ | As **nove poses** | AV7 | ✅ **PASSA** | — |
-| ~~P2~~ | Capa e elytra sem tratamento | AV7 | ✅ **DECIDIDO — mantém assim** | — |
-| ~~P3~~ | `GeoAuraAdapter` — aura sobre mob GeckoLib | AV7 | ✅ **RESPONDIDA POR CÓDIGO** — zero referências fora do próprio arquivo: **não está ligado a nada** | vira dívida de implementação |
-| **O1** | Os quatro cenários de orçamento, com `spark` | AV8 | 📏 medição | exige 10–20 jogadores |
-| **O2** | Tick time: 10 em Ren × 10 parados | AV8 | 📏 medição | idem |
-| **O3** | Os **quatro contadores** do `F6` | AV8 | 🔢 contar | **custa 4 linhas** |
-| ~~O4~~ | A **distância máxima** | AV8 | ✅ **RESPONDIDA POR TESTE** — `AuraLodEfetivoTest` cobre *"além da máxima, NADA nem com ULTRA"* e *"72 blocos coincide com o corte da tabela"* | — |
-| **O5** | Matriz: vanilla, Embeddium, Iris com e sem pack | AV8 | 👁 olho | exige os mods |
-| **D1** | O ripple é corpo inteiro ou por região? | #103 | 🧠 decisão | — |
-| **D2** | Os seis fatores por região sem consumidor | Gyo/Ko/Ryu | 🧠 decisão | — |
+O que mudou foi o **rastreador**, e não o conhecimento. A dívida saiu da lista
+de tarefas e virou régua.
 
-### Legenda
+### As duas que continuam abertas
+
+| # | O que é | Por que não fecha |
+| --- | --- | --- |
+| **#204** | Aura sobre mobs GeckoLib | **Dívida de implementação**, não de verificação. `GeoAuraAdapter` tem zero referências fora do próprio arquivo; `AuraLivingRenderLayer` não existe. Nenhuma sessão humana ia responder isso — não havia o que olhar |
+| **#103** | O ripple é corpo inteiro ou por região? | 🧠 decisão sua. O entregue informa *que* levou dano, não *onde* — que era o objetivo declarado |
+
+### O que ficou sem olhar, e é bom saber de cor
 
 | | |
 | --- | --- |
-| 👁 **olho** | você, num jogo aberto, sozinho |
-| 👥 **dois clientes** | exige servidor dedicado e uma segunda pessoa (ou segunda janela) |
-| 🔢 **contar** | ler números do `F6` e escrevê-los |
-| 📏 **medição** | `spark`, perfil arquivado, comparação antes/depois |
-| 🧠 **decisão** | não se responde olhando; se decide |
-| ❌ **defeito** | já reprovou; não é pergunta aberta, é conserto pendente |
+| **B1/B2** | ninguém viu o `OFF` **depois** do conserto — e a resposta do B2 foi dada no build anterior |
+| **B5** | marcado como passa **sem pack instalado**. Se o `FAST` não entrar com Iris, o sintoma é halo duplicado ou ausente |
+| **O1–O3** | nenhum número de performance foi medido, e os contadores nunca foram transcritos |
+| **Z3** | `gyoDoObservador` chega sempre `false` até Gyo ter camada de percepção (#126) |
 
-### O mais barato primeiro
+---
 
-1. **D3 + B1** — o `OFF`. Meia hora de código, e **todo julgamento visual feito
-   antes dele roda com um nível quebrado por baixo**.
-2. **O3** — quatro linhas de `F6`. Já falhou duas vezes; é a única coisa aqui
-   que custa menos de um minuto.
-3. **D1 e D2** — duas decisões que não precisam do jogo aberto, e que estão
-   segurando código órfão no repositório.
+## O buraco que a trilha não cobria
 
-Depois disso, os gates na ordem: AV5 → AV6 → AV7 → AV8.
+Das **sete** técnicas registradas em produção, **quatro não têm efeito visível
+nenhum**:
+
+| Técnica | Domínio | Visual |
+| --- | --- | --- |
+| Ten · Ren · Zetsu | ✅ | ✅ |
+| **Gyo · Ken · Ko · Shu** | ✅ | ❌ |
+
+Elas funcionam, custam aura, aparecem no HUD — e **o jogador não tem como saber
+que ligou**. É o problema mais caro do projeto hoje, e nenhum gate da trilha AV
+o tocava.
+
+**O fio já está puxado pela metade:** `AuraDistribution` e `AuraBodyRegion`
+existem e são consumidos pelo renderer (`estado.distribution().intensidade(regiao)`),
+e **nada nunca os move de `1.0`**. O caminho de desenho por região está pronto e
+esperando um produtor. Ver #162.
 
 ---
 

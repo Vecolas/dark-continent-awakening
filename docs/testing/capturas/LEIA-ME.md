@@ -15,20 +15,22 @@ capturas faltam" era uma pergunta que só se respondia relendo dez issues.
 | Gate | Issue | Capturas | Feito |
 | --- | --- | --- | --- |
 | AV0 — a shell acompanha as animações | #169 | **0 — aposentadas** | — |
-| AV1 — Ten convincente sem partícula | #176 | 17 | 0 |
-| AV2 — filamentos nascem na superfície | #181 | 13 | 0 |
-| AV3 — TEN aprovado | #187 | 22 | 0 |
-| AV4 — REN aprovado, mundo intacto | #193 | 20 | 0 |
-| AV5 — o halo respeita parede | #198 | 13 | 0 |
-| AV6 — ausência para observadores | #201 | 7 | 0 |
-| AV7 — dois clientes, armadura e poses | #205, #104 | 21 | 0 |
-| AV8 — orçamento e release | #209, #206, #207 | perfis, não imagens | 0 |
+| AV1 — Ten convincente sem partícula | #176 | **0 — aposentadas** | 0 |
+| AV2 — filamentos nascem na superfície | #181 | **0 — aposentadas** | 0 |
+| AV3 — TEN aprovado | #187 | **0 — aposentadas** | 0 |
+| AV4 — REN aprovado, mundo intacto | #193 | **0 — aposentadas** | 0 |
+| AV5 — o halo respeita parede | #198 | **0 — aposentadas** | 0 |
+| AV6 — ausência para observadores | #201 | **0 — aposentadas** | 0 |
+| AV7 — dois clientes, armadura e poses | #205, #104 | **0 — aposentadas** | 0 |
+| AV8 — orçamento e release | #209, #206, #207 | **0 — aposentadas** | 0 |
 
-**São 113 itens de evidência visual (2026-09-22), e nenhum existe.** Eram 127
-até o AV0 dispensar as suas catorze — a inspeção visual ao vivo foi considerada
-suficiente, e o custo da decisão está em [`AV0/DIVIDAS.md`](AV0/DIVIDAS.md).
-Três dos 113 são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as duas de
-Zetsu no AV6. O total não promete 113 PNGs.
+**Nenhuma captura é arquivada nesta trilha.** A exigência foi aposentada em
+2026-09-22, para AV0–AV8: a evidência de cada gate é o julgamento humano na
+folha `PERGUNTAS.md` dele. O motivo e o custo estão em
+[`../CAMPANHA-EVIDENCIAS.md`](../CAMPANHA-EVIDENCIAS.md) §6.1.
+
+> **As listas de cada gate continuam valendo como ROTEIRO do que precisa ser
+> olhado.** O que caiu foi o arquivo, não a pergunta.
 
 > **O AV0 é o único gate desta trilha sem evidência visual arquivada**, e isso é
 > decisão registrada, não esquecimento. A evidência dele é o julgamento humano

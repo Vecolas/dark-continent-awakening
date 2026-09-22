@@ -792,20 +792,41 @@ achou o defeito pelo preço de uma tarde, em vez do preço da campanha inteira.
 
 | Gate | Issue | Capturas | Onde mora a lista | 2 clientes |
 | --- | --- | --- | --- | --- |
-| AV0 | #169 | **0 — aposentadas em 2026-09-22** | `capturas/AV0/DIVIDAS.md` | sim |
-| AV1 | #176 | 17 | `capturas/AV1/LEIA-ME.md` | não |
-| AV2 | #181 | 13 | `capturas/AV2/LEIA-ME.md` | não |
-| AV3 | #187 | 22 | `capturas/AV3/LEIA-ME.md` | sim |
-| AV4 | #193 | 20 | `capturas/AV4/LEIA-ME.md` | sim |
-| AV5 | #198 | 13 | `capturas/AV5/LEIA-ME.md` | não |
-| AV6 | #201 | 7 | `capturas/AV6/LEIA-ME.md` | **sim** |
-| AV7 | #205, #104 | 21 | `capturas/AV7/LEIA-ME.md` | **sim** |
-| AV8 | #209, #206, #207 | perfis | `capturas/AV8/LEIA-ME.md` | sim (10 e 20) |
+| AV0 | #169 | **0 — aposentadas** | `capturas/AV0/DIVIDAS.md` | sim |
+| AV1 | #176 | **0 — aposentadas** | `capturas/AV1/LEIA-ME.md` | não |
+| AV2 | #181 | **0 — aposentadas** | `capturas/AV2/LEIA-ME.md` | não |
+| AV3 | #187 | **0 — aposentadas** | `capturas/AV3/LEIA-ME.md` | sim |
+| AV4 | #193 | **0 — aposentadas** | `capturas/AV4/LEIA-ME.md` | sim |
+| AV5 | #198 | **0 — aposentadas** | `capturas/AV5/LEIA-ME.md` | não |
+| AV6 | #201 | **0 — aposentadas** | `capturas/AV6/LEIA-ME.md` | **sim** |
+| AV7 | #205, #104 | **0 — aposentadas** | `capturas/AV7/LEIA-ME.md` | **sim** |
+| AV8 | #209, #206, #207 | **0 — aposentadas** | `capturas/AV8/LEIA-ME.md` | sim (10 e 20) |
 
-**Total: 113 itens de evidência visual (2026-09-22).** Eram 127 até o AV0 dispensar as suas catorze — ver [`capturas/AV0/DIVIDAS.md`](capturas/AV0/DIVIDAS.md), que registra a decisão e o custo dela. Três deles
-são vídeo quadro a quadro — a transição Ten→Ren no AV4 e as duas de
-Zetsu no AV6, cujos nomes moram no `LEIA-ME.md` de cada gate. O número não
-promete 127 PNGs.
+**Total: 0 itens de evidência visual arquivada.** A trilha inteira dispensou a
+captura em 2026-09-22 — ver a caixa abaixo. Os números que estavam aqui (127,
+depois 113) mediam uma exigência que deixou de existir.
+
+> ## A trilha AV NÃO arquiva mais captura
+>
+> **Decisão de 2026-09-22, do dono do projeto, e ela vale para AV0–AV8.** A
+> evidência de cada gate passa a ser o **julgamento humano registrado na folha
+> `PERGUNTAS.md`** do gate, datado e preso a um commit.
+>
+> **O motivo é o que muda a conta.** A objeção principal ao aposentar as
+> capturas do AV0 era *"o julgamento deixa de ser revisável por terceiro"*.
+> Não há terceiro: **uma única pessoa faz a conferência desta trilha**, e a
+> segunda frente não trabalha nela. Evidência arquivada para um revisor que não
+> existe é cerimônia — e cerimônia neste repositório tem nome e é custo.
+>
+> **O custo que SOBREVIVE, e não some com a decisão:** cada AV é a **linha de
+> base do seguinte**. O AV2 acrescenta filamentos à shell que o AV1 aprovou; o
+> AV5 acrescenta bloom à que o AV3 aprovou. Sem o "antes", a única forma de
+> saber o que o passo novo mudou é a memória de quem viu os dois — e ela
+> envelhece em dias, não em meses. O mesmo vale para regressão: se a aura piorar
+> em novembro, **nada diz que um dia ela esteve melhor**.
+>
+> Isso é aceito de olhos abertos. Quem quiser reverter para um gate específico
+> não precisa de ADR: basta voltar a exigir as capturas no `LEIA-ME.md` dele.
 
 > **Este total é DERIVADO, e a fonte de verdade continua sendo cada gate.**
 > Ele foi somado a partir das listas em 2026-09-21 e envelhece no dia em que uma

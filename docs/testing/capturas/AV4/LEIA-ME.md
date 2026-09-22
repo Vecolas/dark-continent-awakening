@@ -4,6 +4,17 @@ O código das cinco issues do AV4 está na branch `feat/av4-av8-aura-visual`.
 **Este gate não depende de mais código**: ele depende de imagem arquivada e de
 duas medições no mundo.
 
+> ## As capturas deste gate foram APOSENTADAS
+>
+> **Decisão de 2026-09-22, e ela vale para a trilha AV inteira** (AV0–AV8). A
+> evidência passa a ser o julgamento humano registrado em `PERGUNTAS.md`, datado
+> e preso a um commit. O motivo e o custo estão em
+> [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md), na seção 6.1.
+>
+> **A lista abaixo continua valendo como ROTEIRO do que precisa ser OLHADO** —
+> ela só deixou de exigir arquivo.
+
+
 Referência: [`referencia-c-ren-pressao.png`](../../../aura-art/referencia-c-ren-pressao.png).
 
 ---

@@ -3,6 +3,17 @@
 **Nenhuma captura existe.** O código deste marco está na `main` desde antes da
 branch do AV4; o que falta é evidência.
 
+> ## As capturas deste gate foram APOSENTADAS
+>
+> **Decisão de 2026-09-22, e ela vale para a trilha AV inteira** (AV0–AV8). A
+> evidência passa a ser o julgamento humano registrado em `PERGUNTAS.md`, datado
+> e preso a um commit. O motivo e o custo estão em
+> [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md), na seção 6.1.
+>
+> **A lista abaixo continua valendo como ROTEIRO do que precisa ser OLHADO** —
+> ela só deixou de exigir arquivo.
+
+
 > **É aqui que Ten fecha.** O AV0 provou aderência, o AV1 provou a shell sozinha
 > e o AV2 provou os filamentos. O AV3 junta os três com tuning, primeira pessoa
 > e a tabela de distâncias — e a partir dele a nuvem de partícula antiga sai de

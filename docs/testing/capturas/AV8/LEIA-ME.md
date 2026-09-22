@@ -2,6 +2,17 @@
 
 **Este gate não é de imagem. É de número medido e arquivado.**
 
+> ## As capturas deste gate foram APOSENTADAS
+>
+> **Decisão de 2026-09-22, e ela vale para a trilha AV inteira** (AV0–AV8). A
+> evidência passa a ser o julgamento humano registrado em `PERGUNTAS.md`, datado
+> e preso a um commit. O motivo e o custo estão em
+> [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md), na seção 6.1.
+>
+> **A lista abaixo continua valendo como ROTEIRO do que precisa ser OLHADO** —
+> ela só deixou de exigir arquivo.
+
+
 > Aplicar otimização antes de ter a medição arquivada é otimizar o terceiro item
 > da ordem de custos e relatar vitória.
 

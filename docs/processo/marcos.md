@@ -504,9 +504,15 @@ O custo dessa decisao esta escrito em
 imagem nao ha o que reabrir, nao ha linha de base para o AV1, e uma regressao
 visual futura passa calada.
 
-**A decisao vale para o AV0 e nao se estende:** #176, #181, #187, #193, #198,
-#201, #205, #209 e #104 continuam pedindo captura pelo texto das proprias
-issues, e `docs/testing/capturas/` continua sem um PNG.
+**E em 2026-09-22 ela foi ESTENDIDA a trilha inteira** (AV0-AV8). Este
+paragrafo dizia que a decisao do AV0 nao se estendia, e deixou de ser verdade no
+mesmo dia: a objecao principal era "o julgamento deixa de ser revisavel por
+terceiro", e NAO HA TERCEIRO -- uma unica pessoa faz a conferencia desta trilha.
+Evidencia arquivada para um revisor que nao existe e cerimonia.
+
+O custo que SOBREVIVE esta escrito em `CAMPANHA-EVIDENCIAS.md` 6.1: cada AV e a
+linha de base do seguinte, e sem o "antes" a unica forma de saber o que o passo
+novo mudou e a memoria de quem viu os dois.
 
 O que foi respondido, e como:
 

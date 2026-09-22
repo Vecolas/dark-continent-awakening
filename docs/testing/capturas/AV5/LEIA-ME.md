@@ -5,6 +5,17 @@ só, e ela não é estética:** aura visível através de parede é *vazamento d
 informação*, e não feiura. Enquanto In e Zetsu existirem, um halo que sangra por
 trás de um bloco entrega a posição de quem está se escondendo.
 
+> ## As capturas deste gate foram APOSENTADAS
+>
+> **Decisão de 2026-09-22, e ela vale para a trilha AV inteira** (AV0–AV8). A
+> evidência passa a ser o julgamento humano registrado em `PERGUNTAS.md`, datado
+> e preso a um commit. O motivo e o custo estão em
+> [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md), na seção 6.1.
+>
+> **A lista abaixo continua valendo como ROTEIRO do que precisa ser OLHADO** —
+> ela só deixou de exigir arquivo.
+
+
 Decisão que este gate verifica:
 [ADR-016](../../../adr/ADR-016-pos-processamento-proprio-da-aura.md) §3.
 

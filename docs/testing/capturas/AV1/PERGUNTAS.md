@@ -16,9 +16,15 @@ sessão**.
 
 > **O que NÃO está em julgamento.** A referência B tem **filamentos**, e o AV1
 > não os entrega — ribbons são AV2. A comparação com B é **parcial**, e isso
-> precisa estar na legenda de cada captura: sem essa nota, alguém lê o gate como
-> *"ficou aquém da referência"*. **Bloom é AV5**, e este gate assume a ausência
-> dele de propósito.
+> precisa estar escrito ao lado do veredicto: sem essa nota, alguém lê o gate
+> como *"ficou aquém da referência"*. **Bloom é AV5**, e este gate assume a
+> ausência dele de propósito.
+
+> **Esta folha é a evidência inteira do AV1.** As capturas da trilha foram
+> aposentadas em 2026-09-22 (AV0–AV8) — ver
+> [`../../CAMPANHA-EVIDENCIAS.md`](../../CAMPANHA-EVIDENCIAS.md) §6.1. Os nomes
+> de arquivo abaixo continuam sendo o **roteiro do que olhar**; eles só não
+> viram PNG.
 
 ---
 
@@ -35,7 +41,13 @@ sessão**.
 **Com partícula em ZERO, ainda se lê "essa pessoa está em Ten"?**
 REPROVA se parece o jogador normal.
 
-- [ ] PASSA  [ ] REPROVA — veredicto: `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22: *"com `/nenvfx particulas 0` ainda é
+  evidente que o jogador está em Ten ou outras técnicas"*.
+
+> **O gate do #176 está respondido, e com folga.** O veredicto não foi só sobre
+> Ten: a leitura se manteve para as **outras técnicas** também, sem partícula
+> nenhuma. É o oposto do modo de falhar que o ADR-015 teme — a shell não estava
+> sendo carregada pelo acabamento.
 
 > **Se reprovar, a resposta é VOLTAR PARA A SHELL** — não subir a partícula nem
 > o brilho. Está no [ADR-015](../../../adr/ADR-015-aura-e-geometria-e-shader.md),
@@ -52,27 +64,27 @@ REPROVA se parece o jogador normal.
 Todos com partícula **no valor normal**, salvo nota.
 
 ### A1 · `ten_dia` — luz plena, sem estourar
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (luz plena)
 
 ### A2 · `ten_noite` — escuro, sem sumir
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (escuro)
 
 ### A3 · `ten_caverna` — luz zero; **não vira borrão?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (luz zero)
 
 ### A4 · `ten_neve` — **fundo branco**
 O caso que mais ataca a borda: branco contra branco.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (fundo branco)
 
 ### A5 · `ten_nether` — **fundo vermelho saturado**
 O outro extremo: a aura compete com um ambiente que já é todo cor.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (fundo vermelho)
 
 ### A6 · `ten_chuva` — partícula de chuva cruzando a shell
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (chuva)
 
 ### A7 · `ten_agua` — submerso, com a névoa de água por cima
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `e21a6dc`, 2026-09-22 (submerso)
 
 ---
 
@@ -153,18 +165,20 @@ no cliente **não tem régua nenhuma**.
 ## Ao fechar
 
 - [ ] esta folha preenchida, **na mesma sessão**;
-- [ ] decidir se as 17 capturas são arquivadas (ver abaixo);
+- [x] ~~decidir se as 17 capturas são arquivadas~~ — **aposentadas em 2026-09-22**,
+      junto com as de toda a trilha;
 - [ ] `o-que-nao-provamos.md` com o que a sessão **não** provou;
 - [ ] `../../../processo/marcos.md` atualizado;
 - [ ] `compatibility.md`, se a sessão tocar renderer ou shader pack.
 
-> ### A decisão sobre arquivar as 17 imagens
+> ### O custo que a aposentadoria deixa aqui
 >
-> O AV0 **aposentou** as suas catorze, e ficou registrado que aquilo **não se
-> estende** — cada gate decide por si.
+> A objeção de "não é revisável por terceiro" **não se aplica**: uma única
+> pessoa faz a conferência desta trilha.
 >
-> Aqui o peso é maior: **o AV1 é a linha de base do AV2.** Os filamentos entram
-> sobre esta mesma shell, e sem o "antes" a única forma de saber o que eles
-> mudaram é a memória de quem viu os dois. As mais caras de perder são
-> `ten_ruido_ampliado` (o AV2 mexe no mesmo ruído) e `sem_particulas_ten` (o
-> AV2 tem de passar no mesmo critério, com mais geometria).
+> O que sobra é específico deste gate: **o AV1 é a linha de base do AV2.** Os
+> filamentos entram sobre esta mesma shell, e sem o "antes" a única forma de
+> saber o que eles mudaram é a memória de quem viu os dois. As duas perguntas
+> mais caras de não ter arquivado são **D1** (`ten_ruido_ampliado` — o AV2 mexe
+> no mesmo ruído) e **Z1** (o AV2 terá de passar no mesmo critério, com mais
+> geometria por cima).

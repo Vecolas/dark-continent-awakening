@@ -21,27 +21,27 @@ de código — ou só de uma decisão.
 
 | # | O que responder | Gate | Como | Bloqueio |
 | --- | --- | --- | --- | --- |
-| **B1** | Com `bloom off`, a aura se lê? | AV5 | ❌ **já reprovou** — é defeito, não pergunta | #196 |
-| **D3** | O `OFF` ganha compensação, ou o ADR-016 muda de promessa? | AV5 | 🧠 decisão | — |
-| **B2** | `OFF` × `FAST` × `HIGH` do mesmo frame são "menos do mesmo jogo"? | AV5 | 👁 olho | depende de B1 |
-| **B4** | O halo respeita parede **na tela**? | AV5 | 👁 olho | — |
-| **B5** | Com shader pack, a detecção cai para `FAST`? | AV5 | 👁 olho | exige pack instalado |
-| **B6** | Contadores criado/liberado batem após **dez resizes**? | AV5 | 🔢 contar | — |
-| **B7** | O passe de brilho voltou a derrubar o cliente? | AV5 | 👁 olho | exige a GPU que falhou |
+| **B1** | Com `bloom off`, a aura se lê? | AV5 | 🔧 **CONSERTADO** — falta confirmar de olho | — |
+| ~~D3~~ | O `OFF` ganha compensação? | AV5 | ✅ **DECIDIDO e implementado** | — |
+| **B2** | `OFF` × `FAST` × `HIGH` são "menos do mesmo jogo"? | AV5 | 👁 olho — **respondido e invalidado pelo conserto** | depende de B1 |
+| ~~B4~~ | O halo respeita parede na tela? | AV5 | ✅ **PASSA** | — |
+| **B5** | Com shader pack, a detecção cai para `FAST`? | AV5 | ⚠️ **marcado por decisão, sem pack instalado** | — |
+| **B6** | Contadores criado/liberado após dez resizes | AV5 | 🔢 contar | pareamento provável por construção |
+| **B7** | O passe voltou a derrubar o cliente? | AV5 | 👁 olho | exige a GPU que falhou |
 | **Z1** | O **pulso de supressão** aparece? | AV6 | 👁 olho | — |
-| **Z2** | O **modo permissivo** de visibilidade, em jogo | AV6 | 👁 olho | — |
-| **Z3** | A coluna **observador** do resolvedor, em jogo | AV6 | 👥 dois clientes | **depende de Gyo (#126)** |
+| **Z2** | O **modo permissivo**, em jogo | AV6 | 👁 olho | — |
+| **Z3** | A coluna **observador**, em jogo | AV6 | 👥 dois clientes | **depende de Gyo (#126)** |
 | **Z4** | "O cliente de B não recebe o dado de A" | AV6 | 👥 dois clientes | — |
-| **P1** | As **nove poses**: nadar, rastejar, dormir, montar, arco, besta, escudo, elytra, queda | AV7 | 👁 olho | — |
-| **P2** | Capa e elytra sem tratamento — o resultado é aceitável? | AV7 | 👁 olho | — |
-| **P3** | `GeoAuraAdapter` — aura sobre mob GeckoLib | AV7 | 👁 olho | nunca desenhou nada |
+| ~~P1~~ | As **nove poses** | AV7 | ✅ **PASSA** | — |
+| ~~P2~~ | Capa e elytra sem tratamento | AV7 | ✅ **DECIDIDO — mantém assim** | — |
+| ~~P3~~ | `GeoAuraAdapter` — aura sobre mob GeckoLib | AV7 | ✅ **RESPONDIDA POR CÓDIGO** — zero referências fora do próprio arquivo: **não está ligado a nada** | vira dívida de implementação |
 | **O1** | Os quatro cenários de orçamento, com `spark` | AV8 | 📏 medição | exige 10–20 jogadores |
-| **O2** | Tick time do dedicado: 10 em Ren × 10 parados | AV8 | 📏 medição | idem |
+| **O2** | Tick time: 10 em Ren × 10 parados | AV8 | 📏 medição | idem |
 | **O3** | Os **quatro contadores** do `F6` | AV8 | 🔢 contar | **custa 4 linhas** |
-| **O4** | A **distância máxima** girada em jogo | AV8 | 👁 olho | — |
+| ~~O4~~ | A **distância máxima** | AV8 | ✅ **RESPONDIDA POR TESTE** — `AuraLodEfetivoTest` cobre *"além da máxima, NADA nem com ULTRA"* e *"72 blocos coincide com o corte da tabela"* | — |
 | **O5** | Matriz: vanilla, Embeddium, Iris com e sem pack | AV8 | 👁 olho | exige os mods |
-| **D1** | O ripple é corpo inteiro (entregue) ou por região (pedido)? | #103 | 🧠 decisão | — |
-| **D2** | Os seis fatores por região **não têm consumidor visível** | Gyo/Ko/Ryu | 🧠 decisão | — |
+| **D1** | O ripple é corpo inteiro ou por região? | #103 | 🧠 decisão | — |
+| **D2** | Os seis fatores por região sem consumidor | Gyo/Ko/Ryu | 🧠 decisão | — |
 
 ### Legenda
 

@@ -159,6 +159,59 @@ class ForcaDoBrilhoTest {
                         + " desenhadas POR CIMA do halo.");
     }
 
+    @Test
+    @DisplayName("OFF compensa a BORDA -- senao a promessa do ADR-016 e falsa")
+    void offCompensaABorda() {
+        String fonte = semComentarios(Repo.texto(LAYER));
+
+        assertTrue(fonte.contains("REFORCO_DE_BORDA_EM_OFF"),
+                "O nivel OFF voltou a nao compensar nada. O ADR-016 promete por escrito que"
+                        + " com OFF \"a aura continua legivel pela borda Fresnel e pelas"
+                        + " ribbons\" -- e sem compensacao ela nao continua: o AV3 olhou em"
+                        + " 2026-09-22 e o relato foi \"bem transparentes, quase nao da para"
+                        + " ver\". FAST alarga e clareia o halo, HIGH tem o composite, e OFF"
+                        + " ficava com os alphas crus.");
+
+        int ondeOff = fonte.indexOf("AuraBloomLevel.OFF");
+        int ondeBorda = fonte.indexOf("AuraShellPass.BORDA");
+        assertTrue(ondeOff > 0 && ondeBorda > 0 && Math.abs(ondeOff - ondeBorda) < 200,
+                "A compensacao do OFF saiu da BORDA. O perfil diz que \"a borda carrega a"
+                        + " leitura\"; mover o reforco para as outras camadas engordaria a aura"
+                        + " inteira, e o teto de design e explicito: poder extremo aumenta"
+                        + " densidade, brilho, velocidade e pressao -- NAO tamanho.");
+    }
+
+    @Test
+    @DisplayName("a compensacao do OFF e PLANA -- ela nao abre a distancia entre Ten e Ren")
+    void aCompensacaoDoOffEPlana() {
+        String fonte = semComentarios(Repo.texto(LAYER));
+
+        int ondeReforco = fonte.indexOf("alphaDoPasse *= REFORCO_DE_BORDA_EM_OFF");
+        assertTrue(ondeReforco > 0, "nao achei a aplicacao do reforco de OFF");
+        assertFalse(fonte.substring(ondeReforco, ondeReforco + 80).contains("forcaDoBrilho"),
+                "A compensacao do OFF passou a escalar pela forca do brilho. Isso daria MAIS"
+                        + " reforco ao Ren (0,55) que ao Ten (0,20) e abriria a distancia entre"
+                        + " os dois -- e essa distancia ja foi julgada boa como esta, em"
+                        + " 2026-09-22: \"so intensidade diferente\". Plano preserva a razao"
+                        + " exata entre os perfis; escalado a muda sem ninguem pedir.");
+    }
+
+    @Test
+    @DisplayName("OFF continua SEM passe extra -- a outra metade da promessa do ADR-016")
+    void offNaoGanhaGeometria() {
+        String fonte = semComentarios(Repo.texto(LAYER));
+
+        int inicio = fonte.indexOf("private static int degrauDoPasse");
+        assertTrue(inicio > 0, "nao achei degrauDoPasse");
+        String corpo = fonte.substring(inicio, fonte.indexOf("return Math.min", inicio) + 200);
+
+        assertFalse(corpo.contains("AuraBloomLevel.OFF"),
+                "O nivel OFF passou a mexer na escada de espessuras. O ADR-016 define OFF como"
+                        + " \"nenhum passe extra\", e degrau a mais E geometria a mais: a"
+                        + " compensacao do OFF tem de ser alpha, e so alpha. Do contrario OFF e"
+                        + " FAST viram o mesmo nivel com dois nomes.");
+    }
+
     // ---------------------------------------------------------------- leitura
 
     /** O {@code "forca"} de dentro do bloco {@code "bloom"} do perfil. */

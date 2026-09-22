@@ -117,6 +117,38 @@ public final class AuraPlayerRenderLayer
     private static final float REFORCO_DE_HALO_EM_FAST = 1.9F;
 
     /**
+     * Quanto a BORDA clareia no modo {@code OFF}.
+     *
+     * <p>POR QUE ELE EXISTE. Ate 2026-09-22 o {@code OFF} nao compensava NADA:
+     * {@code FAST} alarga e clareia o halo, {@code HIGH} tem o composite, e o
+     * {@code OFF} herdava os alphas do perfil crus. O AV3 cobrou a promessa do
+     * ADR-016 -- <i>"a aura continua legivel pela borda Fresnel e pelas
+     * ribbons"</i> -- e o relato foi o oposto: <i>"bem transparentes, quase nao
+     * da para ver"</i>.
+     *
+     * <p><b>O CODIGO NAO TINHA REGREDIDO.</b> O {@code ten.json} e identico ao
+     * que o AV1 aprovou como "evidente", e naquela epoca o passe de bloom NAO
+     * EXISTIA -- ou seja, o AV1 julgou exatamente estes pixels e disse que
+     * bastavam. O que mudou foi o olho, recalibrado pela versao com brilho. Esta
+     * constante eleva um piso que ja fora aceito; ela nao restaura nada.
+     *
+     * <p><b>SO A BORDA, e de proposito.</b> O proprio perfil diz que "a borda
+     * carrega a leitura"; clarear as tres camadas engordaria a aura inteira, e o
+     * teto de design e explicito em que poder extremo aumenta densidade, brilho,
+     * velocidade e pressao -- <b>nao tamanho</b>.
+     *
+     * <p><b>E PLANO, e nao escalado pela forca do brilho.</b> Escalar faria Ren
+     * ganhar mais que Ten e ABRIRIA a distancia entre os dois -- e essa distancia
+     * ja foi julgada boa como esta ("so intensidade diferente"). Plano preserva a
+     * razao exata entre os perfis.
+     *
+     * <p><b>Continua sem passe extra</b>, que e a outra metade da promessa do
+     * ADR-016: nenhum degrau de geometria a mais, nenhum framebuffer, nenhum
+     * shader novo. So alpha.
+     */
+    private static final float REFORCO_DE_BORDA_EM_OFF = 1.55F;
+
+    /**
      * As malhas: um modelo por degrau de espessura, por passe.
      *
      * <p>ASSADAS UMA VEZ, no construtor da layer, e nunca no desenho. O custo
@@ -211,6 +243,13 @@ public final class AuraPlayerRenderLayer
                 // FAST NAO TEM ALVO: o halo e simulado engrossando e clareando a
                 // camada que ja separa a aura do fundo.
                 alphaDoPasse *= 1.0F + (REFORCO_DE_HALO_EM_FAST - 1.0F) * forcaDoBrilho;
+            }
+            if (passe == AuraShellPass.BORDA
+                    && nivelDeBrilho == com.darkcontinent.nenfoundation.client.vfx
+                            .AuraBloomLevel.OFF) {
+                // OFF NAO TEM COM QUE COMPENSAR: sem composite e sem halo
+                // alargado, sobra a borda crua. Ver o javadoc da constante.
+                alphaDoPasse *= REFORCO_DE_BORDA_EM_OFF;
             }
             if (alphaDoPasse < ALPHA_MINIMO) {
                 continue;

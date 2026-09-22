@@ -61,6 +61,50 @@ resposta de uma delas vale para as três.
 
 ---
 
+## Recarimbos — quando um invalidador mudou e a resposta sobreviveu
+
+O portão proíbe atualizar um digest **sem olhar**. Ele não proíbe atualizar
+depois de olhar — mas exige que o "olhei" fique escrito, com o que mudou e por
+que não alcança a resposta. Sem esta seção, recarimbar e calar o portão são a
+mesma ação vista de fora.
+
+### 2026-09-22 · a compensação do nível `OFF`
+
+**O que mudou:** `AuraPlayerRenderLayer` ganhou o reforço da borda em `OFF`
+(#196), em resposta ao AV3.
+
+**Quantas respostas o portão derrubou:** dez — `particulas-zero`,
+`movimento-acompanha`, `primeira-pessoa`, `armadura-completa`,
+`ren-primeira-pessoa`, `ren-mesma-linguagem`, `ren-skin-legivel`,
+`ren-nao-fica-preso`, `ren-mundo-intacto` e `ren-nao-acopla`.
+
+**Por que nenhuma delas é alcançada**, e isto se lê no diff, não na minha
+opinião — a mudança inteira mora dentro de uma guarda:
+
+```java
+if (passe == AuraShellPass.BORDA && nivelDeBrilho == AuraBloomLevel.OFF) {
+    alphaDoPasse *= REFORCO_DE_BORDA_EM_OFF;
+}
+```
+
+**Ela é inerte com bloom em `auto`**, e as dez foram respondidas com bloom em
+`auto`. Não há caminho pelo qual este código execute nas condições em que elas
+foram julgadas.
+
+**A exceção, que NÃO foi recarimbada:** o `B2` do AV5 — *"`OFF` × `FAST` × `HIGH`
+são o mesmo jogo?"* — foi respondido no build anterior e pergunta **exatamente
+sobre o `OFF`**. Ele não entrou no registro: volta a ser pergunta aberta, e
+precisa ser re-olhado depois desta mudança.
+
+> **O que este episódio ensinou sobre o próprio registro.** Uma mudança de três
+> linhas derrubou dez respostas porque `AuraPlayerRenderLayer` é um arquivo de
+> quinhentas linhas que faz tudo — o invalidador é grosso demais para o que
+> precisa distinguir. O preço disso é este parágrafo a cada mudança no arquivo.
+> Ainda vale mais que a alternativa (nenhum portão), mas é um custo real e fica
+> anotado aqui em vez de virar irritação silenciosa.
+
+---
+
 ## Procedência: nem toda resposta vem de uma sessão de gate
 
 A coluna **perguntada em** distingue duas origens, e a diferença não é
@@ -85,23 +129,25 @@ Colunas: **id** · **veredito** · **onde foi perguntada** · **o que a invalida
 
 | id | veredito | perguntada em | invalidadores | digest |
 | --- | --- | --- | --- | --- |
-| `particulas-zero` | PASSA | AV1 · AV2 · AV3-Z1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model;src/main/java/com/darkcontinent/nenfoundation/client/vfx/EmissorDeParticulasDeAura.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `040b63becc64` |
-| `movimento-acompanha` | PASSA | AV2-M1..M4 · AV3-M1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon/AuraAnchor.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `c6dd5afa7013` |
+| `particulas-zero` | PASSA | AV1 · AV2 · AV3-Z1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model;src/main/java/com/darkcontinent/nenfoundation/client/vfx/EmissorDeParticulasDeAura.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `dcff205bd421` |
+| `movimento-acompanha` | PASSA | AV2-M1..M4 · AV3-M1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon/AuraAnchor.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `6eec8bd466d9` |
 | `slim-e-default` | PASSA | AV2-C1 · AV3-M3 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraModelAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/HumanoidAuraAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraPlayerModel.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon/AuraAnchor.java` | `09fa0ecc6578` |
 | `sete-ambientes` | PASSA | AV1 · AV3-A | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/shader;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraRenderTypes.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `63d54ccd9bdf` |
 | `distancia-sem-degrau` | PASSA | AV3-D1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraRenderLod.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraLodEfetivo.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraGeometryLadder.java` | `329265814076` |
 | `distancia-40b-comunica` | PASSA | AV3-D2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraRenderLod.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraLodEfetivo.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `35626c316b30` |
-| `primeira-pessoa` | PASSA | AV3-P1..P3 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPrimeiraPessoa.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `612d60ef06fc` |
-| `armadura-completa` | PASSA | AV3-M2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraPerfilVisual.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `c10f248adc20` |
-| `ren-primeira-pessoa` | PASSA | playtest · R9 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPrimeiraPessoa.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/resources/assets/nenfoundation/nen_vfx/ren.json` | `eb556194b812` |
+| `primeira-pessoa` | PASSA | AV3-P1..P3 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPrimeiraPessoa.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `02f0e1908d21` |
+| `armadura-completa` | PASSA | AV3-M2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraPerfilVisual.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/resources/assets/nenfoundation/nen_vfx/ten.json` | `4f25a7c97e17` |
+| `ren-primeira-pessoa` | PASSA | playtest · R9 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPrimeiraPessoa.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/resources/assets/nenfoundation/nen_vfx/ren.json` | `b8a8be97003d` |
 | `ren-transicao-overshoot` | PASSA | playtest · R10 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransicao.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransitionProfile.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraTransitionSample.java;src/main/resources/assets/nenfoundation/nen_vfx/ren.json` | `73b5d5fc9674` |
-| `ren-mesma-linguagem` | PASSA | playtest · R11 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/resources/assets/nenfoundation/nen_vfx/ten.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `d11cd2aaa66d` |
-| `ren-skin-legivel` | PASSA | playtest · R12 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraGeometryLadder.java` | `6b4c540e1b24` |
-| `ren-nao-fica-preso` | PASSA | playtest · R13 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraGroundRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ZumbidoDeRen.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AudioDeAura.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraVisualSystem.java` | `0c327a4bd2af` |
-| `ren-mundo-intacto` | PASSA | playtest · R2 · R3 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/SondagemDeChao.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraGroundRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/EmissorDeParticulasDeAura.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `501fca6e960e` |
+| `ren-mesma-linguagem` | PASSA | playtest · R11 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/resources/assets/nenfoundation/nen_vfx/ten.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `74448f2bdf1d` |
+| `ren-skin-legivel` | PASSA | playtest · R12 | `src/main/resources/assets/nenfoundation/nen_vfx/ren.json;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraGeometryLadder.java` | `b89bb77cc7fd` |
+| `ren-nao-fica-preso` | PASSA | playtest · R13 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraGroundRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ZumbidoDeRen.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AudioDeAura.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraVisualSystem.java` | `8b0488cf9e31` |
+| `ren-mundo-intacto` | PASSA | playtest · R2 · R3 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/SondagemDeChao.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraGroundRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/EmissorDeParticulasDeAura.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `2d5cd2189bd9` |
 | `ren-impulso-so-do-local` | PASSA | construção · R7 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/ImpulsoDeCamera.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AudioDeAura.java` | `de028574e77b` |
+| `halo-respeita-parede` | PASSA | AV5 · B4 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java` | `530f46a51bca` |
+| `nove-poses` | PASSA | AV7 · P1 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraModelAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/HumanoidAuraAdapter.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/model/AuraPlayerModel.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ribbon/AuraAnchor.java` | `09fa0ecc6578` |
 | `grama-oclui-o-halo` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java` | `530f46a51bca` |
-| `ren-nao-acopla` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `578f8fe6b2da` |
+| `ren-nao-acopla` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraBloomRenderer.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/render/AuraPlayerRenderLayer.java` | `c389492d7ce9` |
 | `ripple-acende` | PASSA | AV2-E2 · AV3-E2 | `src/main/java/com/darkcontinent/nenfoundation/client/vfx/DetectorDeImpacto.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraImpactState.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/AuraDistribution.java;src/main/java/com/darkcontinent/nenfoundation/client/vfx/ImpactosDeAura.java` | `335bb0a13b58` |
 
 ---

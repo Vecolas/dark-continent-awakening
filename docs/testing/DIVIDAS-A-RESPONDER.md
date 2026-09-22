@@ -56,12 +56,26 @@ casual responde, porque quase tudo exige *medir antes e depois*, e não olhar.
 | R6 | O **impulso de câmera** incomoda depois de **20 ativações seguidas**? | ligar Ren 20 vezes | ❌ exige a repetição |
 | R7 | **Observadores não recebem impulso de câmera** | segundo cliente olhando | ❌ exige 2º cliente |
 | R8 | O **áudio de Ten** — duas pessoas já o ouviram? | dois clientes | ❌ |
-| R9 | Ren **não bloqueia a visão em primeira pessoa** | F5 com Ren | ✅ provável |
-| R10 | A **transição TEN→REN** tem overshoot visível? | alternar | ✅ provável |
-| R11 | Ren é claramente mais intenso, **na mesma linguagem** — não vira raio elétrico nem transformação de outro anime | olhar | ✅ provável |
-| R12 | A **skin continua legível** sob Ren | olhar | ✅ provável |
-| R13 | Relog, morte e troca de dimensão não deixam **anel, coluna, detrito ou loop de áudio** presos | sair e voltar | ⚠️ parcial |
+| ~~R9~~ | Ren não bloqueia a visão em primeira pessoa | — | ✅ **RESPONDIDA** (playtest) |
+| ~~R10~~ | A transição TEN→REN tem overshoot visível | — | ✅ **RESPONDIDA** (playtest) |
+| ~~R11~~ | Ren é mais intenso na mesma linguagem, sem virar raio elétrico | — | ✅ **RESPONDIDA** (playtest) |
+| ~~R12~~ | A skin continua legível sob Ren | — | ✅ **RESPONDIDA** (playtest) |
+| **R13** | Relog, morte e dimensão não deixam **anel, coluna, detrito ou loop de áudio** presos | sair e voltar **com o anel no chão** | ⚠️ **ver a nota abaixo** |
 | R14 | Log do dedicado limpo | meu | — |
+
+> **O R13 mudou de significado sem mudar de nome, e é o único da lista com esse
+> problema.** O AV0 já respondeu *"morte e troca de dimensão desativam tudo,
+> nenhum estado fica travado"* — **para Ten**, que não tem anel, não tem coluna,
+> não tem detrito e não tem loop de áudio. Nenhuma dessas quatro coisas existia
+> para ficar presa.
+>
+> Em Ren são quatro objetos novos, e três deles desenham **no mundo** e não no
+> jogador. É o erro nº 3 do `CLAUDE.md` — *limpeza espalhada pelos pontos de
+> saída* — com quatro pontos de saída e quatro coisas para limpar, e o nº 8:
+> construct órfão não dá erro, dá TPS caindo devagar ao longo de uma semana.
+>
+> **Não precisa de sessão montada.** Basta lembrar se, quando você testou, o
+> anel estava no chão e você saiu e voltou. Se estava, passa e eu registro.
 
 **R1 a R8 são o gate.** É por isso que "já testei Ren" não fecha o AV4: o que
 sobra é justamente o que exige montagem deliberada.

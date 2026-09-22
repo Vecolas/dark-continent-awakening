@@ -378,6 +378,26 @@ AV0 Tech spike        shell inflada segue as animacoes     <- se falhar, PARA
 | **AV7** | dois clientes reais, armadura, capa, elytra e as poses; nenhum estado visual preso apos relog, morte ou dimensao |
 | **AV8** | o orcamento de 10 jogadores em Ren, medido com `spark`, antes e depois |
 
+> **Dívida nomeada do AV5, encontrada no AV3 (2026-09-22).** O nível `OFF` nao
+> cumpre o que o [ADR-016](../adr/ADR-016-pos-processamento-proprio-da-aura.md)
+> promete por escrito — *"a aura continua legivel pela borda Fresnel e pelas
+> ribbons"*. Com `particulas 0` e `bloom off`, o relato de jogo foi *"bem
+> transparentes, quase nao da para ver"*.
+>
+> A causa nao e misterio: `FAST` compensa a ausencia do composite por geometria
+> (`REFORCO_DE_HALO_EM_FAST = 1.9` e dois degraus extras) e **`OFF` nao compensa
+> com nada** — ele herda `alpha_borda: 0.20`, calibrado com o bloom LIGADO,
+> porque AV0, AV1 e AV2 rodaram todos com ele ligado.
+>
+> **Nao e detalhe de conforto.** O proprio `AuraBloomLevel` declara que `OFF` "e
+> uma escolha legitima de quem quer o jogo mais leve" e que por isso o fallback
+> nunca desce ate ele. Se `OFF` esconde a aura, essa escolha legitima vira
+> castigo, e a rota de fuga do ADR-016 deixa de existir.
+>
+> **Nao foi consertado no AV3, de proposito:** bloom e AV5, e a folha do AV3
+> perguntou por ele por alcance meu alem do marco. O conserto entra no gate dono
+> dele, com olho humano nos tres niveis lado a lado.
+
 **Uma trilha por vez continua valendo.** Nao iniciar o AV sem autorizacao
 explicita, e nao comecar o AV(n+1) sem fechar o AV(n) — o AV0 existe
 precisamente para ser um ponto de parada barato.

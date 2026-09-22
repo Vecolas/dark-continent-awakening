@@ -16,6 +16,64 @@ segundo jogador). Overlay `F6` **sem** `OVERRIDE ATIVO`.
 
 ---
 
+## Resultado da sessão de 2026-09-22
+
+| # | Resultado |
+| --- | --- |
+| **P1 · P2 · P3** — primeira pessoa | ✅ PASSA — aparece, acompanha, e **só o braço** entra em cena |
+| **A** — sete ambientes | ✅ PASSA |
+| **D1 · D2** — distância | ✅ PASSA — sem degrau, e a 40 b ainda comunica |
+| **M1 · M3** — movimento, slim/default | ✅ PASSA — **carregadas** do AV2 |
+| **E2** — três regressões | ✅ PASSA — **carregadas** do AV2 |
+| **Z1** — `particulas 0` | ✅ PASSA — **carregada** (terceira vez que seria perguntada) |
+| **Z2** — `bloom off` | ❌ **REPROVA** — e o defeito é do **AV5**, não do AV3 |
+| **M2** — armadura completa | ⬜ nunca perguntada |
+| **C1–C4** — os contadores | ⬜ **dívida herdada do AV2** |
+
+### O que "carregadas" significa, e por que não é atalho
+
+O pedido foi explícito: *"é perda de tempo responder a mesma coisa sem que nada
+tenha mudado"*. Está certo — `particulas 0` seria a **terceira** vez.
+
+Mas carregar um veredito de boca é como se fabrica falso verde. Então virou
+regra: [`../../RESPOSTAS.md`](../../RESPOSTAS.md) registra cada resposta **com os
+arquivos que a invalidam**, e `RespostasAindaValidasTest` reprova o build quando
+um deles muda. **A resposta não expira por tempo; expira por causa.**
+
+Entre o AV2 (`280696b`) e hoje mudaram quatro arquivos no caminho de VFX, e os
+quatro são a instrumentação de `/nenvfx bloom`. Nenhum invalidador das respostas
+carregadas está entre eles. **Não é confiança: é a verificação que coube.**
+
+### O Z2, que é o achado desta sessão
+
+Com `particulas 0` **e** `bloom off` ao mesmo tempo, o relato foi: sobram
+filamentos e um pouco da shell, *"bem transparentes, quase não dá para ver"*.
+
+O [ADR-016](../../../adr/ADR-016-pos-processamento-proprio-da-aura.md) promete
+por escrito o contrário:
+
+> `OFF` — nenhum passe extra. **A aura continua legível pela borda Fresnel e
+> pelas ribbons.** [...] **o sistema principal funciona inteiro com ele
+> desligado.**
+
+**A causa é conhecida e não é mistério.** `FAST` compensa a falta do composite
+por geometria — `REFORCO_DE_HALO_EM_FAST = 1.9` e dois degraus extras. **`OFF`
+não compensa com nada:** herda `alpha_borda: 0.20` do perfil, que foi calibrado
+com o bloom LIGADO, porque AV0, AV1 e AV2 rodaram todos com ele ligado. Ninguém
+nunca olhou o `OFF`.
+
+**Por que isso não reprova o AV3.** O critério do
+[ADR-015](../../../adr/ADR-015-aura-e-geometria-e-shader.md) é sobre
+**partícula**, não sobre bloom — e é o Z1, que passa. O Z2 pergunta sobre um
+nível de bloom, e bloom é o AV5. **Ter posto o Z2 nesta folha foi alcance meu
+além do marco**, e a resposta certa é entregar o achado ao gate dono dele, não
+consertar o AV5 por dentro do AV3.
+
+Fica registrado em [`marcos.md`](../../../processo/marcos.md) como dívida
+nomeada do AV5.
+
+---
+
 ## O quadro da sessão — tudo que precisa de resposta
 
 **Doze julgamentos** (PASSA/REPROVA) e **quatro números**. O E1 é meu.

@@ -1,5 +1,10 @@
 # Campanha de evidências: a ordem, a montagem e o checklist
 
+> **Resposta ja dada nao se pergunta de novo.** O registro em
+> [`RESPOSTAS.md`](RESPOSTAS.md) guarda cada veredito **com os arquivos que o
+> invalidam**, e `RespostasAindaValidasTest` reprova o build quando um deles
+> muda. A resposta nao expira por tempo; expira por causa.
+
 A trilha AV, o gate do M4 e os dois primeiros gates de inimigos **não esperam
 código**. Esperam uma pessoa olhando uma tela, com o jogo de pé, e a imagem
 arquivada depois. Este documento é o roteiro dessa campanha.

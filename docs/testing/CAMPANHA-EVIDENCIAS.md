@@ -499,6 +499,20 @@ Alternativa não testada, se mover for indesejável agora:
 > que a primeira execução desta medição disse `BUILD SUCCESSFUL` enquanto a
 > segunda, idêntica, reprovava.
 
+> #### A bancada foi conferida de novo em `1fdc965`, 2026-09-22 (para o AV1)
+>
+> | Item da 4.1 | Estado |
+> | --- | --- |
+> | `./gradlew build` verde | ✅ **1.579 testes** (eram 1.568; +11 do ripple #103) |
+> | `runGameTestServer` | ✅ **duas execuções limpas seguidas**, `All 150 required tests passed`, saída inteira arquivada |
+> | `instancia.ps1 atualizar` | ✅ JAR confere por SHA-256 (`19e4f588…`) |
+> | as três árvores no mesmo commit | ✅ principal, `C:/dca-a` e `C:/dca-b` em `1fdc965` |
+> | janela combinada com a outra frente | ⬜ **não combinada** — decisão humana, ver 4.4 |
+>
+> O AV1 pede **um cliente**, e não dois: a série de distância dele não exige o
+> segundo jogador. A montagem de dois worktrees continua montada porque o AV3 e
+> o AV6 voltam a pedir.
+
 > #### A bancada foi conferida em `053ed81`, 2026-09-21
 >
 > | Item da 4.1 | Estado |

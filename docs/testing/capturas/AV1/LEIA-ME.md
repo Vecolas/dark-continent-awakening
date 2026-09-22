@@ -13,6 +13,12 @@ branch do AV4; o que falta é evidência.
 
 ---
 
+> **As perguntas desta sessão, uma por uma, estão em
+> [`PERGUNTAS.md`](PERGUNTAS.md)** — com espaço para o veredicto ao lado de cada
+> captura, e a polaridade uniforme (`PASSA`/`REPROVA`). Dezessete nomes de
+> arquivo produzem dezessete imagens e nenhuma resposta; a evidência do gate é o
+> julgamento escrito ao lado.
+
 ## As dezessete capturas
 
 ```

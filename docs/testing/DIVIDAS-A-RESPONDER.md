@@ -90,7 +90,7 @@ e nada fica carimbado sem prova.
 | --- | --- | --- |
 | B1 | Com `bloom off`, a aura se lê? | ❌ **JÁ REPROVOU** (AV3, 2026-09-22) — é o defeito aberto em #196 |
 | B2 | `OFF` × `FAST` × `HIGH` do **mesmo frame** são "menos do mesmo jogo", e não três jogos? | nunca comparados |
-| B3 | **Vidro, folhas e água** ocluem o halo? | nunca olhado — só grama foi, e por acidente |
+| ~~B3~~ | Vidro, folhas e água ocluem o halo? | ✅ **RESPONDIDA POR CÓDIGO** — folha e vidro comum **ocluem** (são cutout, entraram na máscara junto com a grama); água, gelo e vidro tingido **não** (translúcidos). Confirmar de olho é opcional |
 | B4 | O halo respeita parede **na tela**? | hoje é afirmação de construção |
 | B5 | Com um **shader pack** instalado, a detecção cai para `FAST`? | nunca exercitada com pack |
 | B6 | Os contadores de alvo **criado/liberado** batem depois de **dez resizes** de janela? | nunca lidos |

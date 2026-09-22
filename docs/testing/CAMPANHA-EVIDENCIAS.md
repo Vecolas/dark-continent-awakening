@@ -468,11 +468,17 @@ Alternativa não testada, se mover for indesejável agora:
 
 > #### Um GameTest é INTERMITENTE, e isso muda o que este item prova
 >
-> Medido em `f5ae73b`, 2026-09-21: **uma reprovação em cinco execuções** de
-> `runGameTestServer --rerun-tasks` (`1 required tests failed`), e as outras
-> quatro passaram com `All 146 required tests passed`. O teste que reprovou
-> **não foi identificado** — a saída daquela execução tinha sido filtrada por
-> `grep`, e as tentativas seguintes de reproduzir não pegaram o flake.
+> Medido em `f5ae73b`, 2026-09-21: **uma reprovação em nove execuções** de
+> `runGameTestServer --rerun-tasks` (`1 required tests failed`); as outras oito
+> passaram com `All 146 required tests passed`. O teste que reprovou **não foi
+> identificado** — a saída daquela execução tinha sido filtrada por `grep`, e
+> oito tentativas de reproduzir não pegaram o flake.
+>
+> *(A primeira redação desta caixa dizia "uma em cinco", com a amostra que havia
+> naquele momento. Quatro execuções depois o denominador mudou e a frase foi
+> corrigida. Fica registrado porque é o assunto do documento: **número medido
+> cedo demais envelhece igual a número copiado à mão** — e a taxa de um flake é
+> dos piores, porque cada execução nova a move.)*
 >
 > A consequência é específica e vale escrever: **este item do checklist pode
 > ficar verde por sorte.** Uma execução só não distingue "passou" de "passou
@@ -481,8 +487,10 @@ Alternativa não testada, se mover for indesejável agora:
 >
 > Enquanto o flake não tiver nome, o item pede **duas execuções seguidas
 > limpas**, e a sessão que vier depois registra quantas rodou. Não é rigor
-> decorativo: um flake de 1 em 5 tem ~20% de chance de reprovar exatamente na
-> execução que abre a sessão, e ~4% de reprovar duas vezes seguidas.
+> decorativo: a ~11% medidos, uma execução só erra o diagnóstico em cerca de uma
+> sessão a cada nove; exigir duas limpas derruba isso para ~1%. O que as duas
+> execuções NÃO fazem é achar o teste culpado — para isso é preciso guardar a
+> saída inteira de cada execução, que foi exatamente o que faltou aqui.
 >
 > `--rerun-tasks` não é opcional aqui. Sem ele o Gradle devolve o resultado em
 > cache e a tarefa "passa" em 34 s **sem subir servidor nenhum** — foi assim

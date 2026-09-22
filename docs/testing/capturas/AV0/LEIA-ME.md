@@ -36,8 +36,18 @@ ten_2b   ten_5b  ten_10b  ten_20b  ten_40b
 - log do servidor dedicado **sem** `NoClassDefFoundError` nem
   `ClassNotFoundException` de `net.minecraft.client.*` — singleplayer não pega
   classe client-only vazada (erro nº 10 do `CLAUDE.md`);
-- `/nenvfx off`, relog, morte e troca de dimensão não deixam estado preso;
-- `poseStack.scale` não é usado em lugar nenhum da shell.
+- `/nenvfx off`, relog, morte e troca de dimensão não deixam estado preso
+  — o **logout** já tem teste; morte e troca de dimensão, não;
+- ~~`poseStack.scale` não é usado em lugar nenhum da shell~~ → **agora é
+  portão**, e não item de sessão: `EscalaDaShellTest`. Ele mira o TIPO
+  `PoseStack` (não o nome da variável), ignora menção em comentário — os quatro
+  javadocs que proíbem a escala continuam passando —, permite `Vec3.scale`, e
+  foi verificado reprovando contra uma violação injetada no código real.
+
+> **As perguntas desta sessão, uma por uma, estão em
+> [`PERGUNTAS.md`](PERGUNTAS.md)** — com espaço para o veredicto ao lado de cada
+> captura. Catorze nomes de arquivo produzem catorze imagens e nenhuma resposta;
+> a evidência do gate é o julgamento escrito ao lado do PNG.
 
 A bancada foi **validada em 2026-09-21** (`CAMPANHA-EVIDENCIAS.md` §5): comando,
 overlay F6, sliders, lote, nomenclatura e restauração de câmera passaram item a

@@ -44,6 +44,11 @@ ten_2b   ten_5b  ten_10b  ten_20b  ten_40b
   javadocs que proíbem a escala continuam passando —, permite `Vec3.scale`, e
   foi verificado reprovando contra uma violação injetada no código real.
 
+> **O que ainda falta, e de quem é cada parte, está em
+> [`DIVIDAS.md`](DIVIDAS.md).** As treze perguntas de julgamento já passaram; o
+> que o gate ainda deve é **procedência** — imagem, montagem declarada e a
+> comparação feita na mesma sessão.
+
 > **As perguntas desta sessão, uma por uma, estão em
 > [`PERGUNTAS.md`](PERGUNTAS.md)** — com espaço para o veredicto ao lado de cada
 > captura. Catorze nomes de arquivo produzem catorze imagens e nenhuma resposta;

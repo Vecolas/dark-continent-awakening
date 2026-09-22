@@ -190,7 +190,12 @@ public final class AuraPlayerRenderLayer
         // do fluxo -- e sincronia acidental e a coisa mais artificial que um
         // efeito organico pode fazer. Custo declarado: respawn e troca de
         // dimensao recriam a entidade, e o fluxo da um salto.
-        float tempo = idadeEmTicks / 20.0F;
+        // O TEMPO PASSA PELO CONGELAMENTO. Antes ele era `idadeEmTicks / 20`
+        // direto, e /nenvfx freeze parava a interpolacao mas NAO o fluxo nem o
+        // ciclo dos filamentos -- dois quadros "congelados" saiam diferentes, e
+        // a verificacao do AV2 reprovaria sem haver defeito na curva.
+        float tempo = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                .tempoDeAnimacao(idadeEmTicks);
 
         var nivelDeBrilho = com.darkcontinent.nenfoundation.client.vfx.shader.AuraPostProcess
                 .nivelEfetivo();

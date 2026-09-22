@@ -386,6 +386,9 @@ public final class NenFoundationClient {
             com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.disparar();
         }
         com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.aoTick();
+        // O RELOGIO DO CONGELAMENTO CONTA MESMO CONGELADO -- e precisa: e a
+        // contagem que permite descontar do idadeEmTicks, que nao para.
+        com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aoTick();
         double densidade = com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
                 .aplicarNaDensidade(NenClientConfig.densidadeDeParticulas());
         // O JOGADOR LOCAL TAMBEM PASSA PELA QUALIDADE. A distancia dele e

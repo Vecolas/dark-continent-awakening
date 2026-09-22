@@ -80,13 +80,69 @@ public final class SobreposicaoDeVfx {
     }
 
     /**
-     * Congela a interpolacao no quadro atual.
+     * Ticks decorridos desde que o congelamento comecou. Zero quando nao ha.
+     *
+     * <p>Ele existe para {@link #tempoDeAnimacao(float)} poder PRENDER o relogio
+     * sem perder a fase de cada entidade -- ver o javadoc de la.
+     */
+    private static volatile int ticksCongelados;
+
+    /**
+     * Avanca o relogio do congelamento. Chamado uma vez por tick do cliente.
+     *
+     * <p>Ele conta MESMO congelado -- e precisa contar: e a contagem que permite
+     * descontar do {@code idadeEmTicks}, que nao para.
+     */
+    public static void aoTick() {
+        if (congelado) {
+            ticksCongelados++;
+        }
+    }
+
+    /**
+     * O tempo de animacao a usar neste quadro, PRESO quando congelado.
+     *
+     * <p><b>O CONGELAMENTO NAO ALCANCAVA O RELOGIO, e esse era o defeito.</b>
+     * {@code /nenvfx freeze} parava a interpolacao de estado -- modo,
+     * intensidade, distribuicao --, mas o {@code tempo} que move o FLUXO do
+     * shader e o CICLO dos filamentos continuava correndo. Dois quadros
+     * "congelados" saiam diferentes, e a verificacao do AV2 <i>"os dois quadros
+     * tem de ser IDENTICOS"</i> reprovaria sem que houvesse nada errado com a
+     * curva do filamento. Alguem cacaria um defeito inexistente.
+     *
+     * <p><b>DESCONTA O DECORRIDO, e nao prende um valor global.</b> Prender um
+     * numero so faria todas as entidades compartilharem a mesma fase enquanto
+     * congeladas -- e a fase por entidade e deliberada: "dois jogadores nunca
+     * estao na mesma fase do fluxo, e sincronia acidental e a coisa mais
+     * artificial que um efeito organico pode fazer". Descontando os ticks
+     * decorridos, cada entidade fica exatamente onde estava.
+     *
+     * <p><b>E O FRACIONARIO E CORTADO.</b> {@code idadeEmTicks} inclui o
+     * {@code partialTick}, que muda DENTRO de um mesmo tick: sem o piso, dois
+     * quadros do mesmo tick ainda diferiam -- pouco, e o suficiente para uma
+     * comparacao byte a byte falhar.
+     */
+    public static float tempoDeAnimacao(float idadeEmTicks) {
+        if (!congelado) {
+            return idadeEmTicks / 20.0F;
+        }
+        return (float) (Math.floor(idadeEmTicks) - ticksCongelados) / 20.0F;
+    }
+
+    /**
+     * Congela a interpolacao E o relogio de animacao no quadro atual.
      *
      * <p>E o que torna possivel a verificacao do AV2 "a pool e estavel (sem
      * jitter por frame)": dois quadros seguidos da mesma coisa so se comparam
      * se a coisa parou de mudar entre eles.
      */
     public static void congelar(boolean valor) {
+        // O CONTADOR ZERA AO LIGAR, e nao ao desligar: ligar duas vezes seguidas
+        // sem zerar faria o segundo congelamento descontar o tempo do primeiro,
+        // e a aura saltaria para tras.
+        if (valor && !congelado) {
+            ticksCongelados = 0;
+        }
         versao++;
         congelado = valor;
     }

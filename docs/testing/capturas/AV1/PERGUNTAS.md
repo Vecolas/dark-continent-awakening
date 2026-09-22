@@ -20,7 +20,7 @@ o que cada uma **pergunta**, com espaço para o veredicto ao lado.
 | D2 — giro 360° | ✅ **sem z-fighting** |
 | E1 — log do dedicado | ✅ **limpo**, dois jogadores, varrido em produção |
 | C1 · C2 — série de distância | ✅ sem degrau de LOD; a 40 b ainda comunica |
-| E2 — ripple (#103) | ⚠️ **não acendia** — três defeitos corrigidos, **reteste pendente** |
+| E2 — ripple (#103) | ✅ **visível** — pulso na aura inteira no hit, confirmado em tela |
 
 ### O que o Z1 prova, e é mais do que o gate pedia
 
@@ -33,10 +33,17 @@ shell ficou de pé sozinha.
 ### O que a sessão encontrou além do gate
 
 **O E2 não é item do #176, e foi o mais produtivo.** O ripple **não acendia
-nunca**, e a resposta expôs **três** defeitos que nenhum dos onze testes pegava:
-o teto de 1.0 que o tornava impossível em Ten, o gatilho que exigia dois
-pacotes no mesmo tick, e uma força de 0,05 para um soco. Corrigidos; **o
-reteste é a única coisa que o AV1 ainda deve**.
+nunca**, e a resposta expôs **quatro** defeitos que nenhum dos onze testes
+pegava: o teto de 1.0 que o tornava impossível em Ten, o gatilho que exigia dois
+pacotes no mesmo tick, a força de 0,05 para um soco, e — depois de os três
+primeiros não bastarem — um tratamento visual que somava nove centésimos de
+alpha a **uma** região. Hoje ele **se vê**: pulso na aura inteira, no hit.
+
+**A lição está no método, e não na lista.** As três primeiras correções foram
+raciocínio sobre código e falharam em sequência. A quarta veio depois de
+**instrumentar**: a linha do F6 separou "não dispara" de "dispara e não se vê",
+e isso mudou a pergunta de *"quanto subir o número"* para *"qual tratamento
+visual"* — que tinha outra resposta.
 
 E dois defeitos do **bloom** saíram da mesma sessão: o halo atravessando grama
 (máscara copiada antes do passe de *cutout*) e o acoplamento em que o Ren de um
@@ -227,19 +234,35 @@ Não é item do #176 — é oportunidade: ele acabou de ser mergeado e **nunca f
 visto em tela**. Os onze testes medem `float` e `HashMap`, não pixel, e a ligação
 no cliente **não tem régua nenhuma**.
 
-- [ ] acende e decai  [ ] não acende  [ ] fica preso aceso — `____________________`
-- levou pancada e a aura **não** reagiu? Anote o tipo de dano: `____________`
+- [x] **acende e decai** — `1d49bad`, 2026-09-22: *"no hit, na aura toda passa
+  um pulso azul"*.
+
+> **É o ripple, e dá para afirmar pelo código.** Ele multiplica apenas o
+> **alpha**, nunca a matiz: `CorDaAura.comAlpha` preserva os bits de cor por
+> construção — e satura o alpha em 1.0 precisamente para não transbordar para o
+> vermelho e *"mudar de cor"*. Um pulso **na cor da própria aura**, no **corpo
+> inteiro**, no instante do hit, é exatamente o que a implementação faz. Nada
+> mais no mod pulsa a aura inteira ao levar dano.
+>
+> **Custou quatro rodadas**, e as três primeiras foram palpite: teto de 1.0 que
+> o tornava impossível em Ten, gatilho dependente de dois pacotes no mesmo tick,
+> força de 0,05 para um soco. A quarta só funcionou porque parei de consertar e
+> **instrumentei** — a linha do F6 separou "não dispara" de "dispara e não se
+> vê", e a resposta mudou de *"subir o número"* para *"corpo inteiro,
+> multiplicativo, com platô"*.
 
 ---
 
 ## Ao fechar
 
-- [ ] esta folha preenchida, **na mesma sessão**;
+- [x] esta folha preenchida, **na mesma sessão**;
 - [x] ~~decidir se as 17 capturas são arquivadas~~ — **aposentadas em 2026-09-22**,
       junto com as de toda a trilha;
-- [ ] `o-que-nao-provamos.md` com o que a sessão **não** provou;
-- [ ] `../../../processo/marcos.md` atualizado;
-- [ ] `compatibility.md`, se a sessão tocar renderer ou shader pack.
+- [x] `o-que-nao-provamos.md` com o que a sessão **não** provou;
+- [x] `../../../processo/marcos.md` atualizado;
+- [x] `compatibility.md` — **não se aplica**: a sessão não tocou renderer nem
+      shader pack. Os consertos do bloom mudaram *quando* a máscara é copiada e
+      *qual* peso o composite usa; nenhum shader novo, nenhum pack novo.
 
 > ### O custo que a aposentadoria deixa aqui
 >

@@ -517,6 +517,13 @@ Os quatro vieram de **olho humano em jogo**, e tres deles de uma unica pergunta
 -- *"isso e esperado?"*. Nenhum portao existia para eles, e dois agora existem
 (`ForcaDoBrilhoTest`, e os casos novos de `ImpactoDeAuraTest`).
 
+> **O ripple (#103) foi VISTO em tela em 2026-09-22**, e custou quatro
+> correcoes -- tres por raciocinio, que falharam em sequencia, e uma depois de
+> INSTRUMENTAR. A linha de diagnostico no F6 separou "nao dispara" de "dispara e
+> nao se ve", e a pergunta mudou de *"quanto subir o numero"* para *"qual
+> tratamento visual"*, que tinha outra resposta: corpo inteiro, multiplicativo,
+> com plato no pico. **A instrumentacao foi mais barata que o terceiro palpite.**
+
 **O AV2 fica destravado** pela regra "nao comecar o AV(n+1) sem fechar o AV(n)"
 -- e **NAO autorizado**. O codigo dele ja esta na `main`; o que falta e gate.
 

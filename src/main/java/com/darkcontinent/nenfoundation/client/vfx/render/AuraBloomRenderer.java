@@ -95,9 +95,15 @@ public final class AuraBloomRenderer {
      * 0,55 x 0,55 = 0,30 e passa a sair em 0,55 x 0,2 = 0,11. Mais discreto do
      * que era. A relacao Ren/Ten continua sendo 2,75x -- o que muda e o teto, e
      * a direcao e a segura: o ADR-015 prefere halo de menos a halo de mais,
-     * porque "trinta pixels de halo deixa de ser brilho e vira nevoa". O Ren
-     * ainda nao passou por gate (isso e o AV4), e este numero e o primeiro a
-     * girar se ele ficar apagado demais.
+     * porque "trinta pixels de halo deixa de ser brilho e vira nevoa".
+     *
+     * <p><b>JULGADO EM 2026-09-22, e aprovado assim.</b> A pergunta foi feita em
+     * jogo -- "o Ren ficou apagado demais?" -- e a resposta foi nao: <i>"o Ren
+     * esta bom; a diferenca de cor tambem comunica bem a diferenca entre
+     * Ren/Ten"</i>. Vale registrar o segundo meio da frase: a leitura NAO depende
+     * so do halo. Quem for girar este numero um dia deve girar sabendo que parte
+     * do trabalho e da cor, e que subir o brilho para "separar Ren de Ten" ataca
+     * um problema que ja esta resolvido por outro canal.
      */
     private static final float ESCALA_DO_COMPOSITE = 0.2F;
 

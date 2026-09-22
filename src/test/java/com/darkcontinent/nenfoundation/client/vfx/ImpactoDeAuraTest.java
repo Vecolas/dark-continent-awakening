@@ -147,28 +147,74 @@ class ImpactoDeAuraTest {
     // ------------------------------------------------- o realce na distribuicao
 
     @Test
-    @DisplayName("o ripple SOMA na regiao atingida e nao apaga a distribuicao do servidor")
-    void realceSomaSemApagar() {
+    @DisplayName("o ripple PRESERVA a concentracao: quem esta em Ko continua em Ko na tela")
+    void rippleNaoAchataAConcentracao() {
+        // Ko: quase tudo no braco direito.
         AuraDistribution ko = new AuraDistribution(0.1F, 0.2F, 0.1F, 1.0F, 0.1F, 0.1F);
+        float razaoAntes = ko.rightArm() / ko.torso();
+
         AuraDistribution comRipple = ko.comImpacto(
                 AuraImpactState.iniciar(AuraBodyRegion.TORSO, 0.5F));
 
         assertTrue(comRipple.torso() > ko.torso(), "O tronco nao acendeu.");
-        assertEquals(1.0F, comRipple.rightArm(), 1.0E-4F,
-                "A concentracao no braco direito mudou por causa de uma pancada no tronco."
-                        + " Quem estivesse em Ko perderia a concentracao NA TELA sem ter"
-                        + " perdido nada no jogo.");
-        assertEquals(ko.head(), comRipple.head(), 1.0E-4F, "Regiao nao atingida mudou.");
+        assertTrue(comRipple.rightArm() > ko.rightArm(), "O braco concentrado nao acendeu.");
+        assertEquals(razaoAntes, comRipple.rightArm() / comRipple.torso(), 1.0E-3F,
+                "A concentracao ACHATOU durante o flash. Somar o mesmo valor a um braco em 1,0"
+                        + " e a um tronco em 0,2 derruba a razao de 5:1 para 1,9:1 -- quem"
+                        + " estivesse em Ko perderia a concentracao NA TELA sem ter perdido"
+                        + " nada no jogo. Multiplicar acende tudo e preserva a razao.");
     }
 
     @Test
-    @DisplayName("regiao NAO atingida fica intacta, por mais forte que seja o ripple")
-    void regiaoNaoAtingidaNaoMuda() {
+    @DisplayName("o pulso e de CORPO INTEIRO, com a regiao atingida acendendo MAIS")
+    void oPulsoAlcancaOCorpoTodo() {
         AuraDistribution cheia = AuraDistribution.uniforme();
         AuraDistribution comRipple = cheia.comImpacto(
                 AuraImpactState.iniciar(AuraBodyRegion.TORSO, 1.0F));
-        assertEquals(1.0F, comRipple.head(), 1.0E-4F,
-                "A cabeca acendeu com um impacto no tronco.");
+
+        assertTrue(comRipple.head() > cheia.head(),
+                "So o tronco acendeu. Acender uma regiao so, com a informacao de regiao que o"
+                        + " cliente NAO tem, e inventar localizacao -- e ainda por cima ilegivel:"
+                        + " o tronco e a regiao mais larga e menos definida da silhueta.");
+        assertEquals(comRipple.torso(), comRipple.head(), 1.0E-4F,
+                "O corpo acendeu DESIGUAL a partir de uma regiao que o cliente nao sabe qual e."
+                        + " Enquanto o servidor nao disser onde bateu, ninguem finge saber.");
+    }
+
+    @Test
+    @DisplayName("um soco DOBRA o alpha da aura -- senao o efeito nao se ve, e foi o que houve")
+    void oSocoDobraOAlpha() {
+        // O alpha da borda do Ten e 0,20; o renderer faz alpha * intensidade(regiao).
+        final float ALPHA_DA_BORDA_DO_TEN = 0.20F;
+
+        DetectorDeImpacto detector = new DetectorDeImpacto();
+        detector.registrar(ALGUEM, 20.0F, VIDA_MAXIMA);
+        AuraImpactState soco = detector.registrar(ALGUEM, 19.0F, VIDA_MAXIMA);
+        assertNotNull(soco, "o soco nao acendeu");
+
+        float antes = ALPHA_DA_BORDA_DO_TEN;
+        float depois = ALPHA_DA_BORDA_DO_TEN
+                * AuraDistribution.uniforme().comImpacto(soco).torso();
+
+        assertTrue(depois > antes * 1.8F,
+                "No pico o soco levou o alpha de " + antes + " para " + depois + " -- menos que"
+                        + " o dobro. A primeira versao movia 0,200 para 0,290, e o relato de jogo"
+                        + " foi: \"o F6 mostra o ripple subindo, so nao da para ver no"
+                        + " personagem\". Nove centesimos de alpha num involucro translucido,"
+                        + " decaindo em 0,6 s, nao sao um flash.");
+    }
+
+    @Test
+    @DisplayName("o PLATO segura o pico -- um pico de um quadro o olho descarta como ruido")
+    void oPicoTemPlato() {
+        AuraImpactState novo = AuraImpactState.iniciar(AuraBodyRegion.TORSO, 1.0F);
+        assertEquals(1.0F, novo.progresso(), 1.0E-4F, "o ripple nao nasce no pico");
+        assertEquals(1.0F, novo.avancar().avancar().progresso(), 1.0E-4F,
+                "o pico durou menos que o plato: sem ele o efeito decai desde o PRIMEIRO"
+                        + " quadro, e um pico de um quadro nao e flash, e cintilar.");
+        assertTrue(novo.avancar().avancar().avancar().avancar().avancar().avancar()
+                        .progresso() < 1.0F,
+                "o plato nao acabou nunca: o ripple ficaria cheio ate sumir de repente.");
     }
 
     @Test
@@ -184,17 +230,35 @@ class ImpactoDeAuraTest {
     }
 
     @Test
-    @DisplayName("o ripple DECAI: o mesmo impacto acende menos a cada tick")
+    @DisplayName("o ripple DECAI depois do plato")
     void rippleDecai() {
         AuraDistribution base = AuraDistribution.uniforme();
         AuraImpactState novo = AuraImpactState.iniciar(AuraBodyRegion.HEAD, 0.8F);
-        AuraDistribution zerado = new AuraDistribution(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
 
-        float primeiro = zerado.comImpacto(novo).head();
-        float depois = zerado.comImpacto(novo.avancar().avancar()).head();
-        assertTrue(depois < primeiro,
-                "O ripple nao decaiu: " + primeiro + " -> " + depois + ". Um realce que nao"
-                        + " some deixa a regiao acesa para sempre.");
-        assertTrue(depois > 0.0F, "O ripple morreu cedo demais.");
+        float noPico = base.comImpacto(novo).head();
+        // Seis ticks: passa do plato, que segura o pico pelo primeiro terco.
+        AuraImpactState velho = novo;
+        for (int i = 0; i < 6; i++) {
+            velho = velho.avancar();
+        }
+        float depois = base.comImpacto(velho).head();
+
+        assertTrue(depois < noPico,
+                "O ripple nao decaiu: " + noPico + " -> " + depois + ". Um realce que nao some"
+                        + " deixa a aura acesa para sempre.");
+        assertTrue(depois > base.head(), "O ripple morreu cedo demais.");
+    }
+
+    @Test
+    @DisplayName("em ZETSU o ripple nao acende -- zero vezes qualquer coisa continua zero")
+    void zetsuNaoAcende() {
+        AuraDistribution zetsu = AuraDistribution.zetsu();
+        AuraDistribution comRipple = zetsu.comImpacto(
+                AuraImpactState.iniciar(AuraBodyRegion.TORSO, 1.0F));
+
+        assertEquals(0.0F, comRipple.torso(), 1.0E-6F,
+                "A aura de quem esta em Zetsu acendeu ao levar pancada. Zetsu e ausencia de"
+                        + " aura visivel; um flash ali denunciaria quem escolheu se esconder --"
+                        + " e seria o cliente inventando o que o servidor mandou suprimir.");
     }
 }

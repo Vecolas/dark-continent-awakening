@@ -287,8 +287,8 @@ dela virou o ambiente oficial.
 | nenhum commit exclusivamente local | ✅ **zero.** Havia um, em `archive/main-pre-pr294`; apagada em 2026-09-21 — ver abaixo |
 | nenhum stash ficou para trás | ✅ vazio |
 | nenhum worktree ficou para trás | ✅ só o principal |
-| **`transfer/` preservado fora do clone** | ✅ ver abaixo — **este era o único que bloqueava** |
-| conteúdo de `transfer/` classificado | ⬜ aberto, e **não bloqueia** |
+| **`transfer/` preservado fora do clone** | ✅ zip com manifesto, restauração verificada |
+| conteúdo de `transfer/` classificado | ✅ **2026-09-21** — duas DUPLICADAS, uma OBSOLETA, uma SUPERADA. Descartável |
 | configurações locais identificadas | ✅ nenhuma precisa migrar; ver a tabela acima |
 | `./gradlew build` verde | ✅ **1.540 testes** (`test --rerun-tasks`, para não ler cache) |
 | `instancia.ps1 instalar` + `atualizar` | ✅ executados no clone de `C:\dev` — NeoForge 21.1.250 instalado, `nenfoundation-0.1.0.jar` e `geckolib-neoforge-1.21.1-4.8.3.jar` na instância |
@@ -364,14 +364,48 @@ dos quatro arquivos, contra a versão atual da `main`:
 DUPLICADA. **Um só ÚNICA ou INDETERMINADA e o arquivo é preservado**, com issue
 curta de recuperação — nunca injetando código antigo na `main` automaticamente.
 
+#### A classificação, feita em 2026-09-21
+
+| Arquivo | Classe | Por quê |
+| --- | --- | --- |
+| `en_us.json` | **DUPLICADA** | 79 chaves, **todas** presentes na `main` com valor idêntico. A `main` tem 433 |
+| `pt_br.json` | **DUPLICADA** | idem |
+| `NenFoundation.java` | **OBSOLETA** | as 6 linhas próprias importam `registry.EnemyAttributes`, `registry.EnemyEntityTypes` e `registry.EnemySpawns`. Os dois primeiros mudaram de pacote (`enemy/data`, `enemy/registry`); **`EnemySpawns` não existe mais** — spawn virou `enemy/spawn/SpawnProfile` e `SpawnRule` |
+| `NenFoundationClient.java` | **SUPERADA** | as 3 linhas próprias mandam `AjustarOutputC2S(variacao)` com um `float` de ±0,10 escolhido pelo cliente |
+
+**Nenhuma ÚNICA, nenhuma INDETERMINADA. `transfer/` é descartável.**
+
+> **O quarto arquivo é mais que obsoleto — ele é o desenho que o projeto
+> recusou.** `AjustarOutputC2S` hoje é `record AjustarOutputC2S(boolean
+> aumentar)`: o payload carrega **direção**, e não magnitude. A troca foi a
+> issue #71, que subiu o protocolo de 6 para 7 pelo procedimento do ADR-011,
+> justamente para o cliente parar de escolher o número.
+>
+> Reintroduzir aquelas três linhas violaria o princípio 1 do `CLAUDE.md` —
+> *nenhum payload C2S carrega aura, dano, cooldown, unlock ou multiplicador*.
+> E não daria erro: compila, e o servidor aceitaria o número que o cliente
+> mandou.
+>
+> É por isso que a quarentena tinha de ser lida antes de apagada. O zip fica —
+> `dark-continent-transfer-2026-09-21.zip`, SHA-256 `75CB5922…8AC3CFD` — e o
+> valor dele agora é de **registro histórico**, não de recuperação.
+
 #### O que falta para fechar o #19
 
-**Um item.** Aposentar o clone do OneDrive — que é o que sobra da migração, já
-que o destino existia antes dela.
+**Nada mais que uma decisão de apagar.** A classificação de `transfer/` fechou
+em 2026-09-21 e o resultado é *descartável*; todos os outros itens do gate já
+estavam conferidos.
 
-Ele depende de `transfer/` classificada, e só disso: tudo o mais foi conferido
-em 2026-09-21. E a classificação **não é urgente**, porque o conteúdo já está
-preservado com hash fora dos dois clones.
+O clone do OneDrive pode ser arquivado ou removido. O que ele ainda guarda:
+
+- `transfer/` — classificada, preservada no zip, sem nada de único;
+- a branch `feat/av4-av8-aura-visual`, **já mergeada** e mantida só porque
+  apagá-la exigiria mover o HEAD daquela árvore;
+- três arquivos untracked (`docs/dungeons/`, `docs/insp/arvoremundo.png`,
+  `hxh-skills.zip`) que estão na `main` **byte a byte idênticos** — conferido
+  por `git hash-object` em 2026-09-21.
+
+Nada ali existe só ali.
 
 > **O ambiente oficial é `C:\dev\dark-continent-awakening`.** O do OneDrive
 > fica em quarentena: ninguém commita, ninguém troca de branch nele. Ele ainda

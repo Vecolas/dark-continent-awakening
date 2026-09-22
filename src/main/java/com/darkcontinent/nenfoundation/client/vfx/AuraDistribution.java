@@ -94,25 +94,59 @@ public record AuraDistribution(float head, float torso, float leftArm, float rig
      * chama passa o impacto ja avancado, e um impacto morto devolve esta mesma
      * distribuicao, sem copia.
      */
+    /**
+     * Ganho do ripple sobre a intensidade da regiao.
+     *
+     * <p>LIMITE DE DESENHO. Sem ele, um soco de mao vazia somava 0,45 a uma
+     * regiao que ja valia 1,0 -- e como o alpha da borda do Ten e 0,20, isso
+     * movia a tela de 0,200 para 0,290. Quarenta e cinco por cento parece
+     * muito escrito assim; na tela sao nove centesimos de alpha num invólucro
+     * translucido, decaindo em 0,6 s. O relato foi exato: <i>"o F6 mostra o
+     * ripple subindo, so nao da para ver no personagem"</i>.
+     */
+    private static final float GANHO_DO_RIPPLE = 2.5F;
+
+    /**
+     * A distribuicao com o RIPPLE do impacto (#103).
+     *
+     * <p>O ripple entra POR AQUI, e nao por um campo novo em
+     * {@code AuraVisualState}: a intensidade por regiao ja atravessa o renderer,
+     * o emissor de particulas e o overlay. Um campo novo obrigaria os tres a
+     * aprender o conceito de impacto.
+     *
+     * <p><b>ELE MULTIPLICA, e nao soma -- e essa foi a terceira tentativa.</b>
+     * A segunda somava um realce ao corpo inteiro, e um teste que ja existia
+     * reprovou dizendo por que: <i>"quem estivesse em Ko perderia a concentracao
+     * NA TELA sem ter perdido nada no jogo"</i>. Somar o MESMO valor a um braco
+     * em 1,0 e a um tronco em 0,2 achata a razao entre eles de 5:1 para 1,9:1 --
+     * a concentracao some durante o flash. Multiplicar acende tudo e preserva a
+     * razao exatamente.
+     *
+     * <p><b>E ELE ACENDE O CORPO INTEIRO, por igual.</b> A primeira versao
+     * acendia so o TRONCO, porque o cliente nao sabe onde o golpe acertou e
+     * TRONCO era o palpite menos errado. Era inventar localizacao -- e ilegivel,
+     * porque o tronco e a regiao mais larga e menos definida da silhueta.
+     * {@link AuraImpactState#region()} continua existindo para o dia em que o
+     * servidor souber dizer onde bateu (Gyo, Ko); ate la, ninguem finge saber.
+     *
+     * <p><b>SEM TETO.</b> Ten desenha com {@link #uniforme()} -- 1.0 em todas as
+     * regioes --, e um teto de 1.0 tornava o ripple um no-op. O renderer usa o
+     * valor como MULTIPLICADOR de alpha: acima de 1.0 ele clareia, que e o que
+     * um impacto precisa fazer.
+     *
+     * <p>O ripple DECAI porque {@link AuraImpactState#progresso()} decai -- com
+     * um PLATO no pico, para o flash durar mais que um quadro.
+     */
     public AuraDistribution comImpacto(AuraImpactState impacto) {
         if (impacto == null || !impacto.ativo()) {
             return this;
         }
-        float realce = impacto.strength() * impacto.progresso();
-        if (!(realce > 0.0F)) {
+        float fator = 1.0F + impacto.strength() * impacto.progresso() * GANHO_DO_RIPPLE;
+        if (!(fator > 1.0F)) {
             return this;
         }
-        return new AuraDistribution(
-                somar(head, realce, impacto.region() == AuraBodyRegion.HEAD),
-                somar(torso, realce, impacto.region() == AuraBodyRegion.TORSO),
-                somar(leftArm, realce, impacto.region() == AuraBodyRegion.LEFT_ARM),
-                somar(rightArm, realce, impacto.region() == AuraBodyRegion.RIGHT_ARM),
-                somar(leftLeg, realce, impacto.region() == AuraBodyRegion.LEFT_LEG),
-                somar(rightLeg, realce, impacto.region() == AuraBodyRegion.RIGHT_LEG));
-    }
-
-    private static float somar(float base, float realce, boolean atingida) {
-        return atingida ? base + realce : base;
+        return new AuraDistribution(head * fator, torso * fator, leftArm * fator,
+                rightArm * fator, leftLeg * fator, rightLeg * fator);
     }
 
     public float intensidade(AuraBodyRegion regiao) {

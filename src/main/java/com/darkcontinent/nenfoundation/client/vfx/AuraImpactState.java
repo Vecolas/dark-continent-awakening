@@ -29,7 +29,26 @@ public record AuraImpactState(AuraBodyRegion region, int remainingTicks, float s
         return new AuraImpactState(region, Math.max(0, remainingTicks - 1), strength);
     }
 
-    public float progresso() { return remainingTicks / (float) DURACAO_EM_TICKS; }
+    /**
+     * Fracao de PLATO: quanto do tempo o ripple fica no pico antes de cair.
+     *
+     * <p>Um terco. Sem plato o efeito decaia desde o PRIMEIRO quadro, entao o
+     * pico durava um quadro -- e um pico de um quadro nao e um flash, e um
+     * cintilar que o olho descarta como ruido. Com o plato, o impacto SEGURA e
+     * so entao some, que e como uma pancada le.
+     */
+    private static final float PLATO = 1.0F / 3.0F;
+
+    /**
+     * A curva do ripple: PLATO no pico, depois queda linear.
+     *
+     * <p>Devolve 1.0 enquanto resta mais de {@link #PLATO} do tempo, e cai
+     * proporcionalmente depois disso.
+     */
+    public float progresso() {
+        float restante = remainingTicks / (float) DURACAO_EM_TICKS;
+        return restante >= 1.0F - PLATO ? 1.0F : restante / (1.0F - PLATO);
+    }
 
     public boolean ativo() { return remainingTicks > 0 && strength > 0.0F; }
 }

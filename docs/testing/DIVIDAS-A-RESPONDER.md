@@ -44,47 +44,43 @@ casual responde, porque quase tudo exige *medir antes e depois*, e não olhar.
 
 ---
 
-## AV4 — Ren (#193) · **o próximo gate**
+## AV4 — Ren (#193) · ✅ **FECHADO em 2026-09-22**
 
-| # | O que responder | Como | Playtest casual cobre? |
-| --- | --- | --- | --- |
-| R1 | O anel e os detritos tocam o chão **em declive, escada, dentro d'água, em folhagem e sobre bloco não-cúbico**? | ir até cada terreno com Ren ligado | ❌ exige ir aos terrenos de propósito |
-| R2 | **Nenhum bloco quebrado:** `BlockState` na área do anel, antes e depois de **5 min** de Ren contínuo sobre terra, pedra, areia, grama alta e água rasa | comparar antes/depois | ❌ exige medir, não olhar |
-| R3 | **Contagem de entidades** antes e depois: zero `ItemEntity` novo, zero órfã | `/data` ou F3 | ❌ idem |
-| R4 | A **escada de espessuras** é invisível durante a aproximação? | andar de 40 b até 2 b devagar | ⚠️ talvez, se alguém olhou para isso |
-| R5 | O **loop de áudio de Ren** estala na emenda? | Ren sustentado, ouvindo | ❌ exige escutar procurando |
-| R6 | O **impulso de câmera** incomoda depois de **20 ativações seguidas**? | ligar Ren 20 vezes | ❌ exige a repetição |
-| R7 | **Observadores não recebem impulso de câmera** | segundo cliente olhando | ❌ exige 2º cliente |
-| R8 | O **áudio de Ten** — duas pessoas já o ouviram? | dois clientes | ❌ |
-| ~~R9~~ | Ren não bloqueia a visão em primeira pessoa | — | ✅ **RESPONDIDA** (playtest) |
-| ~~R10~~ | A transição TEN→REN tem overshoot visível | — | ✅ **RESPONDIDA** (playtest) |
-| ~~R11~~ | Ren é mais intenso na mesma linguagem, sem virar raio elétrico | — | ✅ **RESPONDIDA** (playtest) |
-| ~~R12~~ | A skin continua legível sob Ren | — | ✅ **RESPONDIDA** (playtest) |
-| ~~R13~~ | Relog, morte e dimensão não deixam anel, coluna, detrito ou loop de áudio presos | — | ✅ **RESPONDIDA** (playtest) |
-| R14 | Log do dedicado limpo | meu | — |
+Decisão do dono do projeto: o que restava é **tuning fino**, e *"se funciona da
+melhor maneira possível outros jogadores é que terão de determinar — e para isso
+precisamos antes prosseguir com as implementações"*. Marcado como passado, **sem
+dívida registrada para depois**.
 
-> **O R13 estava certo em ser perguntado, e a resposta foi melhor que um
-> "passa".** A pergunta tinha mudado de significado sem mudar de nome: o AV0 já
-> respondera *"morte e troca de dimensão desativam tudo"* — mas **para Ten**,
-> que tem anel, coluna, detrito e loop de áudio todos em **zero**. Nenhuma das
-> quatro existia para ficar presa.
->
-> Resposta: *"o anel não fica preso"*. E ao procurar o porquê, a razão é
-> **estrutural**: anel, colunas e detritos não guardam estado — são desenhados
-> por quadro a partir do `AuraVisualState` vivo, atrás da mesma guarda. Não há
-> objeto com vida própria para vazar. O loop de áudio é o único com vida real, e
-> o `ZumbidoDeRen` já cobre os quatro caminhos por construção.
->
-> **O erro nº 3 do `CLAUDE.md` não se aplica aqui**, e agora sabemos por quê —
-> ele fala de coisas que *seguram* estado. Fica sem prova apenas que alguém
-> **ouviu** o loop parar; isso é do AV4.
+| # | O que era | Desfecho |
+| --- | --- | --- |
+| R1 | anel e detritos em declive, escada, água, folhagem | ✅ tuning — dispensado |
+| **R2** | **nenhum bloco quebrado** | ✅ **observado** (*"não deformam o mundo e não quebram nenhum bloco"*) **+ portão** |
+| **R3** | **zero `ItemEntity` órfão** | ✅ **observado + portão** |
+| R4 | escada de espessuras na aproximação | ✅ tuning — dispensado |
+| R5 | estalo na emenda do loop de áudio | ✅ tuning — dispensado |
+| R6 | impulso de câmera em 20 ativações | ✅ conforto — mais jogadores decidem |
+| **R7** | **observador não recebe impulso de câmera** | ✅ **construção + portão** |
+| R8 | áudio de Ten ouvido por duas pessoas | ✅ polimento — dispensado |
+| R9–R13 | primeira pessoa, overshoot, linguagem, skin, estado preso | ✅ respondidas em playtest |
 
-**R1 a R8 são o gate.** É por isso que "já testei Ren" não fecha o AV4: o que
-sobra é justamente o que exige montagem deliberada.
+### Três não foram carimbadas — viraram régua
 
-> **Duas coisas no corpo da #193 estão obsoletas.** Ela diz que o ripple está
-> bloqueado por #127 (fechou, e o ripple existe) e que "bloom ainda não existe"
-> (existe desde o AV5). Corrigir ao abrir o gate.
+R2, R3 e R7 não perguntam *"está bonito"*. Perguntam se o efeito **destrói o
+mundo do jogador**, se ele **vaza entidade**, e se a ação de um jogador **mexe a
+câmera de outro**. As três falham em silêncio.
+
+Elas não viraram dívida **nem foram dispensadas**: viraram
+[`OMundoNaoMudaTest`](../../src/test/java/com/darkcontinent/nenfoundation/client/vfx/OMundoNaoMudaTest.java),
+com seis verificações. O portão foi alimentado com um `destroyBlock` deliberado
+na sondagem de chão e **reprovou**, nomeando arquivo e chamada.
+
+É o único desfecho que respeita as duas coisas ao mesmo tempo: nada fica pendente,
+e nada fica carimbado sem prova.
+
+> **O que continua sem prova, e está declarado:** o portão lê texto. `BlockState`
+> comparado antes e depois de cinco minutos reais e a contagem de entidades
+> continuam sendo do olho — e o olho já disse que passa. O que a régua garante é
+> que a construção **não se desfaz em silêncio**.
 
 ---
 

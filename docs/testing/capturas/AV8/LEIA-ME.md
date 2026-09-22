@@ -9,7 +9,7 @@
 
 ## Os quatro cenários (#206)
 
-Perfil de `spark` **antes e depois**, arquivado em [`../perfis/`](../perfis/)
+Perfil de `spark` **antes e depois**, arquivado em [`../../perfis/`](../../perfis/)
 com data, commit, GPU, resolução e nível de bloom no nome.
 
 1. **10 jogadores em Ren** dentro de 16 blocos
@@ -20,7 +20,7 @@ com data, commit, GPU, resolução e nível de bloom no nome.
 > **OS DEZ MINUTOS NAO CABEM NA RESERVA BASE, e a saida e o config do
 > servidor de QA.** Com `aura.maximaBase = 100`, sustentar Ren por 10 min
 > exigiria custo 1,17/s -- abaixo de Ten. A escada do
-> [ADR-018](../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
+> [ADR-018](../../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
 > segundos**, e isso e o desenho, nao um defeito.
 >
 > Suba `aura.maximaBase` no config do servidor do **mundo de regressao**. Config
@@ -72,7 +72,7 @@ redimensionamentos em cada:
 - Iris/Oculus **sem** pack carregado
 - Iris/Oculus **com** pack carregado, em 2 ou 3 packs reais do parque
 
-A tabela vive em [`../compatibility.md`](../compatibility.md).
+A tabela vive em [`../../compatibility.md`](../../compatibility.md).
 
 > **Ela nasce vazia e PRECISA crescer.** Tabela vazia depois do gate significa
 > que ninguém procurou — não que está tudo bem. Se um ambiente realmente não
@@ -91,4 +91,4 @@ A tabela vive em [`../compatibility.md`](../compatibility.md).
 | **qualquer número medido** | **não feito** — e é isto que o gate é |
 
 `spark` já está em
-[`supported-mods.md`](../../modpack/supported-mods.md) (GPL-3.0-only, M2).
+[`supported-mods.md`](../../../modpack/supported-mods.md) (GPL-3.0-only, M2).

@@ -57,7 +57,7 @@ entidades antes e depois.
 > **OS CINCO MINUTOS NAO CABEM NA RESERVA BASE, e a saida e o config do
 > servidor de QA.** Com `aura.maximaBase = 100`, sustentar Ren por 5 min
 > exigiria custo 1,33/s -- abaixo de Ten. A escada do
-> [ADR-018](../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
+> [ADR-018](../../../adr/ADR-018-escada-de-custo-em-segundos.md) da a Ren **29
 > segundos**, e isso e o desenho, nao um defeito.
 >
 > Suba `aura.maximaBase` no config do servidor do **mundo de regressao**. Config

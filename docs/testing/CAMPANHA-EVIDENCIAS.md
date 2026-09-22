@@ -283,17 +283,17 @@ dela virou o ambiente oficial.
 | Item | Estado |
 | --- | --- |
 | `origin` correto | ✅ `https://github.com/Vecolas/dark-continent-awakening.git` |
-| `main` == `origin/main` | ✅ `b7ba18d`, zero à frente e zero atrás |
+| `main` == `origin/main` | ✅ zero à frente e zero atrás — reconferido em `f5ae73b`, 2026-09-21 |
 | nenhum commit exclusivamente local | ✅ **zero.** Havia um, em `archive/main-pre-pr294`; apagada em 2026-09-21 — ver abaixo |
 | nenhum stash ficou para trás | ✅ vazio |
 | nenhum worktree ficou para trás | ✅ só o principal |
 | **`transfer/` preservado fora do clone** | ✅ zip com manifesto, restauração verificada |
 | conteúdo de `transfer/` classificado | ✅ **2026-09-21** — duas DUPLICADAS, uma OBSOLETA, uma SUPERADA. Descartável |
 | configurações locais identificadas | ✅ nenhuma precisa migrar; ver a tabela acima |
-| `./gradlew build` verde | ✅ **1.540 testes** (`test --rerun-tasks`, para não ler cache) |
+| `./gradlew build` verde | ✅ **1.559 testes** em `f5ae73b` (eram 1.540 em `b7ba18d`) |
 | `instancia.ps1 instalar` + `atualizar` | ✅ executados no clone de `C:\dev` — NeoForge 21.1.250 instalado, `nenfoundation-0.1.0.jar` e `geckolib-neoforge-1.21.1-4.8.3.jar` na instância |
 | **dois `git worktree` sem `Filename too long`** | ✅ **`C:/dca-a` e `C:/dca-b` criados**, e os dois contêm `worldtree/generation/WorldTreeFoliageAnchorGenerator.java` — o arquivo que estourava o MAX_PATH no OneDrive |
-| os dois apontam para o esperado | ✅ `b7ba18d` nos dois |
+| os dois apontam para o esperado | ⚠️ `73bfee8` nos dois — **três commits atrás** de `f5ae73b`. Os três são de documentação, então o que sai na tela é o mesmo; o que fica errado é o **commit no nome da captura**. Atualizar antes de abrir o AV0 |
 
 > **Nenhum commit fixado neste gate.** A versão anterior dizia `== 96f491c` e
 > envelheceu em horas, quando a outra frente pushou 25 commits. É o mesmo
@@ -390,22 +390,59 @@ curta de recuperação — nunca injetando código antigo na `main` automaticame
 > `dark-continent-transfer-2026-09-21.zip`, SHA-256 `75CB5922…8AC3CFD` — e o
 > valor dele agora é de **registro histórico**, não de recuperação.
 
-#### O que falta para fechar o #19
+#### O #19 fechou — e a última checagem achou o que a classificação não cobria
 
-**Nada mais que uma decisão de apagar.** A classificação de `transfer/` fechou
-em 2026-09-21 e o resultado é *descartável*; todos os outros itens do gate já
-estavam conferidos.
+O clone do OneDrive foi **removido em 2026-09-21**: 60.900 arquivos, 1,65 GB.
 
-O clone do OneDrive pode ser arquivado ou removido. O que ele ainda guarda:
+**Por que o Explorer não conseguia apagá-lo:** 11 arquivos com caminho acima de
+248 caracteres, dentro de `.gradle-local/caches/`. É o mesmo MAX_PATH que este
+documento já previa dois parágrafos acima — ele morde o apagar tanto quanto
+mordia o `worktree add`. O que funcionou foi espelhar uma pasta vazia por cima
+com `robocopy /MIR`, que trata caminho longo nativamente.
+
+> **Sobrou a casca vazia** (0 itens), travada por um processo cujo diretório de
+> trabalho é ela — uma segunda sessão de terminal. Não é conteúdo, é um handle:
+> fechar aquele terminal libera, e o diretório sai num comando.
+
+##### A frase "nada ali existe só ali" estava errada
+
+Ela era verdadeira sobre **arquivos** e falsa sobre **commits**. A classificação
+cobriu `transfer/`, os três untracked e a branch — nenhuma delas olha para o
+grafo. Testando cada commit de cada ref do clone antigo contra a `main` real,
+**sete existiam só ali**, e nenhum era objeto conhecido deste repositório:
+
+```
+09bad1a  snapshot: estado pendente do worktree dcaw-av0, preservado antes da limpeza
+878fe4a  feat(vfx): AV1 -- shader proprio da shell: Fresnel, ruido e fluxo
+af160b8  feat(vfx): AV3 -- uma tabela de LOD so, e a particula vira acabamento
+0fdc0f9  feat(vfx): AV3 -- cada troca de estado tem o proprio tempo
+46404a8  feat(vfx): AV3 -- os numeros de arte saem do codigo e viram dado
+0ce8187  feat(vfx): AV3 -- a aura em primeira pessoa, e ela e menos de proposito
+ee9be95  wip(nen): implementacao paralela da #59, preservada e superada
+```
+
+Provavelmente superados pelos AV0–AV3 que entraram na `main` sob outro hash —
+mas *"provavelmente"* é exatamente a palavra que a quarentena existe para não
+aceitar. Antes de apagar, todas as 18 refs foram buscadas para
+`refs/arquivo/onedrive/*` **e empurradas para o remoto**; os sete commits estão
+vivos e fora deste disco. Recuperar qualquer um:
+`git show 09bad1a`, ou `git log refs/arquivo/onedrive/heads/main`.
+
+> **A lição é a mesma do `archive/`, um nível acima.** Lá, um nome fez uma
+> branch parecer conteúdo. Aqui, uma classificação de ARQUIVOS foi lida como
+> classificação do clone inteiro. Checklist de migração que só olha working tree
+> não vê commit local — e commit local não aparece em `git status`, não aparece
+> em `ls`, e some junto com a pasta. **Seria a terceira recuperação manual deste
+> repositório**, e a única que não teria deixado rastro.
+
+Os outros três itens confirmaram-se descartáveis, reconferidos por
+`git hash-object` no momento da remoção:
 
 - `transfer/` — classificada, preservada no zip, sem nada de único;
-- a branch `feat/av4-av8-aura-visual`, **já mergeada** e mantida só porque
-  apagá-la exigiria mover o HEAD daquela árvore;
-- três arquivos untracked (`docs/dungeons/`, `docs/insp/arvoremundo.png`,
-  `hxh-skills.zip`) que estão na `main` **byte a byte idênticos** — conferido
-  por `git hash-object` em 2026-09-21.
-
-Nada ali existe só ali.
+- a branch `feat/av4-av8-aura-visual` — mergeada, e agora também em
+  `refs/arquivo/onedrive/heads/`;
+- os três untracked (`docs/dungeons/`, `docs/insp/arvoremundo.png`,
+  `hxh-skills.zip`) — byte a byte idênticos aos da `main`.
 
 > **O ambiente oficial é `C:\dev\dark-continent-awakening`.** O do OneDrive
 > fica em quarentena: ninguém commita, ninguém troca de branch nele. Ele ainda
@@ -422,9 +459,35 @@ Alternativa não testada, se mover for indesejável agora:
 ### 4.1 Antes de qualquer sessão
 
 - [ ] `./gradlew build` verde, e a saída diz quantos testes rodaram.
-- [ ] `./gradlew runGameTestServer` diz `All N required tests passed`.
+- [ ] `./gradlew runGameTestServer` diz `All N required tests passed`
+      — **e ver o aviso de intermitência abaixo antes de marcar este item**.
 - [ ] `scripts/instancia.ps1 atualizar` rodado **depois** do último merge.
+- [ ] As duas árvores de captura (`C:/dca-a`, `C:/dca-b`) no MESMO commit que a
+      sessão vai escrever no nome dos arquivos.
 - [ ] Combinada a janela com a outra frente — ver 4.4.
+
+> #### Um GameTest é INTERMITENTE, e isso muda o que este item prova
+>
+> Medido em `f5ae73b`, 2026-09-21: **uma reprovação em cinco execuções** de
+> `runGameTestServer --rerun-tasks` (`1 required tests failed`), e as outras
+> quatro passaram com `All 146 required tests passed`. O teste que reprovou
+> **não foi identificado** — a saída daquela execução tinha sido filtrada por
+> `grep`, e as tentativas seguintes de reproduzir não pegaram o flake.
+>
+> A consequência é específica e vale escrever: **este item do checklist pode
+> ficar verde por sorte.** Uma execução só não distingue "passou" de "passou
+> desta vez", e a campanha inteira apoia-se nele para dizer que a bancada está
+> sã antes de alguém gastar uma sessão de captura.
+>
+> Enquanto o flake não tiver nome, o item pede **duas execuções seguidas
+> limpas**, e a sessão que vier depois registra quantas rodou. Não é rigor
+> decorativo: um flake de 1 em 5 tem ~20% de chance de reprovar exatamente na
+> execução que abre a sessão, e ~4% de reprovar duas vezes seguidas.
+>
+> `--rerun-tasks` não é opcional aqui. Sem ele o Gradle devolve o resultado em
+> cache e a tarefa "passa" em 34 s **sem subir servidor nenhum** — foi assim
+> que a primeira execução desta medição disse `BUILD SUCCESSFUL` enquanto a
+> segunda, idêntica, reprovava.
 
 ### 4.2 `run/server/server.properties`
 

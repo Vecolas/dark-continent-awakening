@@ -4,6 +4,42 @@ Folha para ser **respondida durante a sessão**, com o jogo aberto. Ela não
 substitui o [`LEIA-ME.md`](LEIA-ME.md), que diz o que cada captura é; aqui está
 o que cada uma **pergunta**, com espaço para o veredicto ao lado.
 
+---
+
+## Resultado da sessão de 2026-09-22 (`b8b9295`)
+
+**O gate do #176 passou.** Treze das quinze perguntas respondidas, todas PASSA.
+
+| Bloco | Resultado |
+| --- | --- |
+| **Z1 — o gate inteiro** | ✅ com `particulas 0`, **evidente** em Ten *e nas outras técnicas* |
+| A1–A7 — os sete ambientes | ✅ dia, noite, caverna, neve, Nether, chuva, água |
+| B1 · B2 — corpo | ✅ modelo slim correto; overlay **não engole** |
+| D1 — ruído | ✅ **veios**, com `escala_de_ruido` em 4.0 sem precisar girar |
+| D2 — giro 360° | ✅ **sem z-fighting** |
+| E1 — log do dedicado | ✅ **limpo**, dois jogadores, varrido em produção |
+| **C1 · C2 — série de distância** | ⬜ **não respondidas** |
+| **E2 — ripple (#103)** | ⬜ **não respondida** |
+
+### O que o Z1 prova, e é mais do que o gate pedia
+
+O critério era *"ainda se lê 'essa pessoa está em Ten'"*. O veredicto foi além:
+a leitura se manteve para as **outras técnicas** também, com partícula em zero.
+É o oposto exato do modo de falhar que o [ADR-015](../../../adr/ADR-015-aura-e-geometria-e-shader.md)
+teme — uma shell fraca carregada pelo acabamento. Aqui o acabamento saiu e a
+shell ficou de pé sozinha.
+
+### O que continua sem resposta
+
+**C1/C2 (a série 2b→40b)** é a única pergunta do AV1 que o AV0 também respondeu,
+e lá passou. Não vale herdar: o AV0 mediu a shell crua, e o que está em
+julgamento aqui é a shell **com shader**, cujo custo por distância é outro.
+
+**E2 (o ripple #103)** nunca foi visto em tela por ninguém. Os onze testes medem
+`float` e `HashMap`, e a ligação no cliente não tem régua nenhuma.
+
+---
+
 > **Toda pergunta é escrita para que PASSA signifique aprovado.** A folha do AV0
 > misturou polaridade — duas perguntas formuladas de modo que "sim" significava
 > *reprovou* —, e a primeira sessão devolveu "sim para todos", que não dava para
@@ -92,12 +128,17 @@ O outro extremo: a aura compete com um ambiente que já é todo cor.
 
 ### B1 · `ten_slim`
 **O cliente slim usa o modelo slim, e o braço fino não fica com aura larga?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `b8b9295`, 2026-09-22: *"usa modelo slim"*.
 
 ### B2 · `ten_overlay_skin`
 **A shell sobrevive a uma skin com segunda camada completa (`hat`/`jacket`/`sleeve`)?**
 PASSA se a aura continua visível; REPROVA se as camadas a engolem.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA — não engole** — `b8b9295`, 2026-09-22.
+
+> Consistente com o AV0, que respondeu o mesmo em `5a9182b`. **Duas sessões
+> independentes, um dia de distância, mesma resposta** — é a única pergunta
+> desta trilha com confirmação repetida, e ela cobre o caso mais hostil à
+> leitura da shell.
 
 ---
 
@@ -121,7 +162,10 @@ PASSA se a transição é contínua; REPROVA se há *LOD popping*.
 Aproxime a câmera até a shell encher a tela. PASSA se lê como fibra/veio;
 REPROVA se lê como mancha difusa.
 
-- [ ] PASSA (veios)  [ ] REPROVA (nuvens) — `____________________`
+- [x] **PASSA — veios** — `b8b9295`, 2026-09-22: *"o ruído tem veios"*.
+
+> Nenhum número precisou ser girado: `escala_de_ruido` fica em **4.0**, como
+> está em `ten.json`. O AV2 herda esse valor como linha de base.
 
 > **Este é o único item do AV1 que se conserta sem recompilar.** O número vive em
 > `assets/nenfoundation/nen_vfx/ten.json`, e **F3+T recarrega**:
@@ -133,7 +177,11 @@ REPROVA se lê como mancha difusa.
 ### D2 · `ten_360`
 **Girando a câmera 360° ao redor do jogador, há z-fighting?**
 Z-fighting = faces piscando/rasgando quando duas superfícies coincidem.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `b8b9295`, 2026-09-22: *"girando em 360 não há z-fighting"*.
+
+> Vale registrar o que isso prova além da tela: a **escada de geometria**
+> (`AuraGeometryLadder`) empilha passes de shell concêntricos, e faces
+> coplanares entre passes seriam exatamente o sintoma. Não houve.
 
 ---
 
@@ -148,7 +196,20 @@ de `net.minecraft.client.*`?**
 > lança nada**, e o log sai limpo pelo motivo errado. Foi assim que o E1 do AV0
 > quase fechou com meia prova.
 
-- [ ] log limpo  [ ] achou ocorrência — `____________________`
+- [x] **log limpo** — `b8b9295`, 2026-09-22, varrido por mim na instância, com
+  **dois jogadores conectados** (`Gon` 14:52, `Kurapika` 14:54) e o mod carregado
+  (`Protocolo de rede v9`):
+
+  | Procurado | `latest.log` | `debug.log` (531 linhas) |
+  | --- | --- | --- |
+  | `NoClassDefFoundError` / `ClassNotFoundException` | **0** | **0** |
+  | `net.minecraft.client` / `net/minecraft/client` | **0** | **0** |
+  | `nenfoundation.client` | **0** | **0** |
+  | `[ERROR]` / `[FATAL]` / `Exception` / `Caused by` | **0** | **0** |
+
+  > **Lido com o servidor AINDA DE PÉ.** Vale para a sessão até 14:54; o que
+  > acontecer depois não está nesta varredura, e o save-ao-parar (`stop`) não
+  > foi exercitado — é onde um defeito de persistência apareceria.
 
 ### E2 · o ripple de impacto (#103), que entrou nesta versão
 **Ao apanhar, a aura acende no tronco e apaga em ~8 ticks?**

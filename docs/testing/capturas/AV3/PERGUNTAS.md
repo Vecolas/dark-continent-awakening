@@ -16,6 +16,39 @@ segundo jogador). Overlay `F6` **sem** `OVERRIDE ATIVO`.
 
 ---
 
+## O quadro da sessão — tudo que precisa de resposta
+
+**Doze julgamentos** (PASSA/REPROVA) e **quatro números**. O E1 é meu.
+
+| # | Pergunta | Como verificar |
+| --- | --- | --- |
+| **P1** | Em primeira pessoa, **Ten aparece**? | F5 para 1ª pessoa, Ten ligado |
+| **P2** | A borda **acompanha o braço**? | mover e atacar em 1ª pessoa |
+| **P3** | **Nenhuma coluna** entra em cena? | olhar para baixo em 1ª pessoa |
+| **A** | A aura se lê nos **sete ambientes**? | dia, noite, caverna, Nether, neve, água, chuva |
+| **D1** | Há **degrau de LOD** entre 2b→40b? | 2ª cliente parado em Ten; afastar-se |
+| **D2** | A **40 blocos** ainda comunica Ten? | idem, na distância máxima |
+| **M1** | Correndo/agachado/nadando, **shell e filamentos acompanham**? | mover-se |
+| **M2** | Com **armadura completa**, aura aparece **e** armadura reconhecível? | vestir set completo |
+| **M3** | **Slim** e **overlay de skin** ok? | trocar de skin |
+| **Z1** | Com **partícula 0**, Ten se lê? | `/nenvfx particulas 0` |
+| **Z2** | Com **bloom off**, Ten se lê? | `/nenvfx bloom off` |
+| **E2** | As **três regressões** seguem consertadas? | grama · acoplamento · ripple |
+
+### Os quatro números (bloco C) — não são passa/reprova
+
+| # | O que anotar | Onde |
+| --- | --- | --- |
+| **C1** | filamentos vivos | `F6` |
+| **C2** | partículas vivas | `F6` |
+| **C3** | chamadas de desenho | `F6` |
+| **C4** | LOD efetivo | `F6` |
+
+São a **linha de base do AV8**, e os dois primeiros pagam a dívida que o AV2
+deixou em branco.
+
+---
+
 ## Bloco P — **primeira pessoa** (o que só este gate vê)
 
 > A primeira pessoa foi **consertada em 2026-09-21** (#301): a shell desenhava

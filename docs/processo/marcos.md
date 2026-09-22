@@ -492,6 +492,37 @@ motivo e em `o-que-nao-provamos.md`:
 
 ---
 
+### Estado da trilha (2026-09-22, terceira parte) — **o #181 FECHOU**
+
+**O terceiro gate da trilha AV esta aprovado.** As doze perguntas de julgamento
+do AV2 passaram, e a folha esta em
+[`../testing/capturas/AV2/PERGUNTAS.md`](../testing/capturas/AV2/PERGUNTAS.md).
+
+O bloco que decide o gate e o M -- os filamentos ACOMPANHAM os membros. Parado,
+um filamento mal preso passa; correndo, agachando, nadando e atacando ele fica
+para tras ou atravessa o corpo. Passou nos quatro.
+
+E **a comparacao com a referencia B deixa de ser parcial**: ate o AV1 ela vinha
+com a ressalva "B tem filamentos e nos nao". Este e o gate em que ela vale
+inteira.
+
+**PREPARAR O GATE ACHOU UM DEFEITO, antes de qualquer olhar.** O D1 exige que
+dois quadros congelados sejam IDENTICOS, e teria reprovado sem haver defeito na
+curva do filamento: `/nenvfx freeze` parava a interpolacao de estado mas nao o
+RELOGIO DE ANIMACAO -- fluxo do shader e ciclo dos filamentos continuavam
+correndo. Alguem teria gasto uma sessao cacando um bug inexistente. Corrigido, e
+travado por `RelogioCongeladoTest`.
+
+> **O AV2 deve uma coisa: os dois contadores do D2** -- filamentos vivos e
+> chamadas de desenho. Nao sao passa/reprova; sao a linha de base que o AV8 vai
+> comparar, e a trilha nao arquiva imagem: numero nao escrito nao existe depois.
+> Custa `F6` num jogo aberto.
+
+**O AV3 fica destravado** pela regra "nao comecar o AV(n+1) sem fechar o AV(n)"
+-- e **NAO autorizado**.
+
+---
+
 ### Estado da trilha (2026-09-22, segunda parte) — **o #176 FECHOU**
 
 **O segundo gate da trilha AV esta aprovado.** As quinze perguntas do AV1 foram

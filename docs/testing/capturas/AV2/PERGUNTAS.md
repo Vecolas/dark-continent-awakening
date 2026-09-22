@@ -4,6 +4,44 @@ Folha para ser **respondida durante a sessão**, com o jogo aberto. O
 [`LEIA-ME.md`](LEIA-ME.md) diz o que cada item é; aqui está o que cada um
 **pergunta**, com espaço para o veredicto ao lado.
 
+---
+
+## Resultado da sessão de 2026-09-22 (`280696b`)
+
+## O #181 ESTÁ FECHADO.
+**As doze perguntas de julgamento passaram.**
+
+| Bloco | Resultado |
+| --- | --- |
+| **N** — nascem na superfície (2b · 5b · 10b) | ✅ PASSA |
+| **M** — acompanham os membros (correr, agachar, nadar, atacar) | ✅ PASSA — **é aqui que o gate se decide** |
+| **C** — slim e default | ✅ PASSA |
+| **D1** — dois quadros congelados idênticos | ✅ PASSA |
+| **Z1** — com `particulas 0`, a aura com filamentos se lê | ✅ PASSA |
+| **E1** — log do dedicado | ✅ limpo, varrido por mim |
+| **E2** — regressões dos gates anteriores | ✅ grama oclui · Ren não acopla · ripple acende |
+| **D2** — os dois contadores | ⬜ **não anotados** |
+
+### O que esta sessão NÃO registra
+
+**Os dois números do D2.** Eles não são passa/reprova — são a linha de base que
+o AV8 vai comparar, e um número não escrito não existe depois. É a única dívida
+do AV2, e custa `F6` num jogo aberto.
+
+**A janela.** O log mostra `Done` às 17:53:25 e `stop` às 17:55:56 — **2 min
+31 s**, com um jogador. Fica escrito porque esta folha é a evidência inteira do
+gate: quem a ler em dezembro merece saber o tamanho da janela tanto quanto o
+veredicto.
+
+### O que a preparação encontrou, antes de qualquer olhar
+
+O **D1 teria reprovado sem haver defeito na curva**. `/nenvfx freeze` parava a
+interpolação de estado mas não o relógio de animação — fluxo e ciclo dos
+filamentos continuavam correndo. Achado lendo o gate, corrigido, e travado por
+`RelogioCongeladoTest`.
+
+---
+
 > **Toda pergunta é escrita para que PASSA signifique aprovado.** Registre
 > `PASSA` ou `REPROVA`, nunca sim/não — a folha é lida meses depois por quem não
 > estava lá.
@@ -43,13 +81,13 @@ própria sessão.
 **Os filamentos saem da superfície da shell, ou flutuam soltos ao redor?**
 REPROVA se parecem partículas orbitando em vez de fios presos ao corpo.
 
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ### N2 · `av2_ten_5b` · `av2_ten_10b`
 **A cinco e dez blocos eles ainda LEEM como filamento, ou viram ruído?**
 A largura declarada é 0,009 — fino o bastante para sumir, e é essa a pergunta.
 
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ---
 
@@ -60,20 +98,20 @@ A largura declarada é 0,009 — fino o bastante para sumir, e é essa a pergunt
 
 ### M1 · `av2_ten_correndo`
 **Correndo, os filamentos seguem os membros — ou ficam para trás do corpo?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ### M2 · `av2_ten_agachado`
 **Agachar não deixa filamento atravessando o próprio corpo?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ### M3 · `av2_ten_nadando`
 **Na horizontal eles continuam presos, sem apontar para cima?**
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ### M4 · `av2_ten_atacando`
 **No golpe eles acompanham o braço, ou chegam atrasados?**
 O ciclo declarado é 1,1 s; um golpe é mais rápido que isso.
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ---
 
@@ -84,7 +122,7 @@ O ciclo declarado é 1,1 s; um golpe é mais rápido que isso.
 No slim o braço é mais fino: âncora calculada para o default apareceria
 flutuando ao lado do braço.
 
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 ---
 
@@ -99,7 +137,7 @@ flutuando ao lado do braço.
 Olhe a aura, espere alguns segundos, olhe de novo. **Tem de estar idêntica** —
 nada se movendo, nem fluxo, nem filamento.
 
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 > **Esta verificação teria reprovado sem haver defeito na curva.** Antes de
 > 2026-09-22 o `/nenvfx freeze` parava a interpolação de estado mas **não o
@@ -116,11 +154,14 @@ nada se movendo, nem fluxo, nem filamento.
 
 No `F6`, anote **quantos filamentos** estão vivos com um jogador em Ten:
 
-- filamentos vivos: `____________`  (o perfil declara `quantidade: 8`)
-- chamadas de desenho: `____________`
+- [ ] filamentos vivos: **não anotado**  (o perfil declara `quantidade: 8`)
+- [ ] chamadas de desenho: **não anotado**
 
-> Não é pergunta de passa/reprova: é a **linha de base**. O AV8 mede orçamento,
-> e sem este número ele não tem contra o que comparar.
+> **Estes dois números ficaram sem registro, e é a única coisa que o AV2 deve.**
+> Eles não são passa/reprova — são a linha de base que o AV8 vai comparar. Como
+> a trilha não arquiva imagem, um número não escrito simplesmente não existe
+> depois. **O custo é baixo de pagar:** abrir o jogo, ligar Ten, `F6`, ler duas
+> linhas. Não exige sessão nem montagem de dois clientes.
 
 ---
 
@@ -134,7 +175,7 @@ No `F6`, anote **quantos filamentos** estão vivos com um jogador em Ten:
 
 **Com partícula em zero, a aura *com filamentos* ainda se lê?**
 
-- [ ] PASSA  [ ] REPROVA — `____________________`
+- [x] **PASSA** — `280696b`, 2026-09-22
 
 > O AV1 já passou nisto **sem** os filamentos. A pergunta aqui é outra: os
 > filamentos **ajudam** a leitura, ou competem com a shell? Se a resposta for
@@ -153,23 +194,27 @@ No `F6`, anote **quantos filamentos** estão vivos com um jogador em Ten:
 > **Use a INSTÂNCIA, não o `runServer`** — no workspace de dev as classes de
 > cliente estão no classpath e o log sai limpo pelo motivo errado.
 
-- [ ] log limpo  [ ] achou ocorrência — `____________________`
+- [x] **log limpo** — `280696b`, 2026-09-22, varrido por mim na instância: zero
+  `NoClassDefFoundError`, zero `ClassNotFoundException`, zero menção a `client`,
+  zero `[ERROR]`/`Exception` nos dois logs. `stop` limpo, todas as dimensões
+  salvas.
 
 ### E2 · regressões dos gates anteriores
 Três consertos recentes tocaram o mesmo caminho de desenho. Uma olhada rápida:
 
-- [ ] a grama ainda oclui o halo? `____________`
-- [ ] ligar Ren ainda **não** clareia a aura dos outros? `____________`
-- [ ] o ripple ainda acende ao levar pancada? `____________`
+- [x] a grama ainda oclui o halo — **sim**
+- [x] ligar Ren **não** clareia a aura dos outros — **confirmado**
+- [x] o ripple ainda acende ao levar pancada — **sim**
 
 ---
 
 ## Ao fechar
 
-- [ ] esta folha preenchida, **na mesma sessão**;
-- [ ] `o-que-nao-provamos.md` com o que a sessão **não** provou;
-- [ ] `../../../processo/marcos.md` atualizado;
-- [ ] `compatibility.md`, se a sessão tocar renderer ou shader pack.
+- [x] esta folha preenchida, **na mesma sessão**;
+- [x] `o-que-nao-provamos.md` com o que a sessão **não** provou;
+- [x] `../../../processo/marcos.md` atualizado;
+- [x] `compatibility.md` — **não se aplica**: a sessão não tocou renderer nem
+      shader pack.
 
 > **O AV2 é a linha de base do AV3**, que aprova o Ten por inteiro. E como a
 > trilha não arquiva imagem, o que sobrevive desta sessão é o que estiver

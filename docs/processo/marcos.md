@@ -512,6 +512,53 @@ motivo e em `o-que-nao-provamos.md`:
 
 ---
 
+### Estado da trilha (2026-09-22, quarta parte) — **o #187 FECHOU**
+
+**TEN ESTA APROVADO POR INTEIRO.** O AV3 juntou aderencia (AV0), shell (AV1) e
+filamentos (AV2), e a partir dele a nuvem de particula antiga sai de cena.
+
+Montagem real: servidor dedicado, dois clientes (`Gon` e `Kurapika`), janela de
+**8 min 37 s**. Folha em
+[`../testing/capturas/AV3/PERGUNTAS.md`](../testing/capturas/AV3/PERGUNTAS.md).
+
+**A primeira pessoa passou** -- o unico pedaco da aura que nenhum gate anterior
+tinha olhado, e o que carregava um defeito (#301) que a tornava literalmente
+invisivel.
+
+#### A mudanca de processo que esta sessao produziu
+
+> *"eu ja tenho respondido algumas dessas perguntas varias vezes seguidas [...]
+> e perda de tempo responder a mesma coisa sem que nada tenha mudado"*
+
+Estava certo: `particulas 0` seria a **terceira** vez. Mas carregar veredito de
+boca e como se fabrica falso verde. Virou regra em
+[`../testing/RESPOSTAS.md`](../testing/RESPOSTAS.md): cada resposta declara **os
+arquivos que a invalidam**, e `RespostasAindaValidasTest` reprova o build quando
+um deles muda. **A resposta nao expira por tempo; expira por causa.**
+
+#### O achado: o nivel `OFF` nao cumpre o ADR-016
+
+Com `particulas 0` **e** `bloom off`, o relato foi *"bem transparentes, quase
+nao da para ver"*. O ADR-016 promete o contrario por escrito. A causa: `FAST`
+compensa a ausencia do composite por geometria e **`OFF` nao compensa com
+nada**, herdando alphas calibrados com o bloom LIGADO -- porque AV0, AV1 e AV2
+rodaram todos com ele ligado.
+
+**Nao consertado aqui, de proposito.** Bloom e AV5; ter perguntado isso na folha
+do AV3 foi alcance alem do marco. Ver a divida nomeada do AV5 acima.
+
+#### O que ficou sem registro
+
+**Os quatro contadores, pela segunda vez.** Olhados e aprovados, valores nao
+transcritos. O AV8 mede com `spark` de qualquer jeito -- o que se perde e a
+linha de base para comparar a **deriva** entre AV2 e AV8, e isso esta em
+[`../testing/o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md).
+
+**O AV4 (Ren) fica destravado** pela regra "nao comecar o AV(n+1) sem fechar o
+AV(n)" -- e **NAO autorizado**.
+
+---
+
 ### Estado da trilha (2026-09-22, terceira parte) — **o #181 FECHOU**
 
 **O terceiro gate da trilha AV esta aprovado.** As doze perguntas de julgamento

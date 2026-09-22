@@ -16,7 +16,13 @@ segundo jogador). Overlay `F6` **sem** `OVERRIDE ATIVO`.
 
 ---
 
-## Resultado da sessão de 2026-09-22
+## Resultado da sessão de 2026-09-22 (`c9f83b1`)
+
+## O #187 ESTÁ FECHADO — **Ten está aprovado por inteiro.**
+
+**Montagem real:** servidor dedicado, dois clientes (`Gon` e `Kurapika`),
+janela de **8 min 37 s** (`Done` 18:08:07 → `stop` 18:16:44).
+
 
 | # | Resultado |
 | --- | --- |
@@ -25,10 +31,30 @@ segundo jogador). Overlay `F6` **sem** `OVERRIDE ATIVO`.
 | **D1 · D2** — distância | ✅ PASSA — sem degrau, e a 40 b ainda comunica |
 | **M1 · M3** — movimento, slim/default | ✅ PASSA — **carregadas** do AV2 |
 | **E2** — três regressões | ✅ PASSA — **carregadas** do AV2 |
+| **E1** — log do dedicado | ✅ limpo, varrido por mim |
 | **Z1** — `particulas 0` | ✅ PASSA — **carregada** (terceira vez que seria perguntada) |
 | **Z2** — `bloom off` | ❌ **REPROVA** — e o defeito é do **AV5**, não do AV3 |
-| **M2** — armadura completa | ⬜ nunca perguntada |
-| **C1–C4** — os contadores | ⬜ **dívida herdada do AV2** |
+| **M2** — armadura completa | ✅ PASSA — *"ainda dá para ver"* |
+| **C1–C4** — os contadores | ⚠️ olhados e aprovados; **os valores não foram transcritos** |
+
+### O que esta sessão NÃO registra
+
+**Os quatro contadores, de novo.** Eles foram olhados e aprovados, mas os
+**valores não foram transcritos** — segunda vez seguida, depois do AV2.
+
+Isso não invalida nada do que o AV3 aprovou, e não vale mais uma sessão só por
+causa disso. O que se perde é preciso e pequeno: **o AV8 mede com `spark` de
+qualquer jeito**, então a medição acontece; o que não existirá é a **linha de
+base para comparar a deriva** entre o AV2 e o AV8. Se o orçamento tiver piorado
+no meio do caminho, o AV8 vai ver o número ruim sem saber desde quando.
+
+Fica escrito e não se pergunta de novo.
+
+### E1 — o log do dedicado, varrido
+
+Zero `NoClassDefFoundError`, zero `ClassNotFoundException`, zero menção a
+`net.minecraft.client`, zero `[ERROR]`, zero `Exception`. `stop` limpo, com
+`world`, `DIM-1`, `DIM1` e `greed_island` todas salvas.
 
 ### O que "carregadas" significa, e por que não é atalho
 

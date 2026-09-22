@@ -21,6 +21,9 @@ branch do AV4; o que falta é evidência.
 
 ---
 
+> **As perguntas desta sessão estão em [`PERGUNTAS.md`](PERGUNTAS.md)**, com o
+> veredicto ao lado de cada uma.
+
 ## As vinte e duas capturas
 
 ```
@@ -33,6 +36,12 @@ sem_particulas_ten     <- o criterio do ADR-015
 sem_bloom_ten
 overlay_contadores     (ribbons vivas, particulas vivas, draw calls, LOD)
 ```
+
+> **`sem_bloom_ten` não era possível até 2026-09-22.** O nível de bloom só vinha
+> da config, e este mod não registra tela de config: mudar exigia sair do jogo,
+> editar o `.toml` e reiniciar — o que quebra a regra de comparar **na mesma
+> sessão**. `/nenvfx bloom off|fast|high|auto` foi criado ao preparar este gate,
+> e o AV5, que compara os três níveis do mesmo quadro, dependia dele igual.
 
 ## `primeira_pessoa_ten`
 

@@ -78,6 +78,26 @@ public record AuraVisualState(AuraVisualMode mode, AuraVisualMode modoAlvo, floa
         return this.transitionProgress >= 0.5F ? this.modoAlvo : this.mode;
     }
 
+    /**
+     * O mesmo estado, com OUTRA distribuicao -- o caminho do ripple (#103).
+     *
+     * <p>Ela existe para que o impacto entre no funil sem que ninguem monte um
+     * {@code AuraVisualState} a mao. Montar a mao significa repetir os oito
+     * campos, e o dia em que um deles nascer e o chamador esquecer produz um
+     * estado com modo certo e fases erradas -- que nao lanca, so desenha
+     * diferente.
+     *
+     * <p>Devolve {@code this} quando a distribuicao e a mesma: isto roda por
+     * jogador por quadro, e alocar um record identico e lixo por quadro.
+     */
+    public AuraVisualState comDistribuicao(AuraDistribution outra) {
+        if (outra == null || outra.equals(this.distribution)) {
+            return this;
+        }
+        return new AuraVisualState(mode, modoAlvo, intensity, transitionProgress, outra,
+                primaryColor, secondaryColor, fases);
+    }
+
     public static AuraVisualState desligado() {
         return new AuraVisualState(AuraVisualMode.OFF, 0.0F, 1.0F,
                 AuraDistribution.zetsu(), 0xFFFFFFFF, 0xFFFFFFFF);

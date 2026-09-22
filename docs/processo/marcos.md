@@ -457,12 +457,27 @@ O codigo de **AV5, AV6, AV7 e AV8** tambem esta entregue, na mesma branch:
 servidor dedicado, dois clientes reais e capturas arquivadas, e
 `docs/testing/capturas/` continua vazio.
 
-A issue #103 (ripple de impacto) **deixou de estar bloqueada**. Este paragrafo
-dizia que ela dependia de #127 -- "nao ha dano de Nen para disparar" --, e #127
-fechou: a camada de dano existe em `nen/combat/`, e a tabela do M4 acima ja a
-registra como entregue. O que falta em #103 e outra coisa, e menor:
-`AuraImpactState` valida, decrementa e nunca e alimentado. Falta ligar a camada
-de dano a ele.
+A issue #103 (ripple de impacto) **foi entregue em 2026-09-22**. Ela estava
+bloqueada por #127 -- "nao ha dano de Nen para disparar" --, #127 fechou, e o
+que sobrou era menor: `AuraImpactState` validava, decrementava e **nunca era
+alimentado**.
+
+O produtor agora existe, e **nao gasta protocolo**: a trilha AV nao gasta
+contrato de servidor, e um payload para dizer "levou pancada" custaria uma
+versao pelo ADR-011 por um efeito que nao muda dano, defesa nem alcance. O
+cliente deriva o impacto da animacao de dano que a vanilla ja sincroniza --
+`DetectorDeImpacto` le a borda de subida de `hurtTime`, e a forca vem da fracao
+da vida MAXIMA perdida.
+
+> **O ripple nasce no TRONCO, e isso e limite e nao escolha de arte.** Em
+> 1.21.1 o `LivingEntity.animateHurt(float yaw)` **descarta o yaw**, e nao ha
+> campo de direcao no cliente; altura do golpe tambem nao viaja. Escolher
+> esquerda ou direita a partir de dado que nao existe seria inventar
+> informacao, e o erro apareceria como um ripple no braco de quem levou uma
+> flechada no peito -- plausivel demais para alguem reportar. TRONCO e a
+> escolha do proprio servidor para essa incerteza (`FaixaDoCorpo.TRONCO`, "o
+> meio do corpo; e onde quase tudo acerta"). Ripple por regiao exata custa uma
+> versao de protocolo.
 
 Tres coisas foram deliberadamente NAO feitas, e as tres estao no codigo com o
 motivo e em `o-que-nao-provamos.md`:

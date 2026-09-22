@@ -30,12 +30,27 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
  * copiada, e a layer nem monta a segunda emissao. Custo ZERO, e nao "custo
  * pequeno" -- e a diferenca entre os dois e exatamente o que o AV8 vai medir.
  *
- * <p><b>O PESO E O RAIO VEM DA AURA MAIS FORTE DA TELA.</b> Um alvo
- * compartilhado para a cena inteira significa um peso so, e escolher o MAIOR e
- * a unica opcao que nao apaga alguem: com a media, um Ren ao lado de cinco Ten
- * perderia o halo dele; com o do jogador local, a aura dos outros ficaria refem
- * do estado de quem esta olhando. <b>Nunca um framebuffer por entidade</b> --
- * dez jogadores em Ren sao dez contribuicoes no mesmo alvo.
+ * <p><b>O RAIO VEM DA AURA MAIS FORTE DA TELA; O PESO, NAO.</b> Um alvo
+ * compartilhado significa UM raio de borrao, e escolher o MAIOR e a unica opcao
+ * que nao apaga alguem: com a media, um Ren ao lado de cinco Ten perderia o halo
+ * dele. <b>Nunca um framebuffer por entidade</b> -- dez jogadores em Ren sao dez
+ * contribuicoes no mesmo alvo.
+ *
+ * <p><b>O PESO JA NAO USA `maiorForca`, e a historia importa.</b> Ele usava, e a
+ * forca acabava aplicada DUAS vezes -- uma por jogador na escrita do alvo, outra
+ * no composite com o valor de outra pessoa. O sintoma era um relato de jogo:
+ * <i>"ativar Ren deixa a tecnica dos outros mais clara"</i>. Estava certo: o Ten
+ * de um terceiro ficava 2,75x mais brilhante porque QUEM OLHAVA trocou de
+ * tecnica. Corrigido em 2026-09-22; ver o comentario em {@code aoPreparar}.
+ *
+ * <p><b>O QUE CONTINUA COMPARTILHADO, e e custo assumido:</b> o RAIO. Com um Ren
+ * (5,5 px) e um Ten (2,5 px) na tela, o halo do Ten engrossa. E inerente a um
+ * alvo so, e o preco de nao ter um framebuffer por entidade.
+ *
+ * <p><b>E DOIS REN JUNTOS BRILHAM MAIS onde os halos se cruzam.</b> Isso NAO e
+ * defeito: o alvo acumula luz de proposito, e duas fontes brilhantes lado a lado
+ * somam -- e o que bloom faz. Trocar isso exigiria separar as contribuicoes, que
+ * e exatamente o framebuffer por entidade que esta descartado acima.
  *
  * <p>NADA DE GAMEPLAY AQUI. O passe le estado visual e desenha; ele nao altera
  * {@code packedLight}, nao acende bloco e nao ilumina o cenario.
@@ -98,7 +113,26 @@ public final class AuraBloomRenderer {
         boolean haAura = maiorForca > 0.0F && raioDoMaior > 0.0F;
         AuraPostProcess.prepararQuadro(mc, haAura);
         if (haAura) {
-            this.peso = maiorForca * NenClientConfig.intensidadeDoBloom();
+            // O PESO NAO LEVA `maiorForca`, E ISSO E A CORRECAO DE 2026-09-22.
+            //
+            // A forca do perfil JA FOI APLICADA, por jogador, na escrita do alvo:
+            // `AuraPlayerRenderLayer` monta a segunda emissao com
+            // `alphaDoPasse * forcaDoBrilho`, onde a forca e a do perfil DAQUELE
+            // jogador. Multiplicar por `maiorForca` aqui aplicava a forca DUAS
+            // VEZES -- e, pior, a segunda vez com o valor de OUTRA pessoa.
+            //
+            // A conta que o defeito produzia, com um Ten na tela:
+            //   observador em Ten -> 0.20 (escrita) * 0.20 (composite) = 0.040
+            //   observador em Ren -> 0.20 (escrita) * 0.55 (composite) = 0.110
+            // O Ten de um terceiro ficava 2,75x mais claro porque QUEM OLHAVA
+            // ligou Ren. Nao lancava, nao aparecia em teste, e o relato que
+            // chegou foi "ativar Ren deixa a tecnica dos outros mais clara".
+            //
+            // `maiorForca` continua decidindo duas coisas legitimas: SE ha aura
+            // (o predicado de pulo, acima) e o RAIO do borrao. O raio continua
+            // sendo o maior da tela, e isso permanece um custo real do alvo
+            // compartilhado -- ver o javadoc da classe.
+            this.peso = NenClientConfig.intensidadeDoBloom();
             this.raio = raioDoMaior;
         }
     }

@@ -60,8 +60,14 @@ class ForcaDoBrilhoTest {
         String fonte = semComentarios(Repo.texto(BLOOM));
 
         assertTrue(fonte.contains("intensidadeDoBloom()"),
-                "O composite parou de ler o slider do jogador. Ele e o UNICO multiplicador que"
-                        + " deve sobrar aqui.");
+                "O composite parou de ler o slider do jogador.");
+
+        assertTrue(fonte.contains("ESCALA_DO_COMPOSITE"),
+                "O composite perdeu a escala CONSTANTE. Sem ela o peso vira 1,0 e o halo fica"
+                        + " CINCO VEZES mais forte do que o que passou no gate do AV1 -- foi"
+                        + " exatamente isso que aconteceu em 22/09, e o relato veio em minutos:"
+                        + " \"o Ten atravessa parede e parece flecha espectral a 50 blocos\"."
+                        + " A escala nao pode vir de jogador nenhum, ou o acoplamento volta.");
 
         assertFalse(Pattern.compile("peso\\s*=\\s*[^;]*maiorForca").matcher(fonte).find(),
                 "O peso do composite voltou a multiplicar por maiorForca. A forca do perfil JA"
@@ -100,6 +106,22 @@ class ForcaDoBrilhoTest {
     }
 
     @Test
+    @DisplayName("a escala do composite recompoe o Ten que o AV1 aprovou (0,04)")
+    void aEscalaRecompoeOTenAprovado() {
+        var m = Pattern.compile("ESCALA_DO_COMPOSITE\s*=\s*([0-9.]+)F")
+                .matcher(semComentarios(Repo.texto(BLOOM)));
+        assertTrue(m.find(), "nao achei a constante ESCALA_DO_COMPOSITE");
+        float escala = Float.parseFloat(m.group(1));
+
+        // O que o olho aprovou no AV1: Ten em 0,20 (escrita) x 0,20 (composite).
+        assertEquals(0.04F, forcaDeBloomEm(TEN) * escala, 1.0E-4F,
+                "O Ten deixou de sair na magnitude aprovada no gate do AV1. Este numero nao e"
+                        + " opiniao: e o produto que estava na tela quando alguem olhou e disse"
+                        + " que passava. Mudar a escala sem olhar de novo troca um gate aprovado"
+                        + " por um que ninguem julgou.");
+    }
+
+    @Test
     @DisplayName("Ren brilha mais que Ten no DADO -- senao a conta acima nao mede nada")
     void osPerfisMantemADiferenca() {
         float ten = forcaDeBloomEm(TEN);
@@ -114,6 +136,27 @@ class ForcaDoBrilhoTest {
                         + " javadoc deste teste e no AuraBloomRenderer cita este numero: mude"
                         + " os dois juntos, ou o texto passa a descrever outro jogo.");
         assertEquals(0.55F, ren, 1.0E-4F, "A forca de bloom do Ren mudou; ver acima.");
+    }
+
+    @Test
+    @DisplayName("a mascara de oclusao e copiada depois do CUTOUT -- grama tambem oclui")
+    void aMascaraIncluiOCutout() {
+        String fonte = semComentarios(Repo.texto(BLOOM));
+
+        assertTrue(fonte.contains("Stage.AFTER_CUTOUT_BLOCKS"),
+                "A copia da profundidade voltou para antes do cutout. Grama, folhas e flores"
+                        + " desenham no passe de CUTOUT, depois do solido: fora da mascara, o"
+                        + " halo atravessa exatamente esses blocos e nenhum outro. Foi o defeito"
+                        + " de 2026-09-22, e o relato de jogo entregou a causa -- \"so atravessa"
+                        + " na grama; outros blocos nao da para ver\".");
+
+        assertFalse(fonte.contains("Stage.AFTER_SOLID_BLOCKS"),
+                "Sobrou uma referencia a AFTER_SOLID_BLOCKS. Duas condicoes de estagio no mesmo"
+                        + " arquivo e como uma delas fica para tras.");
+
+        assertTrue(fonte.contains("Stage.AFTER_WEATHER"),
+                "O composite deixou de rodar depois do clima. Rodar antes deixa chuva e neve"
+                        + " desenhadas POR CIMA do halo.");
     }
 
     // ---------------------------------------------------------------- leitura

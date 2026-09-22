@@ -33,12 +33,13 @@ dentro, e morte/troca de dimensão viraram portão.
    suficiente. O custo dessa decisão está escrito em
    [`DIVIDAS.md`](DIVIDAS.md) — e a consequência imediata é que **esta folha
    passou a ser a evidência inteira do AV0**.
-2. **O E1 ainda não cruzou produção com jogador.** Há duas execuções limpas, e
-   cada uma tem metade: a **instância** (classpath de produção) rodou sem
-   ninguém; a **sessão de vocês** teve dois jogadores por 51 minutos, mas no
-   `runServer` — onde as classes de cliente estão no classpath e um vazamento
-   não lançaria nada. Fecha com dez minutos na instância, com um cliente
-   dentro. É a última dívida do gate — ver [`DIVIDAS.md`](DIVIDAS.md) D5.
+2. ~~O E1 ainda não cruzou produção com jogador.~~ **CRUZOU, e o gate fechou.**
+   A tabela de resultado acima registra a execução que faltava: **instância de
+   produção COM jogador**, 23 minutos, 2 jogadores, 8 mortes, as duas dimensões,
+   zero ocorrências. O que estava escrito aqui descrevia o estado anterior e
+   ficou para trás quando a tabela foi atualizada — **duas fontes para a mesma
+   verdade, e esta era a desatualizada.** Corrigido em 2026-09-22, ao alinhar as
+   issues do GitHub.
 3. ~~A montagem não foi declarada.~~ **Declarada e conferida contra o log em
    2026-09-22:** servidor dedicado, **dois jogadores** — `Kurapika` e `Gon`,
    19:17→20:10 de 21/09, 51 minutos, em `run/server/logs/latest.log`. O bloco D

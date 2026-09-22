@@ -99,6 +99,12 @@ Exporta:  .../animations/entity/foxbear.animation.json
 import json
 import math
 import os
+import sys
+
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+
+from comum.animacao import corrigir_sentido_de_z_em  # noqa: E402
 
 # --------------------------------------------------------------- o contrato
 
@@ -2956,6 +2962,12 @@ def ordenar(clipe):
 
 
 def escrever(animacoes):
+    # SENTIDO DE Z. Este mob e um dos sete primeiros e nao passa por
+    # `Animacoes.emitir`, onde a correcao mora para os demais -- mas a premissa
+    # invertida era a MESMA, copiada de arquivo em arquivo. Chamar a funcao da
+    # biblioteca em vez de repetir a negacao aqui e o que impede as duas copias
+    # de divergirem no dia em que o sinal mudar.
+    corrigir_sentido_de_z_em("foxbear", animacoes)
     destino = os.path.join(DIR_ANIM, MOB + ".animation.json")
     os.makedirs(DIR_ANIM, exist_ok=True)
     texto = serializar({"format_version": "1.8.0", "animations": animacoes})

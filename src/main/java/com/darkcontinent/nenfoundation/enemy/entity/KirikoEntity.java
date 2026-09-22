@@ -15,6 +15,7 @@ import com.darkcontinent.nenfoundation.enemy.encounter.RegrasDeJulgamento;
 import com.darkcontinent.nenfoundation.enemy.registry.EnemyEntityTypes;
 import java.util.EnumSet;
 import java.util.UUID;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -265,10 +266,18 @@ public final class KirikoEntity extends BaseHxHMob implements GeoEntity {
     // entidade, e as classes aninhadas abaixo sao static justamente para nao deixar
     // essa dependencia escondida.
     //
-    // Nada disto e persistido, DE PROPOSITO: o exame e estado de RUNTIME (ADR-002).
-    // Um save no meio da avaliacao devolve um kiriko que recomeca a observar, que e
-    // o comportamento certo -- ele nao viu o que aconteceu enquanto o mundo estava
-    // fechado.
+    // O EXAME EM ANDAMENTO nao e persistido, DE PROPOSITO (ADR-002): pontuacao,
+    // ticks observados e candidato sao estado de RUNTIME. Um save no meio da
+    // avaliacao devolve um kiriko que recomeca a observar, que e o comportamento
+    // certo -- ele nao viu o que aconteceu enquanto o mundo estava fechado.
+    //
+    // O VEREDITO CONCLUIDO E OUTRA COISA, e ele SOBREVIVE (ver
+    // {@link #addAdditionalSaveData}). Ele nao e observacao pela metade: e uma
+    // decisao ja tomada. Esquece-lo dava ao jogador reprovado um recomeco limpo
+    // por se afastar ate o chunk descarregar -- e era o que acontecia, porque o
+    // mais comum e o kiriko MATAR o reprovado, o jogador renascer no spawn e a
+    // area descarregar antes de ele voltar. O bicho reaparecia disfarcado e
+    // pacifico, contra a promessa escrita tres linhas abaixo.
     private Veredito veredito = Veredito.PENDENTE;
     /** Quem esta em exame agora. Referencia de runtime; pode sumir por fora. */
     private Player candidato;
@@ -391,6 +400,87 @@ public final class KirikoEntity extends BaseHxHMob implements GeoEntity {
         int ordinal = this.entityData.get(FASE_DE_ATAQUE);
         AttackPhase[] fases = AttackPhase.values();
         return ordinal >= 0 && ordinal < fases.length ? fases[ordinal] : AttackPhase.IDLE;
+    }
+
+    // ------------------------------------------------------------ persistencia
+
+    /** Chaves do save. Nomes proprios: trocar um e trocar o contrato do mundo salvo. */
+    private static final String TAG_VEREDITO = "NenKirikoVeredito";
+    private static final String TAG_REPROVADO = "NenKirikoReprovado";
+
+    /**
+     * SO O VEREDITO CONCLUIDO vai para o disco, e nunca o exame em andamento.
+     *
+     * <p>A assimetria e a regra inteira. Pontuacao e ticks observados sao o que o
+     * kiriko VIU, e ele nao viu nada enquanto o mundo estava fechado -- salva-los
+     * devolveria um bicho a meio julgamento de uma cena que nao aconteceu. O
+     * veredito e o oposto: ja foi decidido, e "reprovado nao se desfaz" e a
+     * promessa que o {@link #reprovadoUuid} faz em javadoc desde o inicio.</p>
+     *
+     * <p><b>ELA ERA FALSA NA PRATICA.</b> Sem estas quatro linhas, o caminho mais
+     * comum do encontro apagava o veredito: o kiriko mata o reprovado, o jogador
+     * renasce longe, o chunk descarrega, e o kiriko volta DISFARCADO e PENDENTE.
+     * Nada dava erro -- o jogador so encontrava um bicho pacifico onde tinha
+     * deixado um inimigo.</p>
+     *
+     * <p>{@code APROVADO} tambem e gravado, e pelo motivo simetrico: quem passou
+     * no exame nao deve ser reavaliado ao voltar. A recompensa ja foi entregue, e
+     * um segundo exame poderia reprova-lo pelo mesmo ato que na primeira vez foi
+     * julgado em outro contexto.</p>
+     */
+    @Override
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        if (veredito != Veredito.PENDENTE) {
+            tag.putString(TAG_VEREDITO, veredito.name());
+        }
+        if (reprovadoUuid != null) {
+            tag.putUUID(TAG_REPROVADO, reprovadoUuid);
+        }
+    }
+
+    /**
+     * Le o veredito e RECOMPOE o corpo, sem reencenar a revelacao.
+     *
+     * <p>A transformacao e um clipe de uma vez so: ela ja rodou na sessao em que o
+     * veredito foi dado. Deixar {@code transformacaoRestante} correr aqui faria o
+     * kiriko se revelar de novo a cada carregamento de chunk -- e o jogador veria
+     * o disfarce cair para ninguem.</p>
+     *
+     * <p>Um nome de veredito que este build nao conhece e tratado como
+     * {@code PENDENTE}, e nao como excecao: um save de uma versao futura nao pode
+     * derrubar o carregamento do mundo por causa de um mob.</p>
+     */
+    @Override
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        if (tag.hasUUID(TAG_REPROVADO)) {
+            reprovadoUuid = tag.getUUID(TAG_REPROVADO);
+        }
+        if (!tag.contains(TAG_VEREDITO)) {
+            return;
+        }
+        veredito = lerVeredito(tag.getString(TAG_VEREDITO));
+        if (veredito == Veredito.PENDENTE) {
+            return;
+        }
+        // O corpo verdadeiro ja estava a mostra quando o mundo fechou.
+        this.entityData.set(TRANSFORMANDO, Boolean.FALSE);
+        this.entityData.set(DISFARCADO, Boolean.FALSE);
+        this.entityData.set(AVALIANDO, Boolean.FALSE);
+        setSilent(false);
+        if (veredito == Veredito.REPROVADO) {
+            this.entityData.set(REPROVADO, Boolean.TRUE);
+        }
+    }
+
+    private static Veredito lerVeredito(String nome) {
+        for (Veredito v : Veredito.values()) {
+            if (v.name().equals(nome)) {
+                return v;
+            }
+        }
+        return Veredito.PENDENTE;
     }
 
     // ------------------------------------------------------------------ tick

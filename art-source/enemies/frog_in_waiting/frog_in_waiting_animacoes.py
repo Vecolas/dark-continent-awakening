@@ -45,6 +45,12 @@ Exporta:  src/main/resources/assets/nenfoundation/animations/entity/frog_in_wait
 """
 import json
 import os
+import sys
+
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+
+from comum.animacao import corrigir_sentido_de_z_em  # noqa: E402
 
 # --------------------------------------------------------------- o contrato
 
@@ -715,6 +721,12 @@ def main():
         "animation.frog_in_waiting.death": ordenar(death()),
     }
     conferir_clipes(animacoes)
+    # SENTIDO DE Z. Este mob e um dos sete primeiros e nao passa por
+    # `Animacoes.emitir`, onde a correcao mora para os demais -- mas a premissa
+    # invertida era a MESMA, copiada de arquivo em arquivo. Chamar a funcao da
+    # biblioteca em vez de repetir a negacao aqui e o que impede as duas copias
+    # de divergirem no dia em que o sinal mudar.
+    corrigir_sentido_de_z_em("frog_in_waiting", animacoes)
     conferir_ossos(animacoes, geometria)
     conferir_duracoes(animacoes)
 

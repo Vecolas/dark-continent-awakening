@@ -13,6 +13,59 @@ avançam por dependência técnica própria.
 
 ---
 
+## A inspeção de 2026-09-22 — cinco achados, e nenhum dava erro
+
+A sessão de julgamento do AV0 não olhou só para a aura. Produziu cinco achados,
+e **nenhum aparecia em 1.568 testes verdes** — porque nenhum era uma exceção.
+
+| # | Achado | Conserto |
+| --- | --- | --- |
+| 1 | o kiriko **esquecia o veredito** ao descarregar o chunk | veredito CONCLUÍDO passa a ser persistido; exame em andamento continua runtime |
+| 2 | membros pareados com a **animação invertida** (asas batendo para dentro) | premissa de sinal de Z corrigida em 8 mobs, por lista declarada |
+| 3 | Greed Island nascia em **y=-59**, com névoa de void | 123 camadas de pedra; grama em y=63, jogador em y=64 |
+| 4 | morrer na ilha **devolvia ao Overworld** | marca na tag persistente, copiada no `Clone` e limpa ao usar |
+| 5 | **não havia como entrar** na ilha | `greed_island_ring`, agachar + botão direito |
+
+### O achado 2 custou uma volta, e ela fica registrada
+
+A premissa era *"rotação Z POSITIVA no lado +X abre o membro para FORA"* —
+escrita em vários geradores, **deduzida da regra da mão direita e nunca
+conferida**. Mesmo status que o eixo Y já declarava no kiriko e na spider eagle.
+
+A vanilla resolve sem abrir o cliente: em `HumanoidModel.setupAnim` o balanço de
+ócio **soma** ao `zRot` do braço direito (x=-5) e **subtrai** do esquerdo (x=+5),
+afastando os dois do corpo. No lado `+X`, quem abre para fora é o Z **negativo**.
+
+> **A premissa não era uniforme.** A primeira tentativa inverteu Z em *todos* os
+> mobs e **quebrou** o `avian_commander` e o `dummy_enemy`, que já estavam
+> certos. A correção final é a lista `MOBS_COM_PREMISSA_DE_Z_INVERTIDA`, com os
+> oito classificados medindo o sinal do membro esquerdo antes da mudança.
+>
+> **Duas tentativas de escrever um portão para isso falharam**, e o motivo está
+> em [`o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md): não há
+> invariante verdadeiro no JSON. Uma asa que bate passa pelos dois sinais, e
+> braços que pendem seguem o corpo juntos. **Só a tela mostra.**
+
+**Perna e orelha também usam Z e NÃO foram viradas** — nelas o eixo não carrega
+essa semântica, ninguém as observou, e virar por simetria seria trocar um
+defeito medido por um introduzido.
+
+### O achado 4 diverge do cânone, de propósito
+
+No material, morrer em Greed Island destrói o anel e o binder e devolve o
+**corpo sem vida** ao mundo real. Aqui o jogador renasce na ilha. É decisão do
+dono do projeto, registrada para não ser lida como descuido.
+
+> ### Os chunks antigos da ilha precisam sair
+>
+> O gerador plano só afeta chunk **novo**. A instância tem 6 arquivos de região
+> (13 MB) com a grama em `y=-60`: quem voltar lá continua caindo no fundo do
+> mundo. Apagar `instancia/servidor/world/dimensions/nenfoundation/greed_island/`
+> faz a ilha nascer no terreno certo. **Nada além da ilha é afetado** — as outras
+> dimensões têm pasta própria.
+
+---
+
 ## O quadro
 
 | Estágio | O que é | Estado |

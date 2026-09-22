@@ -38,6 +38,12 @@ Exporta:  src/main/resources/assets/nenfoundation/animations/entity/great_stamp.
 import json
 import math
 import os
+import sys
+
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+
+from comum.animacao import corrigir_sentido_de_z_em  # noqa: E402
 
 # --------------------------------------------------------------- o contrato
 
@@ -477,6 +483,12 @@ def main():
                      ("windup", windup), ("charge", charge), ("stagger", stagger),
                      ("hurt", hurt), ("death", death))}
     conferir_clipes(animacoes)
+    # SENTIDO DE Z. Este mob e um dos sete primeiros e nao passa por
+    # `Animacoes.emitir`, onde a correcao mora para os demais -- mas a premissa
+    # invertida era a MESMA, copiada de arquivo em arquivo. Chamar a funcao da
+    # biblioteca em vez de repetir a negacao aqui e o que impede as duas copias
+    # de divergirem no dia em que o sinal mudar.
+    corrigir_sentido_de_z_em("great_stamp", animacoes)
     conferir_ossos(animacoes)
 
     os.makedirs(os.path.dirname(DESTINO), exist_ok=True)

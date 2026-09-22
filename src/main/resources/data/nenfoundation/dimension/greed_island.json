@@ -4,9 +4,22 @@
     "type": "minecraft:flat",
     "settings": {
       "layers": [
-        { "height": 1, "block": "minecraft:bedrock" },
-        { "height": 3, "block": "minecraft:dirt" },
-        { "height": 1, "block": "minecraft:grass_block" }
+        {
+          "height": 1,
+          "block": "minecraft:bedrock"
+        },
+        {
+          "height": 123,
+          "block": "minecraft:stone"
+        },
+        {
+          "height": 3,
+          "block": "minecraft:dirt"
+        },
+        {
+          "height": 1,
+          "block": "minecraft:grass_block"
+        }
       ],
       "biome": "minecraft:plains",
       "lakes": false,

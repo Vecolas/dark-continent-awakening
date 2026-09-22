@@ -110,12 +110,20 @@ dela:
                            CRISTA se levanta para a frente (alerta); a CAUDA SOBE
     rotacao Y positiva  -> a cabeca (massa em -Z) varre para -X = a DIREITA do
                            bicho. E o eixo do "virar para ir embora"
-    rotacao Z positiva  -> o lado esquerdo (+X) sobe; a mao pendurada vai para
-                           FORA no braco esquerdo e para DENTRO no direito
+    rotacao Z positiva  -> o lado esquerdo (+X) DESCE; a mao pendurada vai para
+                           DENTRO no braco esquerdo e para FORA no direito
 
-E por isso que ABRIR OS BRACOS no `approve` e z POSITIVO na esquerda e NEGATIVO
-na direita, e nunca o mesmo sinal nos dois -- com o mesmo sinal os bracos nao
-abrem, eles varrem para o mesmo lado, que e um gesto de enxotar.
+ESTA LINHA DIZIA O CONTRARIO, e por isso os bracos abriam ao contrario em todos
+os clipes. Era deducao pela regra da mao direita -- o mesmo status que o eixo Y
+tem quatro paragrafos abaixo --, e em 2026-09-22 alguem olhou o jogo. A vanilla
+confirma: em `HumanoidModel` o balanco de ocio SOMA ao zRot do braco DIREITO
+(x=-5) e SUBTRAI do ESQUERDO (x=+5), e o efeito e os dois se afastarem do corpo.
+
+ABRIR OS BRACOS continua sendo sinais OPOSTOS nos dois lados -- com o mesmo
+sinal eles nao abrem, varrem para o mesmo lado, que e um gesto de enxotar. O que
+mudou foi QUAL lado leva qual sinal, e isso nao se escreve mais aqui: o sinal
+vem de `comum.animacao.SENTIDO_DE_Z`, aplicado no ponto de escrita. Os numeros
+deste arquivo dizem "quanto abre", nunca "para que lado".
 
 O EIXO Y E DEDUZIDO DA MAO DOS EIXOS, NAO OBSERVADO em jogo -- mesma suposicao
 declarada pelas lanes da spider eagle e do master of the swamp, e pelo mesmo
@@ -161,6 +169,12 @@ Exporta:  .../animations/entity/kiriko.animation.json
 import json
 import math
 import os
+import sys
+
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+
+from comum.animacao import corrigir_sentido_de_z_em  # noqa: E402
 
 # --------------------------------------------------------------- o contrato
 
@@ -2305,6 +2319,12 @@ def ordenar(clipe):
 
 
 def escrever(mob, animacoes):
+    # SENTIDO DE Z. Este mob e um dos sete primeiros e nao passa por
+    # `Animacoes.emitir`, onde a correcao mora para os demais -- mas a premissa
+    # invertida era a MESMA, copiada de arquivo em arquivo. Chamar a funcao da
+    # biblioteca em vez de repetir a negacao aqui e o que impede as duas copias
+    # de divergirem no dia em que o sinal mudar.
+    corrigir_sentido_de_z_em(mob, animacoes)
     destino = os.path.join(DIR_ANIM, mob + ".animation.json")
     os.makedirs(DIR_ANIM, exist_ok=True)
     texto = serializar({"format_version": "1.8.0", "animations": animacoes})

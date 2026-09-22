@@ -38,6 +38,18 @@ public final class NenItems {
             "greed_island_card",
             () -> new com.darkcontinent.nenfoundation.item.GreedIslandCardItem(new Item.Properties()));
 
+    /**
+     * O anel que abre Greed Island.
+     *
+     * <p>{@code stacksTo(1)} porque ele e uma CHAVE, e nao um consumivel: uma
+     * pilha de sessenta e quatro aneis nao significa nada, e permiti-la faria o
+     * item parecer material de receita.</p>
+     */
+    public static final DeferredHolder<Item, Item> GREED_ISLAND_RING = ITEMS.register(
+            "greed_island_ring",
+            () -> new com.darkcontinent.nenfoundation.item.GreedIslandRingItem(
+                    new Item.Properties().stacksTo(1)));
+
     private static DeferredHolder<Item, Item> note(String itemId, String entryId) {
         return ITEMS.register(itemId, () -> new FieldNoteItem(new Item.Properties(),
                 NenFoundation.id(entryId), 3));
@@ -61,6 +73,7 @@ public final class NenItems {
             evento.accept(SWAMP_FIELD_NOTE.get());
             evento.accept(SPIDER_EAGLE_FIELD_NOTE.get());
             evento.accept(GREED_ISLAND_CARD.get());
+            evento.accept(GREED_ISLAND_RING.get());
         }
         if (evento.getTabKey() == net.minecraft.world.item.CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             evento.accept(NenBlocks.RESEARCH_TABLE_ITEM.get());

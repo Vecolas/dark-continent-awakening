@@ -44,7 +44,14 @@ CONVENCAO DE ROTACAO, medida neste geo e nao decorada. Com -Z na frente:
   * rotacao X NEGATIVA num membro pendurado o joga para a FRENTE e para cima;
     X POSITIVA o joga para TRAS e para cima;
   * rotacao X POSITIVA na cabeca inclina o focinho para BAIXO;
-  * rotacao Z POSITIVA na asa esquerda (lado +X) a abre para FORA; a asa direita
+  * rotacao Z NEGATIVA na asa esquerda (lado +X) a abre para FORA -- e o sinal
+    e aplicado por `comum.animacao.SENTIDO_DE_Z`, nao escrito aqui. ESTA LINHA
+    JA DISSE "POSITIVA", deduzido da regra da mao direita e nunca conferido; em
+    2026-09-22 alguem olhou o jogo e as asas batiam para DENTRO do corpo. A
+    vanilla concorda: em `HumanoidModel` o balanco de ocio soma ao zRot do braco
+    DIREITO (x=-5) e subtrai do ESQUERDO (x=+5) para afasta-los do corpo. Os
+    numeros abaixo continuam POSITIVOS de proposito -- eles dizem "quanto abre",
+    e quem decide o lado e o sinal da biblioteca; a asa direita
     e sempre DERIVADA dela com fator -1, porque escrita a mao ela ficaria com a
     fase certa hoje e meio quadro atras na primeira correcao.
 

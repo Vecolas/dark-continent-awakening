@@ -445,6 +445,93 @@ def serializar(valor, recuo=0):
     return json.dumps(valor)
 
 
+# ---------------------------------------------------------------- sentido de Z
+#
+# A CONVENCAO, conferida em jogo em 2026-09-22: no lado +X (esquerdo), quem abre
+# o membro para FORA e o Z NEGATIVO. A vanilla concorda -- em `HumanoidModel` o
+# balanco de ocio SOMA ao zRot do braco direito (x=-5) e SUBTRAI do esquerdo
+# (x=+5), afastando os dois do corpo.
+#
+# MAS OS GERADORES NAO CONCORDAVAM ENTRE SI, e e por isso que isto e uma LISTA e
+# nao um sinal global. Varios declaravam a premissa invertida ("Z positivo no
+# lado +X abre para fora") e escreveram os numeros sob ela; outros --
+# avian_commander e dummy_enemy -- ja estavam certos. Uma negacao aplicada a
+# todos consertaria os primeiros e QUEBRARIA os segundos, trocando um defeito
+# observado por um introduzido.
+#
+# Cada nome abaixo foi classificado medindo o extremo de Z do membro ESQUERDO no
+# arquivo gerado antes da correcao: positivo = escrito sob a premissa errada.
+MOBS_COM_PREMISSA_DE_Z_INVERTIDA = frozenset((
+    "bat_scout",               # asas batiam para DENTRO -- o caso observado
+    "crab_heavy",              # garras
+    "kiriko",                  # bracos; a premissa estava escrita no proprio arquivo
+    "kiriko_disfarce",
+    "man_faced_ape",
+    "man_faced_ape_disfarce",
+    "mosquito_officer",
+    "spider_eagle",
+))
+
+# Familias de osso em que Z significa ABRIR/FECHAR um par esquerda-direita.
+# Perna e orelha ficam de FORA de proposito: nelas o eixo nao carrega essa
+# semantica, ninguem as observou, e vira-las por simetria seria trocar um
+# defeito medido por um nao medido.
+_MEMBROS_PAREADOS = ("arm", "braco", "wing", "asa", "claw", "garra")
+
+
+def _e_membro_pareado(osso):
+    nome = osso.lower()
+    if not ("left" in nome or "right" in nome):
+        return False
+    return any(familia in nome for familia in _MEMBROS_PAREADOS)
+
+
+def _z_invertido(valor):
+    """Nega o terceiro componente PRESERVANDO o tipo.
+
+    `z * -1.0` parece equivalente e nao e: ele transforma `0` em `-0.0` e `85`
+    em `-85.0`, e o arquivo passa a diferir em todo osso pareado de todo mob --
+    inclusive nos que tem Z zerado e nao mudaram de comportamento nenhum. O diff
+    vira ruido, e a mudanca de verdade se esconde dentro dele.
+    """
+    if not isinstance(valor, (list, tuple)) or len(valor) != 3:
+        return valor
+    x, y, z = valor
+    if not isinstance(z, (int, float)) or z == 0:
+        return valor
+    return [x, y, -z]
+
+
+def corrigir_sentido_de_z_em(mob, animacoes):
+    """Aplica {@link SENTIDO_DE_Z} a um dicionario de clipes ja montado.
+
+    A MESMA regra de `Animacoes.corrigir_sentido_de_z`, exposta para os SETE
+    PRIMEIROS mobs -- foxbear, frog_in_waiting, great_stamp, kiriko,
+    man_faced_ape, master_of_the_swamp e spider_eagle --, que foram escritos
+    antes desta biblioteca existir e tem cada um o proprio caminho de escrita.
+
+    Eles sao exatamente os arquivos que `estado-en.md` descreve como "o pincel
+    copiado de arquivo em arquivo", e a premissa invertida veio junto na copia.
+    Uma negacao escrita a mao em cada um deles seria a oitava copia da mesma
+    regra -- e a que ficaria para tras no dia em que o sinal mudasse.
+    """
+    if mob not in MOBS_COM_PREMISSA_DE_Z_INVERTIDA:
+        return animacoes
+    for clipe in animacoes.values():
+        for osso, canais in (clipe.get("bones") or {}).items():
+            if not _e_membro_pareado(osso):
+                continue
+            rotacao = canais.get("rotation") if isinstance(canais, dict) else None
+            if rotacao is None:
+                continue
+            if isinstance(rotacao, dict):
+                for instante, valor in rotacao.items():
+                    rotacao[instante] = _z_invertido(valor)
+            else:
+                canais["rotation"] = _z_invertido(rotacao)
+    return animacoes
+
+
 class Animacoes:
     """Os clipes de um mob: construcao, portoes e o arquivo.
 
@@ -481,7 +568,20 @@ class Animacoes:
             self.animaveis)
         return self.clipes[self.nome_completo(nome)]
 
+    def corrigir_sentido_de_z(self):
+        """Delega para {@link corrigir_sentido_de_z_em}, com o nome deste mob.
+
+        A regra e a lista moram num lugar so: repeti-las aqui daria duas copias
+        da mesma verdade, e a segunda ficaria para tras.
+        """
+        return corrigir_sentido_de_z_em(self.mob, self.clipes_por_mob())
+
+    def clipes_por_mob(self):
+        """Os clipes deste mob, para a correcao de sinal."""
+        return self.clipes
+
     def validar(self, ataques=None, extras=()):
+        self.corrigir_sentido_de_z()
         valida_clipes(self.clipes, self.mob, self.loops)
         valida_ossos(self.clipes, self.geometria, self.nao_animados)
         valida_ossos_com_volume(self.clipes, self.geometria)

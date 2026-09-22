@@ -13,6 +13,60 @@ que **se responde jogando**, organizada por quem deve perguntar.
 
 ---
 
+## O quadro único — tudo que ainda precisa de resposta
+
+**21 itens na trilha AV**, mais 29 fora dela. A coluna **Como** é a que importa:
+ela diz se o item precisa de você num jogo aberto, de duas pessoas, de medição,
+de código — ou só de uma decisão.
+
+| # | O que responder | Gate | Como | Bloqueio |
+| --- | --- | --- | --- | --- |
+| **B1** | Com `bloom off`, a aura se lê? | AV5 | ❌ **já reprovou** — é defeito, não pergunta | #196 |
+| **D3** | O `OFF` ganha compensação, ou o ADR-016 muda de promessa? | AV5 | 🧠 decisão | — |
+| **B2** | `OFF` × `FAST` × `HIGH` do mesmo frame são "menos do mesmo jogo"? | AV5 | 👁 olho | depende de B1 |
+| **B4** | O halo respeita parede **na tela**? | AV5 | 👁 olho | — |
+| **B5** | Com shader pack, a detecção cai para `FAST`? | AV5 | 👁 olho | exige pack instalado |
+| **B6** | Contadores criado/liberado batem após **dez resizes**? | AV5 | 🔢 contar | — |
+| **B7** | O passe de brilho voltou a derrubar o cliente? | AV5 | 👁 olho | exige a GPU que falhou |
+| **Z1** | O **pulso de supressão** aparece? | AV6 | 👁 olho | — |
+| **Z2** | O **modo permissivo** de visibilidade, em jogo | AV6 | 👁 olho | — |
+| **Z3** | A coluna **observador** do resolvedor, em jogo | AV6 | 👥 dois clientes | **depende de Gyo (#126)** |
+| **Z4** | "O cliente de B não recebe o dado de A" | AV6 | 👥 dois clientes | — |
+| **P1** | As **nove poses**: nadar, rastejar, dormir, montar, arco, besta, escudo, elytra, queda | AV7 | 👁 olho | — |
+| **P2** | Capa e elytra sem tratamento — o resultado é aceitável? | AV7 | 👁 olho | — |
+| **P3** | `GeoAuraAdapter` — aura sobre mob GeckoLib | AV7 | 👁 olho | nunca desenhou nada |
+| **O1** | Os quatro cenários de orçamento, com `spark` | AV8 | 📏 medição | exige 10–20 jogadores |
+| **O2** | Tick time do dedicado: 10 em Ren × 10 parados | AV8 | 📏 medição | idem |
+| **O3** | Os **quatro contadores** do `F6` | AV8 | 🔢 contar | **custa 4 linhas** |
+| **O4** | A **distância máxima** girada em jogo | AV8 | 👁 olho | — |
+| **O5** | Matriz: vanilla, Embeddium, Iris com e sem pack | AV8 | 👁 olho | exige os mods |
+| **D1** | O ripple é corpo inteiro (entregue) ou por região (pedido)? | #103 | 🧠 decisão | — |
+| **D2** | Os seis fatores por região **não têm consumidor visível** | Gyo/Ko/Ryu | 🧠 decisão | — |
+
+### Legenda
+
+| | |
+| --- | --- |
+| 👁 **olho** | você, num jogo aberto, sozinho |
+| 👥 **dois clientes** | exige servidor dedicado e uma segunda pessoa (ou segunda janela) |
+| 🔢 **contar** | ler números do `F6` e escrevê-los |
+| 📏 **medição** | `spark`, perfil arquivado, comparação antes/depois |
+| 🧠 **decisão** | não se responde olhando; se decide |
+| ❌ **defeito** | já reprovou; não é pergunta aberta, é conserto pendente |
+
+### O mais barato primeiro
+
+1. **D3 + B1** — o `OFF`. Meia hora de código, e **todo julgamento visual feito
+   antes dele roda com um nível quebrado por baixo**.
+2. **O3** — quatro linhas de `F6`. Já falhou duas vezes; é a única coisa aqui
+   que custa menos de um minuto.
+3. **D1 e D2** — duas decisões que não precisam do jogo aberto, e que estão
+   segurando código órfão no repositório.
+
+Depois disso, os gates na ordem: AV5 → AV6 → AV7 → AV8.
+
+---
+
 ## Primeiro: o que o Ren já jogado cobre, e o que não cobre
 
 O Ren foi jogado várias vezes fora dos gates. Isso vale — mas vale **para uma
@@ -163,13 +217,7 @@ a fonte continua sendo [`o-que-nao-provamos.md`](o-que-nao-provamos.md).
 
 ---
 
-## A ordem que eu recomendaria
+## A ordem
 
-1. **AV4**, porque é o gate aberto e porque `R1`–`R3` (o mundo intacto) são o
-   tipo de defeito que não aparece em teste e custa caro depois.
-2. **O `OFF` do AV5** (`D3` + `B1`), porque é meia hora de código e porque todo
-   julgamento visual feito antes dele roda com um nível quebrado por baixo.
-3. **Os contadores** (`O3`), que já falharam duas vezes e custam quatro linhas
-   de `F6`.
-
-O resto segue a ordem dos gates.
+Está no **quadro único**, no topo deste arquivo. Esta seção existia para
+recomendar o AV4 primeiro; o AV4 fechou em 2026-09-22.

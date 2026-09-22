@@ -123,6 +123,8 @@ public final class AuraDebugRenderer {
                 SobreposicaoDeVfx.outputForcado(),
                 SobreposicaoDeVfx.densidadeForcada(),
                 lod == null ? null : lod.name().toLowerCase(Locale.ROOT),
+                SobreposicaoDeVfx.bloomForcado() == null ? null
+                        : SobreposicaoDeVfx.bloomForcado().name().toLowerCase(Locale.ROOT),
                 SobreposicaoDeVfx.ribbonsForcadas(),
                 MedidorDeVfx.chamadasDeDesenho(),
                 MedidorDeVfx.filamentos(),
@@ -282,6 +284,9 @@ public final class AuraDebugRenderer {
         if (!Float.isNaN(d.densidadeForcada())) {
             forcados.add(String.format(Locale.ROOT, "particulas=%.2f", d.densidadeForcada()));
         }
+        if (d.bloomForcado() != null) {
+            forcados.add("bloom=" + d.bloomForcado());
+        }
         if (d.lodForcado() != null) {
             forcados.add("lod=" + d.lodForcado());
         }
@@ -375,6 +380,7 @@ public final class AuraDebugRenderer {
             float outputForcado,
             float densidadeForcada,
             String lodForcado,
+            String bloomForcado,
             int ribbonsForcadas,
             int chamadasDeDesenho,
             int filamentos,

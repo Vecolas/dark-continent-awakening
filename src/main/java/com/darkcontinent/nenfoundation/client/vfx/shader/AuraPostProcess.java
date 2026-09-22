@@ -101,8 +101,14 @@ public final class AuraPostProcess {
      * tela mostra {@code FAST}.
      */
     public static AuraBloomLevel nivelEfetivo() {
-        AuraBloomLevel escolhido =
-                com.darkcontinent.nenfoundation.config.NenClientConfig.bloom();
+        // A SOBREPOSICAO DA SESSAO DE ARTE VEM ANTES DA CONFIG, e depois dela
+        // o rebaixamento continua valendo: forcar HIGH sobre um pipeline que
+        // nao o suporta produziria uma captura afirmando um nivel que a tela
+        // nao desenha.
+        AuraBloomLevel forcado =
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.bloomForcado();
+        AuraBloomLevel escolhido = forcado != null ? forcado
+                : com.darkcontinent.nenfoundation.config.NenClientConfig.bloom();
         if (motivoDoRebaixamento != null) {
             return escolhido.rebaixado();
         }

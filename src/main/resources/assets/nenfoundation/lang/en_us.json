@@ -311,6 +311,8 @@
   "nenfoundation.tecnica.zetsu": "Zetsu",
   "nenfoundation.vfx.ajuste_automatico": "Adjustment %s handed back to the profile.",
   "nenfoundation.vfx.ajuste_forcado": "Adjustment %s forced to %s. This is a hypothesis, not a decision: write it to the profile to make it real.",
+  "nenfoundation.vfx.bloom_automatico": "Glow level handed back to the config.",
+  "nenfoundation.vfx.bloom_forcado": "Glow level forced to %s. It was not written to the config.",
   "nenfoundation.vfx.captura_desligada": "Capture mode off. Camera and HUD restored.",
   "nenfoundation.vfx.captura_falhou": "The capture failed. The reason is in the log; nothing was written.",
   "nenfoundation.vfx.captura_ja_ligada": "Capture mode is already on.",

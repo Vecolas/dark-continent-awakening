@@ -102,6 +102,13 @@ public final class NenFoundationClient {
             brilhoDaAura =
             new com.darkcontinent.nenfoundation.client.vfx.render.AuraBloomRenderer();
     private long ticksDaSessao;
+    /**
+     * Os ripples de impacto (#103). Dono de estado por entidade, podado por
+     * presenca -- ver {@code ImpactosDeAura}.
+     */
+    private final com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura impactos =
+            new com.darkcontinent.nenfoundation.client.vfx.ImpactosDeAura();
+
     private final com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer overlayDeVfx =
             new com.darkcontinent.nenfoundation.client.vfx.debug.AuraDebugRenderer();
 
@@ -259,6 +266,9 @@ public final class NenFoundationClient {
         com.darkcontinent.nenfoundation.client.vfx.AuraVisibilityResolver.limpar();
         com.darkcontinent.nenfoundation.client.vfx.PulsoDeSupressao.limpar();
         com.darkcontinent.nenfoundation.client.vfx.MedidorDeVfx.limpar();
+        // QUEM LIGA, DESLIGA. Um ripple preso de outro servidor acenderia a
+        // regiao de alguem que nunca apanhou nesta sessao.
+        this.impactos.limpar();
         com.darkcontinent.nenfoundation.client.vfx.debug.AuraCaptureMode.instancia()
                 .desligar(Minecraft.getInstance());
         com.darkcontinent.nenfoundation.client.vfx.debug.TelaDeTuningDeAura.limpar();
@@ -395,6 +405,10 @@ public final class NenFoundationClient {
                     this.sondagemDeChao, mc.level, mc.player, estadoLocal, densidade);
         }
 
+        // O IMPACTO E LIDO ANTES DE QUALQUER DESENHO deste quadro, e com TODOS
+        // os jogadores -- inclusive o local, que tambem leva pancada. Lido
+        // dentro do laco dos outros, o proprio jogador nunca teria ripple.
+        this.impactos.tick(mc.level.players());
         this.tickDaAuraDosOutros(mc, densidade);
     }
 
@@ -466,8 +480,9 @@ public final class NenFoundationClient {
             // proposito: renderer, primeira pessoa e particula perguntam todos
             // aqui, e aplicar a sobreposicao em cada um faria os tres
             // divergirem no dia em que um deles esquecesse.
-            return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
-                    .aplicarNoLocal(this.vfx.estado());
+            return comRipple(jogador,
+                    com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx
+                            .aplicarNoLocal(this.vfx.estado()));
         }
         var sinal = this.cache.presencaDe(jogador.getId());
         if (sinal == SinalDeAura.NENHUM) {
@@ -476,11 +491,27 @@ public final class NenFoundationClient {
         // O ESTADO DOS OUTROS NAO SE FORCA -- so se desliga. Desenhar em outra
         // pessoa um estado que o servidor nunca mandou produziria uma captura
         // que nao prova nada sobre o jogo.
-        return com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
-                EstadoVisualDeTerceiro.de(sinal,
-                        com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo.doCliente(
-                                mc.player.distanceTo(jogador)),
-                        visibilidadeDe(mc.player, jogador, sinal)));
+        return comRipple(jogador,
+                com.darkcontinent.nenfoundation.client.vfx.SobreposicaoDeVfx.aplicarEmTerceiro(
+                        EstadoVisualDeTerceiro.de(sinal,
+                                com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
+                                        .doCliente(mc.player.distanceTo(jogador)),
+                                visibilidadeDe(mc.player, jogador, sinal))));
+    }
+
+    /**
+     * Soma o ripple de impacto ao estado ja montado (#103).
+     *
+     * <p>ELE ENTRA POR ULTIMO, depois da sobreposicao de arte, e isso e
+     * deliberado: uma sessao de captura que force a distribuicao continua vendo
+     * o impacto por cima, que e o que o jogo faz. Aplicado antes, o valor
+     * forcado apagaria o ripple e a captura mostraria uma aura que nao reage a
+     * pancada -- provando o contrario do que se queria medir.
+     */
+    private AuraVisualState comRipple(net.minecraft.world.entity.player.Player jogador,
+            AuraVisualState estado) {
+        return estado.comDistribuicao(
+                this.impactos.aplicar(jogador.getId(), estado.distribution()));
     }
 
     /**

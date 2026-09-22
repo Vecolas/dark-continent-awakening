@@ -16,6 +16,9 @@ branch do AV4; o que falta é evidência.
 
 ---
 
+> **As perguntas desta sessão estão em [`PERGUNTAS.md`](PERGUNTAS.md)**, com o
+> veredicto ao lado de cada uma e a polaridade uniforme (`PASSA`/`REPROVA`).
+
 ## As treze capturas
 
 ```
@@ -34,6 +37,13 @@ av2_overlay_contadores
 quadro congelado, tiradas em momentos diferentes. Se divergirem, a curva do
 filamento está lendo algo que muda entre quadros — e o defeito aparece em jogo
 como cintilação que ninguém consegue reproduzir.
+
+> **Esta verificação teria reprovado sem haver defeito na curva.** Até
+> 2026-09-22 o `/nenvfx freeze` parava a interpolação de estado mas **não o
+> relógio de animação**: o fluxo do shader e o ciclo dos filamentos continuavam
+> correndo, e dois quadros "congelados" saíam diferentes. Achado ao preparar
+> este gate, corrigido, e travado por `RelogioCongeladoTest` — que prova que o
+> **número** fica parado, não que a **tela** fica.
 
 **`av2_overlay_contadores`** fixa quantas ribbons estão vivas. É o número que o
 AV8 vai comparar.

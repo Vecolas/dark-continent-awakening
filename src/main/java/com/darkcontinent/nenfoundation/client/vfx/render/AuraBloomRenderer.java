@@ -17,10 +17,22 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
  * <p>DOIS MOMENTOS, E A ORDEM DELES E O EFEITO INTEIRO:
  *
  * <ol>
- *   <li><b>Depois dos blocos solidos, antes das entidades</b> -- e aqui que a
+ *   <li><b>Depois do CUTOUT, antes das entidades</b> -- e aqui que a
  *       profundidade da cena e copiada para o alvo. Ela precisa estar la ANTES
  *       de a aura ser desenhada, porque e ela a mascara de oclusao. Um quadro
- *       depois seria um quadro de halo atravessando parede.</li>
+ *       depois seria um quadro de halo atravessando parede.
+ *
+ *       <p><b>CUTOUT, e nao SOLID, e a correcao de 2026-09-22.</b> A copia
+ *       acontecia em {@code AFTER_SOLID_BLOCKS}, e grama, folhas e flores nao
+ *       sao solidas: elas desenham no passe de <i>cutout</i>, DEPOIS. Ficavam
+ *       de fora da mascara, e o halo atravessava exatamente esses blocos -- e
+ *       nenhum outro. O relato de jogo foi preciso ao ponto de entregar a
+ *       causa: <i>"parece que so atravessa na grama; outros blocos nao da para
+ *       ver"</i>. Pedra e terra sempre ocluiram, porque sao solidas.
+ *
+ *       <p>O estagio novo continua vindo ANTES das entidades, que e o que a
+ *       mascara exige: o vanilla desenha solido, cutout mipado, cutout e so
+ *       entao as entidades -- e a aura e uma layer de entidade.</li>
  *   <li><b>Depois de tudo</b> -- a cadeia roda e soma o resultado na cena.</li>
  * </ol>
  *
@@ -62,13 +74,40 @@ public final class AuraBloomRenderer {
     // era a terceira copia da mesma decisao -- com um valor que nao batia com
     // nenhuma das outras duas.
 
+    /**
+     * Escala do composite. LIMITE DE DESENHO, e nao direcao de arte.
+     *
+     * <p>Ela existe porque a forca do perfil ja entra POR JOGADOR na escrita do
+     * alvo, e o composite precisa de um numero que <b>nao venha de jogador
+     * nenhum</b> -- qualquer valor por jogador aqui acopla a aura de um a
+     * tecnica do outro, que foi o defeito de 22/09.
+     *
+     * <p><b>0,2 nao e arbitrario: e a escala que o olho aprovou.</b> Ate 22/09 o
+     * composite multiplicava por {@code maiorForca}, e com um jogador sozinho
+     * isso elevava a forca ao QUADRADO -- Ten saia em 0,20 x 0,20 = 0,04. Foi
+     * esse Ten que passou no gate do AV1. Tirar o quadrado sem repor a escala
+     * deixou o halo <b>cinco vezes</b> mais forte, e o relato foi imediato:
+     * "o Ten agora atravessa parede e parece flecha espectral a cinquenta
+     * blocos". Com 0,2 aqui, Ten volta a 0,04 -- identico ao aprovado -- e
+     * nenhuma tecnica depende mais da tecnica alheia.
+     *
+     * <p><b>O QUE MUDA PARA O REN, e precisa ser julgado:</b> ele saia em
+     * 0,55 x 0,55 = 0,30 e passa a sair em 0,55 x 0,2 = 0,11. Mais discreto do
+     * que era. A relacao Ren/Ten continua sendo 2,75x -- o que muda e o teto, e
+     * a direcao e a segura: o ADR-015 prefere halo de menos a halo de mais,
+     * porque "trinta pixels de halo deixa de ser brilho e vira nevoa". O Ren
+     * ainda nao passou por gate (isso e o AV4), e este numero e o primeiro a
+     * girar se ele ficar apagado demais.
+     */
+    private static final float ESCALA_DO_COMPOSITE = 0.2F;
+
     /** O peso e o raio do quadro corrente, decididos na preparacao. */
     private float peso;
     private float raio;
 
     /** Decide o pulo, garante o alvo e copia a profundidade da cena. */
     public void aoPreparar(RenderLevelStageEvent evento) {
-        if (evento.getStage() != RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) {
+        if (evento.getStage() != RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
             return;
         }
         Minecraft mc = Minecraft.getInstance();
@@ -132,7 +171,7 @@ public final class AuraBloomRenderer {
             // (o predicado de pulo, acima) e o RAIO do borrao. O raio continua
             // sendo o maior da tela, e isso permanece um custo real do alvo
             // compartilhado -- ver o javadoc da classe.
-            this.peso = NenClientConfig.intensidadeDoBloom();
+            this.peso = ESCALA_DO_COMPOSITE * NenClientConfig.intensidadeDoBloom();
             this.raio = raioDoMaior;
         }
     }

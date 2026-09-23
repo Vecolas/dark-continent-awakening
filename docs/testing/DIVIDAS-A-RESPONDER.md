@@ -23,12 +23,16 @@ em [`RESPOSTAS.md`](RESPOSTAS.md) **com os arquivos que o invalidam**.
 O que mudou foi o **rastreador**, e não o conhecimento. A dívida saiu da lista
 de tarefas e virou régua.
 
-### As duas que continuam abertas
+### A que continua aberta
 
 | # | O que é | Por que não fecha |
 | --- | --- | --- |
 | **#204** | Aura sobre mobs GeckoLib | **Dívida de implementação**, não de verificação. `GeoAuraAdapter` tem zero referências fora do próprio arquivo; `AuraLivingRenderLayer` não existe. Nenhuma sessão humana ia responder isso — não havia o que olhar |
-| **#103** | O ripple é corpo inteiro ou por região? | 🧠 decisão sua. O entregue informa *que* levou dano, não *onde* — que era o objetivo declarado |
+
+> **#103 saiu desta lista em 2026-09-22**, em `0e073dc`. A decisão foi a saída 3
+> do próprio comentário da issue: eco de corpo inteiro para *"levei dano"*, faixa
+> acesa para *"ali"*. O que sobrou não é decisão, é **olho** — ninguém viu a
+> diferença entre faixa e eco na tela.
 
 ### O que ficou sem olhar, e é bom saber de cor
 
@@ -41,24 +45,36 @@ de tarefas e virou régua.
 
 ---
 
-## O buraco que a trilha não cobria
+## O buraco que a trilha não cobria — **três dos quatro fecharam**
 
-Das **sete** técnicas registradas em produção, **quatro não têm efeito visível
-nenhum**:
+Em 2026-09-22 esta seção dizia que **quatro** técnicas não tinham efeito visível
+nenhum. `0e073dc` deu um produtor ao caminho por região, e a conta mudou:
 
-| Técnica | Domínio | Visual |
-| --- | --- | --- |
-| Ten · Ren · Zetsu | ✅ | ✅ |
-| **Gyo · Ken · Ko · Shu** | ✅ | ❌ |
+| Técnica | Domínio | Visual | Como |
+| --- | --- | --- | --- |
+| Ten · Ren · Zetsu | ✅ | ✅ | modo visual próprio |
+| **Gyo · Ko · Shu** | ✅ | ✅ | **redistribuem a alocação**, e a tela segue |
+| **Ken** | ✅ | ❌ | **é o que sobrou** — e por construção |
 
-Elas funcionam, custam aura, aparecem no HUD — e **o jogador não tem como saber
-que ligou**. É o problema mais caro do projeto hoje, e nenhum gate da trilha AV
-o tocava.
+**Por que as três acenderam de uma vez.** Gyo, Ko e Shu implementam
+`RedistribuiAura`; a alocação viaja no delta; e
+`AuraDistribution.daAlocacao` **normaliza pela região mais concentrada**. Ou
+seja: concentrar não deixa a região escolhida mais forte que `1.0` — deixa **o
+resto do corpo mais fraco**. Foi essa normalização que resolveu o problema que
+derrubou a primeira tentativa do ripple (*"um multiplicador com teto em `1.0`
+não tem para onde subir"*).
 
-**O fio já está puxado pela metade:** `AuraDistribution` e `AuraBodyRegion`
-existem e são consumidos pelo renderer (`estado.distribution().intensidade(regiao)`),
-e **nada nunca os move de `1.0`**. O caminho de desenho por região está pronto e
-esperando um produtor. Ver #162.
+Faltava só o jogador **apontar**, e a tecla `G` é isso.
+
+### Por que o Ken não entrou junto, e não é esquecimento
+
+O javadoc dele diz por escrito: *"a alocação soma 1.0 e diz **onde** a aura
+está, não **quanta**: 'alto em todas' é literalmente a alocação uniforme"*. Ken
+deliberadamente não toca o modelo de alocação — então, pela mesma normalização
+que acendeu as outras três, **Ken desenha exatamente o que Ten desenha**.
+
+O sinal dele, se vier, tem de vir de outra dimensão — cor, espessura, borda —
+e não de distribuição. **É decisão de direção visual, e não está autorizada.**
 
 ---
 
@@ -186,9 +202,13 @@ Estas não se respondem olhando — elas se **decidem**.
 
 | # | A decisão | Onde |
 | --- | --- | --- |
-| D1 | O ripple é **corpo inteiro** (entregue) ou **por região** (pedido)? O objetivo declarado da issue não foi alcançado: informa que levou dano, não onde | #103 |
-| D2 | Os **seis fatores por região** nunca foram vistos diferentes de `1.0` em jogo. O caminho existe, é testado, e **não tem consumidor visível** — config órfã em forma de campo | Gyo/Ko/Ryu |
+| ~~D1~~ | ~~O ripple é **corpo inteiro** ou **por região**?~~ ✅ **DECIDIDA em 2026-09-22** (`0e073dc`): os dois. O servidor manda a faixa atingida, ela acende com ganho cheio e o resto do corpo recebe 35% dele | #103 |
+| ~~D2~~ | ~~Os **seis fatores por região** nunca foram vistos diferentes de `1.0`~~ ✅ **RESOLVIDA em 2026-09-22**: Gyo, Ko e Shu movem a alocação, e a tecla `G` deixa o jogador escolher onde. Deixou de ser config órfã. **Continua sem ninguém ter olhado** | Gyo/Ko/Shu |
 | D3 | O `OFF` ganha compensação própria, ou o ADR-016 muda de promessa? | #196 |
+| **D4** | O **Ken** ganha sinal visual próprio, e de que natureza? Ele não redistribui aura por construção, então distribuição não serve | Ken |
+
+> **D1 e D2 ficam riscadas, e não apagadas.** Apagar uma decisão tomada faz a
+> próxima pessoa reabrir a mesma discussão sem saber que já houve uma.
 
 ---
 

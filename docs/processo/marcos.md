@@ -522,7 +522,8 @@ issues da trilha fechadas. Sobraram duas, e nenhuma e gate:
   arquivo, e `AuraLivingRenderLayer` nao existe. **Divida de implementacao, e
   nao de verificacao** -- nenhuma sessao humana ia responder isso, porque nao
   havia o que olhar.
-- **#103** — a decisao do ripple (corpo inteiro entregue, por regiao pedido).
+- **#103** — a decisao do ripple. ~~corpo inteiro entregue, por regiao pedido~~
+  **DECIDIDA E ENTREGUE em `0e073dc`**, no mesmo dia; ver a sexta parte abaixo.
 
 **Os quatro primeiros gates passaram por sessao humana de verdade.** Do AV4 em
 diante a decisao do dono foi que o que restava e tuning de gosto -- julgamento
@@ -555,6 +556,65 @@ trilha e o que libera o caminho.
 **O fio para puxar ja existe:** `AuraDistribution` e `AuraBodyRegion` estao
 prontos e sao consumidos pelo renderer, e nada nunca os move de `1.0`. O caminho
 de desenho por regiao espera um produtor. Ver #162.
+
+> **O fio foi puxado no mesmo dia.** A sexta parte, logo abaixo, e o resultado.
+
+---
+
+### O PRODUTOR CHEGOU (2026-09-22, sexta parte) — `0e073dc`
+
+A quinta parte, escrita meia hora antes, terminava dizendo que o caminho de
+desenho por regiao esperava um produtor. **Ele chegou, e resolveu dois problemas
+que pareciam distintos e eram o mesmo: o cliente nao sabia nada sobre REGIAO.**
+
+Protocolo **v9 -> v10**, duas linhas novas:
+
+| Linha | Direcao | O que carrega |
+| --- | --- | --- |
+| `aura_impact` | S2C | a **faixa** atingida e a forca ja normalizada |
+| `escolher_foco` | C2S | a **intencao** de concentrar numa regiao, e nada mais |
+
+**TRES DAS QUATRO TECNICAS INVISIVEIS ACENDERAM DE UMA VEZ**, e nao foi preciso
+escrever visual para nenhuma delas. Gyo, Ko e Shu ja implementavam
+`RedistribuiAura`; a alocacao ja viajava no delta; o renderer ja lia
+`intensidade(regiao)`. Faltava o jogador **apontar** -- e a tecla `G` e isso.
+
+A peca que faz funcionar e a normalizacao em `AuraDistribution.daAlocacao`:
+concentrar nao deixa a regiao escolhida acima de `1.0`, deixa **o resto do corpo
+abaixo**. E a mesma aritmetica que tinha derrubado a primeira tentativa do
+ripple, usada do lado certo.
+
+**Sobrou o KEN, e por construcao.** O javadoc dele diz que *"alto em todas"* e
+literalmente a alocacao uniforme -- entao Ken desenha o que Ten desenha. O sinal
+dele teria de vir de cor, espessura ou borda, e **isso e decisao de direcao
+visual, nao autorizada**. Esta como `D4` em
+[`../testing/DIVIDAS-A-RESPONDER.md`](../testing/DIVIDAS-A-RESPONDER.md).
+
+#### O que esta entrega NAO cumpriu do #103, e esta escrito
+
+Dois criterios de aceite da issue ficaram de fora, os dois de proposito:
+
+1. **A aura inteira continua reagindo.** O criterio dizia *"a aura inteira NAO
+   pisca"*. A faixa acende com ganho cheio e o resto do corpo recebe **35%**
+   dele. O eco nao e enfeite: o pulso de corpo inteiro foi a UNICA versao que
+   alguem conseguiu ver, e apaga-lo arrisca voltar a *"o F6 mostra subindo e a
+   tela nao mostra nada"*.
+2. **Impactos simultaneos em regioes diferentes NAO coexistem.** A pancada nova
+   **substitui** a que ainda decaia (`vivos.put`), uma por entidade. A razao
+   esta no codigo: duas pancadas seguidas viram duas leituras, e nao uma aura
+   que sobe em degrau ate saturar.
+
+E **tres valores nao batem com o texto da issue**: a faixa tem tres valores e
+nao seis (`PERNAS` cobre as duas pernas -- mandar uma regiao obrigaria o
+servidor a escolher uma perna, lateralidade que o golpe nao tem), e a duracao e
+de 12 ticks e nao de 3 a 5.
+
+#### Nada disto foi visto na tela
+
+`o-que-nao-provamos.md` ganhou tres linhas no mesmo commit: o ripple por faixa,
+a tecla `G`, e a troca v9 -> v10 contra um cliente velho. A resposta
+`ripple-acende` foi **RETIRADA** de `RESPOSTAS.md` em vez de recarimbada -- ela
+descrevia outro efeito.
 
 ---
 

@@ -584,11 +584,25 @@ concentrar nao deixa a regiao escolhida acima de `1.0`, deixa **o resto do corpo
 abaixo**. E a mesma aritmetica que tinha derrubado a primeira tentativa do
 ripple, usada do lado certo.
 
-**Sobrou o KEN, e por construcao.** O javadoc dele diz que *"alto em todas"* e
-literalmente a alocacao uniforme -- entao Ken desenha o que Ten desenha. O sinal
-dele teria de vir de cor, espessura ou borda, e **isso e decisao de direcao
-visual, nao autorizada**. Esta como `D4` em
-[`../testing/DIVIDAS-A-RESPONDER.md`](../testing/DIVIDAS-A-RESPONDER.md).
+**Sobrou o KEN, e nao por construcao -- por DEFEITO.** Esta linha dizia, quando
+foi escrita, que *"Ken desenha o que Ten desenha"*. O levantamento de 2026-09-23
+conferiu, e e falso.
+
+Ha DUAS tabelas de tecnica -> modo visual, e elas discordam. `EstadoVisualDeTerceiro`
+tem um `switch` exaustivo e mapeia `case REN, KEN -> AuraVisualMode.REN`, na cor
+do Ken. `ModoVisualDeTecnica` tem `List.of(Zetsu, Ren, Ten)`, e Ken **nao esta
+nela** -- entao o proprio jogador recebe `OFF`. Como `Ken.excluidas()` devolve
+`Set.of(Ten, Ren, Zetsu)`, ligar Ken **apaga a aura que estava acesa**.
+
+O jogador liga Ken, paga o dreno, ve a propria aura sumir, e todo mundo em volta
+continua vendo-o brilhar em dourado. So o HUD conta a verdade.
+
+E o erro "duas fontes para a mesma verdade", e nenhum portao liga as duas
+tabelas: `VfxDeAuraLigadoTest` cobre Ten, Ren, Zetsu, vazio e `null`, e nao Ken.
+Esta como `D4` em
+[`../testing/DIVIDAS-A-RESPONDER.md`](../testing/DIVIDAS-A-RESPONDER.md), agora
+partido em duas metades -- o defeito, que nao e gosto, e a decisao de direcao
+visual, que e.
 
 #### O que esta entrega NAO cumpriu do #103, e esta escrito
 

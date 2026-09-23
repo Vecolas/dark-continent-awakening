@@ -54,7 +54,7 @@ nenhum. `0e073dc` deu um produtor ao caminho por região, e a conta mudou:
 | --- | --- | --- | --- |
 | Ten · Ren · Zetsu | ✅ | ✅ | modo visual próprio |
 | **Gyo · Ko · Shu** | ✅ | ✅ | **redistribuem a alocação**, e a tela segue |
-| **Ken** | ✅ | ❌ | **é o que sobrou** — e por construção |
+| **Ken** | ✅ | ❌ | **é o que sobrou** — e é pior que ausência: ele **apaga** |
 
 **Por que as três acenderam de uma vez.** Gyo, Ko e Shu implementam
 `RedistribuiAura`; a alocação viaja no delta; e
@@ -70,11 +70,50 @@ Faltava só o jogador **apontar**, e a tecla `G` é isso.
 
 O javadoc dele diz por escrito: *"a alocação soma 1.0 e diz **onde** a aura
 está, não **quanta**: 'alto em todas' é literalmente a alocação uniforme"*. Ken
-deliberadamente não toca o modelo de alocação — então, pela mesma normalização
-que acendeu as outras três, **Ken desenha exatamente o que Ten desenha**.
+deliberadamente não toca o modelo de alocação, e essa decisão está certa.
 
-O sinal dele, se vier, tem de vir de outra dimensão — cor, espessura, borda —
-e não de distribuição. **É decisão de direção visual, e não está autorizada.**
+### ⚠️ Mas o Ken não é só ausência de sinal — ele APAGA a própria aura
+
+**Achado no levantamento de 2026-09-23.** Uma versão anterior desta seção dizia
+que *"Ken desenha exatamente o que Ten desenha"*. **Está errado.** O que o
+código faz é pior, e é assimétrico:
+
+| Quem olha | Caminho | Ken ligado |
+| --- | --- | --- |
+| **Os outros** | `EstadoVisualDeTerceiro` — `switch` **exaustivo** | ✅ `case REN, KEN -> AuraVisualMode.REN`, na cor dourada do Ken |
+| **O próprio jogador** | `ModoVisualDeTecnica` — `List.of(Zetsu, Ren, Ten)` | ❌ Ken não está na lista → `dominante()` vazio → **`OFF`** |
+
+E `Ken.excluidas()` devolve `Set.of(Ten, Ren, Zetsu)`: ligar Ken **desliga** Ten
+e Ren. `SessaoDeVfxDeAura` recebe `OFF`, faz `alvo = 0.0F`, e **a aura que
+estava acesa se apaga**.
+
+**Em jogo:** o jogador aperta Ken, paga o dreno mais caro depois de Ren, vê a
+própria aura sumir — e todo mundo em volta continua vendo-o brilhar em dourado,
+com áudio (`DetectorDeAtivacaoDeTen` trata Ken como aura liberada). O HUD mostra
+o ícone `MURALHA` na cor certa, e é o único lugar onde ele sabe que ligou.
+
+**É o erro "duas fontes para a mesma verdade", e a ironia está nos arquivos.**
+`EstadoVisualDeTerceiro` carrega um comentário comemorando ter pego este caso —
+*"quando KEN entrou em SinalDeAura, [um switch não-exaustivo] teria engolido o
+caso novo... sem erro nenhum"*. `ModoVisualDeTecnica` usa uma `List`, com a
+decisão justificada de que *"técnica desconhecida não acende nada"* para
+datapack não inventar visual. Correta para técnica de terceiro; **engoliu uma
+técnica de primeira parte em silêncio.**
+
+`VfxDeAuraLigadoTest` cobre Ten, Ren, Zetsu, vazio e `null`. **Não cobre Ken** —
+e nenhum portão liga as duas tabelas.
+
+### O que isso muda no D4
+
+Deixou de ser só *"que sinal o Ken ganha"*. São duas coisas, e a primeira não é
+direção visual nenhuma:
+
+1. **Fechar o buraco** — as duas tabelas têm de concordar, com portão que morde
+   quando uma técnica registrada não aparece nas duas. Isso é defeito, e não
+   gosto.
+2. **Decidir o sinal próprio** — se Ken desenha como Ren na cor dele (o que os
+   outros já veem) ou ganha tratamento próprio de cor, espessura ou borda. **Aí
+   sim é direção visual, e não está autorizada.**
 
 ---
 
@@ -205,7 +244,7 @@ Estas não se respondem olhando — elas se **decidem**.
 | ~~D1~~ | ~~O ripple é **corpo inteiro** ou **por região**?~~ ✅ **DECIDIDA em 2026-09-22** (`0e073dc`): os dois. O servidor manda a faixa atingida, ela acende com ganho cheio e o resto do corpo recebe 35% dele | #103 |
 | ~~D2~~ | ~~Os **seis fatores por região** nunca foram vistos diferentes de `1.0`~~ ✅ **RESOLVIDA em 2026-09-22**: Gyo, Ko e Shu movem a alocação, e a tecla `G` deixa o jogador escolher onde. Deixou de ser config órfã. **Continua sem ninguém ter olhado** | Gyo/Ko/Shu |
 | D3 | O `OFF` ganha compensação própria, ou o ADR-016 muda de promessa? | #196 |
-| **D4** | O **Ken** ganha sinal visual próprio, e de que natureza? Ele não redistribui aura por construção, então distribuição não serve | Ken |
+| **D4** | O **Ken** ganha sinal visual próprio, e de que natureza? Ele não redistribui aura por construção, então distribuição não serve. ⚠️ **Precedido por um DEFEITO, e não por uma decisão:** Ken ligado apaga a aura do próprio jogador enquanto os outros o veem aceso — as duas tabelas de modo visual discordam. Ver a seção acima | Ken |
 
 > **D1 e D2 ficam riscadas, e não apagadas.** Apagar uma decisão tomada faz a
 > próxima pessoa reabrir a mesma discussão sem saber que já houve uma.

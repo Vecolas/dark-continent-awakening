@@ -1,81 +1,42 @@
 package com.darkcontinent.nenfoundation.client.vfx;
 
-import com.darkcontinent.nenfoundation.nen.technique.Ren;
-import com.darkcontinent.nenfoundation.nen.technique.Ten;
-import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * De "quais tecnicas estao ligadas" para "o que a tela mostra".
+ * O adapter do JOGADOR LOCAL: do conjunto de tecnicas ligadas ao modo de shell.
  *
- * <p>ELE E A UNICA PONTE entre o dominio e o visual, e existe para que o resto
- * de {@code client.vfx} nao precise conhecer id de tecnica nenhum. Sem ela,
- * cada pedaco do VFX passaria a comparar {@code ResourceLocation} por conta
- * propria, e a regra de precedencia estaria escrita em quatro lugares.
+ * <p><b>ELE NAO DECIDE MAIS NADA.</b> Ate 2026-09-25 este arquivo carregava a
+ * propria tabela -- {@code List.of(Zetsu, Ren, Ten)} -- com a regra "tecnica
+ * desconhecida nao acende nada". A regra e correta para um datapack de terceiro
+ * e foi um desastre para tecnica de primeira parte: ela engoliu Ken, Gyo, Shu e
+ * Ko em silencio. Como Ken exclui Ten e Ren, ligar Ken apagava a aura do
+ * jogador na tela dele enquanto todos em volta continuavam vendo.
  *
- * <p>FUNCAO PURA, de proposito: nao toca no Minecraft, nao guarda estado, e por
- * isso a precedencia da para provar sem subir o jogo.
- *
- * <p>ELE NAO DECIDE NADA DE GAMEPLAY. O conjunto que ele recebe ja vem do
- * servidor, pelo delta de runtime. Se o servidor recusou a ativacao, a tecnica
- * nao esta no conjunto e nada acende -- e essa e a diferenca entre mostrar o
- * estado e adivinhar o pedido.
+ * <p>A decisao mora em {@link ModoVisualCanonico}. O que sobrou aqui e a unica
+ * coisa especifica deste observador: <b>o jogador local sabe o conjunto exato
+ * de tecnicas que ligou</b>. O adapter de terceiros nao sabe, e e essa
+ * diferenca de CONHECIMENTO que justifica dois adapters -- nunca uma diferenca
+ * de decisao.
  */
 public final class ModoVisualDeTecnica {
-
-    /**
-     * A ordem em que uma tecnica ganha a tela quando ha mais de uma ligada.
-     *
-     * <p>ZETSU PRIMEIRO, e isso nao e detalhe: Zetsu e supressao, e supressao
-     * que perde para um brilho nao suprime nada. Hoje ele exclui as outras duas,
-     * entao a disputa nao acontece em jogo -- mas a regra precisa existir antes
-     * da primeira tecnica que combine com ele, e nao depois.
-     *
-     * <p>REN ANTES DE TEN porque os dois CONVIVEM, e essa disputa acontece o
-     * tempo todo. Ren e o estado mais alto; mostrar Ten enquanto o jogador esta
-     * em Ren seria mostrar o menor dos dois.
-     */
-    private static final List<ResourceLocation> PRECEDENCIA =
-            List.of(Zetsu.ID, Ren.ID, Ten.ID);
 
     private ModoVisualDeTecnica() {
     }
 
-    /** A tecnica que manda na tela, ou vazio quando nao ha nenhuma conhecida. */
+    /**
+     * A tecnica que manda na tela, ou vazio quando nao ha nenhuma conhecida.
+     *
+     * <p>Usada para a COR. O modo vem de {@link #de}; separar os dois permite
+     * que Ken, Ko e Ren compartilhem a shell de REN e mesmo assim se distingam.
+     */
     public static Optional<ResourceLocation> dominante(Set<ResourceLocation> ativas) {
-        if (ativas == null || ativas.isEmpty()) {
-            return Optional.empty();
-        }
-        for (ResourceLocation id : PRECEDENCIA) {
-            if (ativas.contains(id)) {
-                return Optional.of(id);
-            }
-        }
-        // TECNICA DESCONHECIDA NAO ACENDE NADA, e e melhor assim: um datapack
-        // pode registrar tecnica que este arquivo nunca viu, e inventar um
-        // visual para ela seria mostrar ao jogador um efeito que nao significa
-        // coisa nenhuma.
-        return Optional.empty();
+        return ModoVisualCanonico.dominante(ativas);
     }
 
     /** O modo visual correspondente ao conjunto de tecnicas ligadas. */
     public static AuraVisualMode de(Set<ResourceLocation> ativas) {
-        return dominante(ativas).map(ModoVisualDeTecnica::modoDe).orElse(AuraVisualMode.OFF);
-    }
-
-    private static AuraVisualMode modoDe(ResourceLocation id) {
-        if (Zetsu.ID.equals(id)) {
-            return AuraVisualMode.ZETSU;
-        }
-        if (Ren.ID.equals(id)) {
-            return AuraVisualMode.REN;
-        }
-        if (Ten.ID.equals(id)) {
-            return AuraVisualMode.TEN;
-        }
-        return AuraVisualMode.OFF;
+        return ModoVisualCanonico.deConjunto(ativas);
     }
 }

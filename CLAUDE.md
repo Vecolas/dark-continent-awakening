@@ -270,6 +270,7 @@ O CI e **rede de seguranca, nao primeira verificacao**.
 | `RespostasAindaValidasTest` | veredito de gate carregado adiante depois de o codigo de que ele depende ter mudado; resposta sem invalidador declarado |
 | `NenHudLayoutTest` | coluna desalinhada entre Vida e Aura; conteudo vazando da moldura; barra colapsando em silencio para 1px; a HUD crescendo alem da faixa acordada |
 | `EstadoDeNenNaHudTest` | tecnica com forma na fila e sem nome no chip -- a familia de defeito que engoliu o Ken em `ModoVisualDeTecnica` |
+| `ModoVisualConsistenteTest` | tecnica sem modo de shell, sem cor, sem chip ou sem sinal de presenca; tecnica ligada sozinha caindo em OFF; os dois observadores discordando sobre a mesma tecnica; classe nova em `nen/technique` esquecendo as tabelas |
 | `HudAssetsTest` | textura de HUD sem consumidor voltando para `nen_hud/`; codigo apontando para as tres que sairam |
 | suite vazia reprova | `build` sair verde com zero testes executados |
 

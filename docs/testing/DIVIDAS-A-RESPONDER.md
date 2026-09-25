@@ -54,7 +54,7 @@ nenhum. `0e073dc` deu um produtor ao caminho por região, e a conta mudou:
 | --- | --- | --- | --- |
 | Ten · Ren · Zetsu | ✅ | ✅ | modo visual próprio |
 | **Gyo · Ko · Shu** | ✅ | ✅ | **redistribuem a alocação**, e a tela segue |
-| **Ken** | ✅ | ❌ | **é o que sobrou** — e é pior que ausência: ele **apaga** |
+| **Ken** | ✅ | ✅ | **consertado em 2026-09-25** — desenha como Ren, na cor dele |
 
 **Por que as três acenderam de uma vez.** Gyo, Ko e Shu implementam
 `RedistribuiAura`; a alocação viaja no delta; e

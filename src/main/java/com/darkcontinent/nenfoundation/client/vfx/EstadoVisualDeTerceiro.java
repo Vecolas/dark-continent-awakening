@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
 import com.darkcontinent.nenfoundation.nen.technique.Ten;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * O visual de quem NAO e o jogador local.
@@ -66,20 +67,22 @@ public final class EstadoVisualDeTerceiro {
         // O SWITCH E EXAUSTIVO DE PROPOSITO: quando KEN entrou em SinalDeAura,
         // o compilador reprovou este arquivo na hora. Um `default` teria
         // engolido o caso novo e desenhado Ken como Ten, sem erro nenhum.
-        AuraVisualMode modo = switch (sinal) {
-            case TEN -> AuraVisualMode.TEN;
-            // KEN DESENHA COMO REN, e isso e escolha e nao preguica: os dois
-            // sao envelopes grandes de aura liberada, e o cliente nao tem
-            // preset proprio para Ken. O que os separa na tela e a COR, que
-            // vem de AparenciaDeTecnica.
-            case REN, KEN -> AuraVisualMode.REN;
-            case NENHUM -> AuraVisualMode.OFF;
-        };
-        int cor = AparenciaDeTecnica.de(switch (sinal) {
+        //
+        // ELE NAO DECIDE MAIS O MODO -- so traduz o sinal pobre que chegou pela
+        // rede na tecnica que ele representa. O modo sai de ModoVisualCanonico,
+        // a mesma tabela que o jogador local consulta. Ate 2026-09-25 este
+        // arquivo tinha a propria opiniao sobre Ken, e ela discordava da do
+        // outro caminho: aqui Ken desenhava como REN, la caia em OFF.
+        ResourceLocation representante = switch (sinal) {
             case KEN -> Ken.ID;
             case REN -> Ren.ID;
-            default -> Ten.ID;
-        }).cor();
+            case TEN -> Ten.ID;
+            case NENHUM -> null;
+        };
+        AuraVisualMode modo = ModoVisualCanonico.modoDe(representante)
+                .orElse(AuraVisualMode.OFF);
+        int cor = AparenciaDeTecnica.de(
+                representante == null ? Ten.ID : representante).cor();
 
         // OS NUMEROS DE ARTE NAO ENTRAM AQUI. Quem desenha busca o perfil pelo
         // MODO -- `AuraPerfis.de(estado.mode())` --, e por isso a aura de um

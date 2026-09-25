@@ -98,6 +98,20 @@ public final class AparenciaDeTecnica {
     private AparenciaDeTecnica() {
     }
 
+    /**
+     * As tecnicas que este arquivo conhece por nome.
+     *
+     * <p>EXISTE PARA SER COBRADA. {@code EstadoDeNenNaHudTest} exige que o chip
+     * de estado saiba nomear exatamente estas -- duas tabelas de tecnica no
+     * mesmo pacote que discordem produzem uma HUD que desenha a forma de uma
+     * tecnica e deixa o chip vazio, sem erro nenhum. O projeto ja tem uma
+     * ocorrencia desse defeito viva, entre {@code ModoVisualDeTecnica} e
+     * {@code EstadoVisualDeTerceiro}; esta e a que nao vai repetir.
+     */
+    public static java.util.Set<ResourceLocation> conhecidas() {
+        return java.util.Collections.unmodifiableSet(CONHECIDAS.keySet());
+    }
+
     /** A aparencia de uma tecnica; nunca nula, nunca lanca. */
     public static Aparencia de(ResourceLocation id) {
         Aparencia conhecida = CONHECIDAS.get(id);

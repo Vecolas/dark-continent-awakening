@@ -188,6 +188,14 @@ public final class NenFoundationClient {
                         ::aoRenderizarBraco);
         NeoForge.EVENT_BUS.addListener(this.overlay::aoRenderizar);
         NeoForge.EVENT_BUS.addListener(this.auraHud::aoRenderizar);
+        // A OCULTACAO DO VANILLA PERGUNTA A HUD se ela esta na tela, em vez de
+        // repetir as condicoes. Duas copias da mesma regra divergiriam no dia
+        // em que uma ganhasse um caso novo, e o sintoma seria o jogador sem
+        // nenhum indicador de vida.
+        NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre evento) ->
+                        com.darkcontinent.nenfoundation.client.hud.OcultacaoDoVanilla
+                                .aoRenderizarCamada(evento, this.auraHud::naTela));
         NeoForge.EVENT_BUS.addListener(this.overlayDeVfx::aoRenderizar);
         // O RETORNO DE INPUT DE ZETSU E HUD, e nao aura: na interface ele
         // existe so na tela de quem apertou a tecla, e nao ha por onde vazar

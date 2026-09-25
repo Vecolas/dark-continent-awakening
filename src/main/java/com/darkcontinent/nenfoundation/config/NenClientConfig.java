@@ -111,6 +111,40 @@ public final class NenClientConfig {
             .defineInRange("vfx.intensidadeDoBloom", 1.0D, 0.0D, 2.0D);
 
     /** O spec deste arquivo, registrado como CLIENT. */
+    /**
+     * Ocultar os coracoes do vanilla, ja que a HUD de Nen desenha a vida.
+     *
+     * <p>PADRAO DESLIGADO, e isso e uma decisao e nao cautela: a HUD de Nen so
+     * aparece depois que o servidor manda o primeiro delta, e quem ainda nao
+     * despertou o Nen nao tem HUD nenhuma. Ligar por padrao deixaria o jogador
+     * novo literalmente sem indicador de vida ate despertar -- uma tela pior
+     * que a de antes, entregue como melhoria.
+     *
+     * <p>E CLIENT-SIDE, como todo o resto deste arquivo. Ocultar o coracao do
+     * vizinho seria decisao de servidor sobre a tela de outra pessoa.
+     */
+    private static final ModConfigSpec.BooleanValue OCULTAR_VIDA_VANILLA = BUILDER
+            .comment("Oculta os coracoes do vanilla enquanto a HUD de Nen estiver na tela.",
+                    "A HUD de Nen ja mostra vida; com os dois ligados a informacao aparece",
+                    "duas vezes. Fica DESLIGADO por padrao porque a HUD de Nen so existe",
+                    "depois do primeiro delta do servidor -- ligado, quem ainda nao",
+                    "despertou ficaria sem indicador de vida nenhum.")
+            .define("hud.ocultarVidaVanilla", false);
+
+    /**
+     * Ocultar a barra de fome do vanilla.
+     *
+     * <p>SEPARADA DA VIDA de proposito. A HUD de Nen NAO desenha fome, entao
+     * esta chave nao remove duplicacao -- ela troca informacao por limpeza, que
+     * e uma escolha de gosto e nao uma correcao. Junta-las numa chave so faria
+     * quem quer a primeira engolir a segunda.
+     */
+    private static final ModConfigSpec.BooleanValue OCULTAR_FOME_VANILLA = BUILDER
+            .comment("Oculta a barra de fome do vanilla.",
+                    "A HUD de Nen NAO mostra fome: isto nao tira duplicacao, tira",
+                    "informacao. Existe para quem prefere o topo da tela limpo.")
+            .define("hud.ocultarFomeVanilla", false);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private NenClientConfig() {
@@ -178,6 +212,16 @@ public final class NenClientConfig {
      * {@code AuraTransicao} -- cada troca tem o proprio tempo. Devolver um passo
      * daqui recriaria a fonte unica que este PR acabou de eliminar.
      */
+    /** Se os coracoes do vanilla saem da tela. Ver a chave para o porque do padrao. */
+    public static boolean ocultarVidaVanilla() {
+        return OCULTAR_VIDA_VANILLA.get();
+    }
+
+    /** Se a barra de fome do vanilla sai da tela. */
+    public static boolean ocultarFomeVanilla() {
+        return OCULTAR_FOME_VANILLA.get();
+    }
+
     public static float escalaDeTransicao() {
         return ESCALA_DE_TRANSICAO.get().floatValue();
     }

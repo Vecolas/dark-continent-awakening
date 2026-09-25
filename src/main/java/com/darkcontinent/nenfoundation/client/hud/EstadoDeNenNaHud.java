@@ -1,11 +1,9 @@
 package com.darkcontinent.nenfoundation.client.hud;
 
-import com.darkcontinent.nenfoundation.nen.technique.Gyo;
 import com.darkcontinent.nenfoundation.nen.technique.Ken;
 import com.darkcontinent.nenfoundation.nen.technique.Ko;
+import com.darkcontinent.nenfoundation.nen.technique.PrecedenciaDeTecnicas;
 import com.darkcontinent.nenfoundation.nen.technique.Ren;
-import com.darkcontinent.nenfoundation.nen.technique.Shu;
-import com.darkcontinent.nenfoundation.nen.technique.Ten;
 import com.darkcontinent.nenfoundation.nen.technique.Zetsu;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -38,30 +36,23 @@ import net.minecraft.resources.ResourceLocation;
 public final class EstadoDeNenNaHud {
 
     /**
-     * Quem ganha o chip quando ha mais de uma ligada.
+     * A ordem vem do DOMINIO. Este arquivo nao tem mais lista propria.
      *
-     * <p>A ORDEM E POR COMPROMISSO, do maior para o menor -- quanto mais a
-     * tecnica custa e quanto mais ela expoe o jogador, mais cedo ela aparece.
-     *
-     * <p>ZETSU PRIMEIRO: ele e a ausencia deliberada de aura, e um chip dizendo
-     * outra coisa enquanto o jogador acha que esta escondido e a pior
-     * informacao que esta HUD poderia dar.
-     *
-     * <p>KO ANTES DE KEN: Ko poe quase tudo numa regiao e deixa o resto nu, com
-     * relogio proprio correndo. E o estado mais perigoso de se estar sem saber.
-     *
-     * <p>TEN POR ULTIMO: e o estado de repouso. Qualquer outra coisa ligada e
-     * mais digna de nota que "estou com a aura presa ao corpo".
+     * <p>Ate 2026-09-25 havia tres listas de precedencia no repositorio, e as
+     * duas mais antigas eram incompletas -- foi assim que o Ken acabou sem
+     * shell. Agora ha uma so, em {@link PrecedenciaDeTecnicas}, e ela e cobrada
+     * por portao contra as classes de {@code nen/technique}.
      */
-    private static final List<ResourceLocation> PRECEDENCIA = List.of(
-            Zetsu.ID, Ko.ID, Ken.ID, Ren.ID, Shu.ID, Gyo.ID, Ten.ID);
+    private static List<ResourceLocation> precedenciaDoDominio() {
+        return PrecedenciaDeTecnicas.ordem();
+    }
 
     private EstadoDeNenNaHud() {
     }
 
     /** A ordem de precedencia, para o portao conferir. */
     public static List<ResourceLocation> precedencia() {
-        return PRECEDENCIA;
+        return precedenciaDoDominio();
     }
 
     /**
@@ -76,12 +67,7 @@ public final class EstadoDeNenNaHud {
         if (ativas == null || ativas.isEmpty()) {
             return Optional.empty();
         }
-        for (ResourceLocation id : PRECEDENCIA) {
-            if (ativas.contains(id)) {
-                return Optional.of(id);
-            }
-        }
-        return Optional.empty();
+        return PrecedenciaDeTecnicas.dominante(ativas);
     }
 
     /**
@@ -162,6 +148,6 @@ public final class EstadoDeNenNaHud {
 
     /** As tecnicas que o chip sabe nomear. Usada pelo portao de completude. */
     public static Set<ResourceLocation> nomeaveis() {
-        return new LinkedHashSet<>(PRECEDENCIA);
+        return new LinkedHashSet<>(precedenciaDoDominio());
     }
 }

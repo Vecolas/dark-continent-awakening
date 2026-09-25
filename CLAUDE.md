@@ -268,6 +268,9 @@ O CI e **rede de seguranca, nao primeira verificacao**.
 | `EscalaDaShellTest` | `scale` aplicado a um `PoseStack` na shell de aura -- a causa mais barata de a aura descolar nas articulacoes |
 | `MorteETrocaDeDimensaoTest` | estado por id de entidade sobrevivendo a morte ou troca de dimensao; e a poda por presenca deixar de ser chamada no tick |
 | `RespostasAindaValidasTest` | veredito de gate carregado adiante depois de o codigo de que ele depende ter mudado; resposta sem invalidador declarado |
+| `NenHudLayoutTest` | coluna desalinhada entre Vida e Aura; conteudo vazando da moldura; barra colapsando em silencio para 1px; a HUD crescendo alem da faixa acordada |
+| `EstadoDeNenNaHudTest` | tecnica com forma na fila e sem nome no chip -- a familia de defeito que engoliu o Ken em `ModoVisualDeTecnica` |
+| `HudAssetsTest` | textura de HUD sem consumidor voltando para `nen_hud/`; codigo apontando para as tres que sairam |
 | suite vazia reprova | `build` sair verde com zero testes executados |
 
 Ao criar um portao novo: **alimente-o com um caso que DEVE reprovar e confirme

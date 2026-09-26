@@ -173,7 +173,12 @@ public final class GreedIslandConstants {
             // Apontam PARA FORA da ilha, cada uma na sua diagonal: e o eixo que
             // as transforma de inchaco em dedo de terra.
             new Lobo("nordeste", 33_000, -17_000, 5_500, 11_000.0D, 2.6D, -28.0D),
-            new Lobo("sudeste", 30_000, 25_000, 6_000, 12_000.0D, 2.8D, 38.0D),
+            // A PENINSULA SE FOI RECUADA E ENFRAQUECIDA pelo portao das
+            // cidades: a versao anterior, em (30.000, 25.000) com forca
+            // 12.000, empurrava a costa 12.756 blocos para alem de Soufrabi --
+            // e Soufrabi e cidade PORTUARIA, com porto, docas e farol. Sete
+            // dos distritos dela dependem de haver mar ao lado.
+            new Lobo("sudeste", 32_000, 27_500, 5_500, 7_500.0D, 2.6D, 38.0D),
             new Lobo("sudoeste", -28_000, 25_000, 5_500, 10_000.0D, 2.4D, 140.0D));
 
     /**
@@ -185,7 +190,23 @@ public final class GreedIslandConstants {
     public static final List<Lobo> BAIAS = List.of(
             // Elas mordem PARA DENTRO, transversais a costa -- e e a mordida
             // que separa uma peninsula da vizinha em vez de as fundir.
-            new Lobo("soufrabi", 25_000, 17_000, 6_000, -11_000.0D, 2.2D, 20.0D),
+            // A BAIA DE SOUFRABI FOI TRAZIDA ATE A CIDADE. A secao 15 poe
+            // B01 em (+27.000, +18.000) e a secao 37 poe a cidade em
+            // (+27.000, +22.000) -- quatro mil blocos de distancia, e a baia
+            // mordendo do lado errado. O portao mediu 5.590 blocos de terra
+            // entre o porto e o mar.
+            //
+            // O eixo aponta para o sudeste, na direcao do mar aberto, e o
+            // alcance cobre a cidade: e ASSIM que uma enseada de porto se
+            // comporta -- ela entra na terra ate onde as docas ficam.
+            //
+            // A FORCA FOI MEDIDA, e nao escolhida. Com -13.000 a cidade
+            // AFUNDAVA, e o outro portao pegou -- "soufrabi caiu no
+            // oceano". Os dois se contrapoem de proposito: um exige mar
+            // perto, o outro exige chao seco. A varredura deu -8.000 =
+            // 2.164 blocos ate a agua, que e praia de porto; -9.500
+            // deixava 543, na linha d'agua; -11.000 submergia.
+            new Lobo("soufrabi", 28_500, 21_000, 7_000, -8_000.0D, 2.4D, 38.0D),
             new Lobo("ocidental", -33_000, 4_000, 6_500, -10_000.0D, 2.0D, 95.0D),
             new Lobo("nordeste", 26_000, -21_000, 6_000, -9_500.0D, 2.0D, -60.0D),
             new Lobo("estuario_sul", 1_000, 31_000, 7_000, -10_000.0D, 2.4D, 82.0D));

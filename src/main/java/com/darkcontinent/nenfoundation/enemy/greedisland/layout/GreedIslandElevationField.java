@@ -44,6 +44,15 @@ public final class GreedIslandElevationField {
     /** A partir daqui o interior ja esta na faixa de colina. */
     private static final double FAIXA_DE_INTERIOR = 14_000.0D;
 
+    /**
+     * Onde a base continental para, deixando a faixa alta para o relevo.
+     *
+     * <p>Fica no meio da faixa de colina da secao 17 (90-130): acima da
+     * planicie, e com espaco livre acima para planalto e cordilheira se
+     * destacarem.
+     */
+    private static final int ALTURA_DE_INTERIOR = 104;
+
     /** Profundidade maxima do oceano, abaixo do nivel do mar. */
     private static final int FUNDO_DO_OCEANO = 30;
 
@@ -83,8 +92,15 @@ public final class GreedIslandElevationField {
         // a faixa de montanha nao deixaria espaco para as cadeias do G2 se
         // destacarem -- elas viram inchacos num planalto alto, e o documento
         // pede cordilheiras conectadas e legiveis.
+        // O INTERIOR PARA NO MEIO DA FAIXA DE COLINA, e nao no topo dela.
+        //
+        // O PORTAO DAS CIDADES ACHOU ISTO: com a base subindo ate 130 -- o
+        // teto de colina da secao 17 --, TODO ponto de interior profundo
+        // nascia exatamente em 130, e Rubicuta caiu na borda da serra. Pior:
+        // sem faixa livre entre a base e a montanha, as cordilheiras do G2
+        // ficariam sem contraste, porque o chao em volta ja estava alto.
         double base = interpolar(GreedIslandConstants.TOPO_DA_PLANICIE - 20,
-                GreedIslandConstants.TOPO_DAS_COLINAS, suave(t));
+                ALTURA_DE_INTERIOR, suave(t));
 
         double comPlanalto = Math.max(base, contribuicaoDosPlanaltos(x, z, base));
         double comCadeias = comPlanalto + GreedIslandRidgeField.contribuicao(x, z);

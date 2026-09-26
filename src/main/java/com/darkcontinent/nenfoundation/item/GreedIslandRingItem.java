@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 /**
- * O anel que abre Greed Island. AGACHAR + botao direito entra na ilha.
+ * O anel que abre Greed Island. AGACHAR + botao direito ATRAVESSA.
  *
  * <p><b>O CANONE MANDA AQUI, e por isso o anel e a porta.</b> Em Greed Island
  * todo jogador PRECISA de um anel para entrar -- ele nao e enfeite nem
@@ -31,9 +31,19 @@ import net.minecraft.world.level.Level;
  * caminho de cliente existe apenas para nao engolir a mao e deixar o braco
  * animar.</p>
  *
- * <p><b>RECUSA TEM MOTIVO.</b> Os dois casos de "nao" -- ja estar na ilha e a
- * dimensao nao existir -- falam com o jogador por chave de traducao. Ativacao
- * que falha em silencio produz o pior relato de bug que existe.</p>
+ * <p><b>ELE ABRE NOS DOIS SENTIDOS desde 2026-09-26.</b> Ate ali o anel so
+ * levava PARA a ilha: dentro dela, o mesmo gesto respondia "voce ja esta na
+ * ilha" e nada acontecia. Como {@code GreedIslandRespawnHooks} devolve o morto
+ * a propria ilha -- de proposito, para ela nao ser um corredor --, quem
+ * entrasse nao tinha saida nenhuma sem um comando de admin.
+ *
+ * <p>O gesto e o MESMO nos dois sentidos, e nao uma tecla nova: o anel e uma
+ * porta, e porta nao tem botao de ida e outro de volta. Qual lado se atravessa
+ * sai de onde o jogador esta.
+ *
+ * <p><b>RECUSA TEM MOTIVO.</b> Os casos de "nao" falam com o jogador por chave
+ * de traducao. Ativacao que falha em silencio produz o pior relato de bug que
+ * existe.</p>
  */
 public class GreedIslandRingItem extends Item {
 
@@ -67,11 +77,14 @@ public class GreedIslandRingItem extends Item {
         }
 
         if (GreedIslandTravel.naIlha(servidor)) {
-            servidor.displayClientMessage(
-                    Component.translatable("item.nenfoundation.greed_island_ring.ja_na_ilha"), true);
-            return InteractionResultHolder.fail(anel);
-        }
-        if (!GreedIslandTravel.enviar(servidor)) {
+            if (!GreedIslandTravel.retornar(servidor)) {
+                servidor.displayClientMessage(Component.translatable(
+                        "item.nenfoundation.greed_island_ring.sem_volta"), true);
+                return InteractionResultHolder.fail(anel);
+            }
+            servidor.displayClientMessage(Component.translatable(
+                    "item.nenfoundation.greed_island_ring.saindo"), true);
+        } else if (!GreedIslandTravel.enviar(servidor)) {
             servidor.displayClientMessage(
                     Component.translatable("item.nenfoundation.greed_island_ring.sem_ilha"), true);
             return InteractionResultHolder.fail(anel);

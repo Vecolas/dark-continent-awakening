@@ -35,6 +35,8 @@ public record NenHudLayout(
         Retangulo barraDeAura,
         Retangulo valorDeAura,
         Retangulo barraDeFluxo,
+        Retangulo plataforma,
+        Retangulo trilho,
         Retangulo tecnicasAtivas) {
 
     /** Distancia do painel ate o canto da tela. */
@@ -75,8 +77,21 @@ public record NenHudLayout(
     private static final int LARGURA_DO_ROTULO = 24;
     private static final int LARGURA_DO_VALOR = 46;
     private static final int LARGURA_DO_CHIP = 40;
-    private static final int ALTURA_DA_BARRA = 7;
+    /**
+     * VIDA E MAIS BAIXA QUE AURA, e isso e linguagem visual e nao economia.
+     *
+     * <p>A leitura vital e compacta e firme; a de aura tem corpo e respira. Com
+     * as duas na mesma altura elas leem como "duas barras iguais com cores
+     * diferentes", que foi o diagnostico.
+     */
+    private static final int ALTURA_DA_VIDA = 6;
+
+    private static final int ALTURA_DA_AURA = 8;
+
     private static final int ALTURA_DO_FLUXO = 3;
+
+    /** Onde a espinha da HUD corre, medido do topo do painel. */
+    private static final int X_DO_TRILHO = 36;
 
     /** O topo de cada linha, medido do topo do painel. */
     private static final int Y_DO_NOME = 6;
@@ -102,7 +117,10 @@ public record NenHudLayout(
         float escala = largura / (float) LARGURA_DA_MOLDURA;
         int altura = comFluxo ? ALTURA_COM_FLUXO : ALTURA_COMPACTA;
 
-        int xDoConteudo = PADDING + RETRATO + 6;
+        // O CONTEUDO COMECA DEPOIS DO TRILHO, e nao depois do retrato: o vao
+        // entre o nucleo e a espinha e o que faz as duas pecas lerem como
+        // acopladas em vez de impressas no mesmo fundo.
+        int xDoConteudo = X_DO_TRILHO + 6;
         int xDaBarra = xDoConteudo + LARGURA_DO_ROTULO;
         int xDoValor = LARGURA_DA_MOLDURA - PADDING - LARGURA_DO_VALOR;
         int larguraDaBarra = xDoValor - 4 - xDaBarra;
@@ -113,13 +131,23 @@ public record NenHudLayout(
                 area(PADDING, 9, RETRATO, RETRATO, escala),
                 area(xDoConteudo, Y_DO_NOME, xDoChip - xDoConteudo - 4, 9, escala),
                 area(xDoChip, Y_DO_NOME - 1, LARGURA_DO_CHIP, 11, escala),
-                area(xDoConteudo, Y_DA_VIDA, LARGURA_DO_ROTULO, ALTURA_DA_BARRA, escala),
-                area(xDaBarra, Y_DA_VIDA, larguraDaBarra, ALTURA_DA_BARRA, escala),
-                area(xDoValor, Y_DA_VIDA, LARGURA_DO_VALOR, ALTURA_DA_BARRA, escala),
-                area(xDoConteudo, Y_DA_AURA, LARGURA_DO_ROTULO, ALTURA_DA_BARRA, escala),
-                area(xDaBarra, Y_DA_AURA, larguraDaBarra, ALTURA_DA_BARRA, escala),
-                area(xDoValor, Y_DA_AURA, LARGURA_DO_VALOR, ALTURA_DA_BARRA, escala),
+                area(xDoConteudo, Y_DA_VIDA, LARGURA_DO_ROTULO, ALTURA_DA_VIDA, escala),
+                area(xDaBarra, Y_DA_VIDA, larguraDaBarra, ALTURA_DA_VIDA, escala),
+                area(xDoValor, Y_DA_VIDA, LARGURA_DO_VALOR, ALTURA_DA_VIDA, escala),
+                area(xDoConteudo, Y_DA_AURA, LARGURA_DO_ROTULO, ALTURA_DA_AURA, escala),
+                area(xDaBarra, Y_DA_AURA, larguraDaBarra, ALTURA_DA_AURA, escala),
+                area(xDoValor, Y_DA_AURA, LARGURA_DO_VALOR, ALTURA_DA_AURA, escala),
                 area(xDaBarra, Y_DO_FLUXO, larguraDaBarra, ALTURA_DO_FLUXO, escala),
+                // A PLATAFORMA COMECA NO TRILHO, e nao na borda do painel: o
+                // nucleo fica sobre o mundo, sem chapa atras, e o vazio entre
+                // os dois e o que os separa como pecas.
+                new Retangulo(MARGEM + escalar(X_DO_TRILHO - 3, escala),
+                        MARGEM + escalar(2, escala),
+                        escalar(LARGURA_DA_MOLDURA - X_DO_TRILHO + 3, escala),
+                        escalar(altura - 4, escala)),
+                new Retangulo(MARGEM + escalar(X_DO_TRILHO, escala),
+                        MARGEM + escalar(4, escala),
+                        1, escalar(altura - 8, escala)),
                 // ABAIXO DA MOLDURA, e nao dentro dela: a fila cresce para a
                 // direita conforme o jogador liga mais tecnicas, e dentro do
                 // painel ela colidiria com o valor da Aura no primeiro extra.

@@ -9,10 +9,11 @@ import com.darkcontinent.nenfoundation.client.hud.PaletaDaHud;
 import com.darkcontinent.nenfoundation.client.hud.ProjecaoDeVida;
 import com.darkcontinent.nenfoundation.client.hud.animation.AnimacoesDaHud;
 import com.darkcontinent.nenfoundation.client.hud.component.BarraDeStatusRenderer;
+import com.darkcontinent.nenfoundation.client.hud.component.EstruturaDoPainel;
+import com.darkcontinent.nenfoundation.client.hud.component.NucleoDeRetrato;
 import com.darkcontinent.nenfoundation.client.hud.component.ChipDeEstadoRenderer;
 import com.darkcontinent.nenfoundation.client.hud.component.LinhaDeStatusRenderer;
-import com.darkcontinent.nenfoundation.client.hud.component.PainelAngular;
-import com.darkcontinent.nenfoundation.client.hud.component.PlayerHeadRenderer;
+import com.darkcontinent.nenfoundation.client.hud.AparenciaDeTecnica;
 import com.darkcontinent.nenfoundation.client.hud.component.TecnicasAtivasRenderer;
 import java.util.Comparator;
 import java.util.List;
@@ -38,9 +39,18 @@ public final class OverlayDeAura {
     /** Quantos ticks o pulso de Ren leva para ir e voltar. */
     private static final float CICLO_DO_PULSO = 34.0F;
 
+    /**
+     * Quantos ticks a crista leva para percorrer a barra de aura.
+     *
+     * <p>MAIS LENTA QUE O PULSO de proposito: as duas animacoes convivem na
+     * mesma barra, e em ritmos parecidos elas batem uma na outra e a leitura
+     * vira tremor.
+     */
+    private static final float CICLO_DA_CRISTA = 52.0F;
+
     private final NenClientCache cache;
     private final AnimacoesDaHud animacoes = new AnimacoesDaHud();
-    private final PlayerHeadRenderer retrato = new PlayerHeadRenderer();
+    private final NucleoDeRetrato nucleo = new NucleoDeRetrato();
     private final ChipDeEstadoRenderer chip = new ChipDeEstadoRenderer();
     private final TecnicasAtivasRenderer tecnicas = new TecnicasAtivasRenderer();
 
@@ -97,15 +107,34 @@ public final class OverlayDeAura {
         double tick = mc.level == null ? 0.0D : mc.level.getGameTime() + parcial;
         this.animacoes.observar(tick, mc.player.getHealth(), dominante);
 
-        PainelAngular.desenhar(g, layout.moldura(), NenHudLayout.CORTE_DIAGONAL);
-        this.retrato.desenhar(g, layout.retrato(), mc.player);
+        int corDoEstado = dominante.map(id -> AparenciaDeTecnica.de(id).cor())
+                .orElse(PaletaDaHud.ACENTO);
+        float pulsoAtual = pulso(tick);
+
+        // CAMADA A -- ESTRUTURA. Plataforma so atras da leitura, colchetes em
+        // cantos opostos, e o trilho que liga o nucleo as derivacoes. Nenhuma
+        // linha fecha um retangulo em volta do conjunto.
+        EstruturaDoPainel.plataforma(g, layout.plataforma(), NenHudLayout.CORTE_DIAGONAL);
+        EstruturaDoPainel.suportes(g, layout.plataforma());
+        EstruturaDoPainel.trilho(g, layout.trilho().x(), layout.trilho().y(),
+                layout.trilho().fimY(),
+                comFluxo
+                        ? new int[] {layout.barraDeVida().y(), layout.barraDeAura().y(),
+                                layout.barraDeFluxo().y()}
+                        : new int[] {layout.barraDeVida().y(), layout.barraDeAura().y()},
+                layout.barraDeVida().altura());
+
+        // CAMADA B -- INFORMACAO, com o nucleo primeiro: ele fica FORA da
+        // plataforma e precisa ser desenhado por cima do vao.
+        this.nucleo.desenhar(g, layout.retrato(), mc.player,
+                aura.fracao(), corDoEstado, pulsoAtual);
         desenharNome(g, mc, layout);
         this.chip.desenhar(g, layout.chip(), dominante, this.animacoes.fadeDoChip(tick));
         desenharVida(g, mc, layout, this.animacoes.flashDeDano(tick));
         desenharAura(g, layout, aura, dominante, tick, this.animacoes.supressao(tick));
 
         if (comFluxo) {
-            BarraDeStatusRenderer.desenhar(g, layout.barraDeFluxo(),
+            BarraDeStatusRenderer.micro(g, layout.barraDeFluxo(),
                     aura.outputVisual(), PaletaDaHud.FLUXO);
         }
         if (NenHudVisibility.deveMostrarFilaDeTecnicas(ativas.size())) {
@@ -142,7 +171,8 @@ public final class OverlayDeAura {
         int cor = PaletaDaHud.clarear(PaletaDaHud.VIDA, 0.55F * flash);
         LinhaDeStatusRenderer.desenhar(g, layout.rotuloDeVida(), layout.barraDeVida(),
                 layout.valorDeVida(), Component.translatable("nenfoundation.hud.vida"),
-                vida.texto(), vida.fracao(), cor);
+                vida.texto(), vida.fracao(), cor,
+                LinhaDeStatusRenderer.Natureza.VITAL, 0.0F);
     }
 
     /**
@@ -165,9 +195,14 @@ public final class OverlayDeAura {
                 ? PaletaDaHud.ALERTA
                 : tratamento.aplicar(PaletaDaHud.AURA, intensidade);
         String valor = String.format(Locale.ROOT, "%.0f/%.0f", aura.atual(), aura.maxima());
+        // A FASE DA CRISTA ANDA COM O RELOGIO, e nao com o pulso: o pulso vai e
+        // volta -- a crista tem de correr sempre para o mesmo lado, senao a
+        // aura parece balancar em vez de fluir.
+        float fase = (float) ((tick / CICLO_DA_CRISTA) % 1.0D);
         LinhaDeStatusRenderer.desenhar(g, layout.rotuloDeAura(), layout.barraDeAura(),
                 layout.valorDeAura(), Component.translatable("nenfoundation.hud.aura"),
-                valor, aura.fracao(), cor);
+                valor, aura.fracao(), cor,
+                LinhaDeStatusRenderer.Natureza.FLUXO, fase);
     }
 
     /**

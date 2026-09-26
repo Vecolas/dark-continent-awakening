@@ -56,10 +56,112 @@ public final class GreedIslandTravel {
         if (ilha == null) {
             return false;
         }
+        // A ORIGEM E GRAVADA ANTES DO TELEPORTE. Depois dele o jogador ja esta
+        // na ilha, e a dimensao de onde ele veio se perdeu -- e o sintoma seria
+        // o anel devolvendo todo mundo ao spawn do mundo, inclusive quem entrou
+        // de uma base a dez mil blocos de distancia.
+        gravarOrigem(jogador);
         BlockPos chegada = chegadaEm(ilha);
         jogador.teleportTo(ilha, chegada.getX() + 0.5D, chegada.getY() + FOLGA,
                 chegada.getZ() + 0.5D, jogador.getYRot(), jogador.getXRot());
         return true;
+    }
+
+    /**
+     * Devolve o jogador de onde ele veio.
+     *
+     * <p><b>O ANEL E A PORTA NOS DOIS SENTIDOS</b>, e ate 2026-09-26 ele so
+     * abria para dentro: {@code enviar} existia e {@code retornar} nao. Quem
+     * entrava na ilha so saia MORRENDO -- e nem isso, porque
+     * {@code GreedIslandRespawnHooks} devolve o morto a propria ilha. A unica
+     * saida era um comando de admin.
+     *
+     * <p>DIVERGE DO CANONE, e isso ja estava decidido: no material, sair de
+     * Greed Island e um evento pesado. Aqui o anel e reutilizavel, pela mesma
+     * razao que o jogador renasce na ilha em vez de perder o corpo -- decisao
+     * do dono do projeto, registrada para nao ser lida como descuido.
+     *
+     * @return {@code false} quando nao ha para onde voltar -- o chamador avisa
+     */
+    public static boolean retornar(ServerPlayer jogador) {
+        Objects.requireNonNull(jogador, "jogador ausente");
+        MinecraftServer servidor = jogador.getServer();
+        if (servidor == null) {
+            return false;
+        }
+        Origem origem = lerOrigem(jogador).orElse(null);
+        ServerLevel destino = origem == null ? null : servidor.getLevel(origem.dimensao());
+        if (destino == null) {
+            // SEM ORIGEM GRAVADA, O OVERWORLD. Acontece com quem entrou por
+            // comando, com save anterior a esta versao, ou se a dimensao de
+            // origem sumiu do servidor. Voltar ao spawn e pior que voltar para
+            // casa, e infinitamente melhor que ficar preso.
+            destino = servidor.overworld();
+            BlockPos spawn = destino.getSharedSpawnPos();
+            jogador.teleportTo(destino, spawn.getX() + 0.5D, spawn.getY() + FOLGA,
+                    spawn.getZ() + 0.5D, jogador.getYRot(), jogador.getXRot());
+            esquecerOrigem(jogador);
+            return true;
+        }
+        jogador.teleportTo(destino, origem.x(), origem.y(), origem.z(),
+                jogador.getYRot(), jogador.getXRot());
+        // A MARCA SAI AO USAR. Deixada para tras, a proxima volta mandaria o
+        // jogador para o lugar de onde ele entrou HA DUAS SESSOES.
+        esquecerOrigem(jogador);
+        return true;
+    }
+
+    /** De onde o jogador entrou na ilha. */
+    public record Origem(net.minecraft.resources.ResourceKey<Level> dimensao,
+            double x, double y, double z) {
+    }
+
+    /** Chave da marca. Namespaced: {@code getPersistentData()} e de todo mod. */
+    static final String TAG_ORIGEM = com.darkcontinent.nenfoundation.NenFoundation.MOD_ID
+            + ":origem_greed_island";
+
+    /**
+     * Grava a origem no jogador, e nao num mapa estatico.
+     *
+     * <p>Mesma razao de {@code GreedIslandRespawnHooks}: um mapa em memoria
+     * perde o caso que mais acontece em servidor de verdade -- entrar na ilha,
+     * fechar o jogo, e voltar dias depois querendo sair.
+     */
+    static void gravarOrigem(ServerPlayer jogador) {
+        net.minecraft.nbt.CompoundTag marca = new net.minecraft.nbt.CompoundTag();
+        marca.putString("dim", jogador.level().dimension().location().toString());
+        marca.putDouble("x", jogador.getX());
+        marca.putDouble("y", jogador.getY());
+        marca.putDouble("z", jogador.getZ());
+        jogador.getPersistentData().put(TAG_ORIGEM, marca);
+    }
+
+    /** A origem gravada, se houver e se ainda fizer sentido. */
+    static java.util.Optional<Origem> lerOrigem(ServerPlayer jogador) {
+        net.minecraft.nbt.CompoundTag dados = jogador.getPersistentData();
+        if (!dados.contains(TAG_ORIGEM)) {
+            return java.util.Optional.empty();
+        }
+        net.minecraft.nbt.CompoundTag marca = dados.getCompound(TAG_ORIGEM);
+        net.minecraft.resources.ResourceLocation id =
+                net.minecraft.resources.ResourceLocation.tryParse(marca.getString("dim"));
+        if (id == null) {
+            return java.util.Optional.empty();
+        }
+        var chave = net.minecraft.resources.ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION, id);
+        // A ORIGEM NUNCA PODE SER A PROPRIA ILHA. Sem esta guarda, entrar duas
+        // vezes seguidas -- por comando, ou por um caminho futuro -- gravaria a
+        // ilha como origem e o anel devolveria o jogador para onde ele ja esta.
+        if (GreedIslandRegion.dentro(chave)) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new Origem(chave,
+                marca.getDouble("x"), marca.getDouble("y"), marca.getDouble("z")));
+    }
+
+    static void esquecerOrigem(ServerPlayer jogador) {
+        jogador.getPersistentData().remove(TAG_ORIGEM);
     }
 
     /**

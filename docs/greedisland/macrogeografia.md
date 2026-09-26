@@ -21,9 +21,9 @@
 | **G7/G8** | cidades | 🟡 **identidade congelada** — 8 cidades com pegada, papel, distritos e landmark, e o chão validado. **Nenhuma casa é gerada ainda** |
 | G7 | Masadora | ⬜ |
 | G8 | cidades restantes | ⬜ |
-| G9 | landmarks | ⬜ |
-| G10 | ecologia | ⬜ |
-| G11 | cards / navigation | ⬜ |
+| **G9** | landmarks | ✅ 34 grandes, com passos e cachoeiras **derivados** da geografia |
+| **G10** | ecologia | ✅ habitat das 7 criaturas: região + bioma + altitude + água + recuo de estrada/cidade |
+| **G11** | cards / navigation | ✅ catálogo de destinos, descoberta por presença, carta de retorno |
 | G12 | macro QA | ⬜ |
 | G13 | release hardening | ⬜ |
 

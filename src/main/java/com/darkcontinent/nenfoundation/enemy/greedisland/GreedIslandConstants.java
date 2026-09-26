@@ -256,6 +256,140 @@ public final class GreedIslandConstants {
             new AncoraDeCidade("soufrabi", 27_000, 22_000),
             new AncoraDeCidade("limeiro", -1_000, 27_000));
 
+    // ------------------------------------------------------------------
+    // RELEVO  (secoes 18-23)
+    // ------------------------------------------------------------------
+
+    /**
+     * Uma cordilheira: uma POLILINHA de nos, e nao um blob.
+     *
+     * <p>A secao 18 e explicita -- "cada um e um graph de ridges, nao um biome
+     * com noise alto". A diferenca aparece no mapa: ruido alto da montanhas
+     * espalhadas sem direcao; uma polilinha da uma cadeia que se atravessa por
+     * um passo e se contorna pela base, e e isso que torna a ilha memorizavel.
+     */
+    public record Cordilheira(String id, List<Ponto> nos, int alturaMinima,
+            int alturaMaxima, int larguraBase) {
+    }
+
+    /** M1, M2 e M3, com os nos exatos das secoes 19, 20 e 21. */
+    public static final List<Cordilheira> CORDILHEIRAS = List.of(
+            new Cordilheira("north_crown", List.of(
+                    new Ponto(-24_000, -25_000), new Ponto(-16_000, -28_000),
+                    new Ponto(-7_000, -27_000), new Ponto(2_000, -25_000),
+                    new Ponto(11_000, -26_000), new Ponto(23_000, -22_000)),
+                    190, 280, 9_000),
+            new Cordilheira("western_spine", List.of(
+                    new Ponto(-27_000, -18_000), new Ponto(-29_000, -8_000),
+                    new Ponto(-27_000, 2_000), new Ponto(-24_000, 10_000),
+                    new Ponto(-20_000, 20_000)),
+                    160, 260, 7_500),
+            new Cordilheira("central_southeast", List.of(
+                    new Ponto(-2_000, 2_000), new Ponto(4_000, 8_000),
+                    new Ponto(10_000, 10_000), new Ponto(16_000, 16_000),
+                    new Ponto(24_000, 23_000)),
+                    130, 230, 7_000));
+
+    /** Um planalto: mesa alta e larga, com borda. */
+    public record Planalto(String id, int x, int z, int raio, int altura) {
+    }
+
+    /** P1 e P2 (secao 22). */
+    public static final List<Planalto> PLANALTOS = List.of(
+            new Planalto("central", -3_000, -2_000, 10_000, 125),
+            new Planalto("eastern_tableland", 19_000, -5_000, 7_500, 135));
+
+    /** Uma bacia: terreno rebaixado onde a agua junta e a cidade cabe. */
+    public record Bacia(String id, int x, int z, int raio, int rebaixamento) {
+    }
+
+    /**
+     * As quatro bacias (secao 23).
+     *
+     * <p>ELAS REBAIXAM O TERRENO, e nao so nomeiam a regiao: e o rebaixamento
+     * que faz o rio querer passar ali e a cidade ter onde caber. Uma bacia que
+     * fosse so um rotulo deixaria Antokiba num morro.
+     */
+    public static final List<Bacia> BACIAS = List.of(
+            new Bacia("antokiba", -14_000, 5_000, 9_000, 28),
+            new Bacia("masadora", 4_000, -2_000, 8_000, 24),
+            new Bacia("aiai", 15_000, 6_000, 7_000, 22),
+            new Bacia("southern_wetlands", -8_000, 24_000, 10_000, 34));
+
+    // ------------------------------------------------------------------
+    // HIDROGRAFIA  (secoes 25-33)
+    // ------------------------------------------------------------------
+
+    /** Um sistema hidrografico: nascente, curso e foz. */
+    public record Rio(String id, List<Ponto> curso, int larguraNaFoz) {
+    }
+
+    /**
+     * Os sete sistemas das secoes 26 a 32.
+     *
+     * <p>O CURSO E UMA POLILINHA DA NASCENTE A FOZ, e os pontos intermediarios
+     * sao leitura das descricoes -- "fluxo sul/sudoeste", "passa proximo a
+     * Antokiba", "mouth: Great South Estuary". O documento da nascente e
+     * direcao; o caminho exato e {@code ORIGINAL_COMPATIBLE}.
+     *
+     * <p>TODO RIO TERMINA NO MAR OU NUM LAGO. Um curso que acaba em terra seca
+     * nao da erro -- ele so desenha uma vala que nao leva a lugar nenhum.
+     */
+    // AS FOZES FORAM ESTENDIDAS PELO PORTAO. O documento da nascente, direcao
+    // e -- em dois casos -- mouth; o resto do curso e leitura. Quatro das sete
+    // paravam de 4.600 a 9.100 blocos TERRA ADENTRO, cada uma virando uma vala
+    // que nao leva a lugar nenhum. `RelevoEHidrografiaTest` mede contra a
+    // mascara e nomeia o rio que morreu seco.
+    public static final List<Rio> RIOS = List.of(
+            new Rio("northfall", List.of(
+                    new Ponto(-8_000, -26_000), new Ponto(-9_000, -18_000),
+                    new Ponto(-12_000, -10_000), new Ponto(-16_000, -2_000),
+                    // A FOZ FOI ESTENDIDA ATE O MAR pelo portao: a primeira
+                    // versao parava em (-30.000, 8.000), que a mascara diz
+                    // estar 7.157 blocos TERRA ADENTRO. O documento da a
+                    // nascente e a direcao ("sul/sudoeste"), e nao a foz -- o
+                    // ponto final e leitura, e leitura tem de bater com a costa.
+                    new Ponto(-22_000, 4_000), new Ponto(-30_000, 8_000),
+                    new Ponto(-36_000, 11_000), new Ponto(-40_600, 12_900)), 26),
+            new Rio("westreach", List.of(
+                    new Ponto(-25_000, -8_000), new Ponto(-29_000, -4_000),
+                    new Ponto(-32_000, 0), new Ponto(-35_000, 5_000)), 20),
+            new Rio("antokiba", List.of(
+                    new Ponto(-10_000, -4_000), new Ponto(-12_000, 1_000),
+                    new Ponto(-13_200, 5_500), new Ponto(-16_000, 12_000),
+                    new Ponto(-20_000, 19_000), new Ponto(-24_000, 26_000),
+                    new Ponto(-26_300, 30_000)), 24),
+            new Rio("masadora", List.of(
+                    new Ponto(3_000, -7_000), new Ponto(3_000, -1_000),
+                    new Ponto(6_000, 5_000), new Ponto(9_000, 13_000),
+                    new Ponto(11_000, 22_000), new Ponto(12_000, 31_000)), 28),
+            new Rio("eastflow", List.of(
+                    new Ponto(18_000, -9_000), new Ponto(24_000, -11_000),
+                    new Ponto(30_000, -9_000), new Ponto(36_000, -5_000),
+                    new Ponto(42_000, -1_000)), 22),
+            new Rio("southern_marsh", List.of(
+                    new Ponto(-6_000, 14_000), new Ponto(-8_000, 22_000),
+                    new Ponto(-3_000, 25_000), new Ponto(1_000, 31_000)), 30),
+            new Rio("soufrabi", List.of(
+                    new Ponto(20_000, 16_000), new Ponto(23_000, 18_000),
+                    new Ponto(26_000, 21_000), new Ponto(29_000, 26_000),
+                    new Ponto(31_800, 30_700)), 18));
+
+    /** Um lago: espelho d'agua com nivel proprio. */
+    public record Lago(String id, int x, int z, int raio) {
+    }
+
+    /** L1 a L8 da secao 33. */
+    public static final List<Lago> LAGOS = List.of(
+            new Lago("northfall", -9_000, -18_000, 1_400),
+            new Lago("masadora", 3_000, -1_000, 1_600),
+            new Lago("mirror", 13_000, -8_000, 1_100),
+            new Lago("west_basin", -24_000, 9_000, 1_300),
+            new Lago("marsh_a", -8_000, 22_000, 900),
+            new Lago("marsh_b", -3_000, 25_000, 1_000),
+            new Lago("highland", 12_000, 13_000, 800),
+            new Lago("soufrabi_reservoir", 23_000, 18_000, 1_200));
+
     /** O hub de entrada. Onde o anel deposita quem chega. */
     public static final String CIDADE_INICIAL = "shiso_tree";
 

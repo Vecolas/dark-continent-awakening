@@ -84,6 +84,9 @@ public final class GreedIslandMapExporter {
                 imagem.setRGB(px, pz, corDe(x, z));
             }
         }
+        // ESTRADAS ANTES DAS CIDADES: a cidade e o destino, e um traço
+        // passando por cima do marcador dela le como estrada que a ignora.
+        desenharEstradas(imagem, largura, altura);
         marcarCidades(imagem, largura, altura);
         return imagem;
     }
@@ -153,14 +156,32 @@ public final class GreedIslandMapExporter {
             double t = Math.clamp(-d / 6_000.0D, 0.0D, 1.0D);
             return misturar(MAR_RASO, MAR_FUNDO, t);
         }
-        // Verde baixo -> ocre -> cinza, seguindo a escada da secao 17.
+        // A COR VEM DO BIOMA, e o RELEVO entra como sombreamento por cima.
+        // Pintar so por altura -- como a primeira versao fazia -- escondia as
+        // 24 regioes: duas regioes de carater oposto na mesma cota saiam da
+        // mesma cor, e o gate nao conseguia julgar a distribuicao delas.
+        int base = corDoBioma(com.darkcontinent.nenfoundation.enemy.greedisland.region
+                .BiomaDaIlha.em(x, z));
         double t = Math.clamp((altura - GreedIslandConstants.NIVEL_DO_MAR)
                 / (double) (GreedIslandConstants.PICO_MAXIMO
                         - GreedIslandConstants.NIVEL_DO_MAR), 0.0D, 1.0D);
-        if (t < 0.5D) {
-            return misturar(0x2E_5E_34, 0x7A_8A_3E, t * 2.0D);
-        }
-        return misturar(0x7A_8A_3E, 0xB8_B8_B2, (t - 0.5D) * 2.0D);
+        return misturar(base, 0xFF_FF_FF, t * 0.55D);
+    }
+
+    /** A paleta dos nove biomas da secao 62. */
+    private static int corDoBioma(
+            com.darkcontinent.nenfoundation.enemy.greedisland.region.BiomaDaIlha b) {
+        return switch (b) {
+            case GI_MEADOW -> 0x6E_8C_3A;
+            case GI_LIGHT_FOREST -> 0x4E_7A_33;
+            case GI_OLD_FOREST -> 0x2C_54_28;
+            case GI_HIGHLAND -> 0x8A_8A_55;
+            case GI_MOUNTAIN -> 0x8E_8B_84;
+            case GI_WETLAND -> 0x46_6B_55;
+            case GI_COAST -> 0xC9_BE_86;
+            case GI_TABLELAND -> 0xA0_8B_50;
+            case GI_RIVERLAND -> 0x3C_84_C4;
+        };
     }
 
     /**
@@ -182,6 +203,37 @@ public final class GreedIslandMapExporter {
                     int az = pz + dz;
                     if (ax >= 0 && ax < largura && az >= 0 && az < altura) {
                         imagem.setRGB(ax, az, cor);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * As nove estradas, roteadas na hora.
+     *
+     * <p>ROTEADAS, e nao lidas de um cache: o mapa existe para julgar o
+     * traçado que o jogo vai usar, e desenhar um traçado guardado abriria a
+     * chance de o mapa mostrar uma estrada que o mundo nao tem.
+     */
+    private static void desenharEstradas(BufferedImage imagem, int largura, int altura) {
+        for (var ligacao : GreedIslandConstants.ESTRADAS) {
+            var a = GreedIslandConstants.cidade(ligacao.de()).orElseThrow();
+            var b = GreedIslandConstants.cidade(ligacao.para()).orElseThrow();
+            var rota = com.darkcontinent.nenfoundation.enemy.greedisland.road
+                    .RoteadorDeEstradas.rotear(
+                            new GreedIslandConstants.Ponto(a.x(), a.z()),
+                            new GreedIslandConstants.Ponto(b.x(), b.z()));
+            for (var p : rota) {
+                int px = (int) Math.round((p.x() + quadroX() / 2.0D) / quadroX() * largura);
+                int pz = (int) Math.round((p.z() + quadroZ() / 2.0D) / quadroZ() * altura);
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        int ax = px + dx;
+                        int az = pz + dz;
+                        if (ax >= 0 && ax < largura && az >= 0 && az < altura) {
+                            imagem.setRGB(ax, az, 0x6B_4A_2E);
+                        }
                     }
                 }
             }

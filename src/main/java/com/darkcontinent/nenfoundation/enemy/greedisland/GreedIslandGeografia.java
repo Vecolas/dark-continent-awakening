@@ -26,22 +26,15 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 @EventBusSubscriber(modid = NenFoundation.MOD_ID)
 public final class GreedIslandGeografia {
 
-    /** Onde a terra e garantida, em blocos a partir da origem. */
-    public static final double RAIO_DA_TERRA = 620.0D;
-
-    /** A faixa de costa: da praia ao mar aberto. */
-    public static final double TRANSICAO = 150.0D;
-
     /**
      * O raio da barreira do mundo.
      *
-     * <p>DEPOIS DA AGUA, e nao na praia: o pedido e que se veja mar antes do
-     * limite. A costa acaba por volta de {@code RAIO_DA_TERRA + TRANSICAO} =
-     * 770; a barreira em 880 deixa uns cem blocos de mar aberto -- o bastante
-     * para a ilha parecer cercada, e pouco o bastante para ninguem remar meia
-     * hora achando que ha algo la fora.
+     * <p>DEPOIS DA AGUA, e nao na praia. O valor vem da secao 8 do documento
+     * -- 48.000 --, e nao mais do disco de andaime: a ilha real chega a cerca
+     * de 43.500 do centro, entao sobram uns 4.500 blocos de mar navegavel.
      */
-    public static final double RAIO_DA_BARREIRA = 880.0D;
+    public static final double RAIO_DA_BARREIRA =
+            GreedIslandConstants.RAIO_DA_BARREIRA;
 
     /** Onde a ilha esta centrada. Origem, e o spawn da dimensao segue isso. */
     public static final double CENTRO_X = 0.0D;
@@ -86,8 +79,5 @@ public final class GreedIslandGeografia {
         barreira.setDamageSafeZone(8.0D);
     }
 
-    /** Onde a costa termina, para o portao conferir contra a barreira. */
-    public static double fimDaCosta() {
-        return RAIO_DA_TERRA + TRANSICAO;
-    }
+
 }

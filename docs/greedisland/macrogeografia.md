@@ -12,12 +12,12 @@
 | Fase | O que é | Estado |
 | --- | --- | --- |
 | **G0** | congelar especificação | ✅ `GreedIslandConstants`, `GreedIslandLayoutVersion` |
-| **G1** | mask + elevation + exportador de mapa | 🟡 **parcial** — mask, elevação e exportador existem; `RegionMap` e `SpatialIndex` não |
-| G2 | montanhas e bacias | ⬜ |
-| G3 | hidrografia | ⬜ |
-| G4 | regiões e biomas | ⬜ |
-| G5 | road graph | ⬜ |
-| G6 | Shiso → Antokiba vertical slice | ⬜ |
+| **G1** | mask + elevation + exportador de mapa | ✅ SDF de 13 âncoras, lobos elípticos, ilhotas |
+| **G2** | montanhas e bacias | ✅ 3 cadeias como polilinha, 2 planaltos, 4 bacias |
+| **G3** | hidrografia | ✅ 7 rios que escavam, 8 lagos |
+| **G4** | regiões e biomas | ✅ 24 regiões, 9 biomas |
+| **G5** | road graph | ✅ 9 estradas por A\* sobre o terreno |
+| **G6** | ligação com a geração | 🟡 **parcial** — `FuncaoDeLayout` liga o layout ao `minecraft:noise`; servidor sobe e o datapack valida. **Cidades não existem** |
 | G7 | Masadora | ⬜ |
 | G8 | cidades restantes | ⬜ |
 | G9 | landmarks | ⬜ |
@@ -25,6 +25,17 @@
 | G11 | cards / navigation | ⬜ |
 | G12 | macro QA | ⬜ |
 | G13 | release hardening | ⬜ |
+
+## O andaime foi APAGADO
+
+O disco de 1.760 blocos saiu do repositório em 2026-09-26: `FuncaoDeIlha`,
+`FormaDaIlha` e o portão deles foram removidos, e o `noise_settings` aponta
+para `nenfoundation:layout_da_ilha`, que lê o campo de elevação real.
+
+Não há compatibilidade a preservar — a §128 manda apagar e regenerar a
+dimensão durante o desenvolvimento, e `GreedIslandLayoutVersion.ATUAL`
+continua em **0** justamente para dizer que nenhum mundo de Greed Island é
+permanente ainda.
 
 ## ⚠️ Um achado que precisa de decisão sua
 

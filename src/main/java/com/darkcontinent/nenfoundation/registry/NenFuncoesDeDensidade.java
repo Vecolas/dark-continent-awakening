@@ -1,7 +1,6 @@
 package com.darkcontinent.nenfoundation.registry;
 
 import com.darkcontinent.nenfoundation.NenFoundation;
-import com.darkcontinent.nenfoundation.worldtree.generation.FuncaoDeIlha;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -26,15 +25,21 @@ public final class NenFuncoesDeDensidade {
                     NenFoundation.MOD_ID);
 
     /**
-     * A forma da ilha de Greed Island.
+     * O layout macro inteiro -- mascara, cordilheiras, bacias e rios -- como
+     * densidade.
      *
-     * <p>O id entra em {@code noise_settings} como {@code "type":
-     * "nenfoundation:ilha"}. Renomear aqui quebra o datapack em silencio -- o
-     * jogo recusa a dimensao e cai no gerador padrao --, e por isso
-     * {@code GeracaoDaIlhaTest} confere que o JSON e o registro concordam.
+     * <p>Ela SUBSTITUIU o andaime radial {@code nenfoundation:ilha}, que foi
+     * APAGADO junto com a conta dele. Nao ha compatibilidade a preservar: a
+     * secao 128 do documento manda apagar e regenerar a dimensao durante o
+     * desenvolvimento, em vez de migrar chunk de prototipo -- e
+     * {@code GreedIslandLayoutVersion.ATUAL} continua em zero justamente para
+     * dizer que nenhum mundo de Greed Island e permanente ainda.
      */
     public static final DeferredHolder<MapCodec<? extends DensityFunction>,
-            MapCodec<FuncaoDeIlha>> ILHA = TIPOS.register("ilha", () -> FuncaoDeIlha.CODEC);
+            MapCodec<com.darkcontinent.nenfoundation.enemy.greedisland.worldgen
+                    .FuncaoDeLayout>> LAYOUT = TIPOS.register("layout_da_ilha",
+            () -> com.darkcontinent.nenfoundation.enemy.greedisland.worldgen
+                    .FuncaoDeLayout.CODEC);
 
     private NenFuncoesDeDensidade() {
     }

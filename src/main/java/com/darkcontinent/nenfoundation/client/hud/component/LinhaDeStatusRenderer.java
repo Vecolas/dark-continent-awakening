@@ -31,6 +31,21 @@ public final class LinhaDeStatusRenderer {
     }
 
     /**
+     * Que tipo de leitura esta linha e.
+     *
+     * <p>ENUM, e nao um booleano: um {@code boolean segmentada} diria COMO
+     * desenhar, e o que importa aqui e O QUE a linha mede. Quando a terceira
+     * natureza existir -- strain, por exemplo --, ela entra como valor e nao
+     * como um segundo booleano.
+     */
+    public enum Natureza {
+        /** Solida e estavel: vida. Nao anima sozinha. */
+        VITAL,
+        /** Segmentada, com trilha fantasma e crista movel: aura. */
+        FLUXO
+    }
+
+    /**
      * Desenha a linha inteira.
      *
      * @param rotulo chave ja traduzida; curta, senao ela invade a barra
@@ -39,7 +54,8 @@ public final class LinhaDeStatusRenderer {
      */
     public static void desenhar(GuiGraphics g, NenHudLayout.Retangulo areaDoRotulo,
             NenHudLayout.Retangulo areaDaBarra, NenHudLayout.Retangulo areaDoValor,
-            Component rotulo, String valor, float fracao, int cor) {
+            Component rotulo, String valor, float fracao, int cor, Natureza natureza,
+            float fase) {
         var fonte = Minecraft.getInstance().font;
 
         // A LINHA DE BASE DO TEXTO E CALCULADA DA BARRA, e nao da area do
@@ -49,7 +65,11 @@ public final class LinhaDeStatusRenderer {
         int y = areaDaBarra.y() + (areaDaBarra.altura() - fonte.lineHeight) / 2;
 
         g.drawString(fonte, rotulo, areaDoRotulo.x(), y, PaletaDaHud.TEXTO_FRACO, false);
-        BarraDeStatusRenderer.desenhar(g, areaDaBarra, fracao, cor);
+        EstruturaDoPainel.calibracao(g, areaDaBarra, 4);
+        switch (natureza) {
+            case VITAL -> BarraDeStatusRenderer.vital(g, areaDaBarra, fracao, cor);
+            case FLUXO -> BarraDeStatusRenderer.fluxo(g, areaDaBarra, fracao, cor, fase);
+        }
         g.drawString(fonte, valor,
                 areaDoValor.fimX() - fonte.width(valor), y, PaletaDaHud.TEXTO, false);
     }

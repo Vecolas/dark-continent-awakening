@@ -29,27 +29,33 @@ import net.minecraft.world.entity.HumanoidArm;
  * proprio buraco: <i>"o jogador ainda nao tem como escolher a regiao. Nao ha
  * payload nem interface para isso, entao todo mundo concentra no padrao."</i>
  * Agora ha: {@code EscolherFocoC2S} e a tecla {@code G}, que percorre as seis
- * regioes. O padrao continua sendo a CABECA, para quem nunca apertar.
+ * regioes. Quem nunca apertar cai no padrao DA TECNICA que estiver usando.
  */
 public final class NenGyoService {
 
     /**
-     * A regiao padrao e a CABECA, e a escolha nao e arbitraria.
+     * NAO HA MAIS PADRAO AQUI, e a ausencia e a correcao.
      *
-     * <p>Gyo nos olhos e a aplicacao famosa da tecnica -- a que percebe aura
-     * sutil e revela o que In esconde. Enquanto nao houver como escolher, o
-     * padrao e o uso mais reconhecivel, e nao o primeiro do enum.
+     * <p>Ate 2026-09-26 este arquivo guardava {@code PADRAO = CABECA}, com a
+     * justificativa de que "Gyo nos olhos e a aplicacao famosa". A
+     * justificativa era boa e o lugar era errado: este servico atende TODA
+     * tecnica que concentra, e Ko herdava o padrao do Gyo. Em jogo, Ko punha
+     * 95% da aura na cabeca -- e o reforco do golpe, que e medido no braco,
+     * saia zerado.
+     *
+     * <p>Agora a ausencia de escolha viaja como {@code Optional} vazio dentro
+     * de {@link FocoDeAura}, e cada tecnica declara o proprio padrao. Ver
+     * {@code Gyo.PADRAO_DE_GYO} e o javadoc de {@code Ko.alocacaoDesejada}.
      */
-    private static final RegiaoDoCorpo PADRAO = RegiaoDoCorpo.CABECA;
 
     private static final Map<UUID, RegiaoDoCorpo> ESCOLHIDA = new ConcurrentHashMap<>();
 
     private NenGyoService() {
     }
 
-    /** Onde este jogador concentra. Nunca nula. */
-    public static RegiaoDoCorpo regiaoDe(ServerPlayer jogador) {
-        return regiaoDe(jogador.getUUID());
+    /** O que este jogador escolheu, se escolheu. */
+    public static java.util.Optional<RegiaoDoCorpo> escolhaDe(ServerPlayer jogador) {
+        return escolhaDe(jogador.getUUID());
     }
 
     /**
@@ -60,8 +66,8 @@ public final class NenGyoService {
      * precisaria de um jogador que ainda nao existe, e a saida facil seria um
      * ThreadLocal escondendo o argumento que falta.
      */
-    public static RegiaoDoCorpo regiaoDe(UUID jogadorId) {
-        return ESCOLHIDA.getOrDefault(jogadorId, PADRAO);
+    public static java.util.Optional<RegiaoDoCorpo> escolhaDe(UUID jogadorId) {
+        return java.util.Optional.ofNullable(ESCOLHIDA.get(jogadorId));
     }
 
     /**
@@ -73,7 +79,7 @@ public final class NenGyoService {
      * pessoas -- um defeito que nao da erro nenhum.
      */
     public static FocoDeAura focoDe(ServerPlayer jogador) {
-        return new FocoDeAura(regiaoDe(jogador), bracoDominanteDe(jogador));
+        return new FocoDeAura(escolhaDe(jogador), bracoDominanteDe(jogador));
     }
 
     /**
@@ -83,7 +89,7 @@ public final class NenGyoService {
      * tecnica ativa nenhuma, entao o braco nao e consultado por ninguem.
      */
     public static FocoDeAura focoDe(UUID jogadorId) {
-        return new FocoDeAura(regiaoDe(jogadorId), FocoDeAura.padrao().bracoPrincipal());
+        return new FocoDeAura(escolhaDe(jogadorId), FocoDeAura.padrao().bracoPrincipal());
     }
 
     private static RegiaoDoCorpo bracoDominanteDe(ServerPlayer jogador) {

@@ -174,9 +174,56 @@ public final class GreedIslandTravel {
     public static BlockPos chegadaEm(ServerLevel ilha) {
         Objects.requireNonNull(ilha, "nivel ausente");
         BlockPos spawn = ilha.getSharedSpawnPos();
-        int y = ilha.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                spawn.getX(), spawn.getZ());
-        return new BlockPos(spawn.getX(), y, spawn.getZ());
+        return chegadaEm(ilha, spawn.getX(), spawn.getZ());
+    }
+
+    /**
+     * O ponto de pouso numa coluna, com o chao MEDIDO e conferido.
+     *
+     * <p><b>O DEFEITO QUE ISTO CONSERTA foi visto em jogo:</b> morrer na ilha
+     * as vezes devolvia o jogador ENTERRADO, muitos blocos abaixo da
+     * superficie. A versao anterior perguntava a altura e confiava na resposta.
+     *
+     * <p>SAO DUAS CAUSAS, e as duas sao silenciosas:
+     *
+     * <ol>
+     *   <li><b>O CHUNK PODIA NAO ESTAR GERADO.</b> {@code getHeight} responde
+     *       para uma coluna que ainda nao existe usando o que houver em
+     *       memoria, e o que ha e o piso do mundo. O jogador ia para o fundo.
+     *       Agora a coluna e CARREGADA antes de ser medida.
+     *   <li><b>O HEIGHTMAP NAO PROMETE CEU.</b> Ele devolve o topo do que
+     *       bloqueia movimento -- e num teto de caverna proximo a superficie
+     *       isso e o teto, com pedra logo acima. Agora a coluna e conferida de
+     *       baixo para cima ate achar dois blocos livres com chao solido.
+     * </ol>
+     *
+     * <p>A BUSCA COMECA NO HEIGHTMAP e sobe: descer procuraria a primeira
+     * caverna, que e exatamente o lugar errado.
+     */
+    public static BlockPos chegadaEm(ServerLevel ilha, int x, int z) {
+        Objects.requireNonNull(ilha, "nivel ausente");
+        // FORCA A GERACAO da coluna antes de medir. Sem isto, a medida e feita
+        // sobre um chunk vazio e a resposta e o fundo do mundo.
+        ilha.getChunk(net.minecraft.core.SectionPos.blockToSectionCoord(x),
+                net.minecraft.core.SectionPos.blockToSectionCoord(z));
+
+        int teto = ilha.getMaxBuildHeight() - 2;
+        int inicio = Math.clamp(
+                ilha.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z),
+                ilha.getMinBuildHeight() + 1, teto);
+
+        for (int y = inicio; y < teto; y++) {
+            BlockPos pe = new BlockPos(x, y, z);
+            if (ilha.getBlockState(pe).isAir()
+                    && ilha.getBlockState(pe.above()).isAir()
+                    && !ilha.getBlockState(pe.below()).isAir()) {
+                return pe;
+            }
+        }
+        // NENHUMA COLUNA LIVRE. Acontece sob agua funda e dentro de montanha.
+        // O topo do mundo e melhor que o fundo: cair alguns blocos e um susto,
+        // nascer dentro de pedra e sufocar sem entender por que.
+        return new BlockPos(x, teto, z);
     }
 
     /** O jogador esta na ilha AGORA? */

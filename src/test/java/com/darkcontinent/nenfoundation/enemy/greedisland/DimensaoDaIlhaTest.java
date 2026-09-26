@@ -109,11 +109,53 @@ class DimensaoDaIlhaTest {
                 Repo.texto(DIMENSOES + "/" + id.getPath() + ".json"))
                 .getAsJsonObject().getAsJsonObject("generator");
 
-        assertEquals("minecraft:flat", gerador.get("type").getAsString(),
-                "Greed Island nao pode apontar para o noise generator do Overworld: isso"
-                        + " produz uma copia do terreno e nao uma regiao jogavel propria.");
-        assertEquals("minecraft:plains",
-                gerador.getAsJsonObject("settings").get("biome").getAsString(),
-                "A ilha precisa declarar seu bioma-base no gerador proprio.");
+        // ESTE PORTAO PINAVA A IMPLEMENTACAO, e nao a regra. Ele exigia
+        // `minecraft:flat` -- o gerador do dia em que foi escrito -- e reprovou
+        // quando a ilha ganhou relevo de verdade em 2026-09-26. A intencao
+        // sempre foi "nao reutilizar o terreno do Overworld", e e isso que ele
+        // cobra agora. Um portao que fixa o MEIO impede a proxima melhoria em
+        // vez de impedir o defeito.
+        String tipo = gerador.get("type").getAsString();
+        assertTrue(tipo.startsWith("minecraft:"),
+                "o tipo de gerador vem da vanilla; um tipo autoral exigiria registro"
+                        + " proprio e este portao nao saberia confirma-lo: " + tipo);
+
+        var settings = gerador.get("settings");
+        if (settings != null && settings.isJsonPrimitive()) {
+            String alvo = settings.getAsString();
+            assertTrue(alvo.startsWith("nenfoundation:"),
+                    "Greed Island aponta para " + alvo + ". Reusar um noise_settings da"
+                            + " vanilla produz uma copia do terreno do Overworld, e nao"
+                            + " uma regiao jogavel propria.");
+        }
+    }
+
+    @Test
+    @DisplayName("o orcamento vertical deixa espaco para montanha E para caverna")
+    void oMundoTemAlturaParaOsDois() {
+        JsonObject tipo = JsonParser.parseString(
+                Repo.texto(TIPOS + "/" + GreedIslandRegion.DIMENSAO.location().getPath()
+                        + "_type.json")).getAsJsonObject();
+        int minY = tipo.get("min_y").getAsInt();
+        int altura = tipo.get("height").getAsInt();
+
+        JsonObject ruido = JsonParser.parseString(Repo.texto(
+                "src/main/resources/data/nenfoundation/worldgen/noise_settings/"
+                        + "greed_island.json")).getAsJsonObject();
+        int mar = ruido.get("sea_level").getAsInt();
+        JsonObject faixa = ruido.getAsJsonObject("noise");
+
+        assertEquals(minY, faixa.get("min_y").getAsInt(),
+                "o tipo de dimensao e o noise_settings discordam sobre o piso do mundo:"
+                        + " o gerador escreveria fora do mundo, e os chunks sairiam"
+                        + " cortados sem erro nenhum");
+        assertEquals(altura, faixa.get("height").getAsInt(),
+                "os dois discordam sobre a altura do mundo");
+
+        assertTrue(mar - minY >= 80,
+                "sobram so " + (mar - minY) + " blocos abaixo do mar: nao cabe caverna");
+        assertTrue(minY + altura - mar >= 250,
+                "sobram so " + (minY + altura - mar) + " blocos acima do mar: as"
+                        + " montanhas nao teriam para onde subir");
     }
 }

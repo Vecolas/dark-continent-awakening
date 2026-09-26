@@ -390,6 +390,50 @@ public final class GreedIslandConstants {
             new Lago("highland", 12_000, 13_000, 800),
             new Lago("soufrabi_reservoir", 23_000, 18_000, 1_200));
 
+    // ------------------------------------------------------------------
+    // ESTRADAS  (secoes 56, 58)
+    // ------------------------------------------------------------------
+
+    /**
+     * Os quatro passos de montanha da secao 58.
+     *
+     * <p>O documento diz "road graph deve preferi-los", e o roteador desconta
+     * o custo dentro deles. Sem passo declarado, a unica saida do A* seria
+     * contornar a serra inteira -- e uma ilha onde nenhuma estrada cruza
+     * montanha perde metade da geografia que as montanhas criam.
+     */
+    public static final List<Ponto> PASSOS = List.of(
+            new Ponto(-4_000, -20_000),    // Pass N1
+            new Ponto(-24_000, 1_000),     // Pass W1
+            new Ponto(9_000, 8_000),       // Pass C1
+            new Ponto(18_000, 16_000));    // Pass SE1
+
+    /** Uma ligacao do grafo de estradas. */
+    public record Ligacao(String de, String para) {
+    }
+
+    /**
+     * As nove ligacoes da secao 56.
+     *
+     * <p>ELAS SAO O GRAFO, e nao o traçado: o caminho de cada uma sai do A*
+     * sobre o terreno. Congelar o traçado aqui seria desenhar a estrada por
+     * cima do mapa, que e exatamente o que o nao-negociavel 7 proibe.
+     *
+     * <p>NEM TODA CIDADE SE LIGA A TODA CIDADE, e isso e design: um grafo
+     * completo faria toda viagem ser direta, e as cartas de transporte
+     * perderiam a razao de existir.
+     */
+    public static final List<Ligacao> ESTRADAS = List.of(
+            new Ligacao("shiso_tree", "antokiba"),
+            new Ligacao("antokiba", "rubicuta"),
+            new Ligacao("rubicuta", "masadora"),
+            new Ligacao("masadora", "aiai"),
+            new Ligacao("masadora", "dorias"),
+            new Ligacao("dorias", "soufrabi"),
+            new Ligacao("dorias", "limeiro"),
+            new Ligacao("rubicuta", "limeiro"),
+            new Ligacao("aiai", "soufrabi"));
+
     /** O hub de entrada. Onde o anel deposita quem chega. */
     public static final String CIDADE_INICIAL = "shiso_tree";
 

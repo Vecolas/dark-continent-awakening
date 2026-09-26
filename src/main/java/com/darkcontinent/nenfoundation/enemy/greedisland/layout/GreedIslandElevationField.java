@@ -17,10 +17,18 @@ import com.darkcontinent.nenfoundation.enemy.greedisland.GreedIslandConstants;
  * planalto, montanha. Um campo de altura que ignorasse a mascara produziria
  * montanha dentro do mar e planicie na ponta da peninsula.
  *
- * <p>SEM CADEIAS AINDA. As tres cordilheiras da secao 18 -- North Crown,
- * Western Spine, Central-Southeast Highlands -- sao a fase G2. O que existe
- * aqui e a base continental sobre a qual elas vao ser somadas, e o javadoc diz
- * isso em vez de deixar a ausencia parecer esquecimento.
+ * <p><b>A ORDEM DAS CAMADAS E A REGRA.</b> Base continental, depois planaltos,
+ * depois cordilheiras, e as bacias rebaixando por ultimo:
+ *
+ * <ol>
+ *   <li>a base sai da mascara -- praia sobe devagar, interior chega a colina;
+ *   <li>o planalto LEVANTA uma mesa inteira, com borda;
+ *   <li>a cordilheira soma por distancia ate a crista (G2);
+ *   <li>a bacia REBAIXA, e vem depois: ela precisa vencer o que estiver por
+ *       baixo, senao Antokiba nasce num morro;
+ *   <li>o rio ESCAVA por ultimo -- um rio que nasce na serra tem de cortar a
+ *       serra, e nao ser soterrado por ela (G3).
+ * </ol>
  */
 public final class GreedIslandElevationField {
 
@@ -64,14 +72,74 @@ public final class GreedIslandElevationField {
             return (int) Math.round(interpolar(GreedIslandConstants.NIVEL_DO_MAR + 1,
                     GreedIslandConstants.TOPO_DA_PLANICIE - 20, suave(t)));
         }
+        return (int) Math.round(comRelevo(x, z, d));
+    }
+
+    /** A altura de terra firme, com todas as camadas somadas. */
+    private static double comRelevo(double x, double z, double d) {
         double t = Math.clamp((d - FAIXA_DE_PRAIA)
                 / (FAIXA_DE_INTERIOR - FAIXA_DE_PRAIA), 0.0D, 1.0D);
         // O INTERIOR SOBE ATE A FAIXA DE COLINA, e para ali. Levar a base ate
         // a faixa de montanha nao deixaria espaco para as cadeias do G2 se
         // destacarem -- elas viram inchacos num planalto alto, e o documento
         // pede cordilheiras conectadas e legiveis.
-        return (int) Math.round(interpolar(GreedIslandConstants.TOPO_DA_PLANICIE - 20,
-                GreedIslandConstants.TOPO_DAS_COLINAS, suave(t)));
+        double base = interpolar(GreedIslandConstants.TOPO_DA_PLANICIE - 20,
+                GreedIslandConstants.TOPO_DAS_COLINAS, suave(t));
+
+        double comPlanalto = Math.max(base, contribuicaoDosPlanaltos(x, z, base));
+        double comCadeias = comPlanalto + GreedIslandRidgeField.contribuicao(x, z);
+        double comBacias = comCadeias - rebaixamentoDasBacias(x, z);
+        // A ESCAVACAO VEM DEPOIS DE TUDO, inclusive da cordilheira: um rio que
+        // nasce na serra tem de cortar a serra, e nao ser soterrado por ela.
+        double comRios = comBacias - GreedIslandHydrologyField.escavacao(x, z);
+
+        // O TETO E O DO DOCUMENTO (secao 17): picos ate 310. Sem o corte, a
+        // soma de planalto com cordilheira encostaria no teto do mundo, e o
+        // topo da montanha sairia cortado reto.
+        return Math.clamp(comRios, GreedIslandConstants.NIVEL_DO_MAR - 6,
+                GreedIslandConstants.PICO_MAXIMO);
+    }
+
+    /**
+     * Os planaltos: mesa alta com borda, e nao um morro suave.
+     *
+     * <p>O PERFIL E CHATO NO MEIO e cai na borda -- por isso a potencia alta na
+     * queda. Um planalto com perfil de sino nao e planalto, e um monte.
+     */
+    private static double contribuicaoDosPlanaltos(double x, double z, double base) {
+        double maior = base;
+        for (var p : GreedIslandConstants.PLANALTOS) {
+            double d = Math.hypot(x - p.x(), z - p.z());
+            if (d >= p.raio()) {
+                continue;
+            }
+            double t = d / p.raio();
+            // Mesa: quase 1 ate 70% do raio, e ai desce.
+            double mesa = 1.0D - Math.pow(t, 6.0D);
+            maior = Math.max(maior, base + (p.altura() - base) * mesa);
+        }
+        return maior;
+    }
+
+    /**
+     * As bacias rebaixam, e vem POR ULTIMO.
+     *
+     * <p>Se viessem antes da cordilheira, uma crista passando perto de Antokiba
+     * levantaria a cidade de volta -- e o documento coloca a cidade na bacia
+     * justamente para ela ter onde caber.
+     */
+    private static double rebaixamentoDasBacias(double x, double z) {
+        double total = 0.0D;
+        for (var b : GreedIslandConstants.BACIAS) {
+            double d = Math.hypot(x - b.x(), z - b.z());
+            if (d >= b.raio()) {
+                continue;
+            }
+            double t = d / b.raio();
+            double queda = 0.5D * (1.0D + Math.cos(Math.PI * t));
+            total = Math.max(total, b.rebaixamento() * queda * queda);
+        }
+        return total;
     }
 
     /** Se este ponto fica abaixo da linha d'agua. */

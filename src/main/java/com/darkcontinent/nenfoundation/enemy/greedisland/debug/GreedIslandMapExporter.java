@@ -75,6 +75,7 @@ public final class GreedIslandMapExporter {
         }
         int altura = Math.max(64, (int) Math.round(largura * quadroZ() / quadroX()));
         BufferedImage imagem = new BufferedImage(largura, altura, BufferedImage.TYPE_INT_RGB);
+        escalaDoPixel = quadroX() / largura;
 
         for (int px = 0; px < largura; px++) {
             for (int pz = 0; pz < altura; pz++) {
@@ -111,10 +112,41 @@ public final class GreedIslandMapExporter {
      * <p>A FAIXA DE COSTA GANHA COR PROPRIA. Sem ela, praia e mar raso ficam
      * quase do mesmo tom e a silhueta -- que e o que o gate julga -- some.
      */
+    /**
+     * Quantos blocos cabem num pixel do mapa atual.
+     *
+     * <p>CAMPO, e nao parametro em cada chamada: ele e constante durante um
+     * desenho inteiro e passa-lo por sete niveis de chamada so para chegar na
+     * cor de um rio seria ruido. Ele e escrito uma vez, no inicio de
+     * {@code desenhar}.
+     */
+    private static double escalaDoPixel = 100.0D;
+
     private static int corDe(double x, double z) {
         double d = GreedIslandMask.distanciaComSinal(x, z);
         if (Math.abs(d) < 250.0D) {
             return COSTA;
+        }
+        if (d > 0.0D) {
+            // RIO E LAGO ANTES DA ALTURA: eles sao o que o gate procura depois
+            // da silhueta, e pintados por altura sumiriam dentro do verde.
+            var agua = com.darkcontinent.nenfoundation.enemy.greedisland.layout
+                    .GreedIslandHydrologyField.aguaEm(x, z);
+            if (agua == com.darkcontinent.nenfoundation.enemy.greedisland.layout
+                    .GreedIslandHydrologyField.Agua.LAGO) {
+                return 0x2E_6C_A8;
+            }
+            if (agua == com.darkcontinent.nenfoundation.enemy.greedisland.layout
+                    .GreedIslandHydrologyField.Agua.RIO) {
+                return 0x3C_84_C4;
+            }
+            // ESPESSURA MINIMA DE DESENHO. Ver o javadoc de `distanciaAoRio`:
+            // em escala, os sete rios sao invisiveis, e um mapa de debug que
+            // nao mostra a hidrografia nao serve ao gate que a secao 92 pede.
+            if (com.darkcontinent.nenfoundation.enemy.greedisland.layout
+                    .GreedIslandHydrologyField.distanciaAoRio(x, z) < escalaDoPixel) {
+                return 0x3C_84_C4;
+            }
         }
         int altura = GreedIslandElevationField.alturaEm(x, z);
         if (d < 0.0D) {

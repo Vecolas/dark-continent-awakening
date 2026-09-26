@@ -5,6 +5,7 @@ import com.darkcontinent.nenfoundation.data.attachment.NenAttachments;
 import com.darkcontinent.nenfoundation.data.attachment.BestiaryAttachments;
 import com.darkcontinent.nenfoundation.network.NenNetwork;
 import com.darkcontinent.nenfoundation.network.NenProtocol;
+import com.darkcontinent.nenfoundation.registry.NenFuncoesDeDensidade;
 import com.darkcontinent.nenfoundation.registry.NenParticleTypes;
 import com.darkcontinent.nenfoundation.server.NenPedidoService;
 import com.darkcontinent.nenfoundation.sound.NenSoundEvents;
@@ -72,6 +73,10 @@ public final class NenFoundation {
         // linhas vizinhas: nenhuma substitui a outra. Ficam todas.
         NenSoundEvents.register(modEventBus);
         NenParticleTypes.register(modEventBus);
+        // A funcao de densidade da ilha precisa existir antes de o datapack
+        // ser lido: sem ela, o `noise_settings` de Greed Island nao valida e
+        // a dimensao cai no gerador padrao, sem erro visivel para o jogador.
+        NenFuncoesDeDensidade.TIPOS.register(modEventBus);
         BestiaryAttachments.TYPES.register(modEventBus);
         NenItems.register(modEventBus);
         NenBlocks.register(modEventBus);

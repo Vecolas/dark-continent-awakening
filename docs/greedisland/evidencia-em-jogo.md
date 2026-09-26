@@ -119,7 +119,7 @@ declarado em [`o-que-nao-provamos.md`](../testing/o-que-nao-provamos.md).**
 .\gradlew runServer
 
 # terminal 2, depois de "Done (...)"
-.\build\verificar-ilha.ps1
+.\scripts\greedisland\verificar-ilha.ps1
 ```
 
 O `alvos.csv` é regerado de dentro do layout — se uma âncora mudar, a

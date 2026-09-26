@@ -25,7 +25,11 @@
 | **G10** | ecologia | ✅ habitat das 7 criaturas: região + bioma + altitude + água + recuo de estrada/cidade |
 | **G11** | cards / navigation | ✅ catálogo de destinos, descoberta por presença, carta de retorno |
 | **G12** | macro QA | ✅ as 6 condições mensuráveis da §102, mais tempo de viagem e custo por consulta |
-| **G13** | release hardening | 🟡 `SavedData` com versão de layout e detecção de divergência. **Falta**: migração real, recuperação de crash |
+| **G13** | release hardening | 🟡 `SavedData` com versão e detecção de divergência. **Falta**: migração real, recuperação de crash |
+
+**Verificação em jogo: 51 de 51 obras nascem.** 8 cidades, 34 landmarks, 9
+estradas, num servidor dedicado com o mundo regenerado. Tick de 0,2 ms.
+Evidência em [`evidencia-em-jogo.md`](evidencia-em-jogo.md).
 
 ## O andaime foi APAGADO
 

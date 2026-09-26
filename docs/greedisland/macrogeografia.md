@@ -17,7 +17,8 @@
 | **G3** | hidrografia | ✅ 7 rios que escavam, 8 lagos |
 | **G4** | regiões e biomas | ✅ 24 regiões, 9 biomas |
 | **G5** | road graph | ✅ 9 estradas por A\* sobre o terreno |
-| **G6** | ligação com a geração | 🟡 **parcial** — `FuncaoDeLayout` liga o layout ao `minecraft:noise`; servidor sobe e o datapack valida. **Cidades não existem** |
+| **G6** | ligação com a geração | 🟡 `FuncaoDeLayout` liga o layout ao `minecraft:noise`; servidor sobe e o datapack valida |
+| **G7/G8** | cidades | 🟡 **identidade congelada** — 8 cidades com pegada, papel, distritos e landmark, e o chão validado. **Nenhuma casa é gerada ainda** |
 | G7 | Masadora | ⬜ |
 | G8 | cidades restantes | ⬜ |
 | G9 | landmarks | ⬜ |

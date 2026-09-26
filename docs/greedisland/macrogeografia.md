@@ -24,8 +24,8 @@
 | **G9** | landmarks | ✅ 34 grandes, com passos e cachoeiras **derivados** da geografia |
 | **G10** | ecologia | ✅ habitat das 7 criaturas: região + bioma + altitude + água + recuo de estrada/cidade |
 | **G11** | cards / navigation | ✅ catálogo de destinos, descoberta por presença, carta de retorno |
-| G12 | macro QA | ⬜ |
-| G13 | release hardening | ⬜ |
+| **G12** | macro QA | ✅ as 6 condições mensuráveis da §102, mais tempo de viagem e custo por consulta |
+| **G13** | release hardening | 🟡 `SavedData` com versão de layout e detecção de divergência. **Falta**: migração real, recuperação de crash |
 
 ## O andaime foi APAGADO
 

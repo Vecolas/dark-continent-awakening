@@ -104,9 +104,17 @@ public final class PresencaDeAura {
      * dar de graca.
      *
      * <p>GYO E SHU CONTAM COMO TEN, pela razao oposta: as duas redistribuem uma
-     * aura que continua retida junto ao corpo. Quem olha percebe que ha aura, e
-     * nao ONDE ela esta -- descobrir isso e o que Gyo nos olhos existe para
-     * fazer, e ele e a camada de percepcao (#126), nao este metodo.
+     * aura que continua retida junto ao corpo.
+     *
+     * <p><b>CORRECAO DE 2026-09-26.</b> Este paragrafo dizia que "quem olha
+     * percebe que ha aura, e nao ONDE ela esta", e que a posicao seria papel da
+     * camada de percepcao. <b>Estava errado</b>, e o jogo mostrou: com Gyo
+     * ligado, o observador via o corpo inteiro aceso, lendo um Gyo como Ken.
+     *
+     * <p>O cânone e quem corrige: Gyo nos olhos existe para ver aura ESCONDIDA
+     * (In) e aura sutil -- nao para ver concentracao grossa. Aura visivel tem
+     * forma visivel. A forma passou a viajar em {@code aura_presence} (v11), e
+     * o que o SINAL empacota continua sendo a MAGNITUDE, e nao a posicao.
      */
     private static SinalDeAura sinalDe(ResourceLocation id) {
         if (Zetsu.ID.equals(id)) {

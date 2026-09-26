@@ -1,6 +1,7 @@
 package com.darkcontinent.nenfoundation.server;
 
 import com.darkcontinent.nenfoundation.api.SinalDeAura;
+import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import com.darkcontinent.nenfoundation.nen.aura.PresencaDeAura;
 import com.darkcontinent.nenfoundation.network.payload.PresencaDeAuraS2C;
 import java.util.Map;
@@ -37,7 +38,42 @@ public final class NenPresencaService {
      */
     private static final Map<UUID, SinalDeAura> ULTIMO_ANUNCIADO = new ConcurrentHashMap<>();
 
+    /**
+     * A ultima FORMA anunciada de cada jogador.
+     *
+     * <p>SEPARADA DO SINAL, e nao um record com os dois, porque ela muda por
+     * outra razao: o sinal muda ao ligar tecnica, a forma muda tambem ao
+     * apertar {@code G}. Com um campo so, mudar de regiao dentro do mesmo Gyo
+     * nao dispararia anuncio -- e os observadores continuariam vendo a aura no
+     * lugar antigo, sem erro nenhum.
+     */
+    private static final Map<UUID, AlocacaoDeAura> ULTIMA_FORMA = new ConcurrentHashMap<>();
+
     private NenPresencaService() {
+    }
+
+    /**
+     * A forma da aura deste jogador agora.
+     *
+     * <p>VEM DO RUNTIME, que e onde o recalculo do servidor a deixou. Recalcular
+     * aqui seria a segunda fonte da mesma verdade, e as duas divergiriam no dia
+     * em que uma tecnica nova mudasse a conta.
+     *
+     * <p>QUEM ESTA EM ZETSU MANDA UNIFORME, e nao a forma real: a alocacao de
+     * quem se suprime nao pode atravessar a rede, pelo mesmo motivo que o sinal
+     * dele vira NENHUM.
+     */
+    public static AlocacaoDeAura formaDe(ServerPlayer jogador) {
+        if (sinalDe(jogador) == SinalDeAura.NENHUM) {
+            return AlocacaoDeAura.uniforme();
+        }
+        try {
+            return NenRuntimeService.estadoDe(jogador).alocacao();
+        } catch (IllegalStateException semSessao) {
+            // Mesma guarda de `tecnicasAtivasDe`: entre a entrada na lista e o
+            // inicio da sessao nao ha runtime, e isso nao e erro.
+            return AlocacaoDeAura.uniforme();
+        }
     }
 
     /** O sinal que este jogador emite agora, calculado do zero. */
@@ -54,11 +90,16 @@ public final class NenPresencaService {
      */
     public static boolean anunciarSeMudou(ServerPlayer jogador) {
         SinalDeAura agora = sinalDe(jogador);
-        SinalDeAura antes = ULTIMO_ANUNCIADO.put(jogador.getUUID(), agora);
-        if (agora == antes) {
+        AlocacaoDeAura forma = formaDe(jogador);
+        SinalDeAura sinalAntes = ULTIMO_ANUNCIADO.put(jogador.getUUID(), agora);
+        AlocacaoDeAura formaAntes = ULTIMA_FORMA.put(jogador.getUUID(), forma);
+        // OS DOIS PRECISAM SER COMPARADOS. Trocar de regiao com o mesmo Gyo
+        // ligado nao muda o sinal -- e sem a segunda comparacao os observadores
+        // ficariam vendo a aura no lugar de onde ela saiu.
+        if (agora == sinalAntes && forma.equals(formaAntes)) {
             return false;
         }
-        enviarPara(jogador, agora);
+        enviarPara(jogador, agora, forma);
         return true;
     }
 
@@ -75,17 +116,19 @@ public final class NenPresencaService {
             return;
         }
         PacketDistributor.sendToPlayer(observador,
-                new PresencaDeAuraS2C(alvo.getId(), sinalDe(alvo)));
+                new PresencaDeAuraS2C(alvo.getId(), sinalDe(alvo), formaDe(alvo)));
     }
 
     /** Esquece o jogador. Chamado quando ele sai. */
     public static void esquecer(ServerPlayer jogador) {
         ULTIMO_ANUNCIADO.remove(jogador.getUUID());
+        ULTIMA_FORMA.remove(jogador.getUUID());
     }
 
     /** Apaga tudo. Usado no encerramento do servidor e nos testes. */
     public static void limpar() {
         ULTIMO_ANUNCIADO.clear();
+        ULTIMA_FORMA.clear();
     }
 
     /**
@@ -107,8 +150,9 @@ public final class NenPresencaService {
      * distancia de visao do servidor. Assim ela acompanha a configuracao de
      * quem hospeda em vez de discordar dela.
      */
-    private static void enviarPara(ServerPlayer jogador, SinalDeAura sinal) {
-        PresencaDeAuraS2C payload = new PresencaDeAuraS2C(jogador.getId(), sinal);
+    private static void enviarPara(ServerPlayer jogador, SinalDeAura sinal,
+            AlocacaoDeAura forma) {
+        PresencaDeAuraS2C payload = new PresencaDeAuraS2C(jogador.getId(), sinal, forma);
         double alcance = alcanceDeVisao(jogador);
         double alcanceAoQuadrado = alcance * alcance;
 

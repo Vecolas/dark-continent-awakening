@@ -177,6 +177,10 @@ public final class NenClientCache implements RecebedorDeNen {
      * gravar o silencio impede o mapa de crescer com todo jogador que o
      * observador ja cruzou numa sessao longa.
      */
+    private final java.util.Map<Integer,
+            com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura> formas =
+            new java.util.HashMap<>();
+
     private final java.util.Map<Integer, SinalDeAura> presencas =
             new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -207,10 +211,27 @@ public final class NenClientCache implements RecebedorDeNen {
     public void aoReceberPresenca(PresencaDeAuraS2C payload) {
         if (payload.sinal() == SinalDeAura.NENHUM) {
             this.presencas.remove(payload.entidadeId());
+            // A FORMA SAI JUNTO. Deixada para tras, ela reapareceria no proximo
+            // Ten daquela pessoa com a concentracao do Ko anterior -- e o
+            // sintoma seria "as vezes a aura nasce torta".
+            this.formas.remove(payload.entidadeId());
         } else {
             this.presencas.put(payload.entidadeId(), payload.sinal());
+            this.formas.put(payload.entidadeId(), payload.alocacao());
         }
         this.presencasRecebidas++;
+    }
+
+    /**
+     * A forma da aura de uma entidade, ou uniforme quando nao se sabe.
+     *
+     * <p>UNIFORME E O PADRAO SEGURO: e o que o jogo desenhava antes de a forma
+     * atravessar a rede, e um corpo inteiro aceso e menos errado que um corpo
+     * apagado para quem de fato tem aura.
+     */
+    public com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura formaDe(int entidadeId) {
+        return this.formas.getOrDefault(entidadeId,
+                com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura.uniforme());
     }
 
     /** O sinal de aura de uma entidade, ou NENHUM se nao se percebe nada. */

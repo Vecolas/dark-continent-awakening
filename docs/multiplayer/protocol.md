@@ -8,7 +8,7 @@ Se voce mudou um e nao o outro, o build fica vermelho. E de proposito: quando o
 codigo e o documento discordam sobre direcao de pacote, quem executa e o codigo
 e quem e lido antes de escrever codigo e o documento.
 
-- **Versao do protocolo:** 10
+- **Versao do protocolo:** 11
 
 A versao sobe quando um payload muda de formato, some ou troca de direcao.
 
@@ -43,7 +43,7 @@ primeiro a encontra-lo e quem estiver procurando.
 | `nen_runtime_delta` | S2C | aura, auraMaxima, outputPercent, cooldown, tecnica alterados e a alocacao pelas seis regioes |
 | `ability_fx_event` | S2C | som, particula, animacao |
 | `nen_error_feedback` | S2C | motivo legivel de uma recusa |
-| `aura_presence` | S2C | id da entidade e um sinal de tres valores; o UNICO payload sobre terceiros |
+| `aura_presence` | S2C | id da entidade, sinal de quatro valores e a FORMA da aura; o UNICO payload sobre terceiros |
 | `set_focus_region_request` | C2S | a regiao onde concentrar (Gyo, e depois Ko). INTENCAO, e nada mais |
 | `aura_impact` | S2C | id da entidade, FAIXA atingida (tres valores; PERNAS cobre as duas) e forca ja NORMALIZADA em 0..1 -- nunca dano nem vida |
 | `bestiary_snapshot` | S2C | entries de conhecimento e definitions do catálogo editorial; nunca dados de outro jogador |
@@ -154,12 +154,43 @@ derruba a conexao, e um pacote torto nao vale isso.
 **O unico payload deste mod que fala de TERCEIROS.** Todos os outros vao so ao
 dono do perfil; este vai a quem esta por perto.
 
-Ele carrega dois campos e nenhum a mais: o id da entidade e um sinal de tres
-valores — `NENHUM`, `TEN`, `REN`. Nao viaja aura atual, nem maxima, nem output,
-nem categoria, nem lista de tecnicas. O criterio nao e "o que seria util no
-cliente": e **o que alguem de pe ao lado perceberia**.
+Ele carrega tres campos e nenhum a mais: o id da entidade, um sinal de quatro
+valores — `NENHUM`, `TEN`, `REN`, `KEN` — e a **forma** da aura. Nao viaja aura
+atual, nem maxima, nem output, nem categoria, nem lista de tecnicas. O criterio
+nao e "o que seria util no cliente": e **o que alguem de pe ao lado
+perceberia**.
 
-> **Quem esta em Zetsu manda `NENHUM`, o mesmo byte de quem nunca despertou.**
+> **Quem esta em Zetsu manda `NENHUM`, o mesmo byte de quem nunca despertou** —
+> e manda a forma uniforme, nunca a real.
+
+#### A forma entrou na v11 (2026-09-26), e corrige um defeito visto em jogo
+
+Gyo, Ko e Shu concentram a aura num ponto. Para o proprio jogador isso ja
+funcionava: a alocacao viaja no `nen_runtime_delta`, que so vai ao dono. **Para
+quem olhava, o corpo inteiro acendia** — `EstadoVisualDeTerceiro` chumbava
+`AuraDistribution.uniforme()`. Um Gyo era lido como Ken; um Ko, como Ren de
+corpo cheio.
+
+**Isso reverte uma afirmacao anterior deste projeto.** O javadoc de
+`PresencaDeAura` dizia que "quem olha percebe que ha aura, e nao ONDE ela esta",
+e que descobrir a posicao seria papel da camada de percepcao. Estava errado:
+Gyo nos olhos existe para ver aura **escondida** (In) e aura sutil — nao para
+ver concentracao grossa. Aura visivel tem forma visivel.
+
+| | |
+| --- | --- |
+| **Formato** | um byte por regiao, na ordem de `RegiaoDoCorpo` — 6 bytes |
+| **Precisao** | `0..255`; o consumidor normaliza pela regiao mais concentrada |
+| **Quando muda** | ao ligar/desligar tecnica **e** ao trocar de regiao com a tecla `G` |
+| **Malformado** | tamanho errado vira uniforme, e nao excecao |
+
+> **Por que quantizada.** Seis `float` dariam 24 bytes para a mesma imagem. O
+> desenho usa a PROPORCAO entre regioes, e `1/255` e mais resolucao do que
+> qualquer olho separa numa shell de aura.
+
+> **O anuncio compara os DOIS.** Trocar de regiao com o mesmo Gyo ligado nao
+> muda o sinal. Sem comparar a forma tambem, os observadores continuariam vendo
+> a aura no lugar de onde ela saiu — sem erro nenhum.
 
 Isso e o desenho inteiro. Nao existe bandeira de "escondido" para um cliente
 modificado ler, porque o segredo **nao atravessa a rede** — em vez de

@@ -40,6 +40,12 @@ public final class EstadoVisualDeTerceiro {
         return de(sinal, lod, 1.0F);
     }
 
+    /** Idem, sem forma declarada: o corpo inteiro. */
+    public static AuraVisualState de(SinalDeAura sinal, AuraRenderLod lod,
+            float visibilidade) {
+        return de(sinal, lod, visibilidade, AuraDistribution.uniforme());
+    }
+
     /**
      * Idem, com a VISIBILIDADE que o resolvedor respondeu.
      *
@@ -52,7 +58,19 @@ public final class EstadoVisualDeTerceiro {
      * <p>Hoje a resposta e quase sempre 1,0. O ponto do resolvedor nao e o valor
      * de hoje: e que amanha ele seja um NUMERO, e nao um renderer novo.
      */
-    public static AuraVisualState de(SinalDeAura sinal, AuraRenderLod lod, float visibilidade) {
+    /**
+     * Idem, COM a forma que o servidor anunciou.
+     *
+     * <p><b>A FORMA ENTROU EM 2026-09-26, e a ausencia dela era um defeito
+     * visto em jogo.</b> Esta linha era {@code AuraDistribution.uniforme()},
+     * chumbada, e o resultado era Gyo lido como Ken e Ko lido como Ren de corpo
+     * cheio: quem concentrava via a propria aura no ponto certo, e quem
+     * observava via o corpo todo aceso.
+     *
+     * <p>Ela chega em {@code aura_presence}, quantizada num byte por regiao.
+     */
+    public static AuraVisualState de(SinalDeAura sinal, AuraRenderLod lod,
+            float visibilidade, AuraDistribution forma) {
         // GUARDA REDUNDANTE, e sabidamente: o `switch` abaixo ja manda NENHUM
         // para OFF, e HIDDEN ja zera a intensidade -- `enabled()` recusa os dois
         // de qualquer jeito. Alimentar o portao com o defeito mostrou isso:
@@ -98,7 +116,7 @@ public final class EstadoVisualDeTerceiro {
             return AuraVisualState.desligado();
         }
         return new AuraVisualState(modo, intensidade, 1.0F,
-                AuraDistribution.uniforme(), cor, cor);
+                forma == null ? AuraDistribution.uniforme() : forma, cor, cor);
     }
 
     /**

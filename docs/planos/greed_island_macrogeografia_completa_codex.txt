@@ -1,0 +1,2919 @@
+DARK CONTINENT AWAKENING
+GREED ISLAND — MACROGEOGRAFIA COMPLETA
+ESPECIFICAÇÃO DE IMPLEMENTAÇÃO DO EPIC
+NeoForge 1.21.1 | Java 21
+
+==============================================================================
+0. STATUS DESTE DOCUMENTO
+==============================================================================
+
+Este arquivo é uma ESPECIFICAÇÃO DE EPIC.
+
+NÃO tratar como:
+- tarefa única;
+- um único PR;
+- um único prompt para Codex;
+- uma simples troca de ChunkGenerator.
+
+A macrogeografia de Greed Island é uma trilha de desenvolvimento própria,
+comparável em escala às trilhas EN e AV.
+
+Este documento define:
+
+- escala;
+- forma da ilha;
+- sistema de coordenadas;
+- cidades;
+- regiões;
+- cordilheiras;
+- planaltos;
+- bacias;
+- rios;
+- lagos;
+- estradas;
+- costa;
+- vegetação macro;
+- habitats;
+- landmarks;
+- geração chunk-local;
+- arquitetura Java;
+- versionamento;
+- compatibilidade;
+- debug;
+- testes;
+- gates;
+- Definition of Done;
+- ordem de implementação;
+- prompts por fase para Codex/Claude.
+
+==============================================================================
+1. REGRA DE CÂNONE
+==============================================================================
+
+Toda informação geográfica deve carregar uma das três classificações:
+
+CANON_EXACT
+    Diretamente estabelecida na obra.
+
+CANON_DERIVED
+    Inferida de função, aparência ou relação mostrada na obra.
+
+ORIGINAL_COMPATIBLE
+    Criada pelo mod para tornar o mundo jogável sem contradizer o cânone.
+
+NÃO apresentar posições absolutas deste documento como cânone.
+
+Os nomes de cidades e funções podem ser canônicos.
+As coordenadas, distâncias, orientação da costa e posição relativa detalhada
+são ORIGINAL_COMPATIBLE, salvo prova explícita em fonte canônica.
+
+==============================================================================
+2. PRINCÍPIO DE DESIGN
+==============================================================================
+
+Greed Island NÃO é:
+
+- um disco;
+- uma ilha de 2 km;
+- um conjunto de cidades próximas;
+- um Overworld com outro nome;
+- uma coleção de biomas vanilla;
+- um mapa procedural sem memória geográfica.
+
+Greed Island DEVE ser percebida como:
+
+"uma ilha continental enorme, projetada por Game Masters, onde distância,
+informação, cartas e conhecimento geográfico fazem parte do jogo."
+
+==============================================================================
+3. ESCALA-ALVO
+==============================================================================
+
+Bounding box macro da ilha:
+
+X = -40.000 .. +40.000
+Z = -35.000 .. +35.000
+
+Extensão máxima:
+
+80.000 blocos E–W
+70.000 blocos N–S
+
+Isso NÃO significa que toda a bounding box é terra.
+
+Área terrestre-alvo:
+aprox. 45%–60% da bounding box.
+
+A escala é propositalmente comprimida em relação ao território canônico,
+mas enorme em termos de Minecraft.
+
+==============================================================================
+4. PRINCÍPIO DE ESCALA ABSTRATA
+==============================================================================
+
+Arquitetura local:
+1 bloco ≈ 1 metro visual.
+
+Geografia macro:
+não assumir conversão literal.
+
+A ilha representa uma área continental por compressão geográfica.
+
+Objetivo:
+preservar percepção de distância,
+não equivalência cartográfica literal.
+
+==============================================================================
+5. LAYOUT FIXO ENTRE SERVIDORES
+==============================================================================
+
+Greed Island deve possuir layout macro fixo.
+
+Definir:
+
+GREED_ISLAND_LAYOUT_SEED
+GREED_ISLAND_LAYOUT_VERSION
+
+A seed do mundo pode influenciar:
+
+- microvariação de terreno;
+- distribuição de árvores;
+- pedras;
+- cavernas menores;
+- decoração;
+- encontros não-canônicos.
+
+A seed do mundo NÃO pode mover:
+
+- cidades principais;
+- cordilheiras principais;
+- rios principais;
+- estradas principais;
+- landmarks canônicos;
+- regiões macro;
+- costa-base.
+
+==============================================================================
+6. ORIGEM DA DIMENSÃO
+==============================================================================
+
+Centro lógico da ilha:
+
+X = 0
+Z = 0
+
+Isso facilita:
+
+- mapas;
+- debug;
+- fast travel;
+- region lookup;
+- city anchors;
+- hydrology;
+- migration.
+
+==============================================================================
+7. ALTURA VERTICAL
+==============================================================================
+
+Não há necessidade de dimensão extremamente alta.
+
+Recomendação inicial:
+
+min_y = -64
+height = 384
+
+ou compatível com Overworld.
+
+Objetivo:
+permitir cavernas, falésias, montanhas, lagos, cidades e rios.
+
+==============================================================================
+8. WORLD BORDER
+==============================================================================
+
+World border da dimensão:
+
+raio recomendado:
+48.000 blocos.
+
+Centro:
+0,0.
+
+Isso deixa oceano navegável ao redor da ilha,
+mas evita exploração infinita de oceano irrelevante.
+
+==============================================================================
+9. TOPOLOGIA GLOBAL
+==============================================================================
+
+A ilha terá:
+
+- 1 massa continental principal;
+- 3 grandes penínsulas;
+- 7–14 ilhas menores costeiras;
+- 2 arquipélagos pequenos;
+- 3 grandes sistemas montanhosos;
+- 2 planaltos;
+- 7 sistemas hidrográficos principais;
+- 11–18 lagos relevantes;
+- 7 cidades principais + Shiso Tree como hub de entrada;
+- 24 macro-regiões;
+- dezenas de sub-regiões;
+- 35–60 landmarks de grande porte;
+- centenas de micro-landmarks.
+
+
+==============================================================================
+10. FORMA-BASE DA ILHA
+==============================================================================
+
+PROIBIDO:
+
+distanceFromCenter < radius
+
+ou qualquer equivalente circular simples.
+
+A ilha deve ser gerada por:
+
+1. máscara-base desenhada;
+2. Signed Distance Field;
+3. deformação de baixa frequência;
+4. splines de costa;
+5. penínsulas;
+6. baías;
+7. erosão visual;
+8. recortes de estuário.
+
+==============================================================================
+11. ISLAND MASK
+==============================================================================
+
+Criar:
+
+GreedIslandMask
+
+Entrada:
+x,z
+
+Saída:
+signedDistance
+
+Convenção:
+> 0 = terra
+= 0 = costa
+< 0 = oceano
+
+A máscara NÃO deve depender somente de noise.
+
+Ela deve combinar:
+
+- shape base determinística;
+- coastal spline graph;
+- regional modifiers;
+- low-frequency noise.
+
+==============================================================================
+12. FORMA MACRO PROPOSTA
+==============================================================================
+
+Forma geral:
+
+- Norte: mais estreito e montanhoso.
+- Nordeste: costa recortada com península.
+- Leste: enseadas e colinas.
+- Sudeste: grande península costeira.
+- Sul: costa longa com estuários.
+- Sudoeste: wetlands e arquipélago.
+- Oeste: planalto quebrado e costa alta.
+- Noroeste: grandes falésias e montanhas.
+
+Silhueta:
+assimétrica.
+
+Não oval perfeita.
+
+==============================================================================
+13. ÂNCORAS DE COSTA
+==============================================================================
+
+Definir pontos macro de controle:
+
+C01 (-31.000, -24.000)
+C02 (-16.000, -33.000)
+C03 (  2.000, -32.000)
+C04 ( 20.000, -29.000)
+C05 ( 35.000, -20.000)
+C06 ( 39.000,  -4.000)
+C07 ( 34.000,  14.000)
+C08 ( 27.000,  30.000)
+C09 (  6.000,  34.000)
+C10 (-13.000,  32.000)
+C11 (-29.000,  25.000)
+C12 (-38.000,   9.000)
+C13 (-39.000,  -8.000)
+
+Esses pontos são ORIGINAL_COMPATIBLE.
+
+Servem como macro-outline.
+
+A spline costeira deve passar perto deles,
+não exatamente por todos de forma rígida.
+
+==============================================================================
+14. PENÍNSULAS PRINCIPAIS
+==============================================================================
+
+PENÍNSULA NE
+Centro aproximado:
+(+31.000, -15.000)
+
+PENÍNSULA SE
+Centro:
+(+28.000, +23.000)
+
+PENÍNSULA SW
+Centro:
+(-26.000, +23.000)
+
+==============================================================================
+15. BAÍAS PRINCIPAIS
+==============================================================================
+
+B01 — Baía de Soufrabi
+(+27.000, +18.000)
+
+B02 — Baía Ocidental
+(-31.000, +5.000)
+
+B03 — Baía Nordeste
+(+29.000, -18.000)
+
+B04 — Grande Estuário Sul
+(+2.000, +30.000)
+
+
+==============================================================================
+16. RELEVO GLOBAL
+==============================================================================
+
+Criar:
+
+GreedIslandElevationField
+
+Ele combina:
+
+- continental base;
+- mountain ridge fields;
+- basin depressions;
+- river carving;
+- plateau masks;
+- regional roughness;
+- micro-noise.
+
+Nunca gerar relevo apenas com Perlin/Simplex global.
+
+==============================================================================
+17. ALTURA-BASE
+==============================================================================
+
+Sea level:
+Y=63
+
+Lowland:
+Y=66–90
+
+Rolling hills:
+Y=90–130
+
+Highland:
+Y=130–180
+
+Mountain:
+Y=180–260
+
+Major peaks:
+Y=260–310
+
+==============================================================================
+18. SISTEMAS MONTANHOSOS
+==============================================================================
+
+Três sistemas principais:
+
+M1 — NORTH CROWN RANGE
+M2 — WESTERN SPINE
+M3 — CENTRAL-SOUTHEAST HIGHLANDS
+
+Cada um é um graph de ridges,
+não um biome com noise alto.
+
+==============================================================================
+19. M1 — NORTH CROWN RANGE
+==============================================================================
+
+Classificação:
+ORIGINAL_COMPATIBLE.
+
+Extensão:
+(-24.000,-25.000)
+até
+(+23.000,-22.000)
+
+Forma:
+arco montanhoso.
+
+Altura típica:
+Y=190–280
+
+Picos:
+Y=280–315
+
+Largura:
+6.000–12.000 blocos.
+
+Nodes:
+N1 (-24.000,-25.000)
+N2 (-16.000,-28.000)
+N3 ( -7.000,-27.000)
+N4 (  2.000,-25.000)
+N5 ( 11.000,-26.000)
+N6 ( 23.000,-22.000)
+
+Gerar splines entre nodes.
+
+==============================================================================
+20. M2 — WESTERN SPINE
+==============================================================================
+
+Extensão:
+(-27.000,-18.000)
+→
+(-20.000,+20.000)
+
+Orientação:
+N–S.
+
+Altura:
+Y=160–260.
+
+Nodes:
+W1 (-27.000,-18.000)
+W2 (-29.000, -8.000)
+W3 (-27.000, +2.000)
+W4 (-24.000,+10.000)
+W5 (-20.000,+20.000)
+
+==============================================================================
+21. M3 — CENTRAL-SOUTHEAST HIGHLANDS
+==============================================================================
+
+Extensão:
+(-2.000,+2.000)
+→
+(+24.000,+23.000)
+
+Altura:
+Y=130–230.
+
+Nodes:
+C1 (-2.000,+2.000)
+C2 (+4.000,+8.000)
+C3 (+10.000,+10.000)
+C4 (+16.000,+16.000)
+C5 (+24.000,+23.000)
+
+==============================================================================
+22. PLANALTOS
+==============================================================================
+
+P1 — CENTRAL PLATEAU
+Centro:
+(-3.000,-2.000)
+
+Raio efetivo:
+8.000–12.000.
+
+Altura:
+Y=105–145.
+
+P2 — EASTERN TABLELAND
+Centro:
+(+19.000,-5.000)
+
+Raio:
+6.000–9.000.
+
+Altura:
+Y=115–155.
+
+==============================================================================
+23. BACIAS PRINCIPAIS
+==============================================================================
+
+Basin A — Antokiba Basin
+(-14.000,+5.000)
+
+Basin B — Masadora Basin
+(+4.000,-2.000)
+
+Basin C — Aiai Basin
+(+15.000,+6.000)
+
+Basin D — Southern Wetlands
+(-8.000,+24.000)
+
+
+==============================================================================
+24. HIDROGRAFIA — PRINCÍPIO
+==============================================================================
+
+Rios NÃO são noise visual.
+
+Eles devem existir como grafo hidrográfico.
+
+Criar:
+
+GreedIslandHydrologyGraph
+
+Contém:
+
+- source;
+- tributaries;
+- river spline;
+- width profile;
+- basin id;
+- mouth;
+- lakes;
+- waterfall nodes.
+
+==============================================================================
+25. SISTEMAS HIDROGRÁFICOS PRINCIPAIS
+==============================================================================
+
+Sete sistemas:
+
+H1 — Northfall
+H2 — Westreach
+H3 — Antokiba River
+H4 — Masadora River
+H5 — Eastflow
+H6 — Southern Marsh
+H7 — Soufrabi Watershed
+
+==============================================================================
+26. H1 — NORTHFALL
+==============================================================================
+
+Source:
+(-8.000,-26.000)
+
+Fluxo:
+sul/sudoeste.
+
+Comprimento alvo:
+15.000–22.000.
+
+Lago principal:
+Lake Northfall
+(-9.000,-18.000)
+
+==============================================================================
+27. H2 — WESTREACH
+==============================================================================
+
+Source:
+(-25.000,-8.000)
+
+Mouth:
+(-35.000,+5.000)
+
+Características:
+cânion,
+cachoeiras,
+gorge.
+
+==============================================================================
+28. H3 — ANTOKIBA RIVER
+==============================================================================
+
+Source:
+(-10.000,-4.000)
+
+Passa próximo:
+Antokiba.
+
+Cidade deve ficar:
+800–1.800 blocos do rio.
+
+==============================================================================
+29. H4 — MASADORA RIVER
+==============================================================================
+
+Source:
+(+3.000,-7.000)
+
+Passa:
+Masadora Basin.
+
+Lago:
+Lake Masadora
+(+3.000,-1.000)
+
+==============================================================================
+30. H5 — EASTFLOW
+==============================================================================
+
+Source:
+(+18.000,-9.000)
+
+Fluxo:
+nordeste → leste.
+
+Vários tributários curtos.
+
+==============================================================================
+31. H6 — SOUTHERN MARSH
+==============================================================================
+
+Source:
+Central Plateau / Western Spine.
+
+Forma:
+sistema de canais,
+não rio único.
+
+Mouth:
+Great South Estuary.
+
+==============================================================================
+32. H7 — SOUFRABI WATERSHED
+==============================================================================
+
+Source:
+(+20.000,+16.000)
+
+Fluxo:
+costa de Soufrabi.
+
+Rios curtos,
+agricultura,
+porto.
+
+==============================================================================
+33. LAGOS PRINCIPAIS
+==============================================================================
+
+L1 Lake Northfall
+(-9.000,-18.000)
+
+L2 Lake Masadora
+(+3.000,-1.000)
+
+L3 Mirror Lake
+(+13.000,-8.000)
+
+L4 West Basin Lake
+(-24.000,+9.000)
+
+L5 Marsh Lake A
+(-8.000,+22.000)
+
+L6 Marsh Lake B
+(-3.000,+25.000)
+
+L7 Highland Lake
+(+12.000,+13.000)
+
+L8 Soufrabi Reservoir
+(+23.000,+18.000)
+
+Outros:
+3–10 secundários.
+
+==============================================================================
+34. RIVER WIDTH
+==============================================================================
+
+Headwater:
+2–5 blocos.
+
+Minor river:
+5–12.
+
+Major river:
+12–30.
+
+Lower estuary:
+30–80.
+
+Delta:
+multi-channel.
+
+==============================================================================
+35. RIVER CARVING
+==============================================================================
+
+Pipeline:
+
+1. macro spline;
+2. width function;
+3. local meander;
+4. bank profile;
+5. erosion;
+6. bed composition;
+7. vegetation zone.
+
+Não apenas substituir blocos por água.
+
+
+==============================================================================
+36. HUBS E CIDADES PRINCIPAIS
+==============================================================================
+
+Hub de entrada:
+Shiso Tree.
+
+Cidades principais:
+1. Antokiba
+2. Rubicuta
+3. Masadora
+4. Aiai
+5. Dorias
+6. Soufrabi
+7. Limeiro
+
+IMPORTANTE:
+Shiso Tree é landmark/spawn, não cidade.
+
+==============================================================================
+37. COORDENADAS PROPOSTAS
+==============================================================================
+
+Todas ORIGINAL_COMPATIBLE.
+
+SHISO TREE
+(-18.000,+1.000)
+
+ANTOKIBA
+(-14.500,+5.500)
+
+RUBICUTA
+(-5.000,+8.500)
+
+MASADORA
+(+4.500,-2.000)
+
+AIAI
+(+15.500,+5.500)
+
+DORIAS
+(+8.500,+17.000)
+
+SOUFRABI
+(+27.000,+22.000)
+
+LIMEIRO
+(-1.000,+27.000)
+
+==============================================================================
+38. DISTÂNCIAS APROXIMADAS
+==============================================================================
+
+Shiso → Antokiba:
+~5.000
+
+Antokiba → Rubicuta:
+~10.000
+
+Rubicuta → Masadora:
+~13.000
+
+Masadora → Aiai:
+~12.000
+
+Masadora → Dorias:
+~20.000
+
+Dorias → Soufrabi:
+~19.000
+
+Dorias → Limeiro:
+~11.000
+
+Antokiba → Limeiro:
+~25.000
+
+Valores são macro gameplay,
+não distâncias canônicas.
+
+==============================================================================
+39. SHISO TREE REGION
+==============================================================================
+
+Função:
+spawn/tutorial.
+
+Radius:
+2.000–3.500.
+
+Conteúdo:
+- landmark Shiso;
+- trails;
+- first mobs;
+- first clues;
+- low danger;
+- view corridor.
+
+==============================================================================
+40. ANTOKIBA
+==============================================================================
+
+Footprint:
+~420×520.
+
+Papel:
+primeiro grande hub.
+
+Distritos:
+- Prize Square;
+- event/quest district;
+- commercial;
+- inn;
+- residential;
+- outskirts;
+- event fields.
+
+Arquitetura:
+funcional,
+colorida,
+não medieval.
+
+==============================================================================
+41. RUBICUTA
+==============================================================================
+
+Footprint:
+~380×460.
+
+Papel:
+hub intermediário/comercial.
+
+Distritos:
+- market;
+- craft;
+- inn;
+- traveler quarter;
+- administration.
+
+==============================================================================
+42. MASADORA
+==============================================================================
+
+Footprint:
+~700×850.
+
+Papel:
+cidade das Spell Cards.
+
+Distritos:
+- central spell market;
+- card shops;
+- exchange;
+- services;
+- inn;
+- logistics;
+- residential;
+- outer market;
+- testing courtyard.
+
+Landmark:
+Spell Card Hall.
+
+==============================================================================
+43. AIAI
+==============================================================================
+
+Footprint:
+~550×700.
+
+Papel:
+City of Love.
+
+Elementos:
+- cafés;
+- plazas;
+- gardens;
+- scenic paths;
+- bridges;
+- social encounters.
+
+Evitar:
+caricatura rosa.
+
+==============================================================================
+44. DORIAS
+==============================================================================
+
+Footprint:
+~650×900.
+
+Papel:
+Gambling City.
+
+Distritos:
+- casino core;
+- game halls;
+- entertainment;
+- commercial ring;
+- lodging;
+- service alleys.
+
+==============================================================================
+45. SOUFRABI
+==============================================================================
+
+Footprint:
+~900×1.250.
+
+Papel:
+port city.
+
+Elementos:
+- harbor;
+- docks;
+- warehouses;
+- fishing quarter;
+- upper city;
+- lighthouse;
+- Razor/pirate encounter zone.
+
+A topografia costeira deve participar da cidade.
+
+==============================================================================
+46. LIMEIRO
+==============================================================================
+
+Footprint:
+~1.200×1.500.
+
+Papel:
+capital.
+
+Distritos:
+- governmental/castle landmark;
+- central avenue;
+- market;
+- residential;
+- public plazas;
+- gardens;
+- outer town;
+- service district.
+
+Monumental,
+mas não medieval genérico.
+
+
+==============================================================================
+47. GERAÇÃO DE CIDADES
+==============================================================================
+
+NÃO usar um NBT gigante.
+
+Criar:
+
+GreedIslandCityLayout
+
+Cada cidade possui:
+
+- fixed anchor;
+- district graph;
+- road skeleton;
+- parcel generator;
+- structure pools;
+- landmark slots.
+
+Pipeline:
+
+1. resolve city anchor;
+2. adapta terreno suavemente;
+3. gera arteriais;
+4. gera distritos;
+5. aloca parcelas;
+6. coloca landmarks;
+7. preenche edifícios via jigsaw/module pools;
+8. vegetação;
+9. props;
+10. NPC/service anchors.
+
+==============================================================================
+48. CITY TERRAIN ADAPTATION
+==============================================================================
+
+Não criar plataforma plana gigante.
+
+Use:
+terracing.
+
+Correção vertical local:
+10–24 blocos,
+dependendo da cidade.
+
+Preservar:
+rios,
+costa,
+hills.
+
+==============================================================================
+49. CITY APPROACH ZONE
+==============================================================================
+
+Cada cidade tem:
+500–1.500 blocos de transição.
+
+Indicadores:
+- mais caminhos;
+- farms;
+- signs;
+- NPCs;
+- bridges;
+- outskirts.
+
+Nunca:
+wilderness → parede da cidade instantânea.
+
+==============================================================================
+50. LANDMARKS DE CIDADE
+==============================================================================
+
+Antokiba:
+Prize Square.
+
+Masadora:
+Spell Card Hall.
+
+Dorias:
+Grand Casino.
+
+Soufrabi:
+Lighthouse + Harbor/Arena.
+
+Limeiro:
+Capital Landmark.
+
+==============================================================================
+51. MINOR SETTLEMENTS
+==============================================================================
+
+Adicionar:
+12–24 assentamentos menores.
+
+ORIGINAL_COMPATIBLE.
+
+Localização:
+estradas,
+rios,
+coastas,
+bacias férteis.
+
+Tamanho:
+10–40 estruturas.
+
+Não virar:
+villages vanilla copiados.
+
+
+==============================================================================
+52. ROAD GRAPH
+==============================================================================
+
+Criar:
+
+GreedIslandRoadGraph
+
+Tipos:
+
+PRIMARY
+SECONDARY
+TRAIL
+MOUNTAIN_PASS
+COASTAL_PATH
+
+==============================================================================
+53. PRIMARY ROADS
+==============================================================================
+
+Largura:
+5–9.
+
+Ligam:
+hubs principais.
+
+Superfície:
+dirt/gravel/stone mix.
+
+==============================================================================
+54. SECONDARY ROADS
+==============================================================================
+
+Largura:
+3–6.
+
+Ligam:
+minor settlements,
+landmarks,
+routes.
+
+==============================================================================
+55. TRAILS
+==============================================================================
+
+Largura:
+1–4.
+
+Podem desaparecer parcialmente.
+
+==============================================================================
+56. ROAD GRAPH PROPOSTO
+==============================================================================
+
+Shiso — Antokiba
+Antokiba — Rubicuta
+Rubicuta — Masadora
+Masadora — Aiai
+Masadora — Dorias
+Dorias — Soufrabi
+Dorias — Limeiro
+Rubicuta — Limeiro
+Aiai — Soufrabi
+
+==============================================================================
+57. ROAD ROUTING
+==============================================================================
+
+Usar macro A* em grid de 128 blocos.
+
+Penalizar:
+
+- slope;
+- river crossing;
+- cliff;
+- wetland;
+- protected habitat.
+
+Preferir:
+
+- valley;
+- mountain pass;
+- terrace.
+
+==============================================================================
+58. MOUNTAIN PASSES
+==============================================================================
+
+Pass N1
+(-4.000,-20.000)
+
+Pass W1
+(-24.000,+1.000)
+
+Pass C1
+(+9.000,+8.000)
+
+Pass SE1
+(+18.000,+16.000)
+
+Road graph deve preferi-los.
+
+==============================================================================
+59. PONTES
+==============================================================================
+
+Bridge candidate:
+quando road cruza river.
+
+Categorias:
+small wood,
+stone,
+major city bridge.
+
+Não gerar pontes aleatórias fora das rotas.
+
+
+==============================================================================
+60. MACRO-REGIÕES
+==============================================================================
+
+Criar 24 macro-regiões:
+
+R01 Shiso Approach
+R02 Antokiba Basin
+R03 Western Lowlands
+R04 Western Spine Foothills
+R05 Western Spine
+R06 Northfall Valley
+R07 North Crown West
+R08 North Crown Central
+R09 North Crown East
+R10 Central Plateau West
+R11 Central Plateau
+R12 Masadora Basin
+R13 Eastern Tableland
+R14 Eastflow Woods
+R15 Aiai Country
+R16 Central Highlands
+R17 Dorias Reach
+R18 Southern Marsh North
+R19 Southern Marsh Deep
+R20 Limeiro Plain
+R21 Southeast Highlands
+R22 Soufrabi Hinterland
+R23 Soufrabi Coast
+R24 Remote Northeast
+
+Cada região possui:
+
+id
+displayName
+polygon/mask
+elevationProfile
+humidity
+temperature
+vegetationProfile
+encounterProfile
+difficultyBand
+landmarkDensity
+roadDensity
+
+==============================================================================
+61. PERFIS DAS REGIÕES
+==============================================================================
+
+R01 Shiso Approach
+- low hills
+- meadow/light forest
+- danger 1
+- high onboarding content
+
+R02 Antokiba Basin
+- broad basin
+- danger 1–2
+- high roads
+
+R03 Western Lowlands
+- open grassland + forest
+- danger 2
+
+R04 Western Spine Foothills
+- rolling highlands
+- danger 3
+
+R05 Western Spine
+- mountain
+- danger 4–6
+- roads only via pass
+
+R06 Northfall Valley
+- river valley
+- danger 3
+
+R07–R09 North Crown
+- mountain regions
+- danger 4–7
+- rare fauna
+
+R10 Central Plateau West
+- plateau edge
+- danger 2–3
+
+R11 Central Plateau
+- broad plateau
+- medium-high roads
+
+R12 Masadora Basin
+- fertile basin
+- danger 2–3
+- high roads
+
+R13 Eastern Tableland
+- elevated grassland/forest mosaic
+- danger 3–4
+
+R14 Eastflow Woods
+- dense forest
+- danger 4
+
+R15 Aiai Country
+- gentle hills
+- danger 2–3
+
+R16 Central Highlands
+- highland/mountain
+- danger 4–5
+
+R17 Dorias Reach
+- dry upland
+- danger 4
+
+R18 Southern Marsh North
+- shallow wetland
+- danger 4
+
+R19 Southern Marsh Deep
+- deep wetland
+- danger 5–6
+
+R20 Limeiro Plain
+- broad plain
+- high road density
+
+R21 Southeast Highlands
+- rugged
+- danger 5
+
+R22 Soufrabi Hinterland
+- coastal hills
+- agriculture
+
+R23 Soufrabi Coast
+- cliffs, beaches, harbor
+- city
+
+R24 Remote Northeast
+- huge wilderness
+- danger 5–7
+- low roads
+
+
+==============================================================================
+62. REGIÃO ≠ BIOME
+==============================================================================
+
+REGION:
+papel geográfico/gameplay.
+
+BIOME:
+aparência/ecologia.
+
+Biomes recomendados:
+
+GI_MEADOW
+GI_LIGHT_FOREST
+GI_OLD_FOREST
+GI_HIGHLAND
+GI_MOUNTAIN
+GI_WETLAND
+GI_COAST
+GI_TABLELAND
+GI_RIVERLAND
+
+Biome assignment depende de:
+
+region
++
+elevation
++
+humidity
++
+river distance
++
+coast distance.
+
+==============================================================================
+63. VEGETAÇÃO
+==============================================================================
+
+Perfis:
+
+MEADOW
+LIGHT_FOREST
+DENSE_FOREST
+OLD_FOREST
+RIVER_FOREST
+MOUNTAIN_SCRUB
+WETLAND
+COASTAL
+URBAN_EDGE
+
+Cada perfil controla:
+
+- tree density;
+- tree species;
+- shrubs;
+- ground cover;
+- deadwood;
+- flowers;
+- rocks.
+
+==============================================================================
+64. ÁRVORES
+==============================================================================
+
+Evitar:
+floresta vanilla de oak.
+
+Criar:
+4–8 arquétipos.
+
+Exemplos:
+GI Broadleaf
+GI Tall Forest Tree
+GI River Tree
+GI Highland Pine-like
+GI Coastal Tree
+GI Ancient Tree
+
+==============================================================================
+65. COSTA
+==============================================================================
+
+Segment types:
+
+SANDY_BEACH
+ROCKY_SHORE
+CLIFF
+MARSH
+ESTUARY
+HARBOR_CANDIDATE
+
+Derivar por:
+
+slope
+region
+river mouth
+city anchor
+exposure
+
+Não criar:
+anel uniforme de areia.
+
+==============================================================================
+66. ILHAS MENORES
+==============================================================================
+
+7–14 ilhas costeiras.
+
+Tamanho:
+150–2.000 blocos.
+
+Arquipélagos:
+SW e NE.
+
+Algumas:
+habitat.
+Algumas:
+landmark.
+Algumas:
+apenas composição.
+
+
+==============================================================================
+67. LANDMARK SYSTEM
+==============================================================================
+
+Criar:
+
+GreedIslandLandmarkRegistry
+
+Campos:
+
+id
+type
+anchor
+rotation
+region
+canonLevel
+discoveryRadius
+spawnRules
+template/generator
+
+Major landmarks:
+- Shiso Tree;
+- lighthouse;
+- major waterfall;
+- giant bridge;
+- mountain pass;
+- giant rock;
+- ancient tree;
+- arena;
+- card-related site;
+- Game Master-related site;
+- unique monster habitat;
+- minor settlement.
+
+Spacing:
+traveled regions:
+1 major por 1.000–2.500 blocos.
+
+Remote:
+1 por 3.000–6.000.
+
+Não usar grid uniforme.
+
+==============================================================================
+68. MICRO-LANDMARKS
+==============================================================================
+
+- camp;
+- cave mouth;
+- stone arch;
+- small bridge;
+- cottage;
+- monster nest;
+- unusual tree;
+- fishing spot.
+
+Spacing:
+300–900,
+dependendo região.
+
+==============================================================================
+69. ENCOUNTER GEOGRAPHY
+==============================================================================
+
+Enemy spawn depende de:
+
+region
+habitat
+altitude
+distance to road
+distance to city
+time/weather if needed
+
+Nunca:
+biome apenas.
+
+Cada criatura GI deve declarar:
+
+preferredRegions
+habitatTags
+spawnDensity
+encounterType
+capture/card relation
+
+==============================================================================
+70. DANGER FIELD
+==============================================================================
+
+Não usar:
+dificuldade radial.
+
+Criar:
+
+GreedIslandDangerField
+
+Band:
+1–8.
+
+Pode haver:
+danger pocket em região segura.
+
+==============================================================================
+71. SAFE LONG ROUTE VS SHORT DANGEROUS ROUTE
+==============================================================================
+
+Sempre que possível:
+o road graph oferece:
+
+rota longa segura
+versus
+atalho arriscado.
+
+Isso cria escolha geográfica real.
+
+
+==============================================================================
+72. SPELL CARDS E ESCALA
+==============================================================================
+
+A macrogeografia deve justificar:
+teleporte,
+mapa,
+informação,
+cartas de viagem.
+
+Se hubs estiverem perto:
+o sistema falha.
+
+Após a região inicial:
+distâncias principais devem frequentemente exceder 8.000 blocos.
+
+==============================================================================
+73. MAP PROGRESSION
+==============================================================================
+
+Estados:
+
+UNKNOWN
+DISCOVERED_REGION
+DISCOVERED_ROUTE
+DISCOVERED_CITY
+MAPPED
+
+Não revelar tudo no início.
+
+==============================================================================
+74. WORLD MAP API
+==============================================================================
+
+Macrogeografia deve expor:
+
+getRegionAt(x,z)
+getNearestCity(x,z)
+getCity(id)
+getRoadNear(x,z)
+getRiverNear(x,z)
+getLandmark(id)
+getSafeArrival(id)
+
+==============================================================================
+75. MOVEMENT CARDS
+==============================================================================
+
+Cards devem resolver:
+IDs estáveis.
+
+Ex:
+CityId
+LandmarkId
+Player target
+
+Evitar:
+raw coordinates hardcoded.
+
+==============================================================================
+76. NAVIGATION SERVICE
+==============================================================================
+
+GreedIslandNavigationService
+
+Responsável por:
+
+- region lookup;
+- nearest city;
+- nearest road;
+- destination anchor;
+- safe arrival;
+- discovery integration.
+
+
+==============================================================================
+77. CHUNK GENERATOR
+==============================================================================
+
+Criar:
+
+GreedIslandChunkGenerator
+
+Responsabilidades:
+
+- base terrain;
+- coast;
+- elevation;
+- rivers;
+- biome assignment;
+- macro masks.
+
+Road/city/landmark placement pode ser estágio separado.
+
+==============================================================================
+78. PIPELINE DE 13 PASSOS
+==============================================================================
+
+PASS 1 — island mask
+PASS 2 — continental elevation
+PASS 3 — mountain ridge field
+PASS 4 — basin field
+PASS 5 — hydrology graph
+PASS 6 — region assignment
+PASS 7 — coastline refinement
+PASS 8 — road graph
+PASS 9 — city anchors
+PASS 10 — landmark anchors
+PASS 11 — local terrain noise
+PASS 12 — vegetation/features
+PASS 13 — encounters/content
+
+Essa ordem deve ser preservada conceitualmente.
+
+==============================================================================
+79. PRECOMPUTED MACRO LAYOUT
+==============================================================================
+
+Criar immutable:
+
+GreedIslandLayout
+
+Contém:
+
+layoutVersion
+coast
+ridgeGraph
+hydrologyGraph
+roadGraph
+cityAnchors
+landmarkAnchors
+regionDefinitions
+
+Não armazenar:
+bilhões de blocos.
+
+==============================================================================
+80. SPATIAL INDEX
+==============================================================================
+
+Criar:
+
+MacroSpatialIndex
+
+Buckets por chunk/macro-cell.
+
+Indexar:
+ridges,
+rivers,
+roads,
+cities,
+landmarks.
+
+Nunca:
+scan global por bloco.
+
+==============================================================================
+81. CHUNK-LOCAL RULE
+==============================================================================
+
+Gerar chunk não pode:
+
+- force-load chunks distantes;
+- colocar blocos arbitrariamente longe;
+- iterar a ilha inteira.
+
+Query:
+somente features que intersectam chunk/entorno necessário.
+
+==============================================================================
+82. HEIGHT SAMPLER
+==============================================================================
+
+GreedIslandHeightSampler.sample(x,z):
+
+base continental
++ ridge uplift
+- basin depression
+- river carving
++ meso noise
++ micro noise
+
+==============================================================================
+83. NOISE SCALES
+==============================================================================
+
+Macro:
+milhares de blocos.
+
+Meso:
+100–500.
+
+Micro:
+8–64.
+
+Micro-noise não pode destruir:
+road,
+river,
+city,
+ridge identity.
+
+==============================================================================
+84. RIVER MEANDER
+==============================================================================
+
+Base river:
+fixed spline.
+
+Local meander:
+perpendicular noise.
+
+Flat terrain:
+mais meander.
+
+Mountain:
+menos.
+
+==============================================================================
+85. ROAD ROUTER
+==============================================================================
+
+Macro A* grid:
+128 blocos por célula.
+
+80k×70k:
+aprox. 625×547 cells.
+
+Cost:
+slope
+water
+wetland
+protected
+distance from preferred corridor.
+
+Depois:
+smooth spline.
+
+==============================================================================
+86. DATA-DRIVEN DEFINITIONS
+==============================================================================
+
+Preferir JSON/data para:
+
+regions/
+cities/
+rivers/
+roads/
+landmarks/
+
+Core algorithms:
+Java.
+
+==============================================================================
+87. ARCHITETURA DE PACOTES
+==============================================================================
+
+greedisland/
+├── GreedIslandConstants.java
+├── GreedIslandSavedData.java
+├── GreedIslandLayoutVersion.java
+│
+├── layout/
+│   ├── GreedIslandLayout.java
+│   ├── GreedIslandLayoutBuilder.java
+│   ├── GreedIslandMask.java
+│   ├── GreedIslandElevationField.java
+│   ├── GreedIslandRegionMap.java
+│   └── MacroSpatialIndex.java
+│
+├── hydrology/
+│   ├── HydrologyGraph.java
+│   ├── RiverDefinition.java
+│   ├── LakeDefinition.java
+│   └── RiverSampler.java
+│
+├── mountain/
+│   ├── RidgeGraph.java
+│   ├── RidgeDefinition.java
+│   └── RidgeSampler.java
+│
+├── road/
+│   ├── RoadGraph.java
+│   ├── RoadDefinition.java
+│   ├── RoadRouter.java
+│   └── RoadSampler.java
+│
+├── city/
+│   ├── CityDefinition.java
+│   ├── CityRegistry.java
+│   ├── CityLayout.java
+│   ├── CityGenerator.java
+│   └── DistrictDefinition.java
+│
+├── region/
+│   ├── RegionDefinition.java
+│   ├── RegionRegistry.java
+│   └── RegionProfile.java
+│
+├── landmark/
+│   ├── LandmarkDefinition.java
+│   ├── LandmarkRegistry.java
+│   └── LandmarkGenerator.java
+│
+├── worldgen/
+│   ├── GreedIslandChunkGenerator.java
+│   ├── GreedIslandHeightSampler.java
+│   ├── GreedIslandSurfaceRules.java
+│   ├── GreedIslandTerrainTuning.java
+│   └── GreedIslandBiomeSource.java
+│
+├── navigation/
+│   └── GreedIslandNavigationService.java
+│
+└── debug/
+    ├── GreedIslandDebugCommands.java
+    ├── GreedIslandMapExporter.java
+    └── GreedIslandDebugOverlay.java
+
+
+==============================================================================
+88. LAYOUT VERSIONING
+==============================================================================
+
+GreedIslandLayoutVersion:
+integer.
+
+Existing worlds store:
+layoutVersion.
+
+Mudança incompatível:
+não pode alterar chunks existentes silenciosamente.
+
+Antes de release:
+layout v1 precisa congelar.
+
+==============================================================================
+89. SAVED DATA
+==============================================================================
+
+GreedIslandSavedData:
+
+- layoutVersion;
+- createdWithModVersion;
+- global event state;
+- unique landmark state.
+
+Não armazenar:
+terrain map inteiro.
+
+==============================================================================
+90. PLAYER DISCOVERY DATA
+==============================================================================
+
+Por jogador:
+
+discoveredRegions
+discoveredCities
+discoveredLandmarks
+knownRoutes
+
+Server-authoritative.
+
+==============================================================================
+91. DEBUG COMMANDS
+==============================================================================
+
+/hxh gi tp shiso
+/hxh gi tp antokiba
+/hxh gi tp rubicuta
+/hxh gi tp masadora
+/hxh gi tp aiai
+/hxh gi tp dorias
+/hxh gi tp soufrabi
+/hxh gi tp limeiro
+
+/hxh gi region
+/hxh gi layout dump
+/hxh gi river <id>
+/hxh gi road <id>
+/hxh gi debug exportmap
+
+==============================================================================
+92. DEBUG MAP EXPORT
+==============================================================================
+
+Obrigatório para macro gate.
+
+Exportar layers:
+
+coast
+elevation
+regions
+rivers
+roads
+cities
+landmarks
+
+Resolução:
+2048×1792 padrão.
+
+Opcional:
+4096.
+
+Não depender:
+de chunks gerados.
+
+==============================================================================
+93. DEBUG OVERLAY
+==============================================================================
+
+Mostrar:
+
+region
+distance to coast
+target elevation
+nearest road
+nearest river
+nearest city.
+
+==============================================================================
+94. DETERMINISM TEST
+==============================================================================
+
+Mesmo:
+
+layout seed
+layout version
+world seed
+
+→ mesmo chunk.
+
+Criar hash test.
+
+==============================================================================
+95. MASK TESTS
+==============================================================================
+
+Verificar:
+
+- center land;
+- known ocean points ocean;
+- peninsulas exist;
+- no circular symmetry;
+- coastline spans target extent.
+
+==============================================================================
+96. CITY TESTS
+==============================================================================
+
+- all anchors on land;
+- no city in major ridge;
+- Soufrabi coastal;
+- minimum separation;
+- same anchor across seeds.
+
+==============================================================================
+97. RIVER TESTS
+==============================================================================
+
+- source above mouth;
+- mouth reaches coast/lake;
+- no impossible uphill major run;
+- bridge candidate at road crossing.
+
+==============================================================================
+98. ROAD TESTS
+==============================================================================
+
+- main graph connected;
+- no primary road crossing ocean;
+- mountain crossings near pass;
+- all cities reachable.
+
+==============================================================================
+99. REGION TESTS
+==============================================================================
+
+- every land sample belongs to region;
+- no large unassigned gaps;
+- city belongs intended region.
+
+==============================================================================
+100. MANUAL MICRO GATE
+==============================================================================
+
+Pergunta:
+
+"esse lugar parece bom?"
+
+Avaliar:
+
+- city;
+- river;
+- forest;
+- mountain;
+- road;
+- coast.
+
+==============================================================================
+101. MANUAL MACRO GATE
+==============================================================================
+
+Pergunta:
+
+"isso parece uma ilha enorme?"
+
+Avaliar:
+
+- debug map;
+- travel time;
+- city spacing;
+- road hierarchy;
+- wilderness ratio;
+- movement-card value.
+
+==============================================================================
+102. MACRO FAIL
+==============================================================================
+
+Reprovar se:
+
+- two major cities visible together;
+- hubs all <5k;
+- road graph feels theme park;
+- wilderness absent;
+- island near-circle;
+- mountains random blobs;
+- rivers arbitrary;
+- cards feel unnecessary.
+
+==============================================================================
+103. MICRO FAIL
+==============================================================================
+
+Reprovar se:
+
+- city pasted flat;
+- river is water trench;
+- roads ignore terrain;
+- coast is sand ring;
+- mountains pure noise blobs;
+- settlements generic villages.
+
+
+==============================================================================
+104. PERFORMANCE
+==============================================================================
+
+A dimensão é enorme,
+mas lazy-generated.
+
+Não pregenerar:
+80k×70k por padrão.
+
+Macro layout:
+compacto.
+
+Chunk generation:
+local.
+
+==============================================================================
+105. CACHE
+==============================================================================
+
+Cache por chunk:
+
+region id
+coast distance coarse
+nearby rivers
+nearby roads
+nearby ridges
+
+Invalidar:
+layoutVersion.
+
+==============================================================================
+106. DISK USAGE
+==============================================================================
+
+Uma dimensão gigantesca explorada pode ocupar muito disco.
+
+Documentar:
+
+- world border;
+- backup;
+- pregeneration optional;
+- random exploration cost.
+
+==============================================================================
+107. TELEPORT SAFETY
+==============================================================================
+
+Movement card:
+load destination chunk safely.
+
+Use:
+arrival anchor.
+
+Nunca:
+teleport para terreno não resolvido.
+
+==============================================================================
+108. CITY ARRIVAL ANCHOR
+==============================================================================
+
+Cada cidade:
+arrival point separado do city center.
+
+==============================================================================
+109. FIRST-HOUR DESIGN
+==============================================================================
+
+A região inicial precisa ser densa o bastante para onboarding.
+
+Shiso → Antokiba:
+
+3.500–5.500 blocos.
+
+Conteúdo:
+- trails;
+- first encounters;
+- rest points;
+- clues;
+- introduction to cards.
+
+Depois:
+escala abre.
+
+==============================================================================
+110. EMPTY SPACE VS DEAD SPACE
+==============================================================================
+
+Wilderness grande:
+sim.
+
+Dead space:
+não.
+
+Cada região precisa de:
+
+- terrain identity;
+- vegetation identity;
+- habitat identity;
+- navigation identity.
+
+==============================================================================
+111. CONTENT DENSITY
+==============================================================================
+
+Near cities:
+high.
+
+Primary roads:
+medium.
+
+Secondary:
+medium-low.
+
+Remote wilderness:
+low but meaningful.
+
+Landmarks:
+local high density.
+
+==============================================================================
+112. TRAVEL PLAYTEST
+==============================================================================
+
+Medir de verdade:
+
+Shiso → Antokiba
+Antokiba → Masadora
+Masadora → Soufrabi
+
+Não estimar só por coordenada.
+
+==============================================================================
+113. SPELL CARD VALUE TEST
+==============================================================================
+
+Pergunta:
+"o jogador gastaria uma movement card aqui?"
+
+Se não:
+mapa pode estar comprimido demais.
+
+
+==============================================================================
+114. PHASE G0 — DOCUMENT FREEZE
+==============================================================================
+
+Congelar:
+
+- layout version 1;
+- city anchors;
+- region list;
+- ridge graph;
+- hydrology graph;
+- primary roads.
+
+==============================================================================
+115. PHASE G1 — MACRO LAYOUT CORE
+==============================================================================
+
+Implementar:
+
+GreedIslandLayout
+Mask
+ElevationField
+RegionMap skeleton
+SpatialIndex
+Debug map exporter
+
+Sem cidades/roads/rivers em bloco.
+
+Gate:
+mapa deve parecer ilha continental não circular.
+
+==============================================================================
+116. PHASE G2 — MOUNTAINS/BASINS
+==============================================================================
+
+Implementar:
+ridge graph
+basin fields
+
+Gate:
+chains readable,
+not random blobs.
+
+==============================================================================
+117. PHASE G3 — HYDROLOGY
+==============================================================================
+
+Implementar:
+7 systems
+lakes
+river carving
+
+Gate:
+source → flow → mouth plausible.
+
+==============================================================================
+118. PHASE G4 — REGIONS/BIOMES
+==============================================================================
+
+Implementar:
+24 macro-regions
+biome assignment
+surface rules
+
+Gate:
+natural transitions.
+
+==============================================================================
+119. PHASE G5 — ROAD GRAPH
+==============================================================================
+
+Implementar:
+primary roads
+passes
+bridges
+
+Gate:
+roads respect terrain.
+
+==============================================================================
+120. PHASE G6 — SHISO + ANTOKIBA VERTICAL SLICE
+==============================================================================
+
+Implementar:
+spawn
+Shiso
+starter route
+Antokiba
+approach zone
+arrival anchor
+
+Gate:
+human play spawn → Antokiba.
+
+==============================================================================
+121. PHASE G7 — MASADORA
+==============================================================================
+
+Implementar:
+city
+roads
+Spell Card Hall
+card integration
+
+Gate:
+travel Antokiba → Masadora.
+
+==============================================================================
+122. PHASE G8 — REMAINING CITIES
+==============================================================================
+
+Ordem:
+
+Rubicuta
+Aiai
+Dorias
+Soufrabi
+Limeiro
+
+Cada uma:
+mini-epic / PR próprio.
+
+==============================================================================
+123. PHASE G9 — LANDMARKS
+==============================================================================
+
+Major landmarks.
+Minor settlements.
+Micro-landmarks.
+
+==============================================================================
+124. PHASE G10 — ECOLOGY
+==============================================================================
+
+Vegetation.
+Habitats.
+Encounter profiles.
+
+==============================================================================
+125. PHASE G11 — MAP/CARD INTEGRATION
+==============================================================================
+
+Discovery.
+Navigation IDs.
+Travel cards.
+
+==============================================================================
+126. PHASE G12 — MACRO VALIDATION
+==============================================================================
+
+Full map.
+Travel measurements.
+Performance.
+
+==============================================================================
+127. PHASE G13 — RELEASE HARDENING
+==============================================================================
+
+Save compatibility.
+Dedicated server.
+Migration.
+Chunk determinism.
+Disk usage.
+Crash recovery.
+
+
+==============================================================================
+128. MIGRATION FROM CURRENT DISC
+==============================================================================
+
+O disco atual de ~1.760 blocos de diâmetro é andaime.
+
+Migração:
+
+1. marcar current generator como prototype/legacy;
+2. não tentar transformar chunks protótipos em layout v1;
+3. durante desenvolvimento, apagar/regenerar dimensão GI;
+4. implementar layout v1 em ambiente novo;
+5. congelar v1 antes de release.
+
+==============================================================================
+129. PROTOTYPE DEPRECATION
+==============================================================================
+
+Adicionar nota explícita:
+
+"Current circular mask is a development scaffold and not a production
+representation of Greed Island."
+
+Isso evita que o disco seja aceito como DoD.
+
+==============================================================================
+130. PROJECT MANAGEMENT
+==============================================================================
+
+Criar epic:
+GI-MACRO.
+
+Issues sugeridas:
+
+GI-M0 layout freeze
+GI-M1 island mask
+GI-M2 elevation
+GI-M3 mountain graph
+GI-M4 hydrology
+GI-M5 region map
+GI-M6 biome/surface
+GI-M7 road graph
+GI-M8 Shiso/Antokiba
+GI-M9 Masadora
+GI-M10 Rubicuta
+GI-M11 Aiai
+GI-M12 Dorias
+GI-M13 Soufrabi
+GI-M14 Limeiro
+GI-M15 landmarks
+GI-M16 ecology
+GI-M17 cards/navigation
+GI-M18 macro QA
+GI-M19 performance
+GI-M20 release candidate
+
+==============================================================================
+131. TWO-DEVELOPER SPLIT
+==============================================================================
+
+DEV A:
+layout,
+mask,
+elevation,
+ridges,
+hydrology,
+roads,
+performance.
+
+DEV B:
+cities,
+landmarks,
+vegetation,
+city art,
+content.
+
+Shared:
+registry definitions.
+
+==============================================================================
+132. HOSTILE FILE RULE
+==============================================================================
+
+Não criar:
+um registry monolítico.
+
+Separar:
+
+cities
+regions
+roads
+rivers
+landmarks
+
+Reduz:
+merge conflict.
+
+==============================================================================
+133. DOCUMENTATION STRUCTURE
+==============================================================================
+
+docs/greedisland/
+
+macrogeografia-completa.md
+estado-gi.md
+gates-gi.md
+
+cities/
+    antokiba.md
+    masadora.md
+    rubicuta.md
+    aiai.md
+    dorias.md
+    soufrabi.md
+    limeiro.md
+
+worldgen/
+    mask.md
+    elevation.md
+    hydrology.md
+    roads.md
+
+==============================================================================
+134. SOURCE OF TRUTH
+==============================================================================
+
+Este documento:
+macro specification.
+
+Per-city docs:
+city detail.
+
+estado-gi.md:
+implementation status.
+
+gates-gi.md:
+evidence.
+
+Não duplicar:
+checklists em todo lugar.
+
+
+==============================================================================
+135. ART DIRECTION GLOBAL
+==============================================================================
+
+Greed Island deve parecer:
+
+- natural;
+- enorme;
+- projetada;
+- aventureira;
+- levemente game-like;
+- coerente.
+
+Evitar:
+ilha medieval genérica.
+
+Favorecer:
+urbanismo funcional estilizado,
+sinalização limpa,
+lugares memoráveis,
+regras estranhas de game world sem aparência sci-fi exagerada.
+
+==============================================================================
+136. CITY PALETTES
+==============================================================================
+
+ANTOKIBA
+- light stone
+- wood
+- warm plaster/terracotta accents
+- canvas
+- signage
+
+MASADORA
+- light stone
+- dark trim
+- glass
+- card iconography
+- commercial color accents
+
+AIAI
+- white/light stone
+- gardens
+- wood
+- pastel restrained accents
+
+DORIAS
+- darker stone
+- warm lighting
+- gold-like accents
+- red/purple sparingly
+
+SOUFRABI
+- weathered stone
+- wood
+- metal
+- rope
+- canvas
+
+LIMEIRO
+- monumental light stone/plaster
+- formal avenues
+- gardens
+
+==============================================================================
+137. FINAL MACRO COMPOSITION
+==============================================================================
+
+Conceptual:
+
+                         NORTH CROWN RANGE
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             ^^^                                   ^^^
+
+       WESTERN SPINE                 EASTERN TABLELAND
+          ^^^^^                            _______
+          ^^^^^                           /       
+       Northfall             Masadora Basin          NE Wilderness
+          |                       [MASADORA]
+          |                          |
+      [ANTOKIBA]----[RUBICUTA]-----+------[AIAI]
+           \                                     \                         [DORIAS]
+             \                                   Western Lowlands             SE Highlands
+                                                                                 [SOUFRABI]
+                                            ~~~ sea
+
+                 Southern Marsh ---- [LIMEIRO]
+                       ~~~~~
+                           Great South Estuary
+
+Diagrama conceitual,
+não cartografia canônica.
+
+
+==============================================================================
+138. CODEX PROMPT G1
+==============================================================================
+
+"Implemente SOMENTE a infraestrutura macro de Greed Island conforme
+greed_island_macrogeografia_completa_codex.txt.
+
+Escopo:
+- GreedIslandLayoutVersion
+- GreedIslandLayout
+- GreedIslandMask
+- GreedIslandElevationField
+- GreedIslandRegionMap skeleton
+- MacroSpatialIndex skeleton
+- debug map exporter
+
+A ilha deve usar bounding box aproximada de 80.000×70.000 e NÃO pode
+ser círculo ou distanceFromCenter<radius.
+
+Não implemente cidades, rios em blocos, roads ou mobs.
+
+Entregue testes de determinismo e mapa debug."
+
+==============================================================================
+139. CODEX PROMPT G2
+==============================================================================
+
+"Implemente os três sistemas montanhosos e as bacias descritas.
+
+Use ridge splines e distance fields.
+Não use random mountain blobs.
+
+Adicionar elevation debug map.
+Não implementar rios."
+
+==============================================================================
+140. CODEX PROMPT G3
+==============================================================================
+
+"Implemente GreedIslandHydrologyGraph com os sete sistemas hidrográficos.
+
+Cada rio:
+- source;
+- spline;
+- width profile;
+- mouth;
+- tributaries quando aplicável.
+
+Rasterize/carve chunk-localmente.
+Não implemente roads/cities."
+
+==============================================================================
+141. CODEX PROMPT G4
+==============================================================================
+
+"Implemente as 24 macro-regiões e biome assignment.
+
+Region != biome.
+
+Cada ponto terrestre deve pertencer a uma região.
+Use masks suaves.
+Adicionar coverage tests."
+
+==============================================================================
+142. CODEX PROMPT G5
+==============================================================================
+
+"Implemente GreedIslandRoadGraph e roteamento macro.
+
+Use custo por slope/water/wetland/protected region.
+As rotas principais e passes estão definidos no documento.
+
+Não construir cidades ainda."
+
+==============================================================================
+143. CODEX PROMPT G6
+==============================================================================
+
+"Implemente o vertical slice Shiso Tree → Antokiba.
+
+Inclua:
+- spawn seguro;
+- Shiso landmark;
+- starter trail;
+- starter encounter hooks;
+- Antokiba city layout;
+- approach zone;
+- arrival anchor;
+- roads.
+
+Não implemente outras cidades."
+
+==============================================================================
+144. CODEX PROMPT G7
+==============================================================================
+
+"Implemente Masadora como segundo hub completo.
+
+Preserve:
+fixed anchor;
+Masadora Basin;
+road graph;
+Spell Card Hall;
+districts.
+
+Use city modular/jigsaw approach.
+Não usar NBT monolítico."
+
+==============================================================================
+145. DEFINITION OF DONE — MACRO
+==============================================================================
+
+[ ] Island approx 80k×70k.
+[ ] Not circular.
+[ ] Fixed macro layout.
+[ ] 3 mountain systems.
+[ ] 2 plateaus.
+[ ] 7 hydrology systems.
+[ ] 7 major cities + Shiso.
+[ ] 24 macro regions.
+[ ] Primary road graph.
+[ ] Coast types.
+[ ] Major lakes.
+[ ] Major landmarks.
+[ ] Debug map export.
+[ ] Macro gate approved.
+
+==============================================================================
+146. DEFINITION OF DONE — MICRO
+==============================================================================
+
+[ ] Each city has identity.
+[ ] City adapts to terrain.
+[ ] Roads enter naturally.
+[ ] River/coast integration where applicable.
+[ ] No generic village feel.
+[ ] Approach zones exist.
+[ ] Human screenshot/playtest gate.
+
+==============================================================================
+147. DEFINITION OF DONE — TECHNICAL
+==============================================================================
+
+[ ] Chunk-local generation.
+[ ] No unrelated chunk force-load.
+[ ] Deterministic layout.
+[ ] Versioned layout.
+[ ] SavedData migration policy.
+[ ] Dedicated server safe.
+[ ] Teleport safe anchors.
+[ ] Spatial index.
+[ ] Profiling done.
+[ ] No per-block global scans.
+
+==============================================================================
+148. DEFINITION OF DONE — GAMEPLAY
+==============================================================================
+
+[ ] Walking scale feels enormous.
+[ ] Starter route is not empty.
+[ ] Movement cards have real value.
+[ ] Wilderness exists.
+[ ] Regions are learnable.
+[ ] Cities are memorable.
+[ ] Creature habitats are geographical.
+[ ] Player can learn navigation.
+
+==============================================================================
+149. FAILURE CONDITIONS
+==============================================================================
+
+REPROVAR se:
+
+- ilha ainda for disco;
+- cidade principal ficar <2.000 blocos de outra sem motivo;
+- rivers are noise trenches;
+- mountains are random blobs;
+- road ignores terrain;
+- coast is sand ring;
+- biomes look like vanilla patchwork;
+- cities are villages reskinned;
+- all wilderness filled every 100 blocks;
+- movement cards feel pointless;
+- full island map looks like theme park.
+
+==============================================================================
+150. FINAL DESIGN RULE
+==============================================================================
+
+Se o jogador entende toda a ilha em uma tarde caminhando:
+falhou por ser pequena.
+
+Se mesmo depois de muitas horas o jogador não aprende a geografia:
+falhou por ser ilegível.
+
+Objetivo:
+
+ENORMOUS
+but
+LEARNABLE.
+
+==============================================================================
+151. FINAL IMPLEMENTATION RULE
+==============================================================================
+
+Nunca pedir:
+
+"implemente Greed Island inteira."
+
+Sempre pedir:
+
+GI-M1
+→ revisar
+→ gate
+→ GI-M2
+→ revisar
+→ gate
+
+Cada fase macro precisa produzir:
+um artifact visual/debug antes da próxima.
+
+==============================================================================
+152. NON-NEGOTIABLES
+==============================================================================
+
+1. No circular island.
+2. ~80k×70k macro extent.
+3. Fixed layout.
+4. Cities fixed.
+5. Mountains are ridge systems.
+6. Rivers are hydrology graph.
+7. Roads respect terrain.
+8. Regions are gameplay geography.
+9. Biomes are visual ecology.
+10. Large wilderness is intentional.
+11. Spell cards gain value from scale.
+12. Chunk generation stays lazy.
+13. Macro map review without pregeneration.
+14. City detail modular.
+15. Canon/original geography labeled.
+16. Current ~1.760-diameter disc is prototype only.
+17. No production DoD until macro gate passes.
+
+==============================================================================
+FIM
+==============================================================================

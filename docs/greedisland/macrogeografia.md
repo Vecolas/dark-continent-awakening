@@ -1,8 +1,63 @@
-# Greed Island: macrogeografia projetada
+# Greed Island: macrogeografia — mapa de leitura
 
-> **Estado: DECIDIDO, NÃO INICIADO.** Este documento congela a direção. Nenhuma
-> linha da macrogeografia foi escrita, e a ilha que existe hoje é um **andaime**
-> que a contradiz de propósito — ver §8.
+> **ESTE ARQUIVO NÃO É MAIS A FONTE DE VERDADE.**
+>
+> A especificação completa é
+> [`docs/planos/greed_island_macrogeografia_completa_codex.txt`](../planos/greed_island_macrogeografia_completa_codex.txt)
+> — 2.919 linhas, 152 seções, escrita pelo dono do projeto. Este arquivo virou
+> o resumo de leitura dela e o registro do que já foi implementado.
+
+## Estado da trilha GI-MACRO
+
+| Fase | O que é | Estado |
+| --- | --- | --- |
+| **G0** | congelar especificação | ✅ `GreedIslandConstants`, `GreedIslandLayoutVersion` |
+| **G1** | mask + elevation + exportador de mapa | 🟡 **parcial** — mask, elevação e exportador existem; `RegionMap` e `SpatialIndex` não |
+| G2 | montanhas e bacias | ⬜ |
+| G3 | hidrografia | ⬜ |
+| G4 | regiões e biomas | ⬜ |
+| G5 | road graph | ⬜ |
+| G6 | Shiso → Antokiba vertical slice | ⬜ |
+| G7 | Masadora | ⬜ |
+| G8 | cidades restantes | ⬜ |
+| G9 | landmarks | ⬜ |
+| G10 | ecologia | ⬜ |
+| G11 | cards / navigation | ⬜ |
+| G12 | macro QA | ⬜ |
+| G13 | release hardening | ⬜ |
+
+## ⚠️ Um achado que precisa de decisão sua
+
+**As treze âncoras de costa da §13, sozinhas, descrevem um contorno quase
+redondo:**
+
+```
+raio médio      37.387 blocos
+desvio          6,8%          (círculo perfeito = 0%)
+razão máx/mín   1,26
+```
+
+A §12 descreve, em prosa, uma ilha com norte estreito, nordeste recortado,
+sudeste com grande península e sudoeste com arquipélago. **As âncoras não
+produzem isso** — elas produzem um polígono de treze lados aproximadamente
+circular, e o não-negociável nº 1 é "No circular island".
+
+O que foi feito para compensar, tudo `ORIGINAL_COMPATIBLE` e **não vindo do
+documento**: três penínsulas elípticas com eixo, quatro baías elípticas, sete
+enseadas (duas delas mordendo o norte para afiná-lo) e nove ilhotas em dois
+arquipélagos.
+
+O resultado passa no gate automático e **ainda lê como massa arredondada a
+olho** — ver a exportação em `build/mapa-gi.png`. Isso é o `MACRO FAIL` da
+§102 acontecendo.
+
+**A decisão é sua:** ou as âncoras da §13 mudam para um contorno realmente
+assimétrico, ou a §12 passa a descrever uma ilha compacta. Não vou reescrever
+coordenadas que o documento congela.
+
+---
+
+*O que segue é o resumo da direção. A fonte é o arquivo em `docs/planos/`.*
 
 ---
 

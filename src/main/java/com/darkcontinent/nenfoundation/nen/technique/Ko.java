@@ -96,9 +96,27 @@ public final class Ko implements NenTechnique, RedistribuiAura, ConsomeAura,
         return Set.of(Zetsu.ID, Gyo.ID);
     }
 
+    /**
+     * Onde Ko concentra quando o jogador nao apontou nada.
+     *
+     * <p>O PUNHO DOMINANTE, e ate 2026-09-26 era a CABECA -- visto em jogo, e
+     * era defeito. Ko herdava o padrao de Gyo, que fora escolhido porque "Gyo
+     * nos olhos e o uso mais reconhecivel". A justificativa e boa para Gyo e
+     * absurda para Ko: no canone Ko e o golpe, com praticamente toda a aura no
+     * punho.
+     *
+     * <p>E NAO ERA SO ESTETICO. {@code NenDanoService} mede o reforco do golpe
+     * pela alocacao no BRACO PRINCIPAL. Com a aura na cabeca, o jogador pagava
+     * a tecnica mais cara do jogo, ficava com o corpo nu por um segundo, e o
+     * soco saia sem o reforco pelo qual ele pagou. Nada disso levantava
+     * excecao.
+     *
+     * <p>O braco vem do jogador, e nao e assumido destro: quem joga canhoto tem
+     * a mao dominante a esquerda.
+     */
     @Override
     public AlocacaoDeAura alocacaoDesejada(FocoDeAura foco) {
-        return AlocacaoDeAura.concentrando(foco.regiaoEscolhida(),
+        return AlocacaoDeAura.concentrando(foco.regiaoOu(foco.bracoPrincipal()),
                 (float) this.fracaoConcentrada.getAsDouble());
     }
 

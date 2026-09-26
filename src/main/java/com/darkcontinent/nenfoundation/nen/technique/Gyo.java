@@ -3,6 +3,7 @@ package com.darkcontinent.nenfoundation.nen.technique;
 import com.darkcontinent.nenfoundation.NenFoundation;
 import com.darkcontinent.nenfoundation.nen.aura.AlocacaoDeAura;
 import com.darkcontinent.nenfoundation.nen.aura.FocoDeAura;
+import com.darkcontinent.nenfoundation.nen.aura.RegiaoDoCorpo;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 import net.minecraft.resources.ResourceLocation;
@@ -67,9 +68,21 @@ public final class Gyo implements NenTechnique, RedistribuiAura, ConsomeAura {
         return Set.of(Zetsu.ID, Ko.ID);
     }
 
+    /**
+     * Onde Gyo concentra quando o jogador nao apontou nada.
+     *
+     * <p>A CABECA, e a escolha nao e arbitraria: Gyo nos olhos e a aplicacao
+     * famosa da tecnica -- a que percebe aura sutil e revela o que In esconde.
+     *
+     * <p>ELE MORA AQUI, e nao num padrao compartilhado. Ate 2026-09-26 este
+     * padrao vivia em {@code NenGyoService} e valia para todo mundo, entao Ko o
+     * herdava e concentrava 95% da aura na cabeca -- visto em jogo.
+     */
+    private static final RegiaoDoCorpo PADRAO_DE_GYO = RegiaoDoCorpo.CABECA;
+
     @Override
     public AlocacaoDeAura alocacaoDesejada(FocoDeAura foco) {
-        return AlocacaoDeAura.concentrando(foco.regiaoEscolhida(),
+        return AlocacaoDeAura.concentrando(foco.regiaoOu(PADRAO_DE_GYO),
                 (float) this.fracaoConcentrada.getAsDouble());
     }
 

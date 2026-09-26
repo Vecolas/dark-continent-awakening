@@ -148,6 +148,18 @@ class IntegracaoDeMundoTest {
         Set<String> orfaos = new TreeSet<>();
         for (Path modificador : Repo.varrer(MODIFICADORES, ".json")) {
             String texto = ler(modificador);
+            // SO OS MODIFIERS DE SPAWN. Este portao existe para pegar mob
+            // citado e nao registrado; um `add_features` cita FEATURE, e
+            // feature nao esta no catalogo de inimigos.
+            //
+            // A versao anterior olhava todo arquivo da pasta e reprovou o
+            // primeiro `add_features` do projeto -- o das obras de Greed
+            // Island -- acusando-o de citar um "inimigo" chamado
+            // `obras_da_ilha`. O portao estava certo sobre o que media e
+            // errado sobre o que a pasta contem.
+            if (!texto.contains("neoforge:add_spawns")) {
+                continue;
+            }
             int inicio = 0;
             while (true) {
                 int posicao = texto.indexOf("nenfoundation:", inicio);

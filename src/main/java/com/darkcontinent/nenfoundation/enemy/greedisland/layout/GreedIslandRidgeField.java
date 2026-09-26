@@ -33,6 +33,52 @@ public final class GreedIslandRidgeField {
     /** Quantos pontos por segmento ao amostrar a crista. Mais, mais liso. */
     private static final int AMOSTRAS_POR_SEGMENTO = 12;
 
+    /** As cristas ja amostradas. Mesma razao da hidrografia: elas nao mudam. */
+    private static final java.util.Map<String, double[][]> CRISTAS = amostrarCristas();
+
+    private static java.util.Map<String, double[][]> amostrarCristas() {
+        var mapa = new java.util.HashMap<String, double[][]>();
+        for (Cordilheira c : GreedIslandConstants.CORDILHEIRAS) {
+            mapa.put(c.id(), amostrar(c.nos()));
+        }
+        return java.util.Map.copyOf(mapa);
+    }
+
+    private static double[][] amostrar(List<Ponto> nos) {
+        int total = (nos.size() - 1) * AMOSTRAS_POR_SEGMENTO + 1;
+        double[][] pontos = new double[total][2];
+        int k = 0;
+        for (int i = 0; i < nos.size() - 1; i++) {
+            Ponto p0 = nos.get(Math.max(0, i - 1));
+            Ponto p1 = nos.get(i);
+            Ponto p2 = nos.get(i + 1);
+            Ponto p3 = nos.get(Math.min(nos.size() - 1, i + 2));
+            for (int a = 0; a < AMOSTRAS_POR_SEGMENTO; a++) {
+                double t = a / (double) AMOSTRAS_POR_SEGMENTO;
+                pontos[k][0] = catmull(p0.x(), p1.x(), p2.x(), p3.x(), t);
+                pontos[k][1] = catmull(p0.z(), p1.z(), p2.z(), p3.z(), t);
+                k++;
+            }
+        }
+        Ponto ultimo = nos.get(nos.size() - 1);
+        pontos[k][0] = ultimo.x();
+        pontos[k][1] = ultimo.z();
+        return pontos;
+    }
+
+    private static double menorDistancia(double x, double z, double[][] pontos) {
+        double menor = Double.MAX_VALUE;
+        for (double[] p : pontos) {
+            double dx = x - p[0];
+            double dz = z - p[1];
+            double d2 = dx * dx + dz * dz;
+            if (d2 < menor) {
+                menor = d2;
+            }
+        }
+        return Math.sqrt(menor);
+    }
+
     private GreedIslandRidgeField() {
     }
 
@@ -59,13 +105,13 @@ public final class GreedIslandRidgeField {
     public static double distanciaAteACrista(double x, double z) {
         double menor = Double.MAX_VALUE;
         for (Cordilheira c : GreedIslandConstants.CORDILHEIRAS) {
-            menor = Math.min(menor, distanciaAPolilinha(x, z, c.nos()));
+            menor = Math.min(menor, menorDistancia(x, z, CRISTAS.get(c.id())));
         }
         return menor;
     }
 
     private static double deUmaCordilheira(double x, double z, Cordilheira c) {
-        double d = distanciaAPolilinha(x, z, c.nos());
+        double d = menorDistancia(x, z, CRISTAS.get(c.id()));
         double meiaLargura = c.larguraBase() / 2.0D;
         if (d >= meiaLargura) {
             return 0.0D;

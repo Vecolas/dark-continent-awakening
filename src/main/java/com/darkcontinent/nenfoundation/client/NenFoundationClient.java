@@ -548,7 +548,12 @@ public final class NenFoundationClient {
                         EstadoVisualDeTerceiro.de(sinal,
                                 com.darkcontinent.nenfoundation.client.vfx.AuraLodEfetivo
                                         .doCliente(mc.player.distanceTo(jogador)),
-                                visibilidadeDe(mc.player, jogador, sinal))));
+                                visibilidadeDe(mc.player, jogador, sinal),
+                                // A FORMA VEM DO SERVIDOR, e nao de um palpite:
+                                // sem ela o corpo inteiro acendia, e Gyo lia
+                                // como Ken.
+                                com.darkcontinent.nenfoundation.client.vfx.AuraDistribution
+                                        .daAlocacao(this.cache.formaDe(jogador.getId())))));
     }
 
     /**

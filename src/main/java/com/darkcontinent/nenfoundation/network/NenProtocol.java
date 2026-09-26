@@ -38,7 +38,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class NenProtocol {
 
     /** Versao do protocolo. Sobe a cada mudanca de formato, direcao ou remocao. */
-    public static final int VERSION = 10;
+    public static final int VERSION = 11;
 
     /**
      * Nomes de campo que um payload C2S NAO pode carregar, em nenhuma
@@ -115,10 +115,12 @@ public final class NenProtocol {
                     List.of("chaveDeTraducao"),
                     "motivo legivel de uma recusa; nunca revela estado alheio"),
             s2c("aura_presence",
-                    List.of("entidadeId", "sinal"),
+                    List.of("entidadeId", "sinal", "alocacao"),
                     "o UNICO payload sobre terceiros; so o que alguem ao lado"
-                            + " perceberia. Zetsu manda NENHUM, igual a quem nunca"
-                            + " despertou -- o segredo nao atravessa a rede"),
+                            + " perceberia. Zetsu manda NENHUM e forma uniforme,"
+                            + " igual a quem nunca despertou -- o segredo nao"
+                            + " atravessa a rede. A FORMA entrou na v11: sem ela"
+                            + " Gyo e Ko acendiam o corpo inteiro para quem olhava"),
             c2s("set_focus_region_request",
                     List.of("regiao"),
                     "INTENCAO, e nada mais: o cliente diz ONDE concentrar, e o"

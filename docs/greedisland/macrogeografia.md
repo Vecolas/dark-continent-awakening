@@ -17,11 +17,11 @@
 | **G3** | hidrografia | ✅ 7 rios que escavam, 8 lagos |
 | **G4** | regiões e biomas | ✅ 24 regiões, 9 biomas |
 | **G5** | road graph | ✅ 9 estradas por A\* sobre o terreno |
-| **G6** | ligação com a geração | 🟡 `FuncaoDeLayout` liga o layout ao `minecraft:noise`; servidor sobe e o datapack valida |
-| **G7/G8** | cidades | 🟡 **identidade congelada** — 8 cidades com pegada, papel, distritos e landmark, e o chão validado. **Nenhuma casa é gerada ainda** |
+| **G6** | ligação com a geração | ✅ `FuncaoDeLayout` + `ObrasDaIlha`; **verificado em jogo por RCON** |
+| **G7/G8** | cidades | ✅ praça, avenida, ruas, lotes e prédios **gerados e confirmados em jogo** |
 | G7 | Masadora | ⬜ |
 | G8 | cidades restantes | ⬜ |
-| **G9** | landmarks | ✅ 34 grandes, com passos e cachoeiras **derivados** da geografia |
+| **G9** | landmarks | ✅ 34 grandes, derivados da geografia, **gerados em bloco** (árvore Shiso: 26 blocos confirmados) |
 | **G10** | ecologia | ✅ habitat das 7 criaturas: região + bioma + altitude + água + recuo de estrada/cidade |
 | **G11** | cards / navigation | ✅ catálogo de destinos, descoberta por presença, carta de retorno |
 | **G12** | macro QA | ✅ as 6 condições mensuráveis da §102, mais tempo de viagem e custo por consulta |

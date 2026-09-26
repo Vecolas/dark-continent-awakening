@@ -34,6 +34,49 @@ public final class GreedIslandHydrologyField {
     /** Largura da margem escavada, em multiplos da largura do rio. */
     private static final double MARGEM = 2.6D;
 
+    /**
+     * Os cursos ja amostrados, uma vez.
+     *
+     * <p><b>O SERVIDOR MORREU SEM ISTO.</b> A versao anterior reinterpolava a
+     * Catmull-Rom de cada rio a cada consulta -- sete rios, ~6 segmentos, 16
+     * amostras = mais de 670 contas de distancia POR PERGUNTA. E `alturaEm`
+     * pergunta, e `cotaDe` chamava `alturaEm` mil vezes, e a feature chamava
+     * `cotaDe` por bloco. O watchdog matou o servidor com um tick de 60 s.
+     *
+     * <p>A curva nao muda nunca: ela sai de constantes. Recalcular era
+     * refazer, a cada bloco, uma conta cujo resultado ja se sabia.
+     */
+    private static final java.util.Map<String, double[][]> CURSOS = amostrarCursos();
+
+    private static java.util.Map<String, double[][]> amostrarCursos() {
+        var mapa = new java.util.HashMap<String, double[][]>();
+        for (Rio rio : GreedIslandConstants.RIOS) {
+            var nos = rio.curso();
+            int total = (nos.size() - 1) * AMOSTRAS + 1;
+            double[][] pontos = new double[total][2];
+            int k = 0;
+            for (int i = 0; i < nos.size() - 1; i++) {
+                var p0 = nos.get(Math.max(0, i - 1));
+                var p1 = nos.get(i);
+                var p2 = nos.get(i + 1);
+                var p3 = nos.get(Math.min(nos.size() - 1, i + 2));
+                for (int a = 0; a < AMOSTRAS; a++) {
+                    double t = a / (double) AMOSTRAS;
+                    pontos[k][0] = GreedIslandRidgeField.catmull(
+                            p0.x(), p1.x(), p2.x(), p3.x(), t);
+                    pontos[k][1] = GreedIslandRidgeField.catmull(
+                            p0.z(), p1.z(), p2.z(), p3.z(), t);
+                    k++;
+                }
+            }
+            var ultimo = nos.get(nos.size() - 1);
+            pontos[k][0] = ultimo.x();
+            pontos[k][1] = ultimo.z();
+            mapa.put(rio.id(), pontos);
+        }
+        return java.util.Map.copyOf(mapa);
+    }
+
     private GreedIslandHydrologyField() {
     }
 
@@ -113,27 +156,23 @@ public final class GreedIslandHydrologyField {
      * @return {@code [distancia, largura]}
      */
     public static double[] medir(double x, double z, Rio rio) {
-        var nos = rio.curso();
+        double[][] pontos = CURSOS.get(rio.id());
         double menor = Double.MAX_VALUE;
         double progresso = 0.0D;
-        int passos = (nos.size() - 1) * AMOSTRAS;
+        int passos = pontos.length - 1;
 
-        for (int i = 0; i < nos.size() - 1; i++) {
-            var p0 = nos.get(Math.max(0, i - 1));
-            var p1 = nos.get(i);
-            var p2 = nos.get(i + 1);
-            var p3 = nos.get(Math.min(nos.size() - 1, i + 2));
-            for (int a = 0; a < AMOSTRAS; a++) {
-                double t = a / (double) AMOSTRAS;
-                double cx = GreedIslandRidgeField.catmull(p0.x(), p1.x(), p2.x(), p3.x(), t);
-                double cz = GreedIslandRidgeField.catmull(p0.z(), p1.z(), p2.z(), p3.z(), t);
-                double d = Math.hypot(x - cx, z - cz);
-                if (d < menor) {
-                    menor = d;
-                    progresso = (i * AMOSTRAS + a) / (double) passos;
-                }
+        for (int i = 0; i < pontos.length; i++) {
+            double dx = x - pontos[i][0];
+            double dz = z - pontos[i][1];
+            // QUADRADO, e nao hipotenusa: a raiz e a conta mais cara do laco e
+            // nao muda qual ponto e o mais proximo. Ela entra uma vez, no fim.
+            double d2 = dx * dx + dz * dz;
+            if (d2 < menor) {
+                menor = d2;
+                progresso = i / (double) passos;
             }
         }
+        menor = Math.sqrt(menor);
         // A ESCADA DA SECAO 34: cabeceira estreita, foz larga. A raiz faz o rio
         // engrossar depressa no comeco e devagar depois, que e como bacia se
         // comporta -- linear faria a largura parecer um degrau constante.

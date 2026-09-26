@@ -207,6 +207,40 @@ class GateMacroTest {
     // ------------------------------------------------------------------
 
     @Test
+    @DisplayName("o caminho REAL da geracao cabe no tick -- inclusive a cota de cidade")
+    void oCustoDoChunkDeCidadeCabeNoTick() {
+        // ESTE TESTE NASCEU DE UM SERVIDOR MORTO. O teste abaixo media
+        // `alturaEm` e passava, e eu concluí que o layout era barato. A
+        // feature chamava `PlantaDeCidade.cotaDe` POR BLOCO -- e cotaDe varre
+        // a pegada inteira da cidade amostrando elevacao. O watchdog matou o
+        // servidor com um tick de 60 segundos.
+        //
+        // MEDIR A FUNCAO BARATA E CONCLUIR QUE O SISTEMA E BARATO e a forma
+        // mais comum de falso verde em performance. Este mede o que a geracao
+        // de um chunk de cidade REALMENTE faz.
+        var cidade = RegistroDeCidades.porId("limeiro").orElseThrow();
+        com.darkcontinent.nenfoundation.enemy.greedisland.city.PlantaDeCidade
+                .cotaDe(cidade);
+
+        long inicio = System.nanoTime();
+        for (int dx = 0; dx < 16; dx++) {
+            for (int dz = 0; dz < 16; dz++) {
+                int x = cidade.ancora().x() + dx;
+                int z = cidade.ancora().z() + dz;
+                RegistroDeCidades.em(x, z);
+                com.darkcontinent.nenfoundation.enemy.greedisland.city.PlantaDeCidade
+                        .usoEm(cidade, x, z);
+                com.darkcontinent.nenfoundation.enemy.greedisland.city.PlantaDeCidade
+                        .cotaDe(cidade);
+            }
+        }
+        double ms = (System.nanoTime() - inicio) / 1_000_000.0D;
+        assertTrue(ms < 25.0D,
+                String.format("%.1f", ms) + " ms para um chunk de cidade. O tick tem 50 ms"
+                        + " para TUDO, e a geracao concorre com o resto do servidor.");
+    }
+
+    @Test
     @DisplayName("consultar o layout e barato o bastante para o tick")
     void oCustoPorColunaCabeNoTick() {
         // O gerador chama isto por coluna de chunk: 256 por chunk. Se uma
